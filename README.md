@@ -21,6 +21,7 @@ Open http://localhost:4173. Booking and payment are not implemented.
 - `generated-assets/`: original generated brand and background assets.
 - [Application documentation](gerbi/README.md)
 - [UX review, 2026-10-28 (Hebrew)](gerbi/docs/ux-review-2026-10-28-he.md)
+- [Flight search follow-up review and product specification (Hebrew)](gerbi/docs/flight-search-product-spec-2026-10-28-he.md)
 - [UX specification (Hebrew)](gerbi/docs/ux-specification-he.md)
 
 Credentials, local learning data, and system files are excluded from version control.
