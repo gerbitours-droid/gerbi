@@ -72,7 +72,7 @@ Destination inspiration and itinerary money values are fictional examples in ILS
 
 The project directory is `gerbi/`. `server.mjs` exports an HTTP server for imported deployment runtimes; direct `node server.mjs` execution still starts the local listener.
 
-`npm run vercel-build` copies the browser sources from `dist/` into generated `public/` assets. Vercel must serve these original browser files independently of the server bundle: shared modules such as `personalization.mjs` are also imported by the backend, whose tree shaking can remove exports used only by the browser. Do not serve those transformed server modules as browser assets. `dist/` remains the source of truth, and `public/` is ignored by Git.
+`vercel.json` explicitly selects `npm run vercel-build` and the `public/` output directory. The build copies the browser sources from `dist/` into these generated assets. Vercel must serve these original browser files independently of the server bundle: shared modules such as `personalization.mjs` are also imported by the backend, whose tree shaking can remove exports used only by the browser. Do not serve those transformed server modules as browser assets. `dist/` remains the source of truth, and `public/` is ignored by Git.
 
 The build copies only `dist/`; environment files, server source and learning data are not published as static assets. Supplier credentials must be configured separately in the deployment environment. The local file-based learning store is not durable shared storage on a serverless deployment; its production persistence remains a separate task.
 
