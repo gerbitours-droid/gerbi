@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-21",
+  "checks": [
+    "comparison add/remove/clear survive reload",
+    "favorite visible label and state update",
+    "skip link focuses main without changing route",
+    "planner date reset clears home summary",
+    "hotel mode carries truthful context",
+    "review switches to flights and requests exact dates",
+    "edited itinerary and requests survive save and reload",
+    "in-progress day edits save correctly; unsaved reload warns",
+    "blocked storage reports failure and preserves saved plan",
+    "invalid routes have recovery heading and focus",
+    "in-flight planner navigation restores controls",
+    "late availability response cannot open dialog on another page",
+    "catalog search query survives reload and trip return",
+    "independent plans survive reload and review navigation without overwriting original",
+    "shortening a plan requires explicit confirmation and retains a return day",
+    "opt-in draft recovery restores edits and removes recovery data when disabled",
+    "account deletion has a persistent focused undo action",
+    "unknown or mismatched plan keys do not silently open another plan",
+    "flight waiting can be cancelled and search becomes usable again",
+    "17 route types at 3 widths: no horizontal overflow and one h1",
+    "no browser runtime errors"
+  ],
+  "runtimeErrors": [],
+  "supplier": "mocked; no booking or live price check"
+}

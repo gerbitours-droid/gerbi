@@ -1,0 +1,18 @@
+.learning-consent {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 18px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.7;
+  cursor: pointer;
+}
+
+.learning-consent input { margin-top: 2px; }
+
+.match-reason {
+  color: var(--blue) !important;
+  font-size: 12px !important;
+  font-weight: 700;
+}
