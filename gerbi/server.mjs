@@ -113,4 +113,7 @@ export function createServer() {
   }
  });
 }
-if(process.argv[1] === fileURLToPath(import.meta.url)) createServer().listen(Number(process.env.PORT || 4173),'127.0.0.1',()=>console.log(`Gerbi is ready at http://localhost:${process.env.PORT || 4173}`));
+// Deployment runtimes import the server; only direct CLI execution binds a local port.
+const server = createServer();
+export default server;
+if(process.argv[1] === fileURLToPath(import.meta.url)) server.listen(Number(process.env.PORT || 4173),'127.0.0.1',()=>console.log(`Gerbi is ready at http://localhost:${process.env.PORT || 4173}`));
