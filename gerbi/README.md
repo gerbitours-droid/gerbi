@@ -68,9 +68,19 @@ Destination inspiration and itinerary money values are fictional examples in ILS
 - `backend/`: tag catalog, rule-based understanding, scoring and consented aggregate learning; see `backend/README.md`.
 - `dist/assets/`: local graphics and travel photos; see `ASSETS.md`.
 
+## Vercel packaging
+
+The project directory is `gerbi/`. `server.mjs` exports an HTTP server for imported deployment runtimes; direct `node server.mjs` execution still starts the local listener.
+
+`npm run vercel-build` copies the browser sources from `dist/` into generated `public/` assets. Vercel must serve these original browser files independently of the server bundle: shared modules such as `personalization.mjs` are also imported by the backend, whose tree shaking can remove exports used only by the browser. Do not serve those transformed server modules as browser assets. `dist/` remains the source of truth, and `public/` is ignored by Git.
+
+The build copies only `dist/`; environment files, server source and learning data are not published as static assets. Supplier credentials must be configured separately in the deployment environment. The local file-based learning store is not durable shared storage on a serverless deployment; its production persistence remains a separate task.
+
+Regression coverage: `tests/server-entrypoint.test.mjs` exercises the imported server, assets and API routing; `tests/static-assets.test.mjs` verifies byte-for-byte browser copies and required shared exports.
+
 ## Verification
 
-Nineteen Node tests pass, covering parsing, negation, budget constraints, shared ranking, preference restoration, supplier fare handling, exposure protection and unavailable booking behavior. Browser QA covers responsive layouts, live flight search/revalidation, preference changes, comparison, saved itineraries, empty/error states and keyboard dialog dismissal. See the dated QA report for exact scope. This does not constitute production booking certification or a full accessibility audit.
+Node tests cover parsing, negation, budget constraints, shared ranking, preference restoration, supplier fare handling, exposure protection and unavailable booking behavior. Browser QA covers responsive layouts, live flight search/revalidation, preference changes, comparison, saved itineraries, empty/error states and keyboard dialog dismissal. See the dated QA report for exact scope. This does not constitute production booking certification or a full accessibility audit.
 
 ## Full UX specification and current regression pass
 
