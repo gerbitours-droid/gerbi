@@ -70,7 +70,7 @@ Destination inspiration and itinerary money values are fictional examples in ILS
 
 ## Vercel packaging
 
-The project directory is `gerbi/`. `server.mjs` exports an HTTP server for imported deployment runtimes; direct `node server.mjs` execution still starts the local listener.
+The project directory is `gerbi/`. `server.mjs` exports an HTTP server for imported deployment runtimes; direct `node server.mjs` execution still starts the local listener. Vercel uses the explicit static-site configuration (`framework: null`) and `api/[...path].mjs` for API requests, rather than treating every request as a Node backend request.
 
 `vercel.json` explicitly selects `npm run vercel-build` and the `public/` output directory. The build copies the browser sources from `dist/` into these generated assets. Vercel must serve these original browser files independently of the server bundle: shared modules such as `personalization.mjs` are also imported by the backend, whose tree shaking can remove exports used only by the browser. Do not serve those transformed server modules as browser assets. `dist/` remains the source of truth, and `public/` is ignored by Git.
 

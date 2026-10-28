@@ -2,10 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Server } from 'node:http';
 import * as entrypoint from '../server.mjs';
+import apiServer from '../api/[...path].mjs';
 
 test('imported entrypoint exposes a server without opening a local port', async () => {
   const server = entrypoint.default;
   assert.ok(server instanceof Server, 'The deployment runtime needs a default HTTP server export');
+  assert.equal(apiServer, server);
   assert.equal(server.listening, false);
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
