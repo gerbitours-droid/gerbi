@@ -46,13 +46,13 @@ const SCHEMAS = {
 // Personal contact details never leave the server.
 export const scrub = text => String(text || '').replace(/[^\s@]+@[^\s@]+\.[^\s@]+/g, '[מייל]').replace(/\+?\d[\d\s-]{7,}\d/g, '[טלפון]').slice(0, 600);
 
-const state = { day: '', used: 0, failures: 0, openUntil: 0 };
+const state = { day: '', used: 0, failures: 0, openUntil: 0, calls: 0, cacheHits: 0, errors: 0, lastProvider: null };
 function budgetLeft() {
   const today = new Date().toISOString().slice(0, 10);
   if (state.day !== today) { state.day = today; state.used = 0; }
   return DAILY_TOKENS - state.used;
 }
-export const partnerStatus = () => ({ configured: providerOrder().length > 0, model: activeModel(), tokensLeftToday: Math.max(0, budgetLeft()), circuitOpen: Date.now() < state.openUntil });
+export const partnerStatus = () => ({ configured: providerOrder().length > 0, model: activeModel(), providers: providerOrder(), tokensLeftToday: Math.max(0, budgetLeft()), tokensUsedToday: state.used, circuitOpen: Date.now() < state.openUntil, calls: state.calls, cacheHits: state.cacheHits, errors: state.errors, lastProvider: state.lastProvider });
 
 const parseJson = text => JSON.parse(String(text || '').trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, ''));
 
@@ -92,14 +92,24 @@ async function askAnthropic(provider, task, input, timeoutMs) {
   return parseJson(response.content.find(block => block.type === 'text')?.text);
 }
 
+export async function probeProvider(name, task, input, timeoutMs = 20000) {
+  const provider = PROVIDERS[name];
+  if (!provider || !process.env[provider.key]) return { name, configured: false };
+  const started = Date.now(), before = state.used;
+  try { const value = await (name === 'anthropic' ? askAnthropic : askCompatible)(provider, task, input, timeoutMs); return { name, configured: true, model: provider.model(), ms: Date.now() - started, tokens: state.used - before, value }; }
+  catch (error) { return { name, configured: true, model: provider.model(), ms: Date.now() - started, error: `${error.status || ''} ${error.message}`.trim() }; }
+}
+
 async function ask(task, input, timeoutMs) {
   if (Date.now() < state.openUntil || budgetLeft() < 2000) return null;
   for (const name of providerOrder()) {
     const provider = PROVIDERS[name];
     try {
+      state.calls++;
       const value = await (name === 'anthropic' ? askAnthropic : askCompatible)(provider, task, input, timeoutMs);
-      if (value) { state.failures = 0; return value; }
+      if (value) { state.failures = 0; state.lastProvider = name; return value; }
     } catch (error) {
+      state.errors++;
       if (process.env.GERBI_DEBUG) console.warn(`llm partner ${name}:`, error?.status || error?.name, error?.message);
     }
   }
@@ -111,7 +121,7 @@ async function ask(task, input, timeoutMs) {
 async function cached(store, task, input, timeoutMs) {
   const key = crypto.createHash('sha256').update(`${activeModel()}|${task}|${JSON.stringify(input)}`).digest('hex').slice(0, 32);
   const hit = store && await store.get(key).catch(() => null);
-  if (hit) return { value: hit, cached: true };
+  if (hit) { state.cacheHits++; return { value: hit, cached: true }; }
   const value = await ask(task, input, timeoutMs);
   if (value && store) await store.set(key, value, CACHE_TTL[task]).catch(() => {});
   return value ? { value, cached: false } : null;

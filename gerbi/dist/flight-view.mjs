@@ -83,6 +83,7 @@ export function offerFacts(offer, payload) {
     longestLayover: layovers.reduce((max, item) => Math.max(max, item.minutes || 0), 0),
     overnight: layovers.some(item => item.overnight),
     checked: combine(legs.map(leg => leg.baggage.checked)), trolley: combine(legs.map(leg => leg.baggage.trolley)),
+    refundable: offer.fareDetails?.nonRefundable === true ? 'no' : offer.fareDetails?.nonRefundable === false ? 'yes' : 'unknown',
     airports: [...new Set([legs[0]?.segments.at(-1)?.arrival?.airport?.code, legs[1]?.segments[0]?.departure?.airport?.code].filter(Boolean))],
     airportChange: Boolean(legs[1] && legs[0]?.segments.at(-1)?.arrival?.airport?.code && legs[1].segments[0]?.departure?.airport?.code && legs[0].segments.at(-1).arrival.airport.code !== legs[1].segments[0].departure.airport.code)
   };

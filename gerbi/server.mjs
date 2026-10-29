@@ -1,4 +1,5 @@
 import http from 'node:http';
+import zlib from 'node:zlib';
 import { existsSync, readFileSync } from 'node:fs';
 const envPath = new URL('./.env', import.meta.url);
 if (existsSync(envPath)) for (const line of readFileSync(envPath,'utf8').split('\n')) { const match = /^([A-Z_]+)=(.*)$/.exec(line); if(match && !process.env[match[1]]) process.env[match[1]] = match[2]; }
@@ -11,6 +12,7 @@ import { destinationTags, publicTagCatalog } from './backend/tag-catalog.mjs';
 import { extractSignals, missingFields, scoreDestinations, understandRequest } from './backend/understanding.mjs';
 import { voleroFlightAvailability, voleroFlightBook, voleroFlightSearch } from './backend/volero-client.mjs';
 import { createStore } from './backend/kv-store.mjs';
+import { validSearch, validAvailability, slimSearch, slimAvailability, cachedSearch, withRetry, allow, clientOf } from './backend/volero-guard.mjs';
 import { QueryMemory, EVENT_WEIGHTS } from './backend/query-memory.mjs';
 import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm-partner.mjs';
 import { places } from './dist/places.mjs';
@@ -42,9 +44,15 @@ const itemKey = (value) => (typeof value === 'string' && /^[A-Za-z0-9@:+|?._-]{1
 const types = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.png':'image/png', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml', '.woff2':'font/woff2' };
 
 function json(res, code, data) {
-  res.writeHead(code, { 'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'no-store' });
-  res.end(JSON.stringify(data));
+  const text = JSON.stringify(data), headers = { 'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'no-store', Vary:'Accept-Encoding' };
+  // Flight results are large JSON; gzip cuts them by ~90% on the wire.
+  if (text.length > 2048 && /\bgzip\b/.test(res.req?.headers['accept-encoding'] || '')) { res.writeHead(code, { ...headers, 'Content-Encoding':'gzip' }); return res.end(zlib.gzipSync(text)); }
+  res.writeHead(code, headers); res.end(text);
 }
+// One JSON line per supplier call for the hosting logs: route, outcome, timing, size – never passenger data.
+const supplier = { lastOkAt: null, lastErrorAt: null, lastError: null, calls: 0, cacheHits: 0 };
+function logSupplier(entry) { supplier.calls++; if (entry.cached) supplier.cacheHits++; if (entry.ok) supplier.lastOkAt = new Date().toISOString(); else { supplier.lastErrorAt = new Date().toISOString(); supplier.lastError = entry.error; } console.log(JSON.stringify({ evt:'volero', ...entry })); }
+const tooMany = (send) => send(429, { error:'rate_limited', message:'יותר מדי בקשות בזמן קצר. נסו שוב בעוד דקה.' });
 
 async function body(req, limit = 32_000) {
   let raw = '';
@@ -65,7 +73,7 @@ function id(value, max = 80) {
 }
 function supplierError(send, error) {
   const status = error.status === 504 ? 504 : Number.isInteger(error.status) && error.status >= 400 && error.status < 500 ? error.status : 502;
-  return send(status, { error:error.message, provider:'volero', details:error.details || undefined });
+  return send(status, { error:error.message, provider:'volero' });
 }
 export function createServer() {
  return http.createServer(async (req,res) => {
@@ -75,9 +83,10 @@ export function createServer() {
   const send = (code,data) => json(res, code, data);
   try {
    const url = new URL(req.url,'http://localhost');
-   if (url.pathname === '/api/status') { const partner = partnerStatus(); return send(200,{ mode:'demo', provider:'Volero', connected:false, credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), reason:'authentication_documentation_required', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available:partner.configured && !partner.circuitOpen && partner.tokensLeftToday > 2000 } }); }
+   if (url.pathname === '/api/status') { const partner = partnerStatus(); return send(200,{ mode:'demo', provider:'Volero', credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), connected:Boolean(supplier.lastOkAt && (!supplier.lastErrorAt || supplier.lastOkAt > supplier.lastErrorAt)), supplier:{ lastOkAt:supplier.lastOkAt, lastErrorAt:supplier.lastErrorAt, lastError:supplier.lastError, calls:supplier.calls, cacheHits:supplier.cacheHits }, booking:process.env.VOLERO_BOOKING_ENABLED === 'true' ? 'enabled' : 'disabled', storage:process.env.UPSTASH_REDIS_REST_URL ? 'upstash' : 'local', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available:partner.configured && !partner.circuitOpen && partner.tokensLeftToday > 2000 } }); }
    if (url.pathname === '/api/tags' && req.method === 'GET') return send(200, { facets: publicTagCatalog(), destinations: destinationTags });
    if (url.pathname === '/api/learning/summary' && req.method === 'GET') return send(200, await learning.summary());
+   if (url.pathname.startsWith('/api/ai/') && req.method === 'POST' && !allow(clientOf(req), 'ai')) return tooMany(send);
    if (url.pathname === '/api/ai/understand') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
     const input = await body(req);
@@ -139,17 +148,24 @@ export function createServer() {
    }
    if (url.pathname === '/api/volero/flights/search') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
-    const input = await body(req);
-    if (!input || typeof input !== 'object' || Array.isArray(input)) return send(400,{error:'search_input_required'});
-    try { return send(200, { provider:'volero', data:await voleroFlightSearch(input) }); }
-    catch (error) { return supplierError(send, error); }
+    if (!allow(clientOf(req), 'search')) return tooMany(send);
+    const request = validSearch(await body(req));
+    if (!request) return send(400,{error:'search_input_invalid',message:'פרטי החיפוש אינם תקינים.'});
+    const started = Date.now();
+    try {
+      const result = await cachedSearch(request, (input) => withRetry(() => voleroFlightSearch(input)).then(slimSearch));
+      logSupplier({ route:'search', ok:true, cached:result.cached, ms:Date.now() - started, offers:result.data.offers.length, legs:request.originDestinations.length });
+      return send(200, { provider:'volero', data:result.data, cached:result.cached, searchedAt:new Date(result.searchedAt).toISOString() });
+    } catch (error) { logSupplier({ route:'search', ok:false, ms:Date.now() - started, error:error.message, status:error.status }); return supplierError(send, error); }
    }
    if (url.pathname === '/api/volero/flights/availability') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
-    const input = await body(req);
-    if (!input?.srk || !input?.searchToken || typeof input.offerIndex !== 'string' || !input.offerIndex) return send(400,{error:'search_reference_required'});
-    try { return send(200, { provider:'volero', data:await voleroFlightAvailability(input) }); }
-    catch (error) { return supplierError(send, error); }
+    if (!allow(clientOf(req), 'availability')) return tooMany(send);
+    const request = validAvailability(await body(req));
+    if (!request) return send(400,{error:'search_reference_required'});
+    const started = Date.now();
+    try { const data = slimAvailability(await withRetry(() => voleroFlightAvailability(request))); logSupplier({ route:'availability', ok:true, ms:Date.now() - started }); return send(200, { provider:'volero', data }); }
+    catch (error) { logSupplier({ route:'availability', ok:false, ms:Date.now() - started, error:error.message, status:error.status }); return supplierError(send, error); }
    }
    if (url.pathname === '/api/volero/flights/book') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
@@ -157,6 +173,7 @@ export function createServer() {
     // A live booking charges the agency's supplier account; the browser has no booking flow yet, so the public
     // deployment refuses it unless an operator turns it on deliberately.
     if (process.env.VOLERO_BOOKING_ENABLED !== 'true') return send(403,{error:'booking_disabled',message:'הזמנה אינה זמינה באתר בשלב זה.'});
+    if (!allow(clientOf(req), 'book')) return tooMany(send);
     if (input?.confirm !== true) return send(428,{error:'explicit_booking_confirmation_required',message:'Booking requires confirm:true.'});
     if (!input?.srk || !input?.searchToken || typeof input.offerIndex !== 'string' || !input.offerIndex || !input.input || typeof input.input !== 'object') return send(400,{error:'booking_input_required'});
     try { return send(200, { provider:'volero', data:await voleroFlightBook(input) }); }

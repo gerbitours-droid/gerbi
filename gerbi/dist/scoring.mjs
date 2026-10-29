@@ -9,13 +9,13 @@ const REMOTE_AIRPORTS = new Set(['BVA', 'BGY']);
 // Reference amounts are per traveler, in USD; other currencies scale by a fixed reference rate (an order of
 // magnitude for comfort costs, never used to convert a fare). ponytail: fixed table, a rates feed if this matters.
 const CURRENCY_SCALE = { USD: 1, EUR: 0.95, GBP: 0.8, ILS: 3.7 };
-export const BASE_COSTS = { hour: 12, stop: 25, longWait: 6, overnight: 60, airportChange: 40, offHours: 30, nightDeparture: 15, nextDayArrival: 10, remoteAirport: 20, carrierMismatch: 20, bagPaid: 45, bagUnknown: 25 };
+export const BASE_COSTS = { hour: 12, stop: 25, longWait: 6, overnight: 60, airportChange: 40, offHours: 30, nightDeparture: 15, nextDayArrival: 10, remoteAirport: 20, carrierMismatch: 20, bagPaid: 45, bagUnknown: 25, nonRefundable: 15 };
 const LEARNABLE = ['hour', 'stop', 'longWait', 'overnight', 'offHours', 'nightDeparture'];
 
 // The traveler's prices for time and inconvenience, from the brief and (bounded) learned multipliers θ.
 export function costsFor(brief = {}, learned = {}) {
   const c = { ...BASE_COSTS };
-  if (brief.cheaper) { c.hour *= 0.35; c.stop *= 0.4; c.longWait *= 0.5; }
+  if (brief.cheaper) { c.hour *= 0.35; c.stop *= 0.4; c.longWait *= 0.5; c.nonRefundable *= 0.3; }
   if ((brief.children || 0) > 0) { c.hour *= 1.3; c.stop *= 1.5; c.overnight *= 1.5; c.longWait *= 1.5; c.nightDeparture *= 2; }
   if (brief.stops === '0' || brief.direct) c.stop *= 2.4;
   for (const key of LEARNABLE) if (Number.isFinite(learned[key])) c[key] *= Math.exp(Math.max(-0.7, Math.min(0.7, learned[key])));
@@ -47,7 +47,9 @@ export function features(facts, brief = {}) {
     remoteAirport: facts.airports.filter(code => REMOTE_AIRPORTS.has(code)).length,
     carrierMismatch: brief.carrier && !facts.carriers.some(name => name.toLowerCase().includes(brief.carrier)) ? 1 : 0,
     bagPaid: brief.checkedBag && ['paid', 'none'].includes(facts.checked) ? legs.length : 0,
-    bagUnknown: brief.checkedBag && ['unknown', 'mixed'].includes(facts.checked) ? legs.length : 0
+    bagUnknown: brief.checkedBag && ['unknown', 'mixed'].includes(facts.checked) ? legs.length : 0,
+    // Flexibility has a value; an unstated refund policy is not charged (no guessing either way).
+    nonRefundable: facts.refundable === 'no' ? 1 : 0
   };
 }
 

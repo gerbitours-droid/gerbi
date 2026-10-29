@@ -1,0 +1,32 @@
+const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const OUT = process.env.OUT || 'verification/e2e', base = process.env.BASE_URL || 'http://localhost:4173', W = Number(process.env.W || 1440);
+const browser = await chromium.launch(); const page = await (await browser.newContext({ viewport: { width: W, height: 1000 } })).newPage();
+const errors = []; page.on('pageerror', e => errors.push(e.message)); const log = (...a) => console.log(...a);
+const calls = []; page.on('request', r => { if (r.url().includes('/api/ai/')) calls.push(r.url().split('/api/ai/')[1] + ':' + (JSON.parse(r.postData() || '{}').event || '')); });
+log('status:', JSON.stringify((await (await fetch(base + '/api/status')).json()).partner));
+await page.goto(base + '/#/');
+await page.locator('#dates-button').click(); await page.locator('#start-date').fill('2027-06-10'); await page.locator('#end-date').fill('2027-06-15'); await page.locator('#date-form button').click();
+await page.locator('#destination').fill('רומא'); await page.locator('.search-submit').click();
+await page.waitForSelector('#live-results .flight-card', { timeout: 60000 }); await page.waitForTimeout(800);
+log('sort:', await page.locator('#flight-sort').inputValue());
+const cards = page.locator('.flight-card');
+for (let i = 0; i < 4; i++) log(`card ${i + 1}:`, (await cards.nth(i).locator('.flight-badges').innerText().catch(() => '')).replace(/\n/g, ' '), '|', await cards.nth(i).locator('.why').innerText().catch(() => ''), '|', await cards.nth(i).locator('.flight-price strong').innerText());
+await page.screenshot({ path: `${OUT}/decide-${W}.png` });
+// a real choice: open details, check price, save the 3rd card
+const third = cards.nth(2), key = await third.getAttribute('data-itinerary');
+await third.locator('details.flight-segments summary').first().click();
+await third.locator('[data-volero-offer]').click(); await page.waitForSelector('[data-save-flight]', { timeout: 60000 }); await page.locator('[data-save-flight]').click(); await page.locator('#modal .modal-close').click();
+await page.waitForTimeout(500);
+log('ai calls:', [...new Set(calls)].join(', '));
+const brief = { origin: 'TLV', destination: 'FCO', start: '2027-06-10', tripType: 'round', adults: 2, children: 0 };
+const boosts = await (await fetch(base + '/api/ai/memory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief, items: [key] }) })).json();
+log('memory boost for the saved flight:', boosts.boosts[key]);
+const tie = await (await fetch(base + '/api/ai/tiebreak', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief, candidates: [{ key: 'a', price: 1 }, { key: 'b', price: 2 }] }) })).json();
+log('tiebreak without key:', JSON.stringify(tie));
+const und = await (await fetch(base + '/api/ai/understand', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'רוצים מקום עם הרבה טבע ומפלים, לא תיירותי' }) })).json();
+log('understand vague:', JSON.stringify(und.coverage), JSON.stringify(und.partner));
+// next identical search: the saved flight should move up
+await page.reload(); await page.locator('.search-submit').click(); await page.waitForSelector('#live-results .flight-card', { timeout: 60000 }); await page.waitForTimeout(1500);
+const order = await page.locator('.flight-card').evaluateAll(list => list.map(c => c.dataset.itinerary));
+log('saved flight position after identical search:', order.indexOf(key) + 1, '(was 3)');
+log('errors:', errors); await browser.close();
