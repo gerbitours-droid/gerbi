@@ -86,7 +86,7 @@ test('saving a flight repeatedly lifts it above an equal rival, within β', asyn
 });
 
 test('LLM partner: off without a key, contact details scrubbed, cached answers validated like user input', async () => {
-  const previous = process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_API_KEY;
+  const keys = ['OPENROUTER_API_KEY', 'DEEPSEEK_API_KEY', 'ANTHROPIC_API_KEY'], saved = keys.map(k => process.env[k]); keys.forEach(k => delete process.env[k]);
   try {
     assert.equal(await partnerUnderstand(null, 'משהו עם טבע', { want: [] }), null);
     assert.equal(await partnerTieBreak(null, {}, [{ key: 'a' }, { key: 'b' }]), null);
@@ -102,7 +102,7 @@ test('LLM partner: off without a key, contact details scrubbed, cached answers v
     const pick = await partnerTieBreak({ get: async () => ({ pick: 1, reason: 'חוזרת בערב' }), set: async () => {} }, {}, [{ key: 'a' }, { key: 'b' }]);
     assert.deepEqual(pick, { pick: 'b', reason: 'חוזרת בערב', cached: true });
     assert.equal(await partnerTieBreak({ get: async () => ({ pick: 7, reason: '' }), set: async () => {} }, {}, [{ key: 'a' }, { key: 'b' }]), null);
-  } finally { if (previous !== undefined) process.env.ANTHROPIC_API_KEY = previous; }
+  } finally { keys.forEach((k, i) => { if (saved[i] !== undefined) process.env[k] = saved[i]; }); }
 });
 
 test('the LLM gate opens only for text the rules did not understand', () => {

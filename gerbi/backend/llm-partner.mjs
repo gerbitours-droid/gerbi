@@ -5,8 +5,16 @@ import crypto from 'node:crypto';
 import Anthropic from '@anthropic-ai/sdk';
 import { places } from '../dist/places.mjs';
 
-export const MODEL = process.env.GERBI_LLM_MODEL || 'claude-opus-5-5';
-// Server-side refusal fallback exists for these models only (Haiku has none).
+// Providers in order of preference; the first one with a key answers, the next one covers its failures.
+//   openrouter (default Qwen3.8 Max) · deepseek (direct API) · anthropic (Claude). GERBI_LLM_PROVIDER puts one first.
+const PROVIDERS = {
+  openrouter: { key: 'OPENROUTER_API_KEY', url: 'https://openrouter.ai/api/v1/chat/completions', model: () => process.env.GERBI_LLM_MODEL || 'qwen/qwen3.8-max-0902', schema: 'json_schema' },
+  deepseek: { key: 'DEEPSEEK_API_KEY', url: 'https://api.deepseek.com/chat/completions', model: () => process.env.GERBI_DEEPSEEK_MODEL || 'deepseek-chat', schema: 'json_object' },
+  anthropic: { key: 'ANTHROPIC_API_KEY', model: () => process.env.GERBI_ANTHROPIC_MODEL || 'claude-opus-5-5' }
+};
+const providerOrder = () => { const first = process.env.GERBI_LLM_PROVIDER; return [first, 'openrouter', 'deepseek', 'anthropic'].filter((name, i, all) => PROVIDERS[name] && all.indexOf(name) === i && process.env[PROVIDERS[name].key]); };
+export const activeModel = () => { const name = providerOrder()[0]; return name ? `${name}:${PROVIDERS[name].model()}` : 'none'; };
+// Server-side refusal fallback exists for these Claude models only.
 const FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-1', 'claude-sonnet-5-5']);
 const DAILY_TOKENS = Number(process.env.GERBI_LLM_DAILY_TOKENS || 200000);
 const CACHE_TTL = { understand: 30 * 86400, tiebreak: 86400 };
@@ -44,35 +52,64 @@ function budgetLeft() {
   if (state.day !== today) { state.day = today; state.used = 0; }
   return DAILY_TOKENS - state.used;
 }
-export const partnerStatus = () => ({ configured: Boolean(process.env.ANTHROPIC_API_KEY), model: MODEL, tokensLeftToday: Math.max(0, budgetLeft()), circuitOpen: Date.now() < state.openUntil });
+export const partnerStatus = () => ({ configured: providerOrder().length > 0, model: activeModel(), tokensLeftToday: Math.max(0, budgetLeft()), circuitOpen: Date.now() < state.openUntil });
 
-let client = null;
+const parseJson = text => JSON.parse(String(text || '').trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, ''));
+
+// OpenAI-compatible chat completions (OpenRouter, DeepSeek). OpenRouter enforces the JSON schema; DeepSeek gets
+// JSON mode with the schema spelled out in the prompt, and the answer is validated afterwards either way.
+async function askCompatible(provider, task, input, timeoutMs) {
+  const system = provider.schema === 'json_schema' ? SYSTEMS[task] : `${SYSTEMS[task]}\nAnswer with one json object only, matching this JSON schema: ${JSON.stringify(SCHEMAS[task])}`;
+  const response = await fetch(provider.url, {
+    method: 'POST', signal: AbortSignal.timeout(timeoutMs),
+    headers: { Authorization: `Bearer ${process.env[provider.key]}`, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://gerbi.travel', 'X-Title': 'Gerbi' },
+    body: JSON.stringify({ model: provider.model(), max_tokens: 900, temperature: 0,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: JSON.stringify(input) }],
+      response_format: provider.schema === 'json_schema' ? { type: 'json_schema', json_schema: { name: task, strict: true, schema: SCHEMAS[task] } } : { type: 'json_object' },
+      ...(provider === PROVIDERS.openrouter ? { reasoning: { effort: 'low', exclude: true } } : {}) })
+  });
+  if (!response.ok) throw Object.assign(new Error(`http_${response.status}`), { status: response.status });
+  const data = await response.json();
+  state.used += (data.usage?.prompt_tokens || 0) + (data.usage?.completion_tokens || 0);
+  const choice = data.choices?.[0];
+  if (!choice || choice.finish_reason === 'length') return null;
+  return parseJson(choice.message?.content);
+}
+
+let anthropicClient = null;
+async function askAnthropic(provider, task, input, timeoutMs) {
+  const model = provider.model();
+  anthropicClient ||= new Anthropic({ maxRetries: 0 });
+  const response = await anthropicClient.beta.messages.create({
+    model, max_tokens: 1500,
+    ...(FALLBACK_MODELS.has(model) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}),
+    system: [{ type: 'text', text: SYSTEMS[task], cache_control: { type: 'ephemeral' } }],
+    output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMAS[task] } },
+    messages: [{ role: 'user', content: JSON.stringify(input) }]
+  }, { timeout: timeoutMs });
+  state.used += (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
+  if (response.stop_reason === 'refusal' || response.stop_reason === 'max_tokens') return null;
+  return parseJson(response.content.find(block => block.type === 'text')?.text);
+}
+
 async function ask(task, input, timeoutMs) {
-  if (!process.env.ANTHROPIC_API_KEY || Date.now() < state.openUntil || budgetLeft() < 2000) return null;
-  client ||= new Anthropic({ maxRetries: 0 });
-  try {
-    const response = await client.beta.messages.create({
-      model: MODEL, max_tokens: 1500,
-      ...(FALLBACK_MODELS.has(MODEL) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}),
-      system: [{ type: 'text', text: SYSTEMS[task], cache_control: { type: 'ephemeral' } }],
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMAS[task] } },
-      messages: [{ role: 'user', content: JSON.stringify(input) }]
-    }, { timeout: timeoutMs });
-    state.used += (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
-    if (response.stop_reason === 'refusal' || response.stop_reason === 'max_tokens') return null;
-    const text = response.content.find(block => block.type === 'text')?.text;
-    state.failures = 0;
-    return text ? JSON.parse(text) : null;
-  } catch (error) {
-    // Any failure is silent for the traveler: the deterministic answer stands. Three in a row pause the partner.
-    if (++state.failures >= 3) { state.openUntil = Date.now() + 10 * 60000; state.failures = 0; }
-    if (process.env.GERBI_DEBUG) console.warn('llm partner:', error?.status || error?.name, error?.message);
-    return null;
+  if (Date.now() < state.openUntil || budgetLeft() < 2000) return null;
+  for (const name of providerOrder()) {
+    const provider = PROVIDERS[name];
+    try {
+      const value = await (name === 'anthropic' ? askAnthropic : askCompatible)(provider, task, input, timeoutMs);
+      if (value) { state.failures = 0; return value; }
+    } catch (error) {
+      if (process.env.GERBI_DEBUG) console.warn(`llm partner ${name}:`, error?.status || error?.name, error?.message);
+    }
   }
+  // Every provider failed: the deterministic answer stands. Three rounds in a row pause the partner for 10 minutes.
+  if (providerOrder().length && ++state.failures >= 3) { state.openUntil = Date.now() + 10 * 60000; state.failures = 0; }
+  return null;
 }
 
 async function cached(store, task, input, timeoutMs) {
-  const key = crypto.createHash('sha256').update(`${MODEL}|${task}|${JSON.stringify(input)}`).digest('hex').slice(0, 32);
+  const key = crypto.createHash('sha256').update(`${activeModel()}|${task}|${JSON.stringify(input)}`).digest('hex').slice(0, 32);
   const hit = store && await store.get(key).catch(() => null);
   if (hit) return { value: hit, cached: true };
   const value = await ask(task, input, timeoutMs);
