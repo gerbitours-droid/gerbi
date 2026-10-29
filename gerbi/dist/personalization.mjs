@@ -31,41 +31,9 @@ export function rankInspirations(trips, preferences = {}, limit = 3) {
     .slice(0,limit);
 }
 
-// Destinations named in the brief: wanted ("ברומא", "רק פריז") and ruled out ("בלי דובאי", "לא לדובאי", "חוץ מרומא").
-// Stored as airport codes so an unsupported place (Paris) survives as a stated limit rather than vanishing.
-const NEGATIONS = new Set(['לא', 'בלי', 'ללא', 'ולא', 'ובלי', 'וללא', 'מלבד', 'חוץ']);
-const words = text => String(text || '').normalize('NFKC').toLowerCase().replace(/[״"׳']/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean);
-export function destinationConstraints(text, previous = {}) {
-  const list = words(text), want = new Set(previous.want || []), exclude = new Set(previous.exclude || []);
-  let only = false;
-  const found = [];
-  list.forEach((word, i) => {
-    for (const place of places) if (!place.home) for (const name of place.names) {
-      const parts = name.split(' '), first = parts.length === 1 ? word : list.slice(i, i + parts.length).join(' ');
-      // Hebrew attaches ו/ב/ל/ה/מ to the noun: "ולדובאי", "מרומא".
-      if (first !== name && !(first.endsWith(name) && /^[ובלהמ]{1,2}$/.test(first.slice(0, first.length - name.length)))) continue;
-      const negated = NEGATIONS.has(list[i - 1]) || NEGATIONS.has(list[i - 2]);
-      if (list[i - 1] === 'רק' || list[i - 2] === 'רק') only = true;
-      found.push({ code: place.code, negated });
-      return;
-    }
-  });
-  if (only) want.clear();
-  for (const { code, negated } of found) {
-    if (negated) { exclude.add(code); want.delete(code); } else { want.add(code); exclude.delete(code); }
-  }
-  return { want: [...want], exclude: [...exclude] };
-}
-export function coupleIntent(text, children = 0) {
-  if (/לא\s+(?:חופשה\s+)?(?:זוגי|רומנטי)|בלי\s+רומנטיקה/.test(text)) return false;
-  if (/רומנטי|זוגי|ירח דבש|רק שנינו|רק אנחנו/.test(text)) return true;
-  // "זוג עם שני ילדים" describes who travels, not a couples' holiday.
-  if (children > 0) return false;
-  return /זוג/.test(text) ? true : undefined;
-}
 export function constraintSummary(preferences = {}) {
   const byCode = code => places.find(place => place.code === code);
   const missing = (preferences.want || []).map(byCode).filter(place => place && !place.trip);
   const excluded = (preferences.exclude || []).map(byCode).filter(Boolean);
-  return { missing: missing.map(place => place.label.split(',')[0]), excluded: excluded.map(place => place.label.split(',')[0]) };
+  return { missing: missing.map(place => place.names[0]), excluded: excluded.map(place => place.names[0]) };
 }

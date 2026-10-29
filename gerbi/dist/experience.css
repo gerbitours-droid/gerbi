@@ -138,3 +138,9 @@ svg{stroke-width:1.5}
 .trip-type{border:0;margin:0 0 10px;padding:0;display:flex;gap:6px}.trip-type label{display:flex;align-items:center;gap:6px;font-size:14px;padding:6px 12px;border-radius:100px;cursor:pointer;min-height:36px}.trip-type label:has(input:checked){background:var(--pale,#eaf6ff);color:var(--navy,#071751);font-weight:700}
 button.swap{border:0;background:none;cursor:pointer;color:var(--blue,#096bd2);min-width:40px;min-height:40px;border-radius:50%}button.swap:hover{background:var(--pale,#eaf6ff)}
 @media (max-width:700px){button.swap{display:flex;align-self:center;justify-self:center;margin:-4px auto;transform:rotate(90deg)}}
+/* Gerbi AI reply, tab notes */
+.tab-note{display:block;font-size:10px;font-weight:500;opacity:.75;margin-top:-2px}
+.reply-label{margin:0 0 4px;font-weight:700}.understood-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}.understood-chip{background:#fff;border:1px solid var(--border,#dce7f3);border-radius:100px;padding:3px 10px;font-size:13px;color:var(--navy,#071751)}
+.message.assistant p{margin:6px 0}.next-question{font-weight:700;color:var(--navy,#071751)}
+.parsed-search{background:#fff;border:1px solid #f0c27a;border-radius:14px;padding:10px 12px;margin:8px 0}.parsed-search .button{margin-top:4px}
+.chat-head-actions{display:flex;gap:10px;margin-inline-start:auto}

@@ -1,7 +1,8 @@
 import { flatTags, destinationTags } from './tag-catalog.mjs';
-import { rankInspirations, coupleIntent, destinationConstraints } from '../dist/personalization.mjs';
+import { rankInspirations } from '../dist/personalization.mjs';
+import { understandRequest } from '../dist/brief-engine.mjs';
+export { understandRequest };
 
-const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
 const tagIndex = flatTags();
 
 export function normalizeHebrew(value = '') {
@@ -26,41 +27,16 @@ function numberWord(value) {
 }
 
 export function extractSignals(text, previous = {}) {
+  const { brief } = understandRequest(text, previous);
   const normalized = normalizeHebrew(text);
-  const tags = tagIndex.filter((tag) => tag.aliases.some((alias) => {
+  // Catalog tags feed the learning layer; an explicit "no" in the brief always wins over an alias match.
+  let tags = [...new Set([...(previous.tags || []), ...tagIndex.filter((tag) => tag.aliases.some((alias) => {
     const words = normalizeHebrew(alias).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`(?:^|\\s)(?:ב|ו|ל|ה)?${words}(?=\\s|$)`).test(normalized);
-  })).map((tag) => tag.id);
-  const result = { ...previous, tags: [...new Set([...(previous.tags || []), ...tags])] };
-  const budget = normalized.match(/(?:עד|תקציב(?: של)?)\s*(\d+(?:\.\d+)?)\s*(אלף|אלפים|k)?/);
-  if (budget) result.budget = Math.round(Number(budget[1]) * (budget[2] ? 1000 : 1));
-  const nights = normalized.match(/(\d+)\s*(?:לילות|ימים)/);
-  if (nights) result.nights = Math.min(30, Math.max(1, Number(nights[1])));
-  else if (normalized.includes('שבועיים')) result.nights = 14;
-  else if (normalized.includes('שבוע')) result.nights = 7;
-  else if (/סופש|סוף שבוע/.test(normalized)) result.nights = 3;
-  const children = normalized.match(/(\d+|שני|שתי|שלושה|שלוש|ארבעה|ארבע)\s*ילד/);
-  if (children) result.children = Math.min(6, numberWord(children[1]));
-  if (/בלי ילדים|ללא ילדים/.test(normalized)) {
-    result.children = 0;
-    result.family = false;
-    result.tags = result.tags.filter(tag=>!['family','with_children'].includes(tag));
-  }
-  if (/בלי ים|ללא ים|לא רוצים ים/.test(normalized)) {
-    result.beach = false;
-    result.tags = result.tags.filter(tag=>tag!=='beach');
-  }
-  if (/זוג|שני מבוגרים/.test(normalized)) result.adults = 2;
-  if (/לבד|סולו/.test(normalized)) result.adults = 1;
-  const people = normalized.match(/(\d+)\s*(?:נוסעים|אנשים|מטיילים)/);
-  if (people) result.adults = Math.min(9, Math.max(1, Number(people[1]) - (result.children || 0)));
-  const month = months.find((name) => normalized.includes(name));
-  if (month) result.month = month;
-  const couple = coupleIntent(text, result.children || 0);
-  if (couple !== undefined) result.couple = couple;
-  if (couple === false) result.tags = result.tags.filter(tag => tag !== 'couple');
-  Object.assign(result, destinationConstraints(text, previous));
-  return result;
+  })).map((tag) => tag.id)])];
+  for (const [key, ids] of [['beach', ['beach']], ['family', ['family', 'with_children']], ['couple', ['couple']], ['city', ['city']], ['relaxation', ['relaxation']]])
+    if (brief[key] === false) tags = tags.filter((tag) => !ids.includes(tag));
+  return { ...brief, tags };
 }
 
 export function missingFields(signals) {

@@ -12,11 +12,11 @@ const brief = 'זוג עם שני ילדים, חמישה לילות בפריז �
 
 test('a ruled-out destination is never recommended, and an unsupported one is kept as a stated limit', () => {
   const p = parsePreferences(brief);
-  assert.deepEqual(p.want, ['CDG']);
+  assert.deepEqual(p.want, ['PAR']);
   assert.deepEqual(p.exclude, ['DXB']);
   assert.equal(rankDemoTrips(trips, p).some(item => item.trip.id === 'dubai'), false);
   const followUp = parsePreferences('לא דובאי. רק פריז', p);
-  assert.deepEqual(followUp.want, ['CDG']);
+  assert.deepEqual(followUp.want, ['PAR']);
   assert.equal(rankDemoTrips(trips, followUp).some(item => item.trip.id === 'dubai'), false);
 });
 
@@ -42,7 +42,7 @@ test('destination field understands short Hebrew and English names and suggests 
   assert.equal(resolvePlace('רומא').code, 'FCO');
   assert.equal(resolvePlace('Rome').code, 'FCO');
   assert.equal(resolvePlace('רומא, איטליה').code, 'FCO');
-  assert.equal(resolvePlace('פריז').code, 'CDG');
+  assert.equal(resolvePlace('פריז').code, 'PAR');
   assert.equal(resolvePlace('cdg').code, 'CDG');
   assert.equal(resolvePlace('עיר שלא קיימת'), null);
   assert.equal(placeSuggestions('ברצ')[0].code, 'BCN');
@@ -59,7 +59,7 @@ test('a connection that waits overnight and lands the next day is spelled out', 
   const leg = legSummary(segments);
   assert.equal(leg.dayOffset, 1);
   assert.equal(leg.stops, 1);
-  assert.deepEqual(leg.layovers[0], { airport: 'WAW', city: 'Warsaw', minutes: 17 * 60 + 30, overnight: true });
+  assert.deepEqual(leg.layovers[0], { airport: 'WAW', city: 'Warsaw', minutes: 17 * 60 + 30, overnight: true, changeAirport: false, nextAirport: 'WAW' });
   assert.equal(hoursText(17 * 60 + 30), '17 שע׳ ו־30 דק׳');
   assert.deepEqual(carrierOf(segments[1]), { name: 'LOT', number: 'LO151', operator: 'El Al' });
   assert.equal(carrierOf({}).name, null);

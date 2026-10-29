@@ -24,7 +24,10 @@ export function legSummary(segments = []) {
   const layovers = segments.slice(1).map((segment, i) => {
     const minutes = Math.round((stamp(segment.departure) - stamp(segments[i].arrival)) / 60000);
     return { airport: segments[i].arrival?.airport?.code || '', city: segments[i].arrival?.city?.name || '', minutes: Number.isFinite(minutes) ? minutes : null,
-      overnight: segments[i].arrival?.date !== segment.departure?.date };
+      overnight: segments[i].arrival?.date !== segment.departure?.date,
+      // Landing at one airport and leaving from another (LHR → LGW) means crossing the city on your own.
+      changeAirport: Boolean(segments[i].arrival?.airport?.code && segment.departure?.airport?.code && segments[i].arrival.airport.code !== segment.departure.airport.code),
+      nextAirport: segment.departure?.airport?.code || '' };
   });
   return { departDate: first?.departure?.date || '', arriveDate: last?.arrival?.date || '', dayOffset: Number.isFinite(dayOffset) ? dayOffset : 0, stops: Math.max(0, segments.length - 1), layovers };
 }
@@ -79,7 +82,9 @@ export function offerFacts(offer, payload) {
     carriers: [...new Set(legs.map(leg => leg.carrier.name).filter(Boolean))],
     longestLayover: layovers.reduce((max, item) => Math.max(max, item.minutes || 0), 0),
     overnight: layovers.some(item => item.overnight),
-    checked: combine(legs.map(leg => leg.baggage.checked)), trolley: combine(legs.map(leg => leg.baggage.trolley))
+    checked: combine(legs.map(leg => leg.baggage.checked)), trolley: combine(legs.map(leg => leg.baggage.trolley)),
+    airports: [...new Set([legs[0]?.segments.at(-1)?.arrival?.airport?.code, legs[1]?.segments[0]?.departure?.airport?.code].filter(Boolean))],
+    airportChange: Boolean(legs[1] && legs[0]?.segments.at(-1)?.arrival?.airport?.code && legs[1].segments[0]?.departure?.airport?.code && legs[0].segments.at(-1).arrival.airport.code !== legs[1].segments[0].departure.airport.code)
   };
 }
 export const TIME_BUCKETS = [['night', 'לילה', 0, 5], ['morning', 'בוקר', 5, 12], ['afternoon', 'צהריים', 12, 18], ['evening', 'ערב', 18, 24]];
@@ -87,7 +92,7 @@ export function timeBucket(time) {
   const hour = Number(String(time || '').split(':')[0]);
   return Number.isFinite(hour) ? TIME_BUCKETS.find(([, , from, to]) => hour >= from && hour < to)?.[0] || null : null;
 }
-export const emptyFilters = () => ({ stops: 'any', out: [], back: [], carriers: [], checkedBag: false });
+export const emptyFilters = () => ({ stops: 'any', out: [], back: [], carriers: [], airports: [], checkedBag: false });
 export function matchesFilters(facts, filters) {
   const leg = i => facts.legs[i]?.segments[0]?.departure?.time;
   if (filters.stops !== 'any' && !(facts.stops !== null && facts.stops <= Number(filters.stops))) return false;
@@ -95,6 +100,7 @@ export function matchesFilters(facts, filters) {
   if (filters.back.length && !filters.back.includes(timeBucket(leg(1)))) return false;
   if (filters.carriers.length && !facts.carriers.some(name => filters.carriers.includes(name))) return false;
   if (filters.checkedBag && facts.checked !== 'included') return false;
+  if (filters.airports?.length && !facts.airports.some(code => filters.airports.includes(code))) return false;
   return true;
 }
 export function sortFacts(list, sort = 'supplier') {

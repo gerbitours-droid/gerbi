@@ -8,7 +8,7 @@ import path from 'node:path';
 import { trips } from './dist/data.mjs';
 import { LearningStore } from './backend/learning-store.mjs';
 import { destinationTags, publicTagCatalog } from './backend/tag-catalog.mjs';
-import { extractSignals, missingFields, scoreDestinations } from './backend/understanding.mjs';
+import { extractSignals, missingFields, scoreDestinations, understandRequest } from './backend/understanding.mjs';
 import { voleroFlightAvailability, voleroFlightBook, voleroFlightSearch } from './backend/volero-client.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
@@ -59,12 +59,13 @@ export function createServer() {
     if (!text.trim()) return send(400, { error:'text_required', message:'צריך לתאר בקצרה את החופשה.' });
     const previous = input.previous && typeof input.previous === 'object' ? input.previous : {};
     const signals = extractSignals(text, previous);
+    const understanding = understandRequest(text, previous);
     const weights = await learning.weightsFor(text);
     const recommendations = scoreDestinations(trips, signals, weights).map(({ destination, score, estimate, matchedTags }) => ({
       id: destination.id, score: Math.round(score * 100) / 100, estimate, matchedTags
     }));
     const summary = await learning.learnQuery({ text, tags: signals.tags, consent: input.learningConsent === true });
-    return send(200, { mode:'rules_and_local_learning', signals, missing:missingFields(signals), recommendations, learning: { recorded: input.learningConsent === true, totals:summary.totals } });
+    return send(200, { mode:'rules_and_local_learning', signals, missing:missingFields(signals), understood:understanding.understood, assumed:understanding.assumed, questions:understanding.questions, flightSearch:understanding.flightSearch, recommendations, learning: { recorded: input.learningConsent === true, totals:summary.totals } });
    }
    if (url.pathname === '/api/ai/feedback') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
