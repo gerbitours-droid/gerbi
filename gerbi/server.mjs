@@ -14,11 +14,15 @@ import { createStore } from './backend/kv-store.mjs';
 import { QueryMemory, EVENT_WEIGHTS } from './backend/query-memory.mjs';
 import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm-partner.mjs';
 import { places } from './dist/places.mjs';
+import { learnFromChoice } from './dist/scoring.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
 const memory = new QueryMemory(createStore('query-memory', dataDirectory));
 const llmCache = createStore('llm-cache', dataDirectory);
+// Learned multipliers on the prices of time and inconvenience (spec §2.6), shared by all travelers.
+const learnedStore = createStore('learned-costs', dataDirectory);
+const featureVector = (value) => Object.fromEntries(['hour', 'stop', 'longWait', 'overnight', 'offHours', 'nightDeparture'].map((key) => [key, Number.isFinite(value?.[key]) ? Math.max(0, Math.min(100, value[key])) : 0]));
 const placeCodes = new Set(places.map((place) => place.code));
 // The canonical brief the decision endpoints accept: every field re-validated, nothing free-text.
 function safeBrief(input = {}) {
@@ -104,14 +108,23 @@ export function createServer() {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
     const input = await body(req);
     const items = Array.isArray(input.items) ? input.items.map(itemKey).filter(Boolean) : [];
-    try { return send(200, { boosts: await memory.boosts(safeBrief(input.brief), items) }); } catch { return send(200, { boosts: {} }); }
+    const learned = await learnedStore.get('global').catch(() => null) || {};
+    try { return send(200, { boosts: await memory.boosts(safeBrief(input.brief), items), learned }); } catch { return send(200, { boosts: {}, learned }); }
    }
    if (url.pathname === '/api/ai/event') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
     const input = await body(req), event = string(input.event, 20);
     const items = [...new Set([].concat(input.items || input.item || []).map(itemKey).filter(Boolean))].slice(0, event === 'impression' ? 12 : 1);
     if (!items.length || !(event in EVENT_WEIGHTS)) return send(400, { error:'invalid_event' });
-    try { const brief = safeBrief(input.brief); for (const item of items) await memory.event(brief, item, event); return send(200, { accepted:true }); } catch { return send(200, { accepted:false }); }
+    try {
+      const brief = safeBrief(input.brief); for (const item of items) await memory.event(brief, item, event);
+      // A strong choice of an offer ranked below others teaches the cost model (bounded step, bounded total).
+      if (['verify', 'save'].includes(event) && input.choice && Array.isArray(input.choice.above) && input.choice.above.length) {
+        const learned = await learnedStore.get('global').catch(() => null) || {};
+        await learnedStore.set('global', learnFromChoice(learned, featureVector(input.choice.chosen), input.choice.above.slice(0, 5).map(featureVector)));
+      }
+      return send(200, { accepted:true });
+    } catch { return send(200, { accepted:false }); }
    }
    if (url.pathname === '/api/ai/tiebreak') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});

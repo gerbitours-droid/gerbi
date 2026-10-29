@@ -3,7 +3,7 @@ import { offerPrice, formatFare, carrierOf, hoursText, LONG_LAYOVER_MINUTES, off
 import { parsePreferences, rankDemoTrips, estimateDemoTotal, validFlightDates } from './planner.mjs';
 import { trips, contact } from './data.mjs';
 import { places, resolvePlace, placeSuggestions, placeType } from './places.mjs';
-import { scoreOffers, rankScored, needsTieBreak, badges, diverseTop, explain, itineraryKey } from './scoring.mjs';
+import { scoreOffers, rankScored, needsTieBreak, badges, diverseTop, explain, itineraryKey, features } from './scoring.mjs';
 import { SAVED_FLIGHTS_KEY, flightSnapshot, restoreSavedFlights, addSavedFlight, searchLink, parseSearchLink, followUpText, contactActions } from './saved-flights.mjs';
 import { initPages } from './pages.mjs';
 const icons=name=>`<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
@@ -79,15 +79,17 @@ let pendingFilters=null;
 let searchContext=null, activeSearch=null, visibleOfferCount=12, flightSort='recommended';
 // ---- Decision layer (docs/gerbi-decision-engine-spec-he.md): score → memory boost → LLM only on a near tie.
 let partnerAvailable=false;fetch('/api/status').then(r=>r.json()).then(s=>{partnerAvailable=s.partner?.available===true;}).catch(()=>{});
-const decision={boosts:{},pick:null,reason:'',asked:new Set()};
+const decision={boosts:{},learned:{},pick:null,reason:'',asked:new Set(),order:[]};
 const BADGE_LABELS={recommended:'המומלצת',cheapest:'הזולה ביותר',fastest:'הקצרה ביותר',value:'תמורה טובה'};
 // The brief that weighs the score: the planner's request plus what this search asked for.
 const decisionBrief=()=>{const p=state.preferences||{};return {cheaper:p.cheaper===true,children:state.children,adults:state.adults,stops:p.stops,out:p.out,back:p.back,checkedBag:p.checkedBag===true,carrier:p.carrier};};
 const memoryBrief=()=>({...decisionBrief(),origin:searchContext?.search?.origin,destination:searchContext?.destinationCode,start:searchContext?.search?.start,tripType:searchContext?.search?.type,nights:state.preferences?.nights,beach:state.preferences?.beach,city:state.preferences?.city,relaxation:state.preferences?.relaxation,family:state.preferences?.family,couple:state.preferences?.couple});
-function aiEvent(event,items){const list=[].concat(items).filter(Boolean);if(!list.length||!searchContext)return;fetch('/api/ai/event',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,body:JSON.stringify({brief:memoryBrief(),items:list,event})}).catch(()=>{});}
+// A verify/save on an offer the list ranked lower carries the features of the offers above it (no identities).
+function choiceOf(key){const i=decision.order.findIndex(x=>x.key===key);if(i<=0)return undefined;const brief=decisionBrief();return {chosen:features(decision.order[i].facts,brief),above:decision.order.slice(0,Math.min(i,5)).map(x=>features(x.facts,brief))};}
+function aiEvent(event,items){const list=[].concat(items).filter(Boolean);if(!list.length||!searchContext)return;const choice=['verify','save'].includes(event)?choiceOf(list[0]):undefined;fetch('/api/ai/event',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,body:JSON.stringify({brief:memoryBrief(),items:list,event,choice})}).catch(()=>{});}
 async function loadBoosts(payload){
  try{const items=[...new Set(factsOf(payload).map(itineraryKey))].slice(0,200);const response=await fetch('/api/ai/memory',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brief:memoryBrief(),items})});
-  const data=await response.json();if(state.voleroResults===payload&&Object.values(data.boosts||{}).some(v=>v)){decision.boosts=data.boosts;renderVoleroOffers(payload);}}catch{ /* Memory is a refinement only. */ }
+  const data=await response.json();if(state.voleroResults!==payload)return;decision.learned=data.learned||{};const changed=Object.values(data.boosts||{}).some(v=>v)||Object.values(decision.learned).some(v=>v);decision.boosts=data.boosts||{};if(changed)renderVoleroOffers(payload);}catch{ /* Memory is a refinement only. */ }
 }
 async function askTieBreak(payload,ranked){
  const top=ranked.slice(0,3),signature=payload.srk+'|'+top.map(x=>x.key).join(',');
@@ -201,11 +203,12 @@ function renderVoleroOffers(payload){
  const focusKey=(el=>el&&host.contains(el)?el.dataset.filter?`[data-filter="${el.dataset.filter}"][data-value="${CSS.escape(el.dataset.value)}"]`:el.id?'#'+el.id:el.dataset.compareOffer?`[data-compare-offer="${CSS.escape(el.dataset.compareOffer)}"]`:null:null)(document.activeElement);
  const mixed=new Set(all.map(f=>f.price?.currency).filter(Boolean)).size>1;
  const filtered=all.filter(f=>matchesFilters(f,flightFilters)),chips=activeChips();
- const scored=scoreOffers(filtered,decisionBrief(),{boosts:decision.boosts,partnerPick:decision.pick}),ranked=rankScored(scored),byFacts=new Map(scored.map(x=>[x.facts,x])),tags=badges(scored);
+ const scored=scoreOffers(filtered,decisionBrief(),{boosts:decision.boosts,partnerPick:decision.pick,learned:decision.learned}),ranked=rankScored(scored),byFacts=new Map(scored.map(x=>[x.facts,x])),tags=badges(scored);
  // Recommended order: the top three are diversified (MMR) so they are not three versions of one flight.
  const leaders=diverseTop(ranked,3);
- const visible=flightSort==='recommended'?[...leaders,...ranked.filter(x=>!leaders.includes(x))].map(x=>x.facts):sortFacts(filtered,flightSort);
- const why=new Map(leaders.map(x=>[x.facts,explain(x,scored).concat(x.partner&&decision.reason?[decision.reason]:[]).filter((r,i,a)=>a.indexOf(r)===i).slice(0,3)]));
+ const order=flightSort==='recommended'?[...leaders,...ranked.filter(x=>!leaders.includes(x))]:sortFacts(filtered,flightSort).map(f=>byFacts.get(f));decision.order=order;
+ const visible=order.map(x=>x.facts);
+ const why=new Map(leaders.map(x=>[x.facts,explain(x,scored,value=>formatFare({value,currency:x.facts.price?.currency||'USD'})).concat(x.partner&&decision.reason?[decision.reason]:[]).filter((r,i,a)=>a.indexOf(r)===i).slice(0,3)]));
  host.innerHTML=`<div class="live-heading"><div><span class="eyebrow">תוצאות חיות מ־Volero</span><h2 tabindex="-1">${escapeHTML(searchContext?.destination||'תוצאות הטיסות')}</h2><p>${escapeHTML(searchContext?.dates||'')} · ${searchContext?.travelers||2} נוסעים · ${searchContext?.oneWay?'כיוון אחד':'הלוך וחזור'}</p>${(place=>place?.airports?`<p class="micro-copy">חיפוש בכל שדות התעופה של ${escapeHTML(place.names[0])}: <span dir="ltr">${place.airports.join(', ')}</span>. השדה מופיע בכל כרטיס, ואפשר לסנן לפיו.</p>`:'')(places.find(p=>p.code===searchContext?.destinationCode))}</div><div class="live-actions"><button type="button" class="button secondary" id="edit-flight-search">שינוי החיפוש</button><button type="button" class="button secondary" id="share-flight-search">שיתוף החיפוש</button></div><label>מיון תוצאות<select id="flight-sort"><option value="recommended" ${flightSort==='recommended'?'selected':''}>המומלצות (לפי הבקשה)</option><option value="supplier" ${flightSort==='supplier'?'selected':''}>סדר הספק</option><option value="price" ${mixed?'disabled':''} ${flightSort==='price'?'selected':''}>הזולה ביותר (לכל הנוסעים)</option><option value="duration" ${flightSort==='duration'?'selected':''}>הקצרה ביותר (שני הכיוונים)</option></select></label></div>
  ${all.length?filterPanel(all):''}
  ${chips.length?`<div class="filter-chips">${chipMarkup(chips)}<button type="button" class="link-button" data-clear-filters>איפוס המסננים</button></div>`:''}
@@ -263,7 +266,7 @@ $('#search-form').onsubmit=async e=>{
  try{
   const response=await fetch('/api/volero/flights/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
   const data=await response.json();if(!response.ok)throw new Error('לא הצלחנו להשלים את החיפוש מול הספק. בדקו את היעד ונסו שוב.');
-  searchContext=context;flightSort='recommended';visibleOfferCount=12;flightFilters=emptyFilters();openDetails.clear();compareOffers.clear();decision.boosts={};decision.pick=null;decision.reason='';
+  searchContext=context;flightSort='recommended';visibleOfferCount=12;flightFilters=emptyFilters();openDetails.clear();compareOffers.clear();decision.boosts={};decision.pick=null;decision.reason='';decision.order=[];
   const fromRequest=pendingFilters;pendingFilters=null;
   if(fromRequest){const names=[...new Set(factsOf(data.data).flatMap(f=>f.carriers))];flightFilters={...emptyFilters(),stops:fromRequest.stops||'any',out:fromRequest.out||[],back:fromRequest.back||[],checkedBag:fromRequest.checkedBag===true,carriers:fromRequest.carrier?names.filter(name=>name.toLowerCase().includes(fromRequest.carrier)):[]};}
   renderVoleroOffers(data.data);saveLastSearch();loadBoosts(data.data);aiEvent('impression',[...document.querySelectorAll('#live-results [data-itinerary]')].slice(0,6).map(c=>c.dataset.itinerary));history.replaceState(null,'',searchLink(context.search));

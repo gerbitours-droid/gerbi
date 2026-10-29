@@ -1,0 +1,22 @@
+[
+  {"text": "אנחנו זוג ושלושה ילדים, רוצים 6 לילות בכרתים ביולי", "expect": {"adults": 2, "children": 3, "nights": 6, "month": "יולי", "want": ["HER"]}},
+  {"text": "טיסה לפריז ב-14 בפברואר, חוזרים ב-17 בפברואר, רומנטי", "expect": {"start": "2027-02-14", "end": "2027-02-17", "couple": true, "want": ["PAR"]}},
+  {"text": "ארבעה חברים, שבוע בתאילנד, תקציב 6000 שקל לאדם", "expect": {"adults": 4, "nights": 7, "budget": 24000, "want": ["BKK", "HKT"]}},
+  {"text": "אמא ובת בת 16, 4 לילות בלונדון", "expect": {"adults": 1, "children": 1, "childAges": [16], "nights": 4, "want": ["LON"]}},
+  {"text": "לרומא בלי עצירות, יוצאים 5 במאי", "expect": {"stops": "0", "start": "2027-05-05", "want": ["FCO"]}},
+  {"text": "משהו לא יקר באירופה בנובמבר, לבד", "expect": {"adults": 1, "cheaper": true, "month": "נובמבר"}},
+  {"text": "סופ\"ש בברלין בשביל מוזיאונים", "expect": {"nights": 3, "city": true, "want": ["BER"]}},
+  {"text": "רק לא ללונדון, משהו חם בדצמבר", "expect": {"exclude": ["LON"], "month": "דצמבר"}},
+  {"text": "מחיפה לאתונה, כיוון אחד, 2 מבוגרים", "expect": {"origin": "HFA", "tripType": "oneway", "adults": 2, "want": ["ATH"]}},
+  {"text": "חופשה של 12 לילות במלדיביים בינואר", "expect": {"nights": 12, "month": "ינואר", "want": ["MLE"]}},
+  {"text": "זוג עם תינוקת, משהו רגוע עם בריכה, 5 לילות", "expect": {"adults": 2, "infants": 1, "children": 1, "relaxation": true, "beach": true, "nights": 5}},
+  {"text": "ספרד או פורטוגל, 10 ימים, באוגוסט", "expect": {"nights": 9, "month": "אוגוסט"}},
+  {"text": "סבא וסבתא עם שני נכדים, שבוע ברודוס", "expect": {"adults": 2, "children": 2, "nights": 7, "want": ["RHO"]}},
+  {"text": "טיסה ישירה לניו יורק לשלושה, 15 עד 29 ביוני", "expect": {"stops": "0", "adults": 3, "start": "2027-06-15", "end": "2027-06-29", "want": ["NYC"]}},
+  {"text": "4 לילות בבטומי עם מזוודה, תקציב 3000", "expect": {"nights": 4, "checkedBag": true, "budget": 3000, "want": ["BUS"]}},
+  {"text": "ליוון, אבל לא לאתונה", "expect": {"exclude": ["ATH"]}},
+  {"text": "אני ובן הזוג, 7 לילות בבנגקוק ופוקט", "expect": {"adults": 2, "nights": 7, "want": ["BKK", "HKT"]}},
+  {"text": "מינכן לאוקטוברפסט, 3 חבר'ה, סוף ספטמבר", "expect": {"adults": 3, "month": "ספטמבר", "want": ["MUC"]}},
+  {"text": "נופש כשר לשומרי שבת בקפריסין, משפחה של 6", "expect": {"kosher": true, "shabbat": true, "adults": 2, "children": 4}},
+  {"text": "חזרה מאוחרת, ישירה, ברצלונה 8-12 באפריל", "expect": {"back": ["evening"], "stops": "0", "start": "2027-04-08", "end": "2027-04-12", "want": ["BCN"]}}
+]

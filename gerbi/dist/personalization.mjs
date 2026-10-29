@@ -11,6 +11,21 @@ export function selectedStyles(preferences = {}) {
   return styles.filter(style => preferences[style.id] === true ||
     (preferences[style.id] !== false && Array.isArray(preferences.tags) && preferences.tags.includes(style.id)));
 }
+// Season fit, from the destination guides (pages.mjs destinationInfo.guide): good months add, poor months subtract.
+export const SEASONS = {
+  santorini: { best: [5, 6, 9, 10], poor: [11, 12, 1, 2, 3], penalty: 2 },
+  rome: { best: [4, 5, 6, 9, 10], poor: [7, 8], penalty: 2 },
+  maldives: { best: [11, 12, 1, 2, 3, 4], poor: [5, 6, 7, 8, 9, 10], penalty: 2 },
+  dubai: { best: [11, 12, 1, 2, 3], poor: [6, 7, 8, 9], penalty: 4 }
+};
+const MONTH_NAMES = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+const monthOf = p => (p.start ? Number(p.start.slice(5, 7)) : 0) || MONTH_NAMES.indexOf(p.month) + 1;
+export function seasonFit(tripId, preferences = {}) {
+  const month = monthOf(preferences), season = SEASONS[tripId];
+  if (!month || !season) return 0;
+  return season.best.includes(month) ? 3 : season.poor.includes(month) ? -season.penalty : 0;
+}
+
 export function rankInspirations(trips, preferences = {}, limit = 3) {
   const selected = selectedStyles(preferences);
   const tripOf = code => places.find(place => place.code === code)?.trip;
@@ -22,8 +37,9 @@ export function rankInspirations(trips, preferences = {}, limit = 3) {
     const matches = selected.filter(style => style.destinations.includes(trip.id));
     const family = preferences.children > 0 && trip.id === 'dubai';
     const requested = wanted.includes(trip.id);
-    return {trip,total,score:matches.length*5 + (family ? 2 : 0) + (requested ? 10 : 0),
-      reasons:[...(requested?['היעד שביקשתם']:[]),...matches.map(style=>style.label),...(family && !matches.some(s=>s.id==='family')?['כיוון למשפחה']:[])]};
+    const season = seasonFit(trip.id, preferences), month = MONTH_NAMES[monthOf(preferences) - 1];
+    return {trip,total,score:matches.length*5 + (family ? 2 : 0) + (requested ? 10 : 0) + season,
+      reasons:[...(requested?['היעד שביקשתם']:[]),...(season>0&&month?[`עונה טובה ב${month}`]:[]),...matches.map(style=>style.label),...(family && !matches.some(s=>s.id==='family')?['כיוון למשפחה']:[])]};
   }).filter(item=>!excluded.has(item.trip.id) && (!wanted.length || wanted.includes(item.trip.id)))
     .filter(item=>!preferences.budget || item.total<=preferences.budget)
     .sort((a,b)=>preferences.cheaper ? a.total-b.total || b.score-a.score :

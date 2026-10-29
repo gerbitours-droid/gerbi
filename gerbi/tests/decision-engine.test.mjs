@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { scoreOffers, rankScored, weightsFor, needsTieBreak, badges, diverseTop, explain, itineraryKey, MEMORY_WEIGHT, PARTNER_WEIGHT } from '../dist/scoring.mjs';
+import { scoreOffers, rankScored, costsFor, needsTieBreak, badges, diverseTop, explain, itineraryKey, learnFromChoice, features } from '../dist/scoring.mjs';
+import { readFile } from 'node:fs/promises';
 import { recordEvent, lift, blendedBoost, signature, canonical, QueryMemory } from '../backend/query-memory.mjs';
 import { partnerUnderstand, partnerTieBreak, scrub } from '../backend/llm-partner.mjs';
 import { understandRequest } from '../dist/brief-engine.mjs';
@@ -14,20 +15,43 @@ const leg = (code, number, depart, minutes, stops = 0) => ({ minutes, segments: 
 const offer = (id, price, minutes, { stops = 0, carrier = 'W4', depart = '10:00', checked = 'unknown' } = {}) => ({ index: id, price: { value: price, currency: 'USD' }, totalMinutes: minutes,
   stops, carriers: [carrier], longestLayover: stops ? 90 : 0, overnight: false, checked, airports: ['FCO'], legs: [leg(carrier, Number(id) * 10, depart, minutes, stops)] });
 
-test('weights follow the brief and always sum to 1', () => {
-  for (const brief of [{}, { cheaper: true }, { children: 2, checkedBag: true, carrier: 'el al', out: ['afternoon'] }]) {
-    const w = weightsFor(brief); assert.ok(Math.abs(Object.values(w).reduce((a, b) => a + b, 0) - 1) < 1e-9);
-  }
-  assert.ok(weightsFor({ cheaper: true }).price > weightsFor({}).price);
-  assert.ok(weightsFor({ children: 1 }).stops > weightsFor({}).stops);
+test('the price of time and inconvenience follows the brief', () => {
+  assert.ok(costsFor({ cheaper: true }).hour < costsFor({}).hour);
+  assert.ok(costsFor({ children: 1 }).stop > costsFor({}).stop);
+  assert.ok(costsFor({}, { hour: 5 }).hour <= costsFor({}).hour * Math.exp(0.7) + 1e-9, 'learned multipliers are bounded');
 });
 
 test('a 30% cheaper offer with a similar time stays above the one the LLM and memory prefer', () => {
   const cheap = offer('1', 300, 230), pricey = offer('2', 430, 225);
   const key = itineraryKey(pricey);
-  const ranked = rankScored(scoreOffers([cheap, pricey], {}, { boosts: { [key]: 1 }, partnerPick: key }));
-  assert.equal(ranked[0].facts.index, '1');
-  assert.ok(ranked[1].score - ranked[1].base <= MEMORY_WEIGHT + PARTNER_WEIGHT + 1e-9, 'memory and LLM influence are bounded');
+  assert.equal(rankScored(scoreOffers([cheap, pricey], {}, { boosts: { [key]: 1 }, partnerPick: key }))[0].facts.index, '1');
+});
+
+test('trade-off cases with a clear right answer (tests/fixtures/ranking-cases.json)', async () => {
+  const cases = JSON.parse(await readFile(new URL('./fixtures/ranking-cases.json', import.meta.url), 'utf8'));
+  const make = (id, o) => ({ ...offer(id, o.price, o.minutes, { stops: o.stops }), longestLayover: o.wait || 0, overnight: Boolean(o.overnight),
+    legs: [{ ...leg('X' + id, 1, '10:00', o.minutes, o.stops), summary: { stops: o.stops, dayOffset: 0, layovers: o.stops ? Array.from({ length: o.stops }, () => ({ minutes: o.wait || 0, overnight: Boolean(o.overnight), changeAirport: false })) : [] } }] });
+  for (const c of cases) { const [better, worse] = scoreOffers([make('1', c.better), make('2', c.worse)], c.brief); assert.ok(better.cost < worse.cost, c.name); }
+});
+
+test('an unrelated offer never flips the order of two others (independence of irrelevant alternatives)', () => {
+  let seed = 7; const rnd = (a, b) => { seed = (seed * 16807) % 2147483647; return a + (seed / 2147483647) * (b - a); };
+  for (let t = 0; t < 500; t++) {
+    const a = offer('1', rnd(250, 700), rnd(200, 900), { stops: Math.floor(rnd(0, 3)) }), b = offer('2', rnd(250, 700), rnd(200, 900), { stops: Math.floor(rnd(0, 3)) });
+    const decoy = offer('3', rnd(80, 240), rnd(150, 1400), { stops: Math.floor(rnd(0, 3)), carrier: 'ZZ' });
+    const pair = rankScored(scoreOffers([a, b])).map(x => x.facts.index).join();
+    assert.equal(rankScored(scoreOffers([a, b, decoy])).map(x => x.facts.index).filter(i => i !== '3').join(), pair);
+  }
+});
+
+test('learning from choices moves prices the right way, in bounded steps', () => {
+  const slowCheap = features(offer('1', 300, 600, { stops: 1 })), fastDirect = features(offer('2', 340, 240));
+  // Travelers keep choosing the fast direct offer although the slow cheap one ranked above it: time was under-priced.
+  let learned = {};
+  for (let i = 0; i < 100; i++) learned = learnFromChoice(learned, fastDirect, [slowCheap]);
+  assert.ok(learned.hour > 0 && learned.stop > 0);
+  assert.ok(Object.values(learned).every(v => Math.abs(v) <= 0.7));
+  assert.deepEqual(learnFromChoice({ hour: 0.1 }, fastDirect, []), { hour: 0.1 }, 'no ranking information, no change');
 });
 
 test('memory and the LLM reorder only near-ties', () => {
@@ -39,9 +63,8 @@ test('memory and the LLM reorder only near-ties', () => {
 });
 
 test('baggage that is "not provided" never counts as included when a bag was asked for', () => {
-  const unknown = scoreOffers([offer('1', 300, 230, { checked: 'unknown' })], { checkedBag: true })[0];
-  const included = scoreOffers([offer('1', 300, 230, { checked: 'included' })], { checkedBag: true })[0];
-  assert.equal(unknown.utilities.baggage, 0.5); assert.equal(included.utilities.baggage, 1);
+  const [included, unknown, paid] = scoreOffers([offer('1', 300, 230, { checked: 'included' }), offer('2', 300, 230, { checked: 'unknown' }), offer('3', 300, 230, { checked: 'paid' })], { checkedBag: true });
+  assert.ok(included.cost < unknown.cost && unknown.cost < paid.cost);
 });
 
 test('badges, Pareto value, diverse top three and grounded reasons', () => {
@@ -52,8 +75,8 @@ test('badges, Pareto value, diverse top three and grounded reasons', () => {
   assert.deepEqual(tags.get(itineraryKey(list[2])), [], 'a dominated offer gets no badge');
   const top = diverseTop(rankScored(scored), 3).map(x => x.facts.index);
   assert.ok(!(top.includes('1') && top.includes('4')), 'two versions of the same flight are not both in the top three');
-  const reasons = explain(scored.find(x => x.facts.index === '1'), scored);
-  assert.ok(reasons.some(r => r.startsWith('זולה ב־')));
+  const trade = explain(scored.find(x => x.facts.index === '2'), scored);
+  assert.equal(trade[0], 'עוד 100 וחוסכת 1:40 שע׳ לעומת הזולה');
 });
 
 test('query memory: identical requests share a signature, decay halves at 30 days, smoothing needs evidence', () => {
@@ -109,4 +132,13 @@ test('the LLM gate opens only for text the rules did not understand', () => {
   const t = { today: '2026-10-29' };
   assert.equal(understandRequest('אנחנו 4 חברים, 10-15 ביוני ללונדון, טיסה ישירה', {}, t).coverage.needsPartner, false);
   assert.equal(understandRequest('רוצים מקום עם הרבה טבע, מפלים ושווקים מקומיים, לא תיירותי מדי', {}, t).coverage.needsPartner, true);
+});
+
+test('season fit: Dubai drops out of August beach ideas and leads in December for a family', async () => {
+  const { parsePreferences, rankDemoTrips } = await import('../dist/planner.mjs');
+  const { trips } = await import('../dist/data.mjs');
+  const august = rankDemoTrips(trips, { ...parsePreferences('זוג, ים ובריכה, שבוע באוגוסט', {}), budget: undefined }).map(x => x.trip.id);
+  assert.equal(august.includes('dubai'), false);
+  const december = rankDemoTrips(trips, { ...parsePreferences('משפחה עם 2 ילדים, ים ובריכה, שבוע בדצמבר', {}), budget: undefined });
+  assert.equal(december[0].trip.id, 'dubai'); assert.ok(december[0].reasons.includes('עונה טובה בדצמבר'));
 });

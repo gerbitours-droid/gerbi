@@ -1,0 +1,8 @@
+[
+  {"name": "small premium saves 10 hours", "brief": {"adults": 2}, "better": {"price": 340, "minutes": 240, "stops": 0}, "worse": {"price": 300, "minutes": 840, "stops": 2, "wait": 300}},
+  {"name": "double price for 30 minutes is not worth it", "brief": {"adults": 2}, "better": {"price": 300, "minutes": 240, "stops": 0}, "worse": {"price": 600, "minutes": 210, "stops": 0}},
+  {"name": "family avoids an overnight connection for a little more", "brief": {"adults": 2, "children": 2}, "better": {"price": 720, "minutes": 260, "stops": 0}, "worse": {"price": 640, "minutes": 900, "stops": 1, "wait": 600, "overnight": true}},
+  {"name": "price-sensitive traveler takes the cheap connection", "brief": {"adults": 2, "cheaper": true}, "better": {"price": 300, "minutes": 540, "stops": 1, "wait": 120}, "worse": {"price": 380, "minutes": 240, "stops": 0}},
+  {"name": "default traveler pays 80 to save 5 hours", "brief": {"adults": 2}, "better": {"price": 380, "minutes": 240, "stops": 0}, "worse": {"price": 300, "minutes": 540, "stops": 1, "wait": 120}},
+  {"name": "solo traveler: 5 hours are not worth 300", "brief": {"adults": 1}, "better": {"price": 250, "minutes": 540, "stops": 1, "wait": 120}, "worse": {"price": 550, "minutes": 240, "stops": 0}}
+]

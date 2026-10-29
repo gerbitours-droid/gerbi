@@ -28,6 +28,9 @@ function numerals(text) {
   return out.replace(/(\d),(\d{3})/g, '$1$2');
 }
 const words = text => text.replace(/[^\p{L}\p{N}\s'"]/gu, ' ').split(/\s+/).filter(Boolean);
+// Words with the clause they belong to: a comma, period or "אבל" ends the reach of a negation.
+const clauseWords = text => text.split(/[,.;!?]|\sאבל\s/).flatMap((clause, c) => words(clause).map(word => ({ word, c })));
+const NEGATION_BRIDGE = new Set(['רוצים', 'רוצה', 'את', 'לטוס', 'טיסה', 'טיסות', 'לנסוע', 'אל', 'דרך', 'ממש', 'אפילו', 'ל', 'מ']);
 const iso = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 const addDays = (value, days) => { const date = new Date(value + 'T12:00:00Z'); date.setUTCDate(date.getUTCDate() + days); return date.toISOString().slice(0, 10); };
 const nightsBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
@@ -42,6 +45,12 @@ const valid = value => { const date = new Date(value + 'T12:00:00Z'); return !Nu
 function extractDates(text, today) {
   const monthPattern = MONTHS.concat(Object.keys(MONTH_ALIASES)).join('|');
   const monthIndex = name => MONTHS.indexOf(MONTH_ALIASES[name] || name) + 1;
+  // "יציאה 2 בפברואר וחזרה 6 בפברואר", "28 ביוני עד 3 ביולי"
+  let full = text.match(new RegExp(`(?<!\\d)(\\d{1,2})\\s+(?:ב|ל)?(${monthPattern})(?:\\s+(\\d{4}))?,?\\s+(?:ו?(?:חזרה|חוזרים|עד|ועד)|-)\\s*(?:ב|ה)?-?\\s*(\\d{1,2})\\s+(?:ב|ל)?(${monthPattern})(?:\\s+(\\d{4}))?`));
+  if (full) {
+    const start = nextDate(+full[1], monthIndex(full[2]), today, full[3] && +full[3]), end = nextDate(+full[4], monthIndex(full[5]), start, full[6] && +full[6]);
+    if (valid(start) && valid(end)) return { start, end, month: MONTHS[monthIndex(full[2]) - 1], source: full[0] };
+  }
   // "10-15 ביוני", "בין 10 ל-15 ביוני", "מה-10 עד ה-15 ביוני"
   let match = text.match(new RegExp(`(?:בין\\s+|מה?-?\\s*)?ה?-?(?<!\\d)(\\d{1,2})\\s*(?:-|עד|ועד|ל-?)\\s*ה?-?(\\d{1,2})\\s+(?:ב|ל)?(${monthPattern})(?:\\s+(\\d{4}))?`));
   if (match) {
@@ -72,7 +81,8 @@ function extractDates(text, today) {
     const start = addDays(today, toThursday + (/הבא/.test(text) ? 7 : 0));
     return { start, end: addDays(start, 3), source: text.match(/סו(?:ף השבוע|פ"ש) \S+/)[0] };
   }
-  for (const [holiday, month] of Object.entries(HOLIDAYS)) if (new RegExp(`(?:^|\\s)ב?${holiday}(?=\\s|$)`).test(text)) return { month, holiday, source: holiday };
+  // A holiday needs "ב" or "חג" in front: "3 שבועות" is three weeks, "בשבועות" is the holiday.
+  for (const [holiday, month] of Object.entries(HOLIDAYS)) if (new RegExp(`(?:^|\\s)(?:ב|בחג\\s+|חג\\s+)${holiday}(?=\\s|$|[,.])`).test(text)) return { month, holiday, source: holiday };
   match = text.match(new RegExp(`(?:^|\\s)(?:ב|ל|מ)?(${monthPattern})(?=[\\s,.]|$)`));
   if (match) return { month: MONTH_ALIASES[match[1]] || match[1], source: match[1] };
   for (const [season, month] of Object.entries(SEASONS)) if (new RegExp(`(?:^|\\s)ב?${season}(?=\\s|$)`).test(text)) return { month, season, source: season };
@@ -85,6 +95,8 @@ function extractDuration(text) {
   match = text.match(/(\d+)\s*ימים/);
   // People count days including the flights home: "5 ימים" is 4 nights. Said out loud so it can be corrected.
   if (match) return { nights: Math.min(30, Math.max(1, +match[1] - 1)), source: match[0], note: `${match[1]} ימים = ${Math.max(1, +match[1] - 1)} לילות` };
+  match = text.match(/(\d+)\s*שבועות/);
+  if (match) return { nights: Math.min(30, 7 * +match[1]), source: match[0] };
   if (/שבוע וחצי/.test(text)) return { nights: 10, source: 'שבוע וחצי' };
   if (/שבועיים/.test(text)) return { nights: 14, source: 'שבועיים' };
   if (/(?:^|\s)(?:ל|ב)?שבוע(?=\s|$|[,.])/.test(text) && !/סוף השבוע|בעוד שבוע/.test(text)) return { nights: 7, source: 'שבוע' };
@@ -109,8 +121,16 @@ function extractTravelers(text) {
   match = !found.adults && text.match(/(?:אנחנו\s+)?(\d+)\s*(?:נוסעים|אנשים|מטיילים|חברים|חברות|חבר'ה)/);
   if (match) { found.adults = Math.max(1, +match[1] - (found.children || 0)); found.adultsSource = match[0]; }
   if (!found.adults && /(?:^|\s)אנחנו (\d+)(?=\s|$|,)/.test(text)) { const total = +text.match(/אנחנו (\d+)/)[1]; found.adults = Math.max(1, total - (found.children || 0)); found.adultsSource = `אנחנו ${total}`; }
+  const forParty = text.match(/(?:^|\s)ל(שניים|שלושה|ארבעה|חמישה|שישה|שבעה|שמונה)(?=\s|$|,)/);
+  if (!found.adults && forParty) { found.adults = Math.max(1, NUMBER_WORDS[forParty[1]] - (found.children || 0)); found.adultsSource = forParty[0].trim(); }
   if (!found.adults && /(?:^|\s)(?:זוג|שנינו|אני ו(?:אשתי|בעלי|בן הזוג|בת הזוג|החבר|החברה|בן זוגי|בת זוגי)|שני מבוגרים)/.test(text)) { found.adults = 2; found.adultsSource = text.match(/זוג|שנינו|אני ו\S+|שני מבוגרים/)[0]; }
   if (!found.adults && /(?:^|\s)(?:לבד|סולו|רק אני)(?=\s|$|,)/.test(text)) { found.adults = 1; found.adultsSource = 'לבד'; }
+  // One parent or grandparent travelling with children, without a partner named.
+  const role = text.match(/(?:^|\s)(אבא|אמא|סבא|סבתא|אב|אם)(?=\s|$)/);
+  if (!found.adults && role && /(?:^|\s)ו?(?:\d+\s+)?(?:בנים|בנות|בן|בת|נכד|נכדה|נכדים|נכדות|הילדים|ילד|ילדה|ילדים)(?=\s|$)/.test(text) && !/(?:^|\s)ו(?:אבא|אמא|סבא|סבתא)(?=\s|$)/.test(text)) { found.adults = 1; found.adultsSource = role[1]; }
+  if ((found.children === undefined || !found.childrenSource) && /(?:^|\s)ו?(?:נכדה|נכד)(?=\s|$)/.test(text)) { found.children = Math.max(found.children || 0, 1); found.childrenSource = 'נכד/ה'; }
+  const sons = text.match(/(?:^|\s)ו?(\d+)\s+(?:בנים|בנות|נכדים|נכדות)(?=\s|$)/);
+  if (sons && !counted) { found.children = Math.max(found.children || 0, +sons[1]); found.childrenSource = sons[0].trim(); }
   if (!found.children && !found.noChildren && /עם הילדים|עם ילדים|משפחה/.test(text)) found.childrenUnknown = true;
   found.wholeGroup = /חברים|חברות|חבר'ה|אנחנו \d|משפחה של|לבד|סולו|רק אני|\d+\s*(?:נוסעים|אנשים|מטיילים)/.test(found.adultsSource || '');
   if (found.adults) found.adults = Math.min(9, found.adults);
@@ -130,7 +150,7 @@ function extractBudget(text) {
 
 // Destinations, countries and origin with Hebrew prefixes: ב/ל (to), מ (from), and negation within two words.
 function extractPlaces(text, previous) {
-  const list = words(text), want = new Set(previous.want || []), exclude = new Set(previous.exclude || []);
+  const tagged = clauseWords(text), list = tagged.map(t => t.word), want = new Set(previous.want || []), exclude = new Set(previous.exclude || []);
   const found = [], countryHits = [];
   let only = false, origin = null;
   const matchAt = (i, names) => {
@@ -144,7 +164,7 @@ function extractPlaces(text, previous) {
     return null;
   };
   list.forEach((word, i) => {
-    const negated = NEGATIONS.has(list[i - 1]) || NEGATIONS.has(list[i - 2]);
+    const negated = NEGATIONS.has(list[i - 1]) || (NEGATIONS.has(list[i - 2]) && tagged[i - 2].c === tagged[i].c && NEGATION_BRIDGE.has(list[i - 1]));
     const fromWord = prefix => /^ו?מ$/.test(prefix) && list[i - 1] !== 'חוץ';
     for (const place of places) {
       const prefix = matchAt(i, place.names);
@@ -164,6 +184,8 @@ function extractPlaces(text, previous) {
       return;
     }
   });
+  const airportCities = new Set(found.map(hit => places.find(p => p.code === hit.code)?.city).filter(Boolean));
+  for (let i = found.length - 1; i >= 0; i--) if (airportCities.has(found[i].code)) found.splice(i, 1);
   // A newly named place replaces earlier wishes, unless the text adds to them ("גם", "או").
   if (only || (found.some(hit => !hit.negated) && !/(?:^|\s)(?:גם|וגם|או)(?=\s)/.test(text))) want.clear();
   for (const { code, negated } of found) { if (negated) { exclude.add(code); want.delete(code); } else { want.add(code); exclude.delete(code); } }
@@ -241,7 +263,7 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
     if (budget.currency === 'ILS') brief.budget = total; else delete brief.budget;
     say('budget', `${budget.scope === 'person' ? `${budget.amount.toLocaleString('he-IL')} לאדם = ` : ''}${total.toLocaleString('he-IL')} ${budget.currency === 'ILS' ? '₪' : budget.currency} לכולם`, budget.source);
   }
-  if (/זול|משתלם|תוריד|מחיר נמוך|הכי זול/.test(base)) { brief.cheaper = true; say('cheaper', 'מחיר חשוב'); }
+  if (/זול|משתלם|תוריד|מחיר נמוך|הכי זול|לא יקר|במחיר נוח/.test(base)) { brief.cheaper = true; say('cheaper', 'מחיר חשוב'); }
 
   const where = extractPlaces(base, previous);
   brief.want = where.want; brief.exclude = where.exclude;

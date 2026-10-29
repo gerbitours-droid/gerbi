@@ -1,22 +1,25 @@
-// Gerbi decision layer: transparent utility scoring of flight offers (spec: docs/gerbi-decision-engine-spec-he.md §2).
-// Pure functions over offerFacts(); filters are applied before scoring, so a score never resurrects a rejected offer.
+// Gerbi decision layer v2: generalized cost (spec: docs/gerbi-decision-engine-spec-he.md §2).
+// Every offer becomes one money amount – fare + the traveler's value of time + a price on each inconvenience – so
+// the order of two offers never depends on which other offers happen to be in the list (v1's ratio-to-cheapest
+// utilities flipped 30% of pairs when an unrelated cheap offer appeared). Filters run before; nothing rejected returns.
 import { timeBucket } from './flight-view.mjs';
 
-export const BASE_WEIGHTS = { price: 0.35, duration: 0.20, stops: 0.15, layover: 0.10, hours: 0.10, baggage: 0.05, carrier: 0.03, airport: 0.02 };
 export const MEMORY_WEIGHT = 0.08, PARTNER_WEIGHT = 0.05, TIE_EPSILON = 0.03;
 const REMOTE_AIRPORTS = new Set(['BVA', 'BGY']);
-const K_PRICE = 3, K_TIME = 2;
+// Reference amounts are per traveler, in USD; other currencies scale by a fixed reference rate (an order of
+// magnitude for comfort costs, never used to convert a fare). ponytail: fixed table, a rates feed if this matters.
+const CURRENCY_SCALE = { USD: 1, EUR: 0.95, GBP: 0.8, ILS: 3.7 };
+export const BASE_COSTS = { hour: 12, stop: 25, longWait: 6, overnight: 60, airportChange: 40, offHours: 30, nightDeparture: 15, nextDayArrival: 10, remoteAirport: 20, carrierMismatch: 20, bagPaid: 45, bagUnknown: 25 };
+const LEARNABLE = ['hour', 'stop', 'longWait', 'overnight', 'offHours', 'nightDeparture'];
 
-export function weightsFor(brief = {}) {
-  const w = { ...BASE_WEIGHTS };
-  if (brief.cheaper) w.price *= 1.6;
-  if ((brief.children || 0) > 0) { w.stops *= 1.5; w.layover *= 1.5; w.hours *= 1.3; }
-  if (brief.stops === '0' || brief.direct) w.stops *= 2;
-  if (brief.checkedBag) w.baggage *= 3;
-  if (brief.out?.length || brief.back?.length) w.hours *= 2;
-  if (brief.carrier) w.carrier *= 3;
-  const total = Object.values(w).reduce((a, b) => a + b, 0);
-  return Object.fromEntries(Object.entries(w).map(([k, v]) => [k, v / total]));
+// The traveler's prices for time and inconvenience, from the brief and (bounded) learned multipliers θ.
+export function costsFor(brief = {}, learned = {}) {
+  const c = { ...BASE_COSTS };
+  if (brief.cheaper) { c.hour *= 0.35; c.stop *= 0.4; c.longWait *= 0.5; }
+  if ((brief.children || 0) > 0) { c.hour *= 1.3; c.stop *= 1.5; c.overnight *= 1.5; c.longWait *= 1.5; c.nightDeparture *= 2; }
+  if (brief.stops === '0' || brief.direct) c.stop *= 2.4;
+  for (const key of LEARNABLE) if (Number.isFinite(learned[key])) c[key] *= Math.exp(Math.max(-0.7, Math.min(0.7, learned[key])));
+  return c;
 }
 
 // Stable across searches (supplier offer ids are not): carrier + flight number + departure time per segment.
@@ -24,58 +27,59 @@ export function itineraryKey(facts) {
   return facts.legs.map(leg => leg.segments.map(s => `${s.marketingCarrier?.airline?.code || '?'}${s.marketingCarrier?.flightNumber || ''}@${s.departure?.time || ''}`).join('+')).join('|');
 }
 
-function hoursUtility(facts, brief) {
+// Inconvenience amounts (hours, stops, ...) – the features the learning step adjusts the prices of.
+export function features(facts, brief = {}) {
   const legs = facts.legs.filter(leg => leg.segments.length);
-  if (!legs.length) return 1;
-  return legs.reduce((sum, leg, i) => {
+  let offHours = 0, nightDeparture = 0, nextDayArrival = 0;
+  legs.forEach((leg, i) => {
     const wanted = i === 0 ? brief.out : brief.back, bucket = timeBucket(leg.segments[0].departure?.time);
-    if (wanted?.length) return sum + (wanted.includes(bucket) ? 1 : 0.3);
-    return sum + (bucket === 'night' ? 0.6 : 1) * (leg.summary.dayOffset > 0 ? 0.85 : 1);
-  }, 0) / legs.length;
-}
-
-export function utilities(facts, context, brief = {}) {
-  const { minPrice, minTime } = context;
-  const price = facts.price?.value, time = facts.totalMinutes;
-  const layover = facts.longestLayover;
-  const anyOvernight = facts.overnight, anyChange = facts.legs.some(leg => leg.summary.layovers.some(l => l.changeAirport));
-  const carriers = facts.carriers.map(name => name.toLowerCase());
+    if (wanted?.length && !wanted.includes(bucket)) offHours++;
+    if (!wanted?.length && bucket === 'night') nightDeparture++;
+    if (leg.summary.dayOffset > 0) nextDayArrival++;
+  });
   return {
-    price: Number.isFinite(price) && minPrice > 0 ? Math.exp(-K_PRICE * (price - minPrice) / minPrice) : 0.5,
-    duration: Number.isFinite(time) && minTime > 0 ? Math.exp(-K_TIME * (time - minTime) / minTime) : 0.5,
-    stops: Math.max(0, 1 - 0.35 * (facts.stops ?? 1)),
-    layover: (layover <= 120 ? 1 : Math.exp(-(layover - 120) / 360)) * (anyOvernight ? 0.6 : 1) * (anyChange ? 0.7 : 1),
-    hours: hoursUtility(facts, brief),
-    baggage: brief.checkedBag ? ({ included: 1, unknown: 0.5, mixed: 0.5 }[facts.checked] ?? 0.2) : 1,
-    carrier: brief.carrier ? (carriers.some(name => name.includes(brief.carrier)) ? 1 : 0.8) : 1,
-    airport: facts.airports.some(code => REMOTE_AIRPORTS.has(code)) ? 0.7 : 1
+    hour: Number.isFinite(facts.totalMinutes) ? facts.totalMinutes / 60 : null,
+    stop: facts.legs.reduce((sum, leg) => sum + leg.summary.stops, 0),
+    longWait: facts.legs.reduce((sum, leg) => sum + leg.summary.layovers.reduce((s, l) => s + Math.max(0, (l.minutes || 0) - 120) / 60, 0), 0),
+    overnight: facts.legs.reduce((sum, leg) => sum + leg.summary.layovers.filter(l => l.overnight).length, 0),
+    airportChange: facts.legs.reduce((sum, leg) => sum + leg.summary.layovers.filter(l => l.changeAirport).length, 0) + (facts.airportChange ? 1 : 0),
+    offHours, nightDeparture, nextDayArrival,
+    remoteAirport: facts.airports.filter(code => REMOTE_AIRPORTS.has(code)).length,
+    carrierMismatch: brief.carrier && !facts.carriers.some(name => name.toLowerCase().includes(brief.carrier)) ? 1 : 0,
+    bagPaid: brief.checkedBag && ['paid', 'none'].includes(facts.checked) ? legs.length : 0,
+    bagUnknown: brief.checkedBag && ['unknown', 'mixed'].includes(facts.checked) ? legs.length : 0
   };
 }
 
-// Scores a filtered list. boosts: itineraryKey → m ∈ (−1, 1) from query memory; partnerPick: itineraryKey chosen by the LLM.
-export function scoreOffers(list, brief = {}, { boosts = {}, partnerPick = null } = {}) {
-  const sameCurrency = new Set(list.map(f => f.price?.currency).filter(Boolean)).size <= 1;
-  const prices = list.map(f => f.price?.value).filter(Number.isFinite), times = list.map(f => f.totalMinutes).filter(Number.isFinite);
-  const context = { minPrice: sameCurrency && prices.length ? Math.min(...prices) : NaN, minTime: times.length ? Math.min(...times) : NaN };
-  const w = weightsFor(brief);
-  return list.map(facts => {
-    const u = utilities(facts, context, brief), key = itineraryKey(facts);
-    const contributions = Object.fromEntries(Object.keys(w).map(k => [k, w[k] * u[k]]));
-    const base = Object.values(contributions).reduce((a, b) => a + b, 0);
+export function generalizedCost(facts, brief = {}, learned = {}) {
+  const c = costsFor(brief, learned), x = features(facts, brief);
+  const people = (brief.adults || 2) + (brief.children || 0), scale = CURRENCY_SCALE[facts.price?.currency] ?? 1;
+  // A missing duration is charged at a long trip's length rather than guessed short.
+  const parts = Object.fromEntries(Object.keys(c).map(key => [key, (key === 'hour' ? (x.hour ?? 12) : x[key]) * c[key] * people * scale]));
+  const fare = Number.isFinite(facts.price?.value) ? facts.price.value : null;
+  return { fare, parts, features: x, total: fare === null ? Infinity : fare + Object.values(parts).reduce((a, b) => a + b, 0) };
+}
+
+// boosts: itineraryKey → m ∈ (−1, 1) from query memory; partnerPick: key chosen by the LLM in a near tie.
+// Score = GC_min / GC′ ∈ (0, 1]: scale-free, ordered exactly like the cost, so a near tie (< ε) means within 3%.
+export function scoreOffers(list, brief = {}, { boosts = {}, partnerPick = null, learned = {} } = {}) {
+  const items = list.map(facts => {
+    const gc = generalizedCost(facts, brief, learned), key = itineraryKey(facts);
     const memory = Math.max(-1, Math.min(1, boosts[key] || 0));
-    const score = base + MEMORY_WEIGHT * memory + (partnerPick === key ? PARTNER_WEIGHT : 0);
-    return { facts, key, base, score, memory, partner: partnerPick === key, utilities: u, contributions };
+    const adjusted = gc.total * (1 - MEMORY_WEIGHT * memory) * (partnerPick === key ? 1 - PARTNER_WEIGHT : 1);
+    return { facts, key, gc, cost: adjusted, memory, partner: partnerPick === key };
   });
+  const min = Math.min(...items.map(item => item.cost).filter(Number.isFinite));
+  for (const item of items) { item.score = Number.isFinite(item.cost) && min > 0 ? min / item.cost : 0; item.base = item.score; }
+  return items;
 }
 
-export const rankScored = scored => [...scored].sort((a, b) => b.score - a.score || (a.facts.price?.value ?? Infinity) - (b.facts.price?.value ?? Infinity));
+export const rankScored = scored => [...scored].sort((a, b) => a.cost - b.cost || (a.facts.price?.value ?? Infinity) - (b.facts.price?.value ?? Infinity));
 
-// Near-tie at the top: the only case in which the LLM is asked to weigh in (§4.1).
 export function needsTieBreak(ranked, epsilon = TIE_EPSILON) {
-  return ranked.length >= 2 && ranked[0].score - ranked[1].score < epsilon;
+  return ranked.length >= 2 && Number.isFinite(ranked[1].cost) && ranked[0].score - ranked[1].score < epsilon;
 }
 
-// Badges: cheapest, fastest, recommended, and Pareto-efficient on (price, time).
 export function badges(scored) {
   const out = new Map(scored.map(item => [item.key, []]));
   const priced = scored.filter(item => Number.isFinite(item.facts.price?.value));
@@ -104,28 +108,35 @@ export function diverseTop(ranked, count = 3, lambda = 0.7) {
   return chosen;
 }
 const minutesOf = item => { const [h, m] = String(item.facts.legs[0]?.segments[0]?.departure?.time || '0:0').split(':').map(Number); return h * 60 + m; };
+const median = values => { const v = [...values].sort((a, b) => a - b); return v.length ? (v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2) : NaN; };
+const clock = minutes => `${Math.floor(minutes / 60)}:${String(Math.round(minutes % 60)).padStart(2, '0')}`;
 
-// The two strongest reasons, in words, relative to the list average – never a reason the data does not support.
-export function explain(item, scored) {
-  const avg = key => scored.reduce((s, x) => s + x.utilities[key], 0) / scored.length;
-  // Compared with the median, the typical offer: a few very expensive outliers must not make every fare look like a bargain.
-  const median = values => { const v = [...values].sort((a, b) => a - b); return v.length ? (v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2) : NaN; };
-  const meanPrice = median(scored.map(x => x.facts.price?.value).filter(Number.isFinite)), meanTime = median(scored.map(x => x.facts.totalMinutes).filter(Number.isFinite));
-  const phrases = {
-    price: () => Number.isFinite(item.facts.price?.value) && item.facts.price.value < meanPrice ? `זולה ב־${Math.round((1 - item.facts.price.value / meanPrice) * 100)}% מהמחיר הטיפוסי בחיפוש` : null,
-    duration: () => Number.isFinite(item.facts.totalMinutes) && meanTime - item.facts.totalMinutes >= 30 ? `קצרה ב־${Math.floor((meanTime - item.facts.totalMinutes) / 60)}:${String(Math.round((meanTime - item.facts.totalMinutes) % 60)).padStart(2, '0')} שע׳ מהטיפוסי` : null,
-    stops: () => item.facts.stops === 0 ? 'ישירה' : null,
-    layover: () => item.facts.stops > 0 && item.facts.longestLayover <= 120 ? 'קונקשן קצר' : null,
-    hours: () => 'שעות נוחות',
-    baggage: () => item.facts.checked === 'included' ? 'מזוודה כלולה' : null,
-    carrier: () => 'החברה שביקשתם',
-    airport: () => null
-  };
-  const ranked = Object.keys(item.contributions).map(key => ({ key, gain: item.contributions[key] - item.contributions[key] / (item.utilities[key] || 1) * avg(key) }))
-    .filter(x => x.gain > 0.002).sort((a, b) => b.gain - a.gain);
-  const reasons = [];
-  for (const { key } of ranked) { const text = phrases[key](); if (text && !reasons.includes(text)) reasons.push(text); if (reasons.length === 2) break; }
+// Reasons in the traveler's terms, only from facts: the trade against the cheapest fare, the median offer, comfort.
+export function explain(item, scored, format = price => `${Math.round(price)}`) {
+  const reasons = [], f = item.facts;
+  const sameCurrency = new Set(scored.map(x => x.facts.price?.currency).filter(Boolean)).size === 1;
+  const cheapest = sameCurrency ? scored.filter(x => Number.isFinite(x.facts.price?.value)).reduce((a, b) => (b.facts.price.value < a.facts.price.value ? b : a), item) : null;
+  const typicalPrice = median(scored.map(x => x.facts.price?.value).filter(Number.isFinite));
+  if (cheapest && cheapest !== item && Number.isFinite(f.totalMinutes) && Number.isFinite(cheapest.facts.totalMinutes) && cheapest.facts.totalMinutes - f.totalMinutes >= 45)
+    reasons.push(`עוד ${format(f.price.value - cheapest.facts.price.value)} וחוסכת ${clock(cheapest.facts.totalMinutes - f.totalMinutes)} שע׳ לעומת הזולה`);
+  else if (sameCurrency && Number.isFinite(f.price?.value) && f.price.value < typicalPrice * 0.9) reasons.push(`זולה ב־${Math.round((1 - f.price.value / typicalPrice) * 100)}% מהמחיר הטיפוסי בחיפוש`);
+  if (f.stops === 0) reasons.push('ישירה');
+  else if (item.gc.features.longWait === 0 && !f.overnight) reasons.push('קונקשן קצר');
+  if (f.checked === 'included') reasons.push('מזוודה כלולה');
   if (item.memory > 0.2) reasons.push('נבחרה הרבה בחיפושים דומים');
   if (item.partner) reasons.push('ג׳רבי AI המליץ בתיקו');
   return reasons.slice(0, 3);
+}
+
+// Online pairwise learning (spec §2.6): when a traveler acts on an offer ranked below others, the inconvenience
+// those higher offers had more of was under-priced. θ moves by η·(x_above − x_chosen)/scale, bounded |θ| ≤ 0.7.
+export function learnFromChoice(learned = {}, chosen, above, eta = 0.04) {
+  if (!chosen || !above?.length) return learned;
+  const next = { ...learned }, scale = { hour: 4, stop: 1, longWait: 2, overnight: 1, offHours: 1, nightDeparture: 1 };
+  for (const key of LEARNABLE) {
+    const mean = above.reduce((sum, x) => sum + (x[key] ?? 0), 0) / above.length;
+    const step = eta * ((mean - (chosen[key] ?? 0)) / scale[key]);
+    next[key] = Math.max(-0.7, Math.min(0.7, (next[key] || 0) + Math.max(-0.2, Math.min(0.2, step))));
+  }
+  return next;
 }
