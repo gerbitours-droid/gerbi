@@ -4,7 +4,7 @@ import {rankInspirations} from '../dist/personalization.mjs';
 import {parsePreferences,rankDemoTrips} from '../dist/planner.mjs';
 import {scoreDestinations,extractSignals} from '../backend/understanding.mjs';
 import {restoreJourney} from '../dist/journey.mjs';
-import {offerPrice,formatFare,sortedOffers,destinationPhoto} from '../dist/flight-view.mjs';
+import {offerPrice,formatFare,sortFacts} from '../dist/flight-view.mjs';
 import {trips} from '../dist/data.mjs';
 
 test('explicit styles actually change ordering and produce grounded reasons',()=>{
@@ -45,10 +45,7 @@ test('fares use supplier selling price and never invent a currency or price',()=
  assert.equal(offerPrice(offer('155')),null);assert.equal(formatFare(null),'מחיר אינו זמין');
 });
 test('price ordering handles missing fares and leaves mixed currencies incomparable',()=>{
- const a=offer(100),b=offer(20),missing={};
- assert.deepEqual(sortedOffers([a,missing,b],'price'),[b,a,missing]);
- const eur=offer(10,'EUR');assert.deepEqual(sortedOffers([a,eur],'price'),[a,eur]);
-});
-test('destination imagery is correctly mapped; unknown airports have no false photo',()=>{
- assert.equal(destinationPhoto('FCO'),'rome.jpg');assert.equal(destinationPhoto('DXB'),'dubai.jpg');assert.equal(destinationPhoto('JFK'),null);
+ const fact=o=>({price:offerPrice(o),totalMinutes:null}),a=fact(offer(100)),b=fact(offer(20)),missing=fact({});
+ assert.deepEqual(sortFacts([a,missing,b],'price'),[b,a,missing]);
+ const eur=fact(offer(10,'EUR'));assert.deepEqual(sortFacts([a,eur],'price'),[a,eur]);
 });
