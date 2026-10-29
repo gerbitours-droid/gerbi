@@ -144,3 +144,6 @@ button.swap{border:0;background:none;cursor:pointer;color:var(--blue,#096bd2);mi
 .message.assistant p{margin:6px 0}.next-question{font-weight:700;color:var(--navy,#071751)}
 .parsed-search{background:#fff;border:1px solid #f0c27a;border-radius:14px;padding:10px 12px;margin:8px 0}.parsed-search .button{margin-top:4px}
 .chat-head-actions{display:flex;gap:10px;margin-inline-start:auto}
+/* Decision layer */
+.flight-badges{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}.flight-badge{font-size:11px;font-weight:700;border-radius:100px;padding:3px 10px;background:var(--pale,#eaf6ff);color:var(--navy,#071751)}.badge-recommended{background:var(--yellow,#ffdf25)}.badge-cheapest,.badge-value{background:#e5f4e4;color:#24603a}
+.why{font-size:13px;color:#24603a;margin:-4px 0 6px}

@@ -10,9 +10,31 @@ import { LearningStore } from './backend/learning-store.mjs';
 import { destinationTags, publicTagCatalog } from './backend/tag-catalog.mjs';
 import { extractSignals, missingFields, scoreDestinations, understandRequest } from './backend/understanding.mjs';
 import { voleroFlightAvailability, voleroFlightBook, voleroFlightSearch } from './backend/volero-client.mjs';
+import { createStore } from './backend/kv-store.mjs';
+import { QueryMemory, EVENT_WEIGHTS } from './backend/query-memory.mjs';
+import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm-partner.mjs';
+import { places } from './dist/places.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
+const memory = new QueryMemory(createStore('query-memory', dataDirectory));
+const llmCache = createStore('llm-cache', dataDirectory);
+const placeCodes = new Set(places.map((place) => place.code));
+// The canonical brief the decision endpoints accept: every field re-validated, nothing free-text.
+function safeBrief(input = {}) {
+  const code = (value) => (typeof value === 'string' && placeCodes.has(value) ? value : '');
+  const int = (value, min, max) => (Number.isInteger(value) && value >= min && value <= max ? value : undefined);
+  const brief = { origin: code(input.origin) || 'TLV', destination: code(input.destination), want: Array.isArray(input.want) ? input.want.map(code).filter(Boolean).slice(0, 6) : [],
+    start: typeof input.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.start) ? input.start : '', month: typeof input.month === 'string' ? input.month.slice(0, 12) : '',
+    tripType: input.tripType === 'oneway' ? 'oneway' : 'round', adults: int(input.adults, 1, 9) ?? 2, children: int(input.children, 0, 8) ?? 0, nights: int(input.nights, 1, 30),
+    cheaper: input.cheaper === true, checkedBag: input.checkedBag === true, stops: ['0', '1'].includes(input.stops) ? input.stops : undefined,
+    out: Array.isArray(input.out) ? input.out.filter((b) => ['night', 'morning', 'afternoon', 'evening'].includes(b)) : undefined,
+    back: Array.isArray(input.back) ? input.back.filter((b) => ['night', 'morning', 'afternoon', 'evening'].includes(b)) : undefined,
+    carrier: typeof input.carrier === 'string' ? input.carrier.slice(0, 20) : undefined };
+  for (const key of ['beach', 'city', 'relaxation', 'family', 'couple']) if (typeof input[key] === 'boolean') brief[key] = input[key];
+  return brief;
+}
+const itemKey = (value) => (typeof value === 'string' && /^[A-Za-z0-9@:+|?._-]{1,240}$/.test(value) ? value : '');
 const types = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.png':'image/png', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml', '.woff2':'font/woff2' };
 
 function json(res, code, data) {
@@ -49,7 +71,7 @@ export function createServer() {
   const send = (code,data) => json(res, code, data);
   try {
    const url = new URL(req.url,'http://localhost');
-   if (url.pathname === '/api/status') return send(200,{ mode:'demo', provider:'Volero', connected:false, credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), reason:'authentication_documentation_required', learning:'local_aggregates' });
+   if (url.pathname === '/api/status') { const partner = partnerStatus(); return send(200,{ mode:'demo', provider:'Volero', connected:false, credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), reason:'authentication_documentation_required', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available:partner.configured && !partner.circuitOpen && partner.tokensLeftToday > 2000 } }); }
    if (url.pathname === '/api/tags' && req.method === 'GET') return send(200, { facets: publicTagCatalog(), destinations: destinationTags });
    if (url.pathname === '/api/learning/summary' && req.method === 'GET') return send(200, await learning.summary());
    if (url.pathname === '/api/ai/understand') {
@@ -60,12 +82,14 @@ export function createServer() {
     const previous = input.previous && typeof input.previous === 'object' ? input.previous : {};
     const signals = extractSignals(text, previous);
     const understanding = understandRequest(text, previous);
+    // The LLM is consulted only when the rules understood too little of the text (spec §4.1).
+    const partner = understanding.coverage.needsPartner ? await partnerUnderstand(llmCache, text, understanding.brief) : null;
     const weights = await learning.weightsFor(text);
     const recommendations = scoreDestinations(trips, signals, weights).map(({ destination, score, estimate, matchedTags }) => ({
       id: destination.id, score: Math.round(score * 100) / 100, estimate, matchedTags
     }));
     const summary = await learning.learnQuery({ text, tags: signals.tags, consent: input.learningConsent === true });
-    return send(200, { mode:'rules_and_local_learning', signals, missing:missingFields(signals), understood:understanding.understood, assumed:understanding.assumed, questions:understanding.questions, flightSearch:understanding.flightSearch, recommendations, learning: { recorded: input.learningConsent === true, totals:summary.totals } });
+    return send(200, { mode:'rules_and_local_learning', signals, missing:missingFields(signals), understood:understanding.understood, assumed:understanding.assumed, questions:understanding.questions, flightSearch:understanding.flightSearch, coverage:understanding.coverage, partner: partner ? { used:true, ...partner } : { used:false }, recommendations, learning: { recorded: input.learningConsent === true, totals:summary.totals } });
    }
    if (url.pathname === '/api/ai/feedback') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
@@ -75,6 +99,30 @@ export function createServer() {
     const tags = Array.isArray(input.tags) ? input.tags.filter((tag) => typeof tag === 'string').slice(0, 20) : destinationTags[destinationId] || [];
     try { return send(200, { accepted:true, learning:await learning.feedback({ event:string(input.event,40), destinationId, tags }) }); }
     catch (error) { return send(400, { error:error.message }); }
+   }
+   if (url.pathname === '/api/ai/memory') {
+    if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
+    const input = await body(req);
+    const items = Array.isArray(input.items) ? input.items.map(itemKey).filter(Boolean) : [];
+    try { return send(200, { boosts: await memory.boosts(safeBrief(input.brief), items) }); } catch { return send(200, { boosts: {} }); }
+   }
+   if (url.pathname === '/api/ai/event') {
+    if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
+    const input = await body(req), event = string(input.event, 20);
+    const items = [...new Set([].concat(input.items || input.item || []).map(itemKey).filter(Boolean))].slice(0, event === 'impression' ? 12 : 1);
+    if (!items.length || !(event in EVENT_WEIGHTS)) return send(400, { error:'invalid_event' });
+    try { const brief = safeBrief(input.brief); for (const item of items) await memory.event(brief, item, event); return send(200, { accepted:true }); } catch { return send(200, { accepted:false }); }
+   }
+   if (url.pathname === '/api/ai/tiebreak') {
+    if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
+    const input = await body(req);
+    const number = (value, max) => (Number.isFinite(value) && value >= 0 && value <= max ? Math.round(value * 100) / 100 : null);
+    const candidates = (Array.isArray(input.candidates) ? input.candidates : []).slice(0, 5).map((row) => ({ key: itemKey(row?.key),
+      price: number(row?.price, 1e6), currency: typeof row?.currency === 'string' && /^[A-Z]{3}$/.test(row.currency) ? row.currency : '', minutes: number(row?.minutes, 1e4),
+      stops: number(row?.stops, 6), longestWait: number(row?.longestWait, 1e4), departs: Array.isArray(row?.departs) ? row.departs.filter((t) => /^\d{2}:\d{2}$/.test(t)).slice(0, 2) : [],
+      bag: ['included', 'paid', 'none', 'mixed', 'unknown'].includes(row?.bag) ? row.bag : 'unknown', carrier: string(row?.carrier, 40) })).filter((row) => row.key);
+    const result = await partnerTieBreak(llmCache, safeBrief(input.brief), candidates);
+    return send(200, result || { pick:null });
    }
    if (url.pathname === '/api/volero/flights/search') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});

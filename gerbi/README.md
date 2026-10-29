@@ -1,6 +1,6 @@
 # Gerbi Travel — local prototype
 
-A Hebrew, RTL travel interface based on the supplied Gerbi reference. Runs with Node.js built-in modules and browser-native HTML/CSS/JavaScript. No production dependencies, installation, database, or build step.
+A Hebrew, RTL travel interface based on the supplied Gerbi reference. Browser-native HTML/CSS/JavaScript and Node.js; one server-side dependency (`@anthropic-ai/sdk`, run `npm install`) for the optional AI decision partner. No database or build step.
 
 ## Run
 
@@ -15,6 +15,10 @@ Open http://localhost:4173. Server binds to `127.0.0.1` only. Set `PORT` in `.en
 npm run check
 npm test
 ```
+
+## Gerbi AI decision engine
+
+Free-text understanding (`dist/brief-engine.mjs`), transparent offer scoring (`dist/scoring.mjs`), query memory (`backend/query-memory.mjs`) and a bounded LLM partner (`backend/llm-partner.mjs`). Spec: [docs/gerbi-decision-engine-spec-he.md](docs/gerbi-decision-engine-spec-he.md). Set `ANTHROPIC_API_KEY` to enable the partner; without it everything runs deterministic.
 
 ## Implemented
 

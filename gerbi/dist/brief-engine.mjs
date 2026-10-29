@@ -189,6 +189,20 @@ function extractFlight(text) {
   return flight;
 }
 
+// Words that carry no request content, and the vocabulary the rules above already handle. Whatever is left is
+// what the engine did not understand; its share decides whether the LLM partner is consulted (spec §4.1).
+const FILLER = new Set('אנחנו אני את אתה הם רוצים רוצה מחפשים מחפש מחפשת עם של על זה זו גם או אבל עד רק כל יותר פחות משהו איזה איזו חופשה חופשת טיול טיסה טיסות לטוס לטייל לנסוע נסיעה בבקשה אפשר צריך צריכים מתאים טוב הכי מאוד קצת לנו לי שלנו ביחד וגם כי היי שלום תודה יעד מקום עדיף ממש כמה לא בלי ללא עוד תוסיף תוריד את המחיר בעצם כן'.split(' '));
+const KNOWN = new Set('לילות לילה ימים יום שבוע שבועיים סופש סוף ילדים ילד ילדה ילדות תינוק תינוקת בני בנות בן בת גיל מבוגרים מבוגר זוג זוגי זוגית רומנטי ירח דבש שנינו משפחה משפחתי חברים חברות נוסעים אנשים מטיילים לבד סולו ישירה ישיר עצירה עצירות קונקשן החלפה מזוודה כבודה טרולי מוקדם בבוקר בערב בלילה צהריים לחזור חזרה הלוך כיוון ים בים חוף חופים בריכה עיר עירוני אוכל תרבות מוזיאונים קניות מנוחה להירגע שקט רגוע כשר כשרות שבת נגיש נגישות שקל שקלים דולר יורו תקציב אלף זול משתלם בקיץ בחורף באביב בסתיו פסח סוכות חנוכה מחר בעוד'.split(' '));
+export function coverage(text, understood) {
+  const sources = understood.map(item => normalize(item.source || '')).join(' ');
+  const meaningful = words(numerals(normalize(text)))
+    .filter(w => w.length >= 2 && !/^\d+$/.test(w) && !FILLER.has(w) && !FILLER.has(w.replace(/^[ובלהמש]/, '')));
+  const unknown = meaningful.filter(w => !KNOWN.has(w) && !KNOWN.has(w.replace(/^[ובלהמש]/, '')) && !sources.includes(w) && !MONTHS.some(m => w.endsWith(m))
+    && !places.some(p => p.names.some(n => w.endsWith(n))) && !countries.some(c => c.names.some(n => w.endsWith(n))));
+  const ratio = meaningful.length ? 1 - unknown.length / meaningful.length : 1;
+  return { ratio: Math.round(ratio * 100) / 100, unknown: unknown.slice(0, 12), needsPartner: meaningful.length >= 3 && (ratio < 0.6 || unknown.length >= 3) };
+}
+
 const STYLE_RULES = [
   ['beach', /(?:^|[\s,])(?:ים|בים|לים|וים|בריכה|ובריכה|חוף|חופים|בטן גב|בטן-גב)(?=[\s,.!?]|$)/, /בלי ים|ללא ים|לא רוצים ים|לא ים/],
   ['city', /אוכל|תרבות|(?:^|\s)עיר(?:וני)?(?=\s|$)|מוזיאונים|קניות/, /בלי עיר|לא עיר/],
@@ -250,7 +264,7 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
     else if (positive.test(base)) { brief[key] = true; say(key, { beach: 'ים ובריכה', city: 'אוכל ותרבות', relaxation: 'מנוחה', family: 'זמן משפחתי' }[key]); }
   }
   const couple = /לא\s+(?:חופשה\s+)?(?:זוגי|רומנטי)|בלי\s+רומנטיקה/.test(base) ? false : /רומנטי|זוגי|ירח דבש|רק שנינו|רק אנחנו/.test(base) ? true
-    : (brief.children || 0) > 0 ? false : /(?:^|\s)זוג(?=\s|$|,)/.test(base) ? true : undefined;
+    : (brief.children || 0) > 0 ? false : /(?:^|\s)זוג(?=\s|$|,)|אני ו(?:אשתי|בעלי|בן הזוג|בת הזוג|בן זוגי|בת זוגי)/.test(base) ? true : undefined;
   if (couple !== undefined) { brief.couple = couple; if (couple) say('couple', 'חופשה זוגית'); }
   for (const [key, pattern, label] of [['kosher', /כשר/, 'אוכל כשר'], ['shabbat', /שבת/, 'שומרי שבת'], ['accessible', /נגיש|כיסא גלגלים/, 'נגישות']]) if (pattern.test(base)) { brief[key] = true; say(key, label); }
 
@@ -258,10 +272,11 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
   if (/עוד לילה|תוסיף לילה|לילה נוסף/.test(base) && !duration) { brief.nights = Math.min(30, (brief.nights || 5) + 1); say('nights', `${brief.nights} לילות`); }
   if (/(?:עוד|תוסיף|ועוד) (?:ילד|ילדה)(?=\s|$)/.test(base) && travelers.children === undefined) { brief.children = Math.min(9 - (brief.adults || 2), (brief.children || 0) + 1); say('children', `${brief.children} ילדים`); }
 
-  if (!brief.adults) { brief.adults = 2; assumed.push('2 מבוגרים'); }
+  if (travelers.adults) delete brief.adultsAssumed;
+  if (!brief.adults) { brief.adults = 2; brief.adultsAssumed = true; assumed.push('2 מבוגרים'); }
   brief.children = brief.children ?? 0;
   brief.text = raw;
-  return { brief, understood, assumed, questions: nextQuestions(brief, travelers, where, dates), flightSearch: flightSearchFrom(brief, where) };
+  return { brief, understood, assumed, coverage: coverage(raw, understood), questions: nextQuestions(brief, travelers, where, dates), flightSearch: flightSearchFrom(brief, where) };
 }
 
 // One or two questions, most decision-changing first; never a question whose answer the text already gave.
