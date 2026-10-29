@@ -1,4 +1,4 @@
-import { rankInspirations } from './personalization.mjs';
+import { rankInspirations, coupleIntent, destinationConstraints } from './personalization.mjs';
 export function parsePreferences(text, previous = {}) {
  const result = {...previous};
  const normalized = text.replace(/[,٬]/g,'').replace(/״|”/g,'"');
@@ -26,11 +26,14 @@ export function parsePreferences(text, previous = {}) {
  if(/שבת/.test(text)) result.shabbat=true;
  if(/נגיש|כיסא גלגלים/.test(text)) result.accessible=true;
  if(/זול|משתלם|תוריד|מחיר נמוך/.test(text)) result.cheaper=true;
- for (const [key,pattern] of [['city',/אוכל|תרבות|עיר/],['relaxation',/מנוחה|להירגע|שקט|בטן.?גב/],['family',/משפח/],['couple',/זוג|רומנטי/]]) {
+ for (const [key,pattern] of [['city',/אוכל|תרבות|עיר/],['relaxation',/מנוחה|להירגע|שקט|בטן.?גב/],['family',/משפח/]]) {
   if(pattern.test(text)) result[key]=true;
  }
  if(/בלי ים|ללא ים|לא רוצים ים/.test(text)) result.beach=false;
  if(/בלי ילדים|ללא ילדים/.test(text)){result.family=false;result.children=0;}
+ const couple=coupleIntent(text,result.children||0);
+ if(couple!==undefined) result.couple=couple;
+ Object.assign(result,destinationConstraints(text,previous));
  result.text = text;
  return result;
 }

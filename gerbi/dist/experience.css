@@ -107,3 +107,7 @@ svg{stroke-width:1.5}
 .flight-segments{font-size:13px;border-top:1px solid #dbe5ef;padding-top:8px;margin-top:10px}.flight-segments summary{cursor:pointer;min-height:32px}.flight-segments p{line-height:1.8}
 #trip-name{font-size:16px}#cancel-flight-search{margin:8px}
 @media(max-width:700px){.trip-settings .editor-actions{flex-direction:column}.trip-settings .button{width:100%}.trip-settings{padding:18px}}
+.flight-leg .leg-warning{flex-basis:100%;color:#8a4b00;background:#fff4e0;border-radius:8px;padding:3px 9px;font-size:12px;font-weight:600}.flight-segments .layover{color:#8a4b00;font-size:13px;border-inline-start:3px solid #f0c27a;padding-inline-start:9px}
+.verified-stamp{margin:0;font-size:12px;color:#2f6b45;background:#eaf4ee;border-radius:10px;padding:6px 10px}.verified-stamp strong{font-size:13px}
+.stale-note{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff4e0;border:1px solid #f0c27a;border-radius:16px;padding:14px 18px;margin-bottom:16px}.stale-note p{margin:0;max-width:62ch}#live-results.stale .flight-card{opacity:.55}
+.constraint-note{margin:10px 0}

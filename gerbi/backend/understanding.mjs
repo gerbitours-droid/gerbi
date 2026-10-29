@@ -1,5 +1,5 @@
 import { flatTags, destinationTags } from './tag-catalog.mjs';
-import { rankInspirations } from '../dist/personalization.mjs';
+import { rankInspirations, coupleIntent, destinationConstraints } from '../dist/personalization.mjs';
 
 const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
 const tagIndex = flatTags();
@@ -56,6 +56,10 @@ export function extractSignals(text, previous = {}) {
   if (people) result.adults = Math.min(9, Math.max(1, Number(people[1]) - (result.children || 0)));
   const month = months.find((name) => normalized.includes(name));
   if (month) result.month = month;
+  const couple = coupleIntent(text, result.children || 0);
+  if (couple !== undefined) result.couple = couple;
+  if (couple === false) result.tags = result.tags.filter(tag => tag !== 'couple');
+  Object.assign(result, destinationConstraints(text, previous));
   return result;
 }
 

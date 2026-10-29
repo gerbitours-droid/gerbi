@@ -37,6 +37,10 @@ function string(value, max = 1500) {
 function id(value, max = 80) {
   return typeof value === 'string' && /^[a-z0-9_-]+$/i.test(value) ? value.slice(0, max) : '';
 }
+function supplierError(send, error) {
+  const status = error.status === 504 ? 504 : Number.isInteger(error.status) && error.status >= 400 && error.status < 500 ? error.status : 502;
+  return send(status, { error:error.message, provider:'volero', details:error.details || undefined });
+}
 export function createServer() {
  return http.createServer(async (req,res) => {
   res.setHeader('X-Content-Type-Options','nosniff');
@@ -76,22 +80,25 @@ export function createServer() {
     const input = await body(req);
     if (!input || typeof input !== 'object' || Array.isArray(input)) return send(400,{error:'search_input_required'});
     try { return send(200, { provider:'volero', data:await voleroFlightSearch(input) }); }
-    catch (error) { const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 500 ? error.status : 502; return send(status, { error:error.message, provider:'volero', details:error.details || undefined }); }
+    catch (error) { return supplierError(send, error); }
    }
    if (url.pathname === '/api/volero/flights/availability') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
     const input = await body(req);
     if (!input?.srk || !input?.searchToken || typeof input.offerIndex !== 'string' || !input.offerIndex) return send(400,{error:'search_reference_required'});
     try { return send(200, { provider:'volero', data:await voleroFlightAvailability(input) }); }
-    catch (error) { const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 500 ? error.status : 502; return send(status, { error:error.message, provider:'volero', details:error.details || undefined }); }
+    catch (error) { return supplierError(send, error); }
    }
    if (url.pathname === '/api/volero/flights/book') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
     const input = await body(req);
+    // A live booking charges the agency's supplier account; the browser has no booking flow yet, so the public
+    // deployment refuses it unless an operator turns it on deliberately.
+    if (process.env.VOLERO_BOOKING_ENABLED !== 'true') return send(403,{error:'booking_disabled',message:'הזמנה אינה זמינה באתר בשלב זה.'});
     if (input?.confirm !== true) return send(428,{error:'explicit_booking_confirmation_required',message:'Booking requires confirm:true.'});
     if (!input?.srk || !input?.searchToken || typeof input.offerIndex !== 'string' || !input.offerIndex || !input.input || typeof input.input !== 'object') return send(400,{error:'booking_input_required'});
     try { return send(200, { provider:'volero', data:await voleroFlightBook(input) }); }
-    catch (error) { const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 500 ? error.status : 502; return send(status, { error:error.message, provider:'volero', details:error.details || undefined }); }
+    catch (error) { return supplierError(send, error); }
    }
    if (url.pathname === '/api/search' || url.pathname === '/api/revalidate') {
     if(req.method !== 'POST') return send(405,{error:'method_not_allowed'});

@@ -1,7 +1,8 @@
 import { styles, rankInspirations } from './personalization.mjs';
-import { offerPrice, formatFare, destinationPhoto, sortedOffers } from './flight-view.mjs';
+import { offerPrice, formatFare, destinationPhoto, sortedOffers, carrierOf, legSummary, hoursText, LONG_LAYOVER_MINUTES } from './flight-view.mjs';
 import { parsePreferences, rankDemoTrips, estimateDemoTotal, validDateRange } from './planner.mjs';
 import { trips } from './data.mjs';
+import { places, resolvePlace, placeSuggestions } from './places.mjs';
 import { initPages } from './pages.mjs';
 const icons=name=>`<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const money=n=>new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:0}).format(n);
@@ -15,7 +16,7 @@ try {
  const saved=JSON.parse(localStorage.getItem('gerbi-preferences')||'{}');
  for(const style of styles) if(typeof saved?.[style.id]==='boolean')state.preferences[style.id]=saved[style.id];
 } catch {}
-const airportCodes={'סנטוריני, יוון':'JTR','רומא, איטליה':'FCO','האיים המלדיביים':'MLE','דובאי, איחוד האמירויות':'DXB'};
+document.querySelector('#destinations').innerHTML=places.map(place=>`<option value="${place.label}">`).join('');
 $('.skip-link').onclick=e=>{e.preventDefault();$('#main-content').focus();$('#main-content').scrollIntoView({block:'start'});};
 const modal=$('#modal');
 let toastTimer;
@@ -26,6 +27,7 @@ $('.modal-close').addEventListener('click',()=>modal.close());
 modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
 function localDate(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
 function shortDate(value){return new Date(value+'T12:00:00').toLocaleDateString('he-IL',{day:'numeric',month:'short'});}
+function longDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value||'')?new Date(value+'T12:00:00').toLocaleDateString('he-IL',{weekday:'short',day:'numeric',month:'numeric',year:'numeric'}):'';}
 function openDates(){
  openModal(`<span class="dialog-kicker">בוחרים מתי לצאת לחופש</span><h2>מתי בא לכם לטוס?</h2><p>בחרו תאריך יציאה וחזרה. אפשר גם לתכנן קודם ולבחור תאריכים אחר כך.</p><form id="date-form"><div class="form-grid"><label class="modal-field">תאריך יציאה<input id="start-date" type="date" min="${localDate()}" value="${state.start}" required></label><label class="modal-field">תאריך חזרה<input id="end-date" type="date" min="${state.start||localDate()}" value="${state.end}" required></label></div><p id="date-error" class="inline-error" hidden></p><button class="yellow dialog-primary">אישור תאריכים</button></form>`);
  $('#start-date').onchange=()=>{$('#end-date').min=$('#start-date').value;};
@@ -43,13 +45,30 @@ function selectTab(tab){if(activeSearch)return;state.tab=tab;$('#search-mode-not
 const tabButtons=[...document.querySelectorAll('[data-tab]')];tabButtons.forEach((b,i)=>{b.tabIndex=i===0?0:-1;b.onclick=()=>selectTab(b.dataset.tab);b.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowLeft'?1:-1)+3)%3;selectTab(tabButtons[n].dataset.tab);tabButtons[n].focus();}};});
 function currentPreferences(){return{...state.preferences,adults:state.adults,children:state.children,...(state.start&&state.end?{nights:Math.round((new Date(state.end)-new Date(state.start))/86400000)}:{})};}
 function voleroSearchRequest(){
- const destination=($('#destination').value||'').trim(); const code=airportCodes[destination]||destination.toUpperCase();
+ const destination=($('#destination').value||'').trim(), place=resolvePlace(destination), code=place?.code||'';
  if(!validDateRange(state.start,state.end,localDate())) throw new Error('בחרו תאריכים לפני חיפוש טיסה.');
+ if(!destination) throw new Error('בחרו יעד מהרשימה או כתבו שם עיר.');
+ if(!place){const near=placeSuggestions(destination);throw new Error(near.length?`לא זיהינו את „${destination}”. התכוונתם ל${near.map(x=>x.label).join(' / ')}?`:`„${destination}” עוד לא ברשימת היעדים שלנו. בחרו יעד מהרשימה, או הזינו קוד שדה תעופה באנגלית (למשל CDG לפריז).`);}
  if(code===$('#origin').value) throw new Error('בחרו יעד שונה משדה המוצא.');
- if(!/^[A-Z]{3}$/.test(code)) throw new Error('בחרו יעד עם קוד שדה תעופה בן 3 אותיות.');
+ $('#destination').value=place.label;
  return {originDestinations:[{origin:{code:$('#origin').value,type:'a'},destination:{code,type:'a'},date:state.start},{origin:{code,type:'a'},destination:{code:$('#origin').value,type:'a'},date:state.end}],passengers:{ptcList:[{ptc:'ADT',count:state.adults},...(state.children?[{ptc:'CHD',count:state.children}]:[] )]},sellingChannel:'B2B',language:'en_GB',timeout:10};
 }
+const verifiedPrices=new Map();
+const verifiedStamp=v=>`<p class="verified-stamp">נבדק ב־${escapeHTML(v.at.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}))}: <strong dir="ltr">${escapeHTML(formatFare(v.price))}</strong>${v.changed?' · המחיר השתנה מאז החיפוש':''}</p>`;
 let searchContext=null, activeSearch=null, visibleOfferCount=12, flightSort='supplier';
+const searchParams=()=>JSON.stringify([$('#origin').value,resolvePlace($('#destination').value)?.code||$('#destination').value.trim(),state.start,state.end,state.adults,state.children]);
+// Results stay visible after the traveler edits the brief, but never look like an answer to the new details.
+function markStaleResults(){
+ const host=$('#live-results');if(!searchContext||host.hidden)return;
+ const stale=searchParams()!==searchContext.params;host.classList.toggle('stale',stale);
+ host.querySelectorAll('[data-volero-offer]').forEach(b=>b.disabled=stale);
+ const note=$('#stale-note');
+ if(stale&&!activeSearch)$('#search-feedback').hidden=true;
+ if(stale&&!note){host.insertAdjacentHTML('afterbegin',`<div id="stale-note" class="stale-note" role="status"><p><strong>התוצאות האלה שייכות לחיפוש הקודם</strong> · ${escapeHTML(searchContext.destination)} · ${escapeHTML(searchContext.dates)} · ${searchContext.travelers} נוסעים. שיניתם פרטים, ולכן המחירים כאן אינם מתאימים לבקשה הנוכחית.</p><button type="button" class="button yellow" id="search-again">חיפוש מחדש לפרטים הנוכחיים</button></div>`);$('#search-again').onclick=()=>$('#search-form').requestSubmit();}
+ else if(!stale)note?.remove();
+}
+$('#destination').addEventListener('input',markStaleResults);$('#origin').addEventListener('change',markStaleResults);
+document.addEventListener('brief-changed',markStaleResults);
 function routeLegs(offer, payload) {
  const lists=payload?.dataLists||{};
  const flights=lists.flightList||[], segments=lists.flightSegmentList||[];
@@ -62,7 +81,13 @@ function legMarkup(offer,payload){
  return routeLegs(offer,payload).map((segments,i)=>{
   const first=segments[0],last=segments.at(-1);if(!first||!last)return '<p class="micro-copy">פירוט המקטעים אינו זמין בהצעה הזו.</p>';
   const point=p=>`${escapeHTML(p?.time||'—')} <small>${escapeHTML(p?.airport?.code||'')}</small>`;
-  return `<div class="flight-leg"><span>${i===0?'הלוך':'חזור'}</span><b dir="ltr">${point(first.departure)} → ${point(last.arrival)}</b><small>${escapeHTML(first.departure?.date||'')} · ${segments.length===1?'ללא החלפת טיסה':`${segments.length-1} החלפות`}</small></div><details class="flight-segments"><summary>פירוט מקטעי ${i===0?'ההלוך':'החזור'}</summary>${segments.map(segment=>`<p><strong dir="ltr">${point(segment.departure)} → ${point(segment.arrival)}</strong><br><span>יציאה: ${escapeHTML(segment.departure?.date||'לא נמסר')} · הגעה: ${escapeHTML(segment.arrival?.date||'לא נמסר')}</span><br><span>${escapeHTML(segment.marketingCarrier?.name||segment.marketingCarrier?.code||'חברת תעופה לא נמסרה')}</span></p>`).join('')}<p class="micro-copy">השעות מקומיות לכל שדה תעופה. כבודה ותנאי תעריף טעונים בירור מול הספק.</p></details>`;
+  const leg=legSummary(segments);
+  const stops=leg.stops===0?'טיסה ישירה':leg.stops===1?'החלפה אחת':`${leg.stops} החלפות`;
+  const layoverText=l=>`המתנה של ${hoursText(l.minutes)} · <span dir="ltr">${escapeHTML(l.city?`${l.city} (${l.airport})`:l.airport)}</span>${l.overnight?' · כולל לילה':''}`;
+  // Facts that change the decision (landing on another day, a long or overnight wait) stay outside the collapsed details.
+  const warnings=[leg.dayOffset>0?`נחיתה ב${escapeHTML(longDate(leg.arriveDate))} (+${leg.dayOffset})`:'',...leg.layovers.filter(l=>l.overnight||l.minutes>=LONG_LAYOVER_MINUTES).map(layoverText)].filter(Boolean);
+  const carrierLine=segment=>{const c=carrierOf(segment);return `${escapeHTML(c.name||'חברת התעופה לא נמסרה בהצעה')}${c.number?` · טיסה <span dir="ltr">${escapeHTML(c.number)}</span>`:''}${c.operator?` · מופעלת על ידי ${escapeHTML(c.operator)}`:''}`;};
+  return `<div class="flight-leg"><span>${i===0?'הלוך':'חזור'}</span><b dir="ltr">${point(first.departure)} → ${point(last.arrival)}</b><small>${escapeHTML(longDate(leg.departDate))} · ${stops}</small>${warnings.map(w=>`<small class="leg-warning">${w}</small>`).join('')}</div><details class="flight-segments"><summary>פירוט מקטעי ${i===0?'ההלוך':'החזור'}</summary>${segments.map((segment,s)=>`${s?`<p class="layover">${layoverText(leg.layovers[s-1])}</p>`:''}<p><strong dir="ltr">${point(segment.departure)} → ${point(segment.arrival)}</strong><br><span>יציאה: ${escapeHTML(longDate(segment.departure?.date)||'לא נמסר')} · הגעה: ${escapeHTML(longDate(segment.arrival?.date)||'לא נמסר')}</span><br><span>${carrierLine(segment)}</span></p>`).join('')}<p class="micro-copy">השעות מקומיות לכל שדה תעופה. כבודה ותנאי תעריף טעונים בירור מול הספק.</p></details>`;
  }).join('');
 }
 function renderVoleroOffers(payload){
@@ -75,23 +100,23 @@ function renderVoleroOffers(payload){
  host.innerHTML=`<div class="live-heading"><div><span class="eyebrow">תוצאות חיות מ־Volero</span><h2 tabindex="-1">${escapeHTML(searchContext?.destination||'תוצאות הטיסות')}</h2><p>${escapeHTML(searchContext?.dates||'')} · ${searchContext?.travelers||2} נוסעים · הלוך וחזור</p></div><button type="button" class="button secondary" id="edit-flight-search">שינוי החיפוש</button><label>מיון תוצאות<select id="flight-sort"><option value="supplier">סדר הספק</option><option value="price" ${mixed?'disabled':''} ${flightSort==='price'?'selected':''}>מחיר מהנמוך לגבוה</option></select></label></div>
  <p class="micro-copy" role="status">${offers.length} הצעות בחיפוש · מוצגות ${Math.min(offers.length,visibleOfferCount)}. המחיר לכל הנוסעים, במטבע הספק. ${mixed?'התוצאות במטבעות שונים ולכן אינן ממוינות לפי מחיר.':''}</p>
  <div class="flight-list">${offers.length?sortedOffers(offers,flightSort).slice(0,visibleOfferCount).map((offer,index)=>{
-  const price=offerPrice(offer);const carrier=offer.fareDetails?.validatingCarrier;
-  const marketing=routeLegs(offer,payload)[0]?.[0]?.marketingCarrier;
-  const carrierName=marketing?.name||carrier?.name||marketing?.code||'חברת התעופה לפי הספק';
-  return `<article class="flight-card">${photo?`<img class="flight-photo" src="/assets/${photo}" alt="${escapeHTML(searchContext.destination)}" loading="lazy" width="220" height="180">`:'<div class="flight-placeholder" aria-hidden="true">✈</div>'}<div class="flight-details"><span class="live-pill">הצעה ${index+1} · Volero</span><h3>${escapeHTML(carrierName)}</h3>${legMarkup(offer,payload)}<p class="micro-copy">כבודה ותנאים לפי ההצעה. המחיר כפוף לבדיקה חוזרת.</p></div><div class="flight-price"><small>לכל ${searchContext.travelers} הנוסעים</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong><button class="yellow button" data-volero-offer="${escapeHTML(offer.index)}">בדיקת מחיר וזמינות ←</button></div></article>`;
+  const price=offerPrice(offer);
+  const carrierName=carrierOf(routeLegs(offer,payload)[0]?.[0]).name||'חברת התעופה לפי הספק';
+  return `<article class="flight-card">${photo?`<img class="flight-photo" src="/assets/${photo}" alt="${escapeHTML(searchContext.destination)}" loading="lazy" width="220" height="180">`:'<div class="flight-placeholder" aria-hidden="true">✈</div>'}<div class="flight-details"><span class="live-pill">הצעה ${index+1} · Volero</span><h3>${escapeHTML(carrierName)}</h3>${legMarkup(offer,payload)}<p class="micro-copy">כבודה ותנאים לפי ההצעה. המחיר כפוף לבדיקה חוזרת.</p></div><div class="flight-price"><small>לכל ${searchContext.travelers} הנוסעים</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong><button class="yellow button" data-volero-offer="${escapeHTML(offer.index)}">בדיקת מחיר וזמינות ←</button>${verifiedPrices.has(payload?.srk+':'+offer.index)?verifiedStamp(verifiedPrices.get(payload.srk+':'+offer.index)):''}</div></article>`;
  }).join(''):'<div class="empty-panel"><h3>לא מצאנו טיסה בתאריכים האלה</h3><p>אפשר לשנות יעד או תאריכים ולנסות שוב.</p><button class="button secondary" data-edit-search>שינוי החיפוש</button></div>'}</div>
  ${offers.length>visibleOfferCount?'<button class="button secondary more-flights" id="more-flights">הצגת הצעות נוספות</button>':''}`;
  $('#edit-flight-search').onclick=()=>{$('#search-form').scrollIntoView({block:'center'});$('#destination').focus();};
  $('#flight-sort').onchange=e=>{flightSort=e.target.value;renderVoleroOffers(payload);$('#flight-sort').focus();};
  $('#more-flights')?.addEventListener('click',()=>{const firstNew=visibleOfferCount;visibleOfferCount+=12;renderVoleroOffers(payload);host.querySelectorAll('[data-volero-offer]')[firstNew]?.focus();});
  $('[data-edit-search]')?.addEventListener('click',()=>$('#dates-button').click());
+ markStaleResults();
 }
 $('#search-form').onsubmit=async e=>{
  e.preventDefault();if(state.tab!=='flights'){pages.search($('#destination').value.trim(),state.tab);return;}
  if(activeSearch)return;
  const feedback=$('#search-feedback'),button=$('.search-submit');
  let request;try{request=voleroSearchRequest();}catch(error){feedback.textContent=error.message;feedback.hidden=false;return;}
- const context={destination:$('#destination').value.trim(),destinationCode:request.originDestinations[0].destination.code,
+ const context={params:searchParams(),destination:$('#destination').value.trim(),destinationCode:request.originDestinations[0].destination.code,
   dates:`${shortDate(state.start)} – ${shortDate(state.end)}`,travelers:state.adults+state.children};
  const controller=new AbortController();activeSearch=controller;let cancelled=false;
  const timer=setTimeout(()=>controller.abort(),45000);
@@ -115,7 +140,7 @@ document.addEventListener('click',async e=>{
   const result=state.voleroResults,offerIndex=offerButton.dataset.voleroOffer,offerContext=searchContext;
   const currentOffer=()=>state.voleroResults===result&&(!location.hash||location.hash==='#/')&&offerButton.isConnected;
   const selected=result?.offers?.find(item=>String(item.index)===offerIndex);
-  if(!selected||!result.srk||!result.tokens?.searchResults){toast('החיפוש אינו תקף. חפשו שוב לקבלת הצעות עדכניות.');return;}
+  if(!selected||!result.srk||!result.tokens?.searchResults||$('#live-results').classList.contains('stale')){toast('החיפוש אינו תקף לפרטים הנוכחיים. חפשו שוב לקבלת הצעות עדכניות.');return;}
   offerButton.disabled=true;offerButton.textContent='בודקים מחיר…';
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
   try{
@@ -125,10 +150,12 @@ document.addEventListener('click',async e=>{
    const priced=data.data?.pricedOffer,price=offerPrice(priced),old=offerPrice(selected);
    if(!price)throw new Error('הספק לא החזיר מחיר מלא. לא ניתן לאשר את ההצעה כרגע.');
    const changed=old && (old.value!==price.value || old.currency!==price.currency);
+   const verified={price,at:new Date(),changed};verifiedPrices.set(result.srk+':'+offerIndex,verified);
+   const priceBox=offerButton.closest('.flight-price');priceBox.querySelector('.verified-stamp')?.remove();priceBox.insertAdjacentHTML('beforeend',verifiedStamp(verified));
    openModal(`<span class="dialog-kicker">תשובה עדכנית מ־Volero</span><h2>${changed?'המחיר עודכן':'בדיקת המחיר הושלמה'}</h2><p>${escapeHTML(offerContext.destination)} · ${escapeHTML(offerContext.dates)}</p><p class="micro-copy">נבדק כעת: ${escapeHTML(new Date().toLocaleString('he-IL'))}. המחיר עשוי להשתנות; לא נוצרה הזמנה.</p><div class="verified-price"><small>מחיר ההצעה לכל ${offerContext.travelers} הנוסעים</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${changed?`<span>בחיפוש הוצג: ${escapeHTML(formatFare(old))}</span>`:''}</div>${legMarkup(priced,data.data)}<p class="notice">לא נוצרה הזמנה. כבודה, שירותים נוספים ותנאי ביטול דורשים עיון לפני רכישה. השלמת הזמנה ותשלום עדיין אינה זמינה באתר.</p><button class="button yellow full-width" data-close-availability>חזרה להשוואת הטיסות</button>`);
    $('[data-close-availability]').onclick=()=>modal.close();
   }catch(error){if(!currentOffer())return;openModal(`<span class="dialog-kicker">בודקים שוב לפני שממשיכים</span><h2>ההצעה לא אומתה</h2><p>${escapeHTML(error.name==='AbortError'?'בדיקת הספק ארכה יותר מהצפוי. נסו שוב בעוד רגע.':error.message)}</p><button class="button secondary full-width" data-close-availability>חזרה לתוצאות</button>`);$('[data-close-availability]').onclick=()=>modal.close();}
-  finally{clearTimeout(timer);offerButton.disabled=false;offerButton.textContent='בדיקת מחיר וזמינות ←';}
+  finally{clearTimeout(timer);offerButton.disabled=false;offerButton.textContent='בדיקת מחיר וזמינות ←';markStaleResults();}
  }
  const info=e.target.closest('[data-info]');if(info)showInfo(info.dataset.info);
 });
@@ -142,7 +169,7 @@ const pages=initPages({state,trips,money,icons,escapeHTML,toast,openModal,openDa
  toggleFavorite(id){let persisted=true;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];try{localStorage.setItem('gerbi-favorites',JSON.stringify(favorites));}catch{persisted=false;}renderCards();return persisted;},
  openTravelers:()=>$('#travelers-button').onclick(),
  currentPreferences,
- syncHome(){ saveStyles();$('#travelers-value').textContent=`${state.adults+state.children} נוסעים`;if(state.start&&state.end){$('#dates-value').textContent=`${shortDate(state.start)} – ${shortDate(state.end)}`;$('#dates-value').classList.remove('muted');}else{$('#dates-value').textContent='בחרו תאריכים';$('#dates-value').classList.add('muted');} }
+ syncHome(){ saveStyles();$('#travelers-value').textContent=`${state.adults+state.children} נוסעים`;if(state.start&&state.end){$('#dates-value').textContent=`${shortDate(state.start)} – ${shortDate(state.end)}`;$('#dates-value').classList.remove('muted');}else{$('#dates-value').textContent='בחרו תאריכים';$('#dates-value').classList.add('muted');} markStaleResults(); }
 });
 function refreshPersonalization(){
  document.querySelectorAll('[data-preference]').forEach(b=>b.setAttribute('aria-pressed',String(state.preferences[b.dataset.preference]===true)));
