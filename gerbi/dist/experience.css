@@ -129,10 +129,12 @@ svg{stroke-width:1.5}
  .flight-compare tbody th[scope=row]{grid-column:1/-1;padding-bottom:0;font-size:12px}
  .flight-compare-tray{flex-wrap:nowrap;padding:9px 12px;border-radius:14px}.flight-compare-tray span{font-size:14px}.flight-compare-tray small{display:none}.flight-compare-tray .button{min-height:40px;padding:8px 14px;font-size:13px}
 }
-.route-arrow{color:var(--muted,#74819f);font-size:20px;pointer-events:none;background:none;border:0;box-shadow:none}
 /* Package 3 – saved flights, trip flight, destination guide */
 .live-actions{display:flex;gap:8px;flex-wrap:wrap}.dialog-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.dialog-actions .button{flex:1 1 200px}
 .saved-flights{margin:26px 0}.saved-flight{display:grid;grid-template-columns:1fr auto;gap:18px;border:1px solid var(--border,#dce7f3);border-radius:18px;background:#fff;padding:18px 20px;margin-top:12px}.saved-flight h3{margin:4px 0 8px}.saved-leg{margin:4px 0;font-size:14px}.saved-flight-actions{display:flex;flex-direction:column;gap:8px;min-width:220px;align-items:stretch}
 .trip-flight .saved-leg{font-size:15px}.soft-tip{background:#fff4e0;border-radius:10px;padding:7px 11px;font-size:13px;margin:8px 0}
 .destination-guide{margin:26px 0}.destination-guide dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px 0}.destination-guide dl div{background:#fff;border:1px solid var(--border,#dce7f3);border-radius:14px;padding:12px 14px}.destination-guide dt{font-weight:700;color:var(--navy,#071751);margin-bottom:4px}.destination-guide dd{margin:0;font-size:14px;line-height:1.55}
 @media (max-width:760px){.saved-flight{grid-template-columns:1fr}.saved-flight-actions{min-width:0}}
+.trip-type{border:0;margin:0 0 10px;padding:0;display:flex;gap:6px}.trip-type label{display:flex;align-items:center;gap:6px;font-size:14px;padding:6px 12px;border-radius:100px;cursor:pointer;min-height:36px}.trip-type label:has(input:checked){background:var(--pale,#eaf6ff);color:var(--navy,#071751);font-weight:700}
+button.swap{border:0;background:none;cursor:pointer;color:var(--blue,#096bd2);min-width:40px;min-height:40px;border-radius:50%}button.swap:hover{background:var(--pale,#eaf6ff)}
+@media (max-width:700px){button.swap{display:flex;align-self:center;justify-self:center;margin:-4px auto;transform:rotate(90deg)}}

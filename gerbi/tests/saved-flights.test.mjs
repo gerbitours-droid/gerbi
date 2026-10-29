@@ -25,7 +25,12 @@ test('a saved flight is a validated snapshot linked to its demo destination', ()
 test('share links carry search conditions only, and malformed links are ignored', () => {
   const link = searchLink(search);
   assert.equal(link, '#/?from=TLV&to=FCO&depart=2027-06-10&return=2027-06-15&adults=2&children=1');
-  assert.deepEqual(parseSearchLink(link), { origin: 'TLV', to: 'FCO', start: '2027-06-10', end: '2027-06-15', adults: 2, children: 1, destination: 'רומא, איטליה' });
+  assert.deepEqual(parseSearchLink(link), { origin: 'TLV', to: 'FCO', start: '2027-06-10', end: '2027-06-15', type: 'round', adults: 2, children: 1, destination: 'רומא, איטליה' });
+  const oneWay = searchLink({ ...search, origin: 'CDG', end: '', type: 'oneway' });
+  assert.equal(oneWay, '#/?from=CDG&to=FCO&depart=2027-06-10&type=oneway&adults=2&children=1');
+  assert.equal(parseSearchLink(oneWay).type, 'oneway');
+  assert.equal(parseSearchLink(oneWay).end, '');
+  assert.equal(parseSearchLink('#/?from=TLV&to=LCA&depart=2027-06-10&return=2027-06-10&adults=1').type, 'round');
   assert.equal(parseSearchLink('#/?from=TLV&to=FCO&depart=2027-06-15&return=2027-06-10&adults=2'), null);
   assert.equal(parseSearchLink('#/?from=TLV&to=FCO&depart=2027-06-10&return=2027-06-15&adults=8&children=2'), null);
   assert.equal(parseSearchLink('#/destinations?from=TLV'), null);

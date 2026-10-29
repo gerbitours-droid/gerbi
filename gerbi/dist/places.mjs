@@ -3,6 +3,10 @@
 // demo destinations. ponytail: a curated list of popular routes from Israel; a supplier airport lookup replaces it
 // once Volero's location endpoint is in the contract.
 export const places = [
+  // Home airports: valid as origin or destination, never read as a holiday wish by the planner.
+  { label: 'תל אביב (נתב״ג)', code: 'TLV', home: true, names: ['תל אביב', 'נתבג', 'בן גוריון', 'tel aviv', 'ben gurion'] },
+  { label: 'רמון, אילת', code: 'ETM', home: true, names: ['רמון', 'אילת', 'ramon', 'eilat'] },
+  { label: 'חיפה', code: 'HFA', home: true, names: ['חיפה', 'haifa'] },
   { label: 'רומא, איטליה', code: 'FCO', trip: 'rome', names: ['רומא', 'rome', 'roma'] },
   { label: 'סנטוריני, יוון', code: 'JTR', trip: 'santorini', names: ['סנטוריני', 'santorini', 'thira'] },
   { label: 'האיים המלדיביים', code: 'MLE', trip: 'maldives', names: ['מלדיביים', 'המלדיביים', 'מלדיבים', 'האיים המלדיביים', 'מאלה', 'maldives', 'male'] },

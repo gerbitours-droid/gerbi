@@ -88,3 +88,14 @@ test('live booking is refused unless an operator enables it', async () => {
     await new Promise(resolve => server.close(resolve));
   }
 });
+
+test('package 4: same-day return and one-way dates, home airports resolve but are never a holiday wish', async () => {
+  const { validFlightDates } = await import('../dist/planner.mjs');
+  assert.equal(validFlightDates('2027-06-10', '2027-06-10', '2026-10-29'), true);
+  assert.equal(validFlightDates('2027-06-10', '2027-06-09', '2026-10-29'), false);
+  assert.equal(validFlightDates('2027-06-10', '', '2026-10-29', true), true);
+  assert.equal(validFlightDates('2026-01-01', '', '2026-10-29', true), false);
+  assert.equal(resolvePlace('תל אביב').code, 'TLV');
+  assert.equal(resolvePlace('אילת').code, 'ETM');
+  assert.deepEqual(parsePreferences('טסים מתל אביב לרומא', {}).want, ['FCO']);
+});

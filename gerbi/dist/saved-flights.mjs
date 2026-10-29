@@ -52,17 +52,18 @@ export function restoreSavedFlights(raw) {
 export const addSavedFlight = (list, flight) => [flight, ...list.filter(item => item.id !== flight.id)].slice(0, MAX_SAVED);
 
 // Share link: search conditions only – never prices, supplier offer ids or passenger details.
-export function searchLink({ origin, destination, start, end, adults, children }) {
-  const to = resolvePlace(destination)?.code || '';
-  return '#/?' + new URLSearchParams({ from: origin, to, depart: start, return: end, adults: String(adults), children: String(children) });
+export function searchLink({ origin, destination, start, end, type, adults, children }) {
+  const to = resolvePlace(destination)?.code || '', single = type === 'oneway' || !end;
+  return '#/?' + new URLSearchParams({ from: resolvePlace(origin)?.code || origin, to, depart: start, ...(single ? { type: 'oneway' } : { return: end }), adults: String(adults), children: String(children) });
 }
 export function parseSearchLink(hash) {
   const [path, query = ''] = String(hash || '').replace(/^#/, '').split('?');
   if ((path || '/') !== '/' || !query) return null;
   const params = new URLSearchParams(query);
   const adults = Number(params.get('adults')), children = Number(params.get('children') || 0);
-  const result = { origin: code(params.get('from')), to: code(params.get('to')), start: date(params.get('depart')), end: date(params.get('return')), adults, children };
-  if (!result.origin || !result.to || !result.start || !result.end || result.end <= result.start) return null;
+  const type = params.get('type') === 'oneway' ? 'oneway' : 'round';
+  const result = { origin: code(params.get('from')), to: code(params.get('to')), start: date(params.get('depart')), end: type === 'oneway' ? '' : date(params.get('return')), type, adults, children };
+  if (!result.origin || !result.to || !result.start || (type === 'round' && (!result.end || result.end < result.start))) return null;
   if (!Number.isInteger(adults) || adults < 1 || !Number.isInteger(children) || children < 0 || adults + children > 9) return null;
   return { ...result, destination: places.find(place => place.code === result.to)?.label || result.to };
 }

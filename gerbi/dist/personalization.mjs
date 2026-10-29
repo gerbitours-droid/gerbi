@@ -40,7 +40,7 @@ export function destinationConstraints(text, previous = {}) {
   let only = false;
   const found = [];
   list.forEach((word, i) => {
-    for (const place of places) for (const name of place.names) {
+    for (const place of places) if (!place.home) for (const name of place.names) {
       const parts = name.split(' '), first = parts.length === 1 ? word : list.slice(i, i + parts.length).join(' ');
       // Hebrew attaches ו/ב/ל/ה/מ to the noun: "ולדובאי", "מרומא".
       if (first !== name && !(first.endsWith(name) && /^[ובלהמ]{1,2}$/.test(first.slice(0, first.length - name.length)))) continue;
