@@ -19,6 +19,8 @@ Open http://localhost:4173. Booking and payment are not implemented.
 
 - `gerbi/`: runnable application, backend, tests, documentation, and verification screenshots.
 - `generated-assets/`: original generated brand and background assets.
+- **[Work summary 28–29.10.2026 (Hebrew)](gerbi/docs/SESSION-SUMMARY-2026-10-29-he.md)** — what was built, measurements, open items
+- [Production readiness (Hebrew)](gerbi/docs/production-readiness-he.md)
 - [Application documentation](gerbi/README.md)
 - [UX review, 2026-10-28 (Hebrew)](gerbi/docs/ux-review-2026-10-28-he.md)
 - [Flight search follow-up review and product specification (Hebrew)](gerbi/docs/flight-search-product-spec-2026-10-28-he.md)
