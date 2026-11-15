@@ -18,3 +18,4 @@ for f in tests/e2e/*.e2e.mjs; do PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs
 | `p4.e2e.mjs` | package 4: one-way, foreign origin, swap, same-day return |
 | `ai.e2e.mjs` | Gerbi AI reply chips and the hand-off to a live city search |
 | `decide.e2e.mjs` | decision layer: badges, reasons, memory events, partner fallback |
+| `account.e2e.mjs` | customer area (spec 17): sign-up + device merge, sync, enquiries, second device at 375, delete (no supplier calls) |

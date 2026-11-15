@@ -17,7 +17,7 @@ export const activeModel = () => { const name = providerOrder()[0]; return name 
 // Server-side refusal fallback exists for these Claude models only.
 const FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-1', 'claude-sonnet-5-5']);
 const DAILY_TOKENS = Number(process.env.GERBI_LLM_DAILY_TOKENS || 200000);
-const CACHE_TTL = { understand: 30 * 86400, tiebreak: 86400 };
+const CACHE_TTL = { understand: 30 * 86400, tiebreak: 86400, support: 7 * 86400 };
 
 const codes = places.filter(place => !place.home).map(place => place.code);
 const TRI = { type: 'string', enum: ['yes', 'no', 'unknown'] };
@@ -31,7 +31,9 @@ Destination codes must come from this list: ${places.filter(p => !p.home).map(p 
 "interests" are short Hebrew words for wishes the list of styles cannot express. "question" is one short Hebrew question that would most help, or "".`,
   tiebreak: `You help Gerbi choose between flight offers whose computed scores are nearly tied. You get the traveler's brief and a compact table.
 Pick the offer that best fits what this traveler said; when nothing in the brief separates them, prefer the cheaper one.
-"reason" is one short Hebrew sentence (max 80 characters) naming the deciding difference.`
+"reason" is one short Hebrew sentence (max 80 characters) naming the deciding difference.`,
+  support: `You route customer-service messages for Gerbi Tours, an Israeli travel agency. You get one Hebrew customer message and a list of topics (id + Hebrew title).
+Return the id of the single topic the message is asking about, or "none" when no topic fits. Never answer the customer yourself.`
 };
 const SCHEMAS = {
   understand: { type: 'object', additionalProperties: false,
@@ -40,7 +42,8 @@ const SCHEMAS = {
       suggest: { type: 'array', items: { type: 'string', enum: codes } }, adults: { type: 'integer' }, children: { type: 'integer' }, nights: { type: 'integer' },
       month: { type: 'string', enum: ['', 'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'] },
       beach: TRI, city: TRI, relaxation: TRI, family: TRI, couple: TRI, interests: { type: 'array', items: { type: 'string' } }, question: { type: 'string' } } },
-  tiebreak: { type: 'object', additionalProperties: false, required: ['pick', 'reason'], properties: { pick: { type: 'integer' }, reason: { type: 'string' } } }
+  tiebreak: { type: 'object', additionalProperties: false, required: ['pick', 'reason'], properties: { pick: { type: 'integer' }, reason: { type: 'string' } } },
+  support: { type: 'object', additionalProperties: false, required: ['topic'], properties: { topic: { type: 'string' } } }
 };
 
 // Personal contact details never leave the server.
@@ -158,3 +161,12 @@ export async function partnerTieBreak(store, brief, candidates) {
   return { pick: rows[result.value.pick].key, reason: String(result.value.reason || '').slice(0, 80), cached: result.cached };
 }
 
+
+// Customer-service fallback (spec 16 §8): only routes a message the rules did not understand to one of the known
+// topics. It never writes text for the customer, so the answer always comes from the owner's content.
+export async function partnerClassify(store, text, topics) {
+  if (!providerOrder().length || !topics.length) return null;
+  const result = await cached(store, 'support', { message: scrub(text), topics }, 5000);
+  const topic = result?.value?.topic;
+  return typeof topic === 'string' && topics.some((t) => t.id === topic) ? { topic, cached: result.cached } : null;
+}

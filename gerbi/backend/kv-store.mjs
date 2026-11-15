@@ -29,6 +29,7 @@ class UpstashStore {
   async list(key, count) { return ((await this.command(['LRANGE', key, '0', String(count - 1)])) || []).map((item) => JSON.parse(item)); }
   // Atomic (one Lua script): sets the top-level "status" of the list item with this id. Returns true when found.
   async setListStatus(key, id, status) { return (await this.command(['EVAL', SET_STATUS_LUA, '1', key, id, status])) === 1; }
+  async del(key) { await this.command(['DEL', key]); }
 }
 
 class FileStore {
@@ -62,6 +63,7 @@ class FileStore {
     if (!item) return false;
     item.status = status; await this.persist(data); return true;
   }
+  async del(key) { const data = await this.load(); if (key in data) { delete data[key]; await this.persist(data); } }
 }
 
 export function createStore(namespace, directory) {
@@ -69,10 +71,10 @@ export function createStore(namespace, directory) {
   if (url && token) {
     const remote = new UpstashStore(url, token);
     return { get: key => remote.get(`gerbi:${namespace}:${key}`), set: (key, value, ttl) => remote.set(`gerbi:${namespace}:${key}`, value, ttl),
-      push: (key, value, max = 5000) => remote.push(`gerbi:${namespace}:${key}`, value, max), list: (key, count = 200) => remote.list(`gerbi:${namespace}:${key}`, count),
+      push: (key, value, max = 5000) => remote.push(`gerbi:${namespace}:${key}`, value, max), list: (key, count = 200) => remote.list(`gerbi:${namespace}:${key}`, count), del: key => remote.del(`gerbi:${namespace}:${key}`),
       setListStatus: (key, id, status) => remote.setListStatus(`gerbi:${namespace}:${key}`, id, status), kind: 'upstash' };
   }
   const local = new FileStore(directory, namespace);
   return { get: key => local.get(key), set: (key, value, ttl) => local.set(key, value, ttl),
-    push: (key, value, max = 5000) => local.push(key, value, max), list: (key, count = 200) => local.list(key, count), setListStatus: (key, id, status) => local.setListStatus(key, id, status), kind: 'file' };
+    push: (key, value, max = 5000) => local.push(key, value, max), list: (key, count = 200) => local.list(key, count), del: key => local.del(key), setListStatus: (key, id, status) => local.setListStatus(key, id, status), kind: 'file' };
 }
