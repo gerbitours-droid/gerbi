@@ -5,7 +5,7 @@ export default [
     id: 'maldives', trip: 'maldives', code: 'MLE', airports: ['MLE'],
     name: { he: 'האיים המלדיביים', en: 'The Maldives' }, country: { he: 'המלדיביים', en: 'Maldives' }, region: 'asia',
     tags: ['beach', 'couple', 'relaxation', 'all_inclusive', 'luxury', 'nature', 'week_long'],
-    bestMonths: [11, 12, 1, 2, 3, 4], flightHours: 8, direct: false, budgetLevel: 4, dailyBudgetIls: { low: 700, mid: 1600, high: 4000 },
+    bestMonths: [11, 12, 1, 2, 3, 4], flightHours: 8, direct: false, budgetLevel: 4, dailyBudgetIls: { low: 250, mid: 550, high: 1200 },
     summary: { he: 'לגונות טורקיז, חול לבן ובקתות מעל המים — ריזורט על אי פרטי לחופשה של מנוחה, שנורקלינג וזמן זוגי.', en: 'Turquoise lagoons, white sand and overwater villas — a private-island resort for rest, snorkelling and time together.' },
     highlights: [
       { he: 'בקתה מעל המים', en: 'An overwater villa' },
