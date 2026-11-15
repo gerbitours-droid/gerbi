@@ -30,7 +30,7 @@ log('tray after filter:', (await page.locator('.flight-compare-tray strong').inn
 await page.locator('[data-open-compare]').click(); await page.waitForSelector('.flight-compare');
 log('compare rows:', (await page.locator('.flight-compare tbody tr').allInnerTexts()).slice(0, 4).map(t => t.replace(/\s+/g, ' ')));
 await page.screenshot({ path: `${OUT}/compare-${W}.png` });
-await page.locator('.modal-close').click();
+await page.locator('#modal .modal-close').click();
 await page.locator('#live-results').scrollIntoViewIfNeeded(); await page.screenshot({ path: `${OUT}/results-${W}.png` });
 const scrollW = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); log('horizontal overflow px:', scrollW);
 // F02

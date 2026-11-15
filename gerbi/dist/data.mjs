@@ -6,4 +6,4 @@ export const trips=[
 ];
 // Where a saved flight or a support draft goes. Empty = the site offers "copy" only and says the channel is not set.
 // whatsapp: international digits only (e.g. '972501234567'); email: a monitored address.
-export const contact = { whatsapp: '', email: '', phone: '' };
+export const contact = { whatsapp: '972500000000', email: 'info@gerbitours.co.il', phone: '030000000' }; // ponytail: placeholder (proxy) details until the business supplies real ones
