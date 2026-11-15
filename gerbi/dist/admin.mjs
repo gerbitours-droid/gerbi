@@ -6,7 +6,11 @@ import { renderMarkdown } from './markdown.mjs';
 import { SITE_DEFAULTS, GUIDE_FIELDS, LIMITS, mergeSite, normalizePost, normalizeSite, slugFromTitle, postState, israelToday, siteDefaultsEn } from './content-model.mjs';
 import { builtinPosts, BUILTIN_SLUGS } from './blog-posts.mjs';
 import { destinationInfo, faqs as builtinFaqs } from './pages.mjs';
-import { trips } from './data.mjs';
+import { destinations } from './catalog.mjs';
+import { guideDefaults } from './destinations-ui.mjs';
+// The guide default the site shows for a destination: the demo trip's written guide, else what the catalog derives.
+const guideDefault = (d, k) => destinationInfo[d.trip || d.id]?.guide?.[k] || guideDefaults(d, 'he')[k] || '';
+const guideTitle = (d) => `${d.name.he}, ${d.country.he}`;
 import { setupAdminAi, aiTab, priorityChip, leadAiHtml, wireLeadAi, sortByPriority, mountBlogAssistant } from './admin-ai.mjs';
 
 const $ = (s, root = document) => root.querySelector(s);
@@ -338,14 +342,14 @@ async function siteTab() {
      ${field('banner.text', 'טקסט הבאנר', s.banner.text, { max: LIMITS.banner })}${field('banner.link', 'קישור (לא חובה)', s.banner.link, { ltr: true, max: 300, hint: 'למשל #/tailor-made או https://…' })}</fieldset>
     <fieldset><legend>פוטר</legend>${field('footer.tagline', 'שורת המותג', s.footer.tagline)}${field('footer.blurb', 'משפט קצר', s.footer.blurb)}${field('footer.legal', 'שורת זכויות והבהרה (דפים פנימיים)', s.footer.legal)}${field('footer.note', 'הבהרה בתחתית דף הבית', s.footer.note)}</fieldset>
     <fieldset><legend>שאלות נפוצות (דף „שירות ועזרה” באתר)</legend><p class="lead-hint">התשובות של בוט השירות נערכות בנפרד: <a href="#support/content">שיחות שירות › תשובות הבוט</a>.</p><ol id="faq-list" class="faq-list">${faqRows.map(faqRow).join('')}</ol><button type="button" class="button secondary" id="faq-add">הוספת שאלה</button></fieldset>
-    <fieldset><legend>מדריכי יעדים</legend>${trips.map((t) => `<details class="guide-box"><summary>${esc(t.name)}</summary>${GUIDE_FIELDS.map(([k, label]) => field(`guides.${t.id}.${k}`, label, s.guides[t.id]?.[k] || destinationInfo[t.id]?.guide?.[k] || '', { area: true, max: LIMITS.guide, rows: 2 })).join('')}</details>`).join('')}</fieldset>
+    <fieldset><legend>מדריכי יעדים</legend><p class="lead-hint">${destinations.length} יעדים. שדה ריק = לא מוצג באתר; השדות שמולאו מראש הם ברירת המחדל מהקטלוג.</p>${destinations.map((t) => `<details class="guide-box"><summary>${esc(guideTitle(t))}${s.guides[t.id] ? ' ✎' : ''}</summary>${GUIDE_FIELDS.map(([k, label]) => field(`guides.${t.id}.${k}`, label, s.guides[t.id]?.[k] || guideDefault(t, k), { area: true, max: LIMITS.guide, rows: 2 })).join('')}</details>`).join('')}</fieldset>
     <fieldset class="en-site"><legend>אנגלית (אופציונלי) ${enChip(Object.keys(en).length > 0)}</legend>
      <p class="lead-hint">הנוסח לגרסה האנגלית של האתר (/en/). שדה ריק = הנוסח האנגלי המובנה; אם ערכתם את השדה בעברית בלבד, הנוסח העברי שלכם מוצג גם באנגלית.</p>
      <details class="en-box"><summary>דף הבית ${enChip(Boolean(en.hero))}</summary><div dir="ltr">${enField('en.hero.title', 'Headline', en.hero?.title, de.hero.title, { max: LIMITS.hero })}${enField('en.hero.subtitle', 'Subheadline', en.hero?.subtitle, de.hero.subtitle, { max: LIMITS.hero * 2 })}</div></details>
      <details class="en-box"><summary>באנר ${enChip(Boolean(en.banner?.text))}</summary><div dir="ltr">${enField('en.banner.text', 'Banner text', en.banner?.text, '', { max: LIMITS.banner })}</div></details>
      <details class="en-box"><summary>פוטר ${enChip(Boolean(en.footer))}</summary><div dir="ltr">${enField('en.footer.tagline', 'Brand line', en.footer?.tagline, de.footer.tagline)}${enField('en.footer.blurb', 'Short blurb', en.footer?.blurb, de.footer.blurb)}${enField('en.footer.legal', 'Rights & disclaimer line', en.footer?.legal, de.footer.legal)}${enField('en.footer.note', 'Homepage disclaimer', en.footer?.note, de.footer.note)}</div></details>
      <details class="en-box"><summary>שאלות נפוצות ${enChip(Boolean(en.faqs?.length))}</summary><p class="lead-hint">ריק = השאלות הנפוצות המובנות באנגלית (או השאלות שלכם בעברית, אם ערכתם אותן).</p><ol id="en-faq-list" class="faq-list" dir="ltr">${(en.faqs || []).map((f, i) => faqRow(f, i, 'en.faqs')).join('')}</ol><button type="button" class="button secondary" id="en-faq-add">הוספת שאלה באנגלית</button></details>
-     <details class="en-box"><summary>מדריכי יעדים ${enChip(Boolean(en.guides))}</summary>${trips.map((t) => `<details class="guide-box"><summary>${esc(t.name)} ${enChip(Boolean(en.guides?.[t.id]))}</summary><div dir="ltr">${GUIDE_FIELDS.map(([k, label]) => enField(`en.guides.${t.id}.${k}`, label, en.guides?.[t.id]?.[k], '', { area: true, max: LIMITS.guide, rows: 2 })).join('')}</div></details>`).join('')}</details>
+     <details class="en-box"><summary>מדריכי יעדים ${enChip(Boolean(en.guides))}</summary>${destinations.map((t) => `<details class="guide-box"><summary>${esc(guideTitle(t))} ${enChip(Boolean(en.guides?.[t.id]))}</summary><div dir="ltr">${GUIDE_FIELDS.map(([k, label]) => enField(`en.guides.${t.id}.${k}`, label, en.guides?.[t.id]?.[k], '', { area: true, max: LIMITS.guide, rows: 2 })).join('')}</div></details>`).join('')}</details>
     </fieldset>
     <div class="form-actions sticky-actions"><button class="button yellow" type="submit">שמירה</button><button class="button secondary" type="button" id="site-versions">גרסאות קודמות</button></div>
     <p id="site-status" class="admin-status" role="status"></p><section id="versions" hidden></section>
@@ -373,12 +377,12 @@ async function siteTab() {
       banner: { enabled: $('#s-banner-on').checked, text: value('banner.text'), link: value('banner.link') }, guides: {} };
     const faqList = $$('.faq-row', list).map((li) => ({ q: $('[data-faq=q]', li).value.trim(), a: $('[data-faq=a]', li).value.trim() })).filter((f) => f.q || f.a);
     out.faqs = JSON.stringify(faqList) === JSON.stringify(builtinFaqs.map(([q, a]) => ({ q, a }))) ? [] : faqList;
-    for (const t of trips) for (const [k] of GUIDE_FIELDS) { const v = diff(`guides.${t.id}.${k}`, destinationInfo[t.id]?.guide?.[k] || ''); if (v) (out.guides[t.id] ||= {})[k] = v; }
+    for (const t of destinations) for (const [k] of GUIDE_FIELDS) { const v = diff(`guides.${t.id}.${k}`, guideDefault(t, k)); if (v) (out.guides[t.id] ||= {})[k] = v; }
     // English (spec 21): only what was written and differs from the built-in English.
     out.en = { hero: { title: diff('en.hero.title', de.hero.title), subtitle: diff('en.hero.subtitle', de.hero.subtitle) },
       footer: Object.fromEntries(['tagline', 'blurb', 'legal', 'note'].map((k) => [k, diff(`en.footer.${k}`, de.footer[k])])), banner: { text: value('en.banner.text') },
       faqs: $$('.faq-row', enList).map((li) => ({ q: $('[data-faq=q]', li).value.trim(), a: $('[data-faq=a]', li).value.trim() })).filter((f) => f.q || f.a), guides: {} };
-    for (const t of trips) for (const [k] of GUIDE_FIELDS) { const v = value(`en.guides.${t.id}.${k}`); if (v) (out.en.guides[t.id] ||= {})[k] = v; }
+    for (const t of destinations) for (const [k] of GUIDE_FIELDS) { const v = value(`en.guides.${t.id}.${k}`); if (v) (out.en.guides[t.id] ||= {})[k] = v; }
     return out;
   };
   form.onsubmit = async (e) => {

@@ -3,6 +3,7 @@ import { restoreSavedFlights } from './saved-flights.mjs';
 import { restoreJourney } from './journey.mjs';
 import { normalizeIsraeliPhone, isEmail } from './leads-validate.mjs';
 import { trips } from './data.mjs';
+import { destinations } from './catalog.mjs';
 import { t, lang } from './i18n.mjs';
 
 export const PASSWORD_MIN = 8, PASSWORD_MAX = 128, NAME_MAX = 80, MAX_SEARCHES = 20;
@@ -13,6 +14,7 @@ export const marketingText = (l = lang) => t('account.marketingText', {}, l);
 export const privacyText = (l = lang) => t('account.privacyText', {}, l);
 const COMMON = new Set(['12345678', '123456789', '1234567890', 'password', 'password1', 'qwertyui', 'qwerty123', '11111111', '00000000', 'abcd1234', 'iloveyou', '87654321', 'aa123456', 'gerbitours']);
 const tripIds = trips.map((trip) => trip.id);
+const favoriteIds = new Set(destinations.map((d) => d.id)); // spec 23: any catalog destination can be a favorite
 const clean = (value, max) => (typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f]/g, '').trim() : '').slice(0, max + 1);
 
 export const normalizeEmail = (value) => (typeof value === 'string' ? value.trim().toLowerCase() : '');
@@ -53,7 +55,7 @@ export function cleanSaved(input) {
   const saved = input?.trips && typeof input.trips === 'object' && !Array.isArray(input.trips) ? input.trips : {};
   const tripsClean = Object.fromEntries(Object.entries(restoreJourney(JSON.stringify({ saved: Object.fromEntries(Object.entries(saved).slice(0, 40)) }), tripIds).saved)
     .map(([key, { destinationId, ...plan }]) => [key, plan]));
-  const favorites = Array.isArray(input?.favorites) ? [...new Set(input.favorites.filter((id) => tripIds.includes(id)))] : [];
+  const favorites = Array.isArray(input?.favorites) ? [...new Set(input.favorites.filter((id) => favoriteIds.has(id)))] : [];
   return { flights, trips: tripsClean, favorites };
 }
 

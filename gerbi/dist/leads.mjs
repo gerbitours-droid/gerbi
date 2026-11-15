@@ -5,6 +5,7 @@ import { t, lang, locale, errorText } from './i18n.mjs';
 import { resolvePlace } from './places.mjs';
 import { parseSearchLink } from './saved-flights.mjs';
 import { tailorAssistHtml, mountTailorAssist } from './ai-client.mjs';
+import { byId } from './catalog.mjs';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -125,7 +126,8 @@ export function leadRoutes({ contact = {} } = {}) {
     const count = (v, min, max, fallback) => { const n = Number(v); return Number.isInteger(n) && n >= min && n <= max && v !== null && v !== '' ? n : fallback; };
     const fromResults = params.get('src') === 'flight-results';
     const context = fromResults ? { from: code(params.get('from')), to: code(params.get('to')), depart: day(params.get('depart')), return: day(params.get('return')), adults: count(params.get('adults'), 0, 9, null), children: count(params.get('children'), 0, 8, null), results: count(params.get('results'), 0, 10000, null) } : null;
-    const prefill = { destinations: context?.to ? placeName(context.to) : '', start: context?.depart || '', end: context?.return || '', adults: context?.adults || 2, children: context?.children ?? 0 };
+    const fromCatalog = byId(params.get('dest')); // "tailor-made trip" from a destination page (spec 23)
+    const prefill = { destinations: context?.to ? placeName(context.to) : fromCatalog ? `${fromCatalog.name[lang] || fromCatalog.name.he}, ${fromCatalog.country[lang] || fromCatalog.country.he}` : '', start: context?.depart || '', end: context?.return || '', adults: context?.adults || 2, children: context?.children ?? 0 };
     const render = () => {
       view.innerHTML = `<div class="route-width">${bread(t('leads.tailor.crumb'))}${heading(t('leads.tailor.crumb'), fromResults ? t('leads.tailor.titleResults') : t('leads.tailor.title'), fromResults ? t('leads.tailor.subResults') : t('leads.tailor.sub'))}
       ${fromResults && context?.to ? `<div class="soft-notice lead-context"><p><strong>${t('leads.tailor.fromSearch')}</strong> ${esc(placeName(context.from || 'TLV'))} ${t('leads.tailor.arrow')} ${esc(placeName(context.to))}${context.depart ? ` · ${esc(heDate(context.depart))}${context.return ? t('leads.tailor.until') + esc(heDate(context.return)) : ''}` : ''}${t('leads.tailor.prefilled')}</p></div>` : ''}
