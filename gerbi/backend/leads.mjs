@@ -22,7 +22,8 @@ async function notify(url, lead) {
 }
 
 // Returns true when the request was a leads route (and has been answered).
-export async function handleLeads(req, url, { send, body, store, env = process.env }) {
+// hooks (optional, customer accounts): userOf(req) → user id of a signed-in customer; created(record) after storing.
+export async function handleLeads(req, url, { send, body, store, env = process.env, hooks }) {
   if (url.pathname !== '/api/leads') return false;
   if (req.method === 'POST') {
     if (!allow(clientOf(req), 'leads')) { send(429, { error: 'rate_limited', message: 'נשלחו כמה פניות בזמן קצר. נסו שוב בעוד כמה דקות, או פנו אלינו ישירות.' }); return true; }
@@ -31,7 +32,8 @@ export async function handleLeads(req, url, { send, body, store, env = process.e
     if (typeof input?.website === 'string' && input.website.trim()) { send(201, { ok: true, id: randomUUID().slice(0, 8) }); return true; }
     const { lead, errors } = validateLead(input);
     if (!lead) { send(400, { error: 'lead_invalid', fields: errors, message: 'חלק מהפרטים חסרים או לא תקינים.' }); return true; }
-    const record = { id: randomUUID(), createdAt: new Date().toISOString(), status: 'new', ...lead, consent: { given: true, text: CONSENT_TEXT, at: new Date().toISOString() } };
+    const userId = await hooks?.userOf?.(req);
+    const record = { id: randomUUID(), createdAt: new Date().toISOString(), status: 'new', ...lead, consent: { given: true, text: CONSENT_TEXT, at: new Date().toISOString() }, ...(userId ? { userId } : {}) };
     const webhook = env.LEADS_WEBHOOK_URL ? notify(env.LEADS_WEBHOOK_URL, record) : null;
     try { await store.push(LIST_KEY, record, MAX_STORED); }
     catch (error) {
@@ -40,6 +42,7 @@ export async function handleLeads(req, url, { send, body, store, env = process.e
       if (!webhook) { send(503, { error: 'lead_store_unavailable', message: 'לא הצלחנו לשמור את הפנייה כרגע. נסו שוב בעוד רגע או פנו אלינו בטלפון.' }); return true; }
     }
     if (webhook) await webhook; // bounded by its 3 s timeout and never throws
+    try { await hooks?.created?.(record); } catch (error) { console.log(JSON.stringify({ evt: 'lead_account_link', ok: false, error: error.message })); }
     console.log(JSON.stringify({ evt: 'lead', type: record.type, source: record.source }));
     send(201, { ok: true, id: record.id.slice(0, 8) });
     return true;

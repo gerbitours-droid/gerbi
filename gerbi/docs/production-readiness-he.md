@@ -17,6 +17,13 @@
 | `VOLERO_BOOKING_ENABLED` | להשאיר `false` עד שיש תהליך הזמנה ותשלום | — | — |
 | `LEADS_ADMIN_TOKEN` | מפתח לצפייה בפניות (טופס צור קשר וטיולים בהתאמה אישית) בדף `/leads-admin` וב־`GET /api/leads` (Bearer). בלי המשתנה, הצפייה כבויה (404) | כן, כדי לקרוא פניות | ליצור מחרוזת אקראית ארוכה: `openssl rand -hex 32` |
 | `LEADS_WEBHOOK_URL` | התראה על כל פנייה חדשה: השרת שולח POST עם JSON (`{event:'lead.created', lead}`) לכתובת הזו, עד 3 שניות, וכישלון לא מפיל את השליחה | לא | Make / Zapier / n8n / Slack Workflow webhook |
+| `EMAIL_PROVIDER` | שליחת מיילים לחשבונות לקוח (קוד כניסה, איפוס סיסמה): `resend` או `webhook`. ריק = אין מיילים; האתר מציג "שכחתם סיסמה? צרו קשר עם נציג" ואין כניסה עם קוד | לא | — |
+| `EMAIL_API_KEY`, `EMAIL_FROM` | עם `resend`: מפתח API וכתובת שולח מדומיין מאומת (למשל `ג׳רבי טורס <no-reply@gerbitours.co.il>`) | עם `resend` | resend.com → API Keys + Domains |
+| `EMAIL_WEBHOOK_URL`, `EMAIL_WEBHOOK_SECRET` | עם `webhook`: POST `{to,subject,text}` (Bearer אם יש סוד) ל־Make/Zapier/n8n ששולחים את המייל | עם `webhook` | — |
+| `SITE_URL` | הכתובת הקנונית של האתר (`https://…`). קישורי איפוס סיסמה נבנים רק ממנה; בלעדיה האיפוס כבוי גם אם יש מיילים | לאיפוס סיסמה | הדומיין שלכם |
+| `ACCOUNT_TRUSTED_ORIGINS` | מקורות נוספים (מופרדים בפסיקים) שמותר להם לשלוח בקשות חשבון, אם האתר זמין ביותר מדומיין אחד | לא | — |
+
+**חשבונות לקוח (אזור אישי, אפיון `docs/specs/17-customer-area-he.md`):** נשמרים ב־KV במרחב `gerbi:accounts:*` (משתמשים, סשנים מגובבים עם תפוגה של 30 יום, קודים, אינדקס פניות לפי מייל). **בפרודקשן חובה Upstash**, אחרת חשבונות וסשנים נעלמים בין מופעים. העוגייה `__Host-gerbi_sid` (HttpOnly, Secure, SameSite=Lax) מופעלת אוטומטית ב־Vercel (`VERCEL` או `NODE_ENV=production`). מקומית: `gerbi/data/accounts.json`. סיסמאות ב־scrypt; אין צורך במפתח סודי נוסף.
 
 **פניות (לידים):** נשמרות ב־Upstash (המפתח `gerbi:leads:all`, עד 5,000 אחרונות). בלי Upstash ב־Vercel הן נשמרות רק בזיכרון של מופע הפונקציה ועלולות להיעלם — לכן בפרודקשן חובה Upstash, או לפחות `LEADS_WEBHOOK_URL` שמעביר כל פנייה החוצה. מקומית: `gerbi/data/leads.json` (לא ב־Git). הגבלה: 5 פניות ל־10 דקות לכל כתובת IP, ושדה מלכודת לבוטים.
 
