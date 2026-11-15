@@ -8,7 +8,7 @@ import { partnerClassify, scrub } from './llm-partner.mjs';
 import { supportAnswer, gateway } from './ai-features.mjs';
 import { faqs as builtinFaqs } from '../dist/pages.mjs';
 import { classify, respond, confirmation, newConversation, contactContext } from './support-brain.mjs';
-import { INTENTS, CHIP_LABELS, REASON_LABELS, mergeContent, validateContentUpdate, hoursStatus, localizeContent, intentTitle, chipLabel as chipText } from './support-content.mjs';
+import { INTENTS, CHIP_LABELS, REASON_LABELS, mergeContent, validateContentUpdate, hoursStatus, localizeContent, intentTitle, chipLabel as chipText, hoursTextEn } from './support-content.mjs';
 import { tIn, normLang, DICTS } from '../dist/i18n.mjs';
 import { localizeSite } from '../dist/content-model.mjs';
 // The built-in site FAQs (pages.faqs.1/2, 3/4, …) in a given language, for grounding English answers.
@@ -185,7 +185,9 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
   async function contentRoute(req, send, body) {
     if (req.method === 'GET') {
       const c = await content();
-      return send(200, { intents: Object.entries(INTENTS).map(([id, i]) => ({ id, title: i.title, answer: c.answers[id], default: c.answers[id] === i.answer })), hours: c.hours, key: 'support-content/faq' });
+      // English (spec 21): the owner's English answer if any, and the built-in English text the bot uses otherwise.
+      const T = tIn('en');
+      return send(200, { intents: Object.entries(INTENTS).map(([id, i]) => ({ id, title: i.title, answer: c.answers[id], default: c.answers[id] === i.answer, answerEn: c.answersEn?.[id] || '', defaultEn: T(`support.intent.${id}.answer`) })), hours: c.hours, hoursTextEn: hoursTextEn(c.hours.days), key: 'support-content/faq' });
     }
     const current = (await contentStore.get('faq').catch(() => null)) || {};
     const { value, error } = validateContentUpdate(await body(req, 32_000), current);

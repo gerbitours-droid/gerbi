@@ -495,8 +495,13 @@ async function botContentTab() {
        <label><span class="sr-only">סגירה ביום ${label}</span><input type="time" data-to value="${esc(slot?.[1] || '18:00')}"${slot ? '' : ' disabled'}></label></div>`; }).join('')}</div>
     </fieldset>
     <fieldset><legend>תשובות לפי נושא</legend>${(data.intents || []).map((i) => `<div class="lead-field"><label for="a-${esc(i.id)}">${esc(i.title)} <span class="state-chip">${i.default ? 'נוסח מקורי' : 'נערך'}</span></label><textarea id="a-${esc(i.id)}" data-intent="${esc(i.id)}" data-original="${i.default ? '1' : ''}" maxlength="1200" rows="3">${esc(i.answer)}</textarea></div>`).join('')}</fieldset>
+    <details class="en-box"${(data.intents || []).some((i) => i.answerEn) || data.hours?.textEn ? ' open' : ''}><summary>אנגלית (אופציונלי) <span class="en-chip" data-en="${(data.intents || []).some((i) => i.answerEn) ? 'yes' : 'no'}">${(data.intents || []).filter((i) => i.answerEn).length}/${(data.intents || []).length} EN</span></summary>
+     <p class="micro-copy">לקוחות באתר האנגלי מקבלים את התשובות האלה. שדה ריק = הנוסח האנגלי המובנה (מוצג כטקסט מעומעם).</p>
+     <div class="lead-field"><label for="h-text-en">שעות פעילות באנגלית</label><input id="h-text-en" dir="ltr" lang="en" maxlength="200" value="${esc(data.hours?.textEn || '')}" placeholder="${esc(data.hoursTextEn || '')}"></div>
+     ${(data.intents || []).map((i) => `<div class="lead-field"><label for="ae-${esc(i.id)}">${esc(i.title)} · EN</label><textarea id="ae-${esc(i.id)}" data-intent-en="${esc(i.id)}" dir="ltr" lang="en" maxlength="1200" rows="3" placeholder="${esc(i.defaultEn || '')}">${esc(i.answerEn || '')}</textarea></div>`).join('')}
+    </details>
     <div class="form-actions sticky-actions"><button class="button yellow" type="submit">שמירה</button></div><p id="bot-status" class="admin-status" role="status"></p></form>`;
-  const form = $('#bot-form'), initial = Object.fromEntries((data.intents || []).map((i) => [i.id, i.answer]));
+  const form = $('#bot-form'), initial = Object.fromEntries((data.intents || []).map((i) => [i.id, i.answer])), initialEn = Object.fromEntries((data.intents || []).map((i) => [i.id, i.answerEn || '']));
   form.addEventListener('input', () => { dirty = true; });
   form.addEventListener('change', (e) => { if (e.target.matches('[data-closed]')) { const row = e.target.closest('.hours-row'); $$('input[type=time]', row).forEach((x) => { x.disabled = e.target.checked; }); dirty = true; } });
   form.onsubmit = async (e) => {
@@ -504,11 +509,13 @@ async function botContentTab() {
     const out = $('#bot-status'), answers = {}, hoursDays = {}, errors = [];
     // Only changed answers are sent; an emptied one goes back to the built-in text.
     $$('[data-intent]', form).forEach((t) => { const v = t.value.trim(); if (v !== initial[t.dataset.intent].trim()) answers[t.dataset.intent] = v; });
+    const answersEn = {};
+    $$('[data-intent-en]', form).forEach((t) => { const v = t.value.trim(); if (v !== initialEn[t.dataset.intentEn].trim()) answersEn[t.dataset.intentEn] = v; });
     $$('.hours-row', form).forEach((row) => { const d = row.dataset.day; if ($('[data-closed]', row).checked) hoursDays[d] = null; else { const from = $('[data-from]', row).value, to = $('[data-to]', row).value; if (!(from && to && from < to)) errors.push(DAY_LABELS[d]); hoursDays[d] = [from, to]; } });
     if (errors.length) { status(out, `שעות לא תקינות ביום ${errors.join(', ')}: שעת הסגירה צריכה להיות אחרי שעת הפתיחה.`, 'error'); return; }
     status(out, 'שומרים…');
     try {
-      const r = await fetch('/api/support/content', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers, hours: { text: $('#h-text').value.trim(), days: hoursDays } }) });
+      const r = await fetch('/api/support/content', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers, ...(Object.keys(answersEn).length ? { answersEn } : {}), hours: { text: $('#h-text').value.trim(), textEn: $('#h-text-en').value.trim(), days: hoursDays } }) });
       if (r.status === 401) { showLogin('החיבור הסתיים. היכנסו שוב.'); return; }
       if (!r.ok) { status(out, r.status === 429 ? 'יותר מדי בקשות. נסו שוב בעוד דקה.' : 'השמירה נכשלה. בדקו את הטקסטים.', 'error'); return; }
       dirty = false; await botContentTab(); status($('#bot-status'), 'נשמר. הבוט עונה מעכשיו בנוסח החדש (עד דקה).', 'ok');
