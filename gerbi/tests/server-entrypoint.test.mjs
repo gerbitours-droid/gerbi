@@ -16,7 +16,9 @@ test('imported entrypoint exposes a server without opening a local port', async 
       ['/', 'text/html'],
       ['/style.css', 'text/css'],
       ['/app.js', 'text/javascript'],
-      ['/assets/hero.png', 'image/png']
+      ['/assets/hero.webp', 'image/webp'],
+      ['/assets/hero.jpg', 'image/jpeg'],
+      ['/assets/mascot.webp', 'image/webp']
     ]) {
       const response = await fetch(`${base}${pathname}`);
       assert.equal(response.status, 200, pathname);

@@ -24,7 +24,7 @@ const $=s=>document.querySelector(s);
 let favorites=[];try{favorites=JSON.parse(localStorage.getItem('gerbi-favorites')||'[]');if(!Array.isArray(favorites))favorites=[];favorites=[...new Set(favorites.filter(id=>trips.some(t=>t.id===id)))];}catch{}
 function renderCards(items=trips){$('#cards').innerHTML=items.map(t=>`<article class="card"><div class="card-image"><img src="/assets/${t.image}" alt="${t.name}" loading="lazy" width="560" height="400"><button class="favorite" data-favorite="${t.id}" aria-pressed="${favorites.includes(t.id)}" aria-label="${favorites.includes(t.id)?'הסרת':'שמירת'} ${t.short}">${icons('heart')}</button><span class="card-badge">${icons(t.id==='rome'?'hotel':t.id==='dubai'?'globe':'sun')}${t.badge}</span></div><div class="card-body"><h3>${t.name}</h3><p class="card-description">${t.description}</p>${t.matchReason?`<p class="match-reason">${escapeHTML(t.matchReason)}</p>`:''}<div class="card-bottom"><button class="yellow card-cta" data-trip="${t.id}">לפרטים ותכנון</button><div class="card-price"><small>הדגמה · לאדם, החל מ־</small><strong>${money(t.price)}</strong></div></div></div></article>`).join('');}
 renderCards();
-for(const image of document.querySelectorAll('img[src="/assets/mascot.png"]')){image.onload=()=>image.hidden=false;if(image.complete&&image.naturalWidth)image.hidden=false;}
+for(const image of document.querySelectorAll('img[src="/assets/mascot.webp"]')){image.onload=()=>image.hidden=false;if(image.complete&&image.naturalWidth)image.hidden=false;}
 const state={tab:'flights',adults:2,children:0,start:'',end:'',preferences:{},activeTrip:null,edits:{},requests:{},voleroResults:null};
 try {
  const saved=JSON.parse(localStorage.getItem('gerbi-preferences')||'{}');

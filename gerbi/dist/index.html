@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23ffdf27'/%3E%3Ctext x='20' y='29' text-anchor='middle' font-size='29' fill='%230a1b60'%3E✈%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/pages.css"><link rel="stylesheet" href="/learning.css"><link rel="stylesheet" href="/experience.css"><link rel="stylesheet" href="/leads.css"><link rel="stylesheet" href="/search.css"><link rel="stylesheet" href="/account.css"><link rel="stylesheet" href="/fx.css"><link rel="stylesheet" href="/cms.css"><link rel="stylesheet" href="/multi-city.css"><link rel="stylesheet" href="/a11y-mobile.css"><script type="module" src="/app.js"></script>
+<link rel="preload" as="image" type="image/webp" href="/assets/hero.webp" media="(min-width:821px)" fetchpriority="high"><link rel="preload" as="image" type="image/webp" href="/assets/hero-820.webp" media="(max-width:820px)" fetchpriority="high">
 </head>
 <body>
 <a class="skip-link" href="#main-content">דילוג לתוכן</a>
@@ -42,7 +43,7 @@
 </defs></svg>
 <div class="scenery" aria-hidden="true"></div>
 <header class="header"><div class="header-inner">
-<a class="brand" href="#/" aria-label="ג׳רבי טורס – דף הבית"><div><strong>ג׳רבי טורס</strong><span>סוכן הנסיעות החדש שלכם</span></div><img src="/assets/mascot.png" alt="" class="brand-bear" hidden></a>
+<a class="brand" href="#/" aria-label="ג׳רבי טורס – דף הבית"><div><strong>ג׳רבי טורס</strong><span>סוכן הנסיעות החדש שלכם</span></div><img src="/assets/mascot.webp" alt="" class="brand-bear" hidden></a>
 <nav aria-label="ניווט ראשי"><a href="#/" class="active">דף הבית</a><a href="#/inspiration">המלצות</a><a href="#/destinations">יעדים</a><a href="#/blog">בלוג</a><a href="#/tailor-made">בהתאמה אישית</a><a href="#/support">שירות לקוחות</a></nav>
 <div class="header-actions"><button class="login" data-info="account"><svg aria-hidden="true"><use href="#i-user"/></svg>הטיולים שלי</button><button class="yellow support" data-info="support"><svg aria-hidden="true"><use href="#i-headphones"/></svg>שירות לקוחות</button></div>
 </div></header>
@@ -65,7 +66,7 @@
 <section class="assistant-banner page-width" aria-labelledby="assistant-title">
 <div class="assistant-perks"><span><svg aria-hidden="true"><use href="#i-pin"/></svg>המלצות מותאמות אישית</span><span><svg aria-hidden="true"><use href="#i-globe"/></svg>רעיונות ליעדים חדשים</span><span><svg aria-hidden="true"><use href="#i-spark"/></svg>תכנון חופשה מלאה</span></div>
 <div class="assistant-main"><h2 id="assistant-title">לאן? פשוט מדברים עם ג׳רבי</h2><p>ספרו לנו על החופשה שתמיד רציתם.</p><form id="prompt-form"><div class="prompt-input"><button type="submit" aria-label="שלחו בקשה לג׳רבי"><svg aria-hidden="true"><use href="#i-plane"/></svg></button><input id="trip-prompt" aria-label="תארו את החופשה שלכם" placeholder="ספרו לג׳רבי איזו חופשה בא לכם..." maxlength="1500"><svg class="prompt-decoration"><use href="#i-spark"/></svg></div><button type="submit" class="yellow chat-button"><svg aria-hidden="true"><use href="#i-spark"/></svg>דברו עם ג׳רבי</button></form></div>
-<div class="mascot-wrap"><div class="speech">אני כאן<br>לעזור לכם<br>לתכנן חופשה<br>מושלמת!</div><img id="mascot" src="/assets/mascot.png" alt="ג׳רבי, הדוב של ג׳רבי טורס, בכובע טייס" hidden></div>
+<div class="mascot-wrap"><div class="speech">אני כאן<br>לעזור לכם<br>לתכנן חופשה<br>מושלמת!</div><img id="mascot" src="/assets/mascot.webp" alt="ג׳רבי, הדוב של ג׳רבי טורס, בכובע טייס" hidden></div>
 </section>
 <section class="tailor-banner page-width" aria-labelledby="tailor-title"><div><span class="eyebrow">טיולים בהתאמה אישית</span><h2 id="tailor-title">חולמים על טיול שלא מופיע באתר?</h2><p>ירח דבש, טיול משפחתי, כמה יעדים בטיול אחד או חגיגה מיוחדת. ספרו לנו מה חשוב לכם, ונציג ג׳רבי טורס יבנה איתכם מסלול שמתאים בדיוק לכם.</p></div><a class="button yellow" href="#/tailor-made">לבניית טיול בהתאמה אישית</a></section>
 <section id="deals" class="deals page-width" aria-labelledby="deals-title"><div class="section-heading"><button id="all-deals">לכל היעדים <span>‹</span></button><h2 id="deals-title">החופשות שכולם חולמים עליהן</h2><span class="demo-label">רעיונות לחופשה · אומדנים להמחשה</span></div><div id="cards" class="cards"></div></section>
