@@ -127,3 +127,5 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
  body{background:#fff}
 }
 .bk-badges{display:flex;flex-wrap:wrap;gap:5px;align-items:center}.bk-badges .flight-badge{width:auto;margin:0}
+.bk-range{white-space:nowrap;display:inline-block}.bk-sum .bk-range{display:block}
+.bk-day li{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.bk-day [data-remove-item],[data-add-spare]{min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;text-decoration:none}.bk-day [data-remove-item]:hover{background:#fff1ea}

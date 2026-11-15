@@ -21,3 +21,4 @@ for f in tests/e2e/*.e2e.mjs; do PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs
 | `fare-extras.e2e.mjs` | spec 10 §7: per-passenger prices, fare inclusions, seats left, avoid-stop filter (round trip + child) |
 | `decide.e2e.mjs` | decision layer: badges, reasons, memory events, partner fallback |
 | `account.e2e.mjs` | customer area (spec 17): sign-up + device merge, sync, enquiries, second device at 375, delete (no supplier calls) |
+| `build.e2e.mjs` | spec 24 magic trip builder, he+en at 1440/375: home prompt → package, live flights/hotels cards, total legend, itinerary edits, car toggle, rebuild, share link (no supplier call), package lead, suggest mode, admin package view (`ADMIN_PASSWORD`). Server with `GERBI_SUPPLIER_FIXTURES=1` (recorded answers in `tests/fixtures/build/`); `NOKEY=1` for rules only; `LIVE=1` = one real search (1440 Hebrew). `OUT=verification/24-builder` |

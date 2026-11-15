@@ -19,6 +19,8 @@ let pkg = null, view = null, version = 0, lastInput = null, showAllHotels = new 
 // ---- prices
 const fare = (price) => { if (!price) return ''; const v = toIls(price, getFx()); return v === null ? formatOriginal(price) : formatIls(v); };
 const checked = (iso) => (iso ? t('build.price.checkedAt', { time: fmtTime(iso), date: fmtDate(iso, { day: 'numeric', month: 'short' }) }) : '');
+// A shekel range that never breaks across lines or flips around the dash in RTL.
+const range = (low, high) => `<span class="bk-range" dir="ltr">${esc(formatIls(low))} – ${esc(formatIls(high))}</span>`;
 const kindPill = (kind) => `<span class="bk-kind bk-${kind}">${t(`build.kind.${kind}`)}</span>`;
 const longDay = (iso) => (iso ? new Date(iso + 'T12:00:00').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' }) : '');
 const travellersText = (r) => t('build.travellers', { adults: r.adults, children: r.children });
@@ -254,9 +256,9 @@ const PAINT = {
   },
   total() {
     const pr = pricePackage(pkg, getFx()), label = (l) => t(`build.line.${l.id.split(':')[0]}`, { place: l.stop !== undefined && pkg.stops?.length ? L(pkg.stops[l.stop]?.name) : '' });
-    const value = (l) => l.kind === 'live' ? `<strong dir="ltr">${esc(l.ils === null ? formatOriginal(l.price) : formatIls(l.ils))}</strong>` : l.kind === 'estimate' ? `<span dir="ltr">${esc(formatIls(l.range.low))}–${esc(formatIls(l.range.high))}</span>` : l.kind === 'pending' ? `<span class="bk-pending">${t('build.kind.pending')}</span>` : `<span>${t('build.price.byRep')}</span>`;
+    const value = (l) => l.kind === 'live' ? `<strong dir="ltr">${esc(l.ils === null ? formatOriginal(l.price) : formatIls(l.ils))}</strong>` : l.kind === 'estimate' ? range(l.range.low, l.range.high) : l.kind === 'pending' ? `<span class="bk-pending">${t('build.kind.pending')}</span>` : `<span>${t('build.price.byRep')}</span>`;
     return `<h3 id="bh-total">${icon('tag')}${t('build.total.title')}</h3><table class="bk-lines"><tbody>${pr.lines.map((l) => `<tr><th scope="row">${esc(label(l))}<br>${kindPill(l.kind)}</th><td>${value(l)}${l.at ? `<small>${esc(checked(l.at))}</small>` : ''}</td></tr>`).join('')}</tbody></table>
-     ${pr.total ? `<div class="bk-sum"><p>${t('build.total.live')} <strong dir="ltr">${esc(formatIls(pr.total.live))}</strong></p><p>${t('build.total.withEstimate')} <strong dir="ltr">${esc(formatIls(pr.total.low))}–${esc(formatIls(pr.total.high))}</strong></p>
+     ${pr.total ? `<div class="bk-sum"><p>${t('build.total.live')} <strong dir="ltr">${esc(formatIls(pr.total.live))}</strong></p><p>${t('build.total.withEstimate')} <strong>${range(pr.total.low, pr.total.high)}</strong></p>
        <p class="micro-copy">${t('build.total.perPerson', { live: esc(formatIls(pr.perPerson.live)), low: esc(formatIls(pr.perPerson.low)), high: esc(formatIls(pr.perPerson.high)), count: pr.people })}</p></div>` : pr.missingFx ? `<p class="micro-copy">${t('build.total.noFx')}</p>` : ''}
      ${pr.budget ? `<p class="bk-budget bk-budget-${pr.budget.verdict}">${t(`build.total.budget.${pr.budget.verdict}`, { budget: esc(formatIls(pr.budget.amount)), diff: esc(formatIls(Math.abs(pr.budget.diff))) })}</p>` : ''}
      <div class="bk-legend"><p>${kindPill('live')} ${t('build.legend.live')}</p><p>${kindPill('estimate')} ${t('build.legend.estimate')}</p><p>${kindPill('quote')} ${t('build.legend.quote')}</p></div>
