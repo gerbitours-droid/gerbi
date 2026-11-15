@@ -55,9 +55,11 @@ if (!LIVE || process.env.VERIFY === '1') {
   log('copied:', (await page.evaluate(() => navigator.clipboard.readText()).catch(() => '')).split('\n').slice(-1)[0]);
 }
 await page.goto(base + '/#/converter'); await page.waitForSelector('#fx-page-amount'); await page.waitForTimeout(400);
-log('converter page default:', (await page.locator('.fx-result').innerText()).replace(/\n+/g, ' / '), '| note:', await page.locator('.fx-converter .fx-note').innerText());
-await page.locator('#fx-page-amount').fill('abc'); log('invalid:', await page.locator('.fx-error').innerText());
-await page.locator('#fx-page-amount').fill('1,250.50'); log('1,250.50 USD:', await page.locator('.fx-result output').innerText());
+// Scoped to the page's own form: the header converter modal may still be in the DOM after the hash navigation (QA O15).
+const pageConverter = page.locator('form.fx-converter:has(#fx-page-amount)');
+log('converter page default:', (await pageConverter.locator('.fx-result').innerText()).replace(/\n+/g, ' / '), '| note:', await pageConverter.locator('.fx-note').innerText());
+await page.locator('#fx-page-amount').fill('abc'); log('invalid:', await pageConverter.locator('.fx-error').innerText());
+await page.locator('#fx-page-amount').fill('1,250.50'); log('1,250.50 USD:', await pageConverter.locator('.fx-result output').innerText());
 await page.screenshot({ path: `${OUT}/converter-page-${tag}.png`, fullPage: true });
 log('footer link:', await page.locator('footer a[href="#/converter"]').count());
 log('Volero in UI:', (await page.evaluate(() => document.body.innerText)).includes('Volero'));
