@@ -217,7 +217,7 @@ export function initPages(ctx) {
    window.addEventListener('hashchange',()=>{ctx.selectFlights();ctx.syncHome();$('#destination').value=t.name;ctx.openDates();},{once:true});navigate('/');
   };
  }
- function flightLegs(f){return f.legs.map((l,i)=>`<p class="saved-leg"><b>${i?'חזור':'הלוך'}</b> <span dir="ltr">${esc(l.from)} ${esc(l.departTime)} → ${esc(l.arriveTime)} ${esc(l.to)}</span>${l.dayOffset?` (+${l.dayOffset})`:''} · ${esc(ctx.longDate(l.departDate))} · ${l.stops?(l.stops===1?'החלפה אחת':l.stops+' החלפות'):'ישירה'}</p>`).join('');}
+ function flightLegs(f){return f.legs.map((l,i)=>`<p class="saved-leg"><b>${f.route?'טיסה '+(i+1):i?'חזור':'הלוך'}</b> <span dir="ltr">${esc(l.from)} ${esc(l.departTime)} → ${esc(l.arriveTime)} ${esc(l.to)}</span>${l.dayOffset?` (+${l.dayOffset})`:''} · ${esc(ctx.longDate(l.departDate))} · ${l.stops?(l.stops===1?'החלפה אחת':l.stops+' החלפות'):'ישירה'}</p>`).join('');}
  function followUp(f){const {actions}=ctx.flightFollowUp(f);return `${actions.map(a=>`<a class="button secondary" href="${esc(a.href)}" target="_blank" rel="noopener">${a.label}</a>`).join('')}<button type="button" class="button secondary" data-copy-flight="${esc(f.id)}">העתקת פרטי הטיסה</button>${actions.length?'':'<p class="micro-copy">ערוץ שליחה לסוכן עוד לא הוגדר באתר. אפשר להעתיק את הפרטים ולשלוח בכל דרך.</p>'}`;}
  function savedFlightsSection(){
   const list=ctx.getSavedFlights();if(!list.length)return '';
