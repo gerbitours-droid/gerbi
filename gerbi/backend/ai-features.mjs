@@ -7,6 +7,7 @@ import { tailorFromText, cleanTailor, mergeTailor } from '../dist/tailor-fill.mj
 import { BUDGETS, FLEXIBILITY, STYLES, CHANNELS } from '../dist/leads-validate.mjs';
 import { slugFromTitle } from '../dist/content-model.mjs';
 import { top } from './search-stats.mjs';
+import { normLang } from '../dist/i18n.mjs';
 
 // The process-wide gateway (server.mjs attaches the KV stores with gateway.configure).
 export const gateway = createGateway({ tasks: TASKS });
@@ -18,7 +19,7 @@ export async function featureStatus(gw = gateway) {
 
 // ---------- support: grounded answer from the owner's FAQ ----------
 // sources: [{ id, title, text }] — bot answers (placeholders filled) and site FAQs.
-export async function supportAnswer(text, sources, { store = null, gw = gateway } = {}) {
+export async function supportAnswer(text, sources, { store = null, gw = gateway, lang = 'he' } = {}) {
   if (!sources.length) return null;
   const ids = new Set(sources.map((s) => s.id));
   const validate = (v) => {
@@ -29,14 +30,14 @@ export async function supportAnswer(text, sources, { store = null, gw = gateway 
     const grounded = v.answerable && answer.length >= 8 && !/@/.test(answer) && numbersGrounded(answer, (used.length ? used : sources).map((s) => s.text));
     return { answerable: Boolean(grounded), answer: grounded ? answer : '', topics, escalate: v.escalate === true, rejected: v.answerable && !grounded };
   };
-  const result = await gw.run('support_answer', { customer_text: String(text).slice(0, 600), sources }, { cache: store, validate });
+  const result = await gw.run('support_answer', { customer_text: String(text).slice(0, 600), sources }, { cache: store, validate, lang: normLang(lang) });
   return result ? { ...result.value, cached: result.cached } : null;
 }
 
 // ---------- tailor-made form ----------
-export async function tailorFill(text, { today = new Date().toISOString().slice(0, 10), store = null, gw = gateway } = {}) {
+export async function tailorFill(text, { today = new Date().toISOString().slice(0, 10), store = null, gw = gateway, lang = 'he' } = {}) {
   const rules = tailorFromText(text, today).fields;
-  const result = await gw.run('tailor_fill', { customer_text: String(text).slice(0, 1500), today }, { cache: store, validate: (v) => cleanTailor(v, today) });
+  const result = await gw.run('tailor_fill', { customer_text: String(text).slice(0, 1500), today }, { cache: store, validate: (v) => cleanTailor(v, today), lang: normLang(lang) });
   const ai = result?.value || {};
   const fields = mergeTailor(rules, ai);
   return { fields, filled: Object.keys(fields), source: result ? 'ai' : 'rules', aiFields: Object.keys(ai).filter((k) => !(k in rules)) };
@@ -44,17 +45,23 @@ export async function tailorFill(text, { today = new Date().toISOString().slice(
 
 // ---------- flight comparison ----------
 // offers: [{ label:'A', price:'₪ 2,431', duration:'4 ש׳ 50 ד׳', stops, longestWait, departs[], arrives[], bag, carrier }]
-export async function flightExplain(offers, brief, { store = null, gw = gateway } = {}) {
+export async function flightExplain(offers, brief, { store = null, gw = gateway, lang = 'he' } = {}) {
   if (!Array.isArray(offers) || offers.length < 2) return null;
-  const labels = offers.map((o) => o.label);
+  const labels = offers.map((o) => o.label), english = normLang(lang) === 'en';
   const validate = (v) => {
-    // Travelers see a list, not letters: "A" becomes "הטיסה הראשונה" and so on.
-    const ord = (t) => stripLinks(t).replace(/(^|[^A-Za-z])(?:הטיסה |טיסה )?([ABC])(?![A-Za-z])/g, (m, pre, l) => pre + 'הטיסה ' + ({ A: 'הראשונה', B: 'השנייה', C: 'השלישית' })[l]);
+    // Travelers see a list, not letters: "A" becomes "הטיסה הראשונה" ("the first flight") and so on.
+    const ord = english
+      // "A" is also an English article: it is replaced only as "flight/offer/option A", "A:" or "(A)"; B and C anywhere.
+      ? (t) => stripLinks(t).replace(/\b(?:the )?(?:flight|offer|option) ([ABC])\b|^([ABC])(?=:)|\(([ABC])\)|\b([BC])\b(?![’'])/gi, (m, a, b, c, d) => {
+        const l = (a || b || c || d).toUpperCase();
+        return /^[abc]$/.test(a || b || c || d) && !a ? m : `the ${({ A: 'first', B: 'second', C: 'third' })[l]} flight`;
+      }).replace(/(^|[.!?]\s+)the /g, (m, p) => p + 'The ')
+      : (t) => stripLinks(t).replace(/(^|[^A-Za-z])(?:הטיסה |טיסה )?([ABC])(?![A-Za-z])/g, (m, pre, l) => pre + 'הטיסה ' + ({ A: 'הראשונה', B: 'השנייה', C: 'השלישית' })[l]);
     const summary = ord(v.summary), tradeoffs = (v.tradeoffs || []).map(ord).filter(Boolean).slice(0, 3);
     if (summary.length < 10 || !numbersGrounded([summary, ...tradeoffs].join(' '), [JSON.stringify(offers), JSON.stringify(brief)])) return null;
     return { summary, tradeoffs, pick: labels.includes(v.pick) ? v.pick : '' };
   };
-  const result = await gw.run('flight_explain', { brief, offers }, { cache: store, validate });
+  const result = await gw.run('flight_explain', { brief, offers }, { cache: store, validate, lang: normLang(lang) });
   return result ? { ...result.value, cached: result.cached } : null;
 }
 

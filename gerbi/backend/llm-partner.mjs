@@ -19,9 +19,10 @@ export const partnerStatus = () => {
 export const probeProvider = (name, task, input) => gateway.probe(name, task, input);
 
 // Second decoder: fills only what the rules left empty; everything is re-validated like user input.
-export async function partnerUnderstand(store, text, brief, { today = new Date().toISOString().slice(0, 10) } = {}) {
+export async function partnerUnderstand(store, text, brief, { today = new Date().toISOString().slice(0, 10), lang = 'he' } = {}) {
   const known = { adults: brief.adults, children: brief.children, nights: brief.nights || 0, month: brief.month || '', want: brief.want || [] };
-  const result = await gateway.run('understand', { customer_text: scrub(text), known, today }, { cache: store });
+  // lang 'en' (spec 21): the question and interests come back in English; codes/months stay as the schema says.
+  const result = await gateway.run('understand', { customer_text: scrub(text), known, today }, { cache: store, lang: lang === 'en' ? 'en' : 'he' });
   if (!result) return null;
   const v = result.value, valid = list => [...new Set((Array.isArray(list) ? list : []).filter(code => codes.includes(code)))].slice(0, 5);
   const int = (n, min, max) => Number.isInteger(n) && n >= min && n <= max ? n : null;
@@ -41,12 +42,12 @@ export async function partnerUnderstand(store, text, brief, { today = new Date()
 }
 
 // Near-tie only: returns the chosen candidate's key; the caller adds a bounded bonus (γ) to it.
-export async function partnerTieBreak(store, brief, candidates) {
+export async function partnerTieBreak(store, brief, candidates, { lang = 'he' } = {}) {
   const rows = candidates.slice(0, 5);
   if (rows.length < 2) return null;
   const compactBrief = Object.fromEntries(Object.entries(brief).filter(([key, value]) => ['adults', 'children', 'cheaper', 'stops', 'out', 'back', 'checkedBag', 'carrier', 'tripType'].includes(key) && value !== undefined && value !== ''));
   const table = rows.map(({ key, ...row }, i) => ({ i, ...row }));
-  const result = await gateway.run('tiebreak', { brief: compactBrief, offers: table }, { cache: store });
+  const result = await gateway.run('tiebreak', { brief: compactBrief, offers: table }, { cache: store, lang: lang === 'en' ? 'en' : 'he' });
   if (!result || !Number.isInteger(result.value.pick) || !rows[result.value.pick]) return null;
   return { pick: rows[result.value.pick].key, reason: String(result.value.reason || '').slice(0, 80), cached: result.cached };
 }

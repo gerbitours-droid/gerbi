@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { classify } from '../backend/support-brain.mjs';
 
-const set = JSON.parse(readFileSync(new URL('../tests/fixtures/support-intents' + (process.argv[2] === 'holdout' ? '-holdout' : '') + '.json', import.meta.url), 'utf8'));
+// node scripts/eval-support-intents.mjs [holdout|en|en-holdout] — en: the English sets (spec 21).
+const set = JSON.parse(readFileSync(new URL('../tests/fixtures/support-intents' + ({ holdout: '-holdout', en: '-en', 'en-holdout': '-en-holdout' }[process.argv[2]] || '') + '.json', import.meta.url), 'utf8'));
 let ok = 0;
 for (const [text, expected] of set) {
   const result = classify(text);

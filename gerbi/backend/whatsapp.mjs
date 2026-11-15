@@ -1,5 +1,6 @@
 // WhatsApp Cloud API channel adapter (spec 16 §7): signature check, inbound parsing and outbound message building.
 // Transport only; the conversation logic is the same support brain the site uses.
+import { tIn, normLang } from '../dist/i18n.mjs';
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 
 export const WA_ENV = ['WHATSAPP_VERIFY_TOKEN', 'WHATSAPP_APP_SECRET', 'WHATSAPP_TOKEN', 'WHATSAPP_PHONE_NUMBER_ID'];
@@ -45,8 +46,8 @@ export const phoneFromWaId = (waId) => (/^972\d{8,9}$/.test(waId) ? '0' + waId.s
 
 const clip = (text, max) => (text.length > max ? text.slice(0, max - 1) + '…' : text);
 // A brain reply -> Cloud API message payloads. ≤3 chips: reply buttons (title ≤20); 4–10: a list (row title ≤24).
-export function toWhatsApp(reply, to, { siteUrl = '' } = {}) {
-  const site = String(siteUrl || '').replace(/\/$/, '');
+export function toWhatsApp(reply, to, { siteUrl = '', lang = 'he' } = {}) {
+  const site = String(siteUrl || '').replace(/\/$/, '') + (normLang(lang) === 'en' && siteUrl ? '/en' : ''), T = tIn(normLang(lang));
   const lines = reply.messages.map((m) => {
     let text = m.text;
     if (m.link) { const href = m.link.href.startsWith('#') ? (site ? `${site}/${m.link.href}` : '') : m.link.href; if (href) text += `\n${m.link.label}: ${href}`; }
@@ -56,9 +57,9 @@ export function toWhatsApp(reply, to, { siteUrl = '' } = {}) {
   if (!body && !chips.length) return [];
   const payloads = [];
   let interactiveBody = body;
-  if (!chips.length || body.length > 1024) { if (body) payloads.push({ ...base, type: 'text', text: { body: clip(body, 4096), preview_url: false } }); interactiveBody = 'אפשר לבחור:'; }
+  if (!chips.length || body.length > 1024) { if (body) payloads.push({ ...base, type: 'text', text: { body: clip(body, 4096), preview_url: false } }); interactiveBody = T('support.wa.choose'); }
   if (chips.length && chips.length <= 3) payloads.push({ ...base, type: 'interactive', interactive: { type: 'button', body: { text: interactiveBody }, action: { buttons: chips.map((c) => ({ type: 'reply', reply: { id: c.id, title: clip(c.label, 20) } })) } } });
-  else if (chips.length) payloads.push({ ...base, type: 'interactive', interactive: { type: 'list', body: { text: interactiveBody }, action: { button: 'בחירת נושא', sections: [{ title: 'נושאים', rows: chips.map((c) => ({ id: c.id, title: clip(c.label, 24) })) }] } } });
+  else if (chips.length) payloads.push({ ...base, type: 'interactive', interactive: { type: 'list', body: { text: interactiveBody }, action: { button: T('support.wa.button'), sections: [{ title: T('support.wa.section'), rows: chips.map((c) => ({ id: c.id, title: clip(c.label, 24) })) }] } } });
   return payloads;
 }
 

@@ -1,26 +1,28 @@
 // Customer-service chat widget (spec 16 §4): a floating "שירות לקוחות" launcher and a modal <dialog> talking to
 // POST /api/support/message. Separate from the ג׳רבי trip planner. The conversation is kept in sessionStorage only.
 // Any element with [data-support-open] (e.g. on #/support) opens it.
-const KEY = 'gerbi-support-chat';
+import { t, lang, dir, errorText } from './i18n.mjs';
+// One stored conversation per language (the Hebrew and English pages share sessionStorage).
+const KEY = lang === 'en' ? 'gerbi-support-chat-en' : 'gerbi-support-chat';
 const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/support-bot.css'; document.head.append(css);
 
 const icon = (id) => `<svg aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const launcher = document.createElement('button');
 launcher.type = 'button'; launcher.className = 'sb-launcher'; launcher.setAttribute('aria-haspopup', 'dialog'); launcher.setAttribute('aria-controls', 'sb-dialog');
-launcher.innerHTML = `${icon('headphones')}<span class="sb-launcher-text">שירות לקוחות</span>`;
-launcher.setAttribute('aria-label', 'שירות לקוחות — צ׳אט עם ג׳רבי טורס');
+launcher.innerHTML = `${icon('headphones')}<span class="sb-launcher-text">${t('support.ui.launcher')}</span>`;
+launcher.setAttribute('aria-label', t('support.ui.launcherLabel'));
 
 const dialog = document.createElement('dialog');
 dialog.id = 'sb-dialog'; dialog.className = 'sb-dialog'; dialog.setAttribute('aria-labelledby', 'sb-title'); dialog.setAttribute('aria-describedby', 'sb-status');
-dialog.innerHTML = `<header class="sb-head"><span class="sb-avatar">${icon('headphones')}</span><div><h2 id="sb-title">שירות לקוחות</h2><p id="sb-status">ג׳רבי טורס · עונים מיד, ונציג כשצריך</p></div>
- <button type="button" class="sb-close" aria-label="סגירת צ׳אט שירות הלקוחות">${icon('close')}</button></header>
+dialog.innerHTML = `<header class="sb-head"><span class="sb-avatar">${icon('headphones')}</span><div><h2 id="sb-title">${t('support.ui.title')}</h2><p id="sb-status">${t('support.ui.status')}</p></div>
+ <button type="button" class="sb-close" aria-label="${t('support.ui.close')}">${icon('close')}</button></header>
  <p class="sb-badge" id="sb-badge" hidden></p>
- <div class="sb-log" id="sb-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="שיחה עם שירות הלקוחות"></div>
- <div class="sb-chips" id="sb-chips" role="group" aria-label="נושאים מוצעים"></div>
- <form class="sb-form" id="sb-form"><label class="sr-only" for="sb-input" id="sb-input-label">ההודעה שלכם</label>
-  <input id="sb-input" name="text" maxlength="600" autocomplete="off" enterkeyhint="send" placeholder="כתבו שאלה…">
-  <button type="submit" class="sb-send" aria-label="שליחה">${icon('send')}</button></form>
- <p class="sb-note">אל תשלחו כאן פרטי אשראי או מספרי דרכון. <a href="#/privacy">פרטיות</a></p>`;
+ <div class="sb-log" id="sb-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="${t('support.ui.log')}"></div>
+ <div class="sb-chips" id="sb-chips" role="group" aria-label="${t('support.ui.chips')}"></div>
+ <form class="sb-form" id="sb-form"><label class="sr-only" for="sb-input" id="sb-input-label">${t('support.ui.message')}</label>
+  <input id="sb-input" name="text" maxlength="600" autocomplete="off" enterkeyhint="send" placeholder="${t('support.ui.placeholder')}">
+  <button type="submit" class="sb-send" aria-label="${t('support.ui.send')}">${icon('send')}</button></form>
+ <p class="sb-note">${t('support.ui.note')} <a href="#/privacy">${t('support.ui.privacy')}</a></p>`;
 document.body.append(launcher, dialog);
 
 const $ = (s) => dialog.querySelector(s);
@@ -40,8 +42,8 @@ function bubble(item, animate = true) {
     el.append(a);
   }
   // Spec 22: an answer composed by the AI from the owner's texts says so, and names the topics it came from.
-  if (item.ai) { const src = document.createElement('small'); src.className = 'sb-source'; src.textContent = `תשובה אוטומטית מתוך התשובות שלנו${item.sources?.length ? `: ${item.sources.join(' · ')}` : ''}`; el.append(src); }
-  if (item.from === 'user') el.setAttribute('aria-label', `אתם: ${item.text}`);
+  if (item.ai) { const src = document.createElement('small'); src.className = 'sb-source'; src.textContent = `${t('support.ui.aiSource')}${item.sources?.length ? `: ${item.sources.join(' · ')}` : ''}`; el.append(src); }
+  if (item.from === 'user') el.setAttribute('aria-label', t('support.ui.you', { text: item.text }));
   log.append(el); log.scrollTop = log.scrollHeight;
   return el;
 }
@@ -52,13 +54,13 @@ function renderChips() {
 function renderInput() {
   const mode = state.input;
   input.type = mode === 'tel' ? 'tel' : 'text'; input.inputMode = mode === 'tel' ? 'tel' : 'text';
-  input.autocomplete = mode === 'name' ? 'name' : mode === 'tel' ? 'tel' : 'off'; input.dir = mode === 'tel' ? 'ltr' : 'rtl';
-  input.placeholder = mode === 'name' ? 'השם שלכם' : mode === 'tel' ? '050-1234567' : 'כתבו שאלה…';
-  $('#sb-input-label').textContent = mode === 'name' ? 'השם שלכם' : mode === 'tel' ? 'מספר טלפון לחזרה' : 'ההודעה שלכם';
+  input.autocomplete = mode === 'name' ? 'name' : mode === 'tel' ? 'tel' : 'off'; input.dir = mode === 'tel' ? 'ltr' : dir();
+  input.placeholder = mode === 'name' ? t('support.ui.yourName') : mode === 'tel' ? '050-1234567' : t('support.ui.placeholder');
+  $('#sb-input-label').textContent = mode === 'name' ? t('support.ui.yourName') : mode === 'tel' ? t('support.ui.callbackPhone') : t('support.ui.message');
 }
 function renderBadge() {
   badge.hidden = !state.escalation;
-  if (state.escalation) badge.textContent = `הפנייה הועברה לנציג · מספר ${state.escalation.ref}`;
+  if (state.escalation) badge.textContent = t('support.ui.escalated', { ref: state.escalation.ref });
 }
 function setBusy(on) {
   busy = on; log.setAttribute('aria-busy', String(on)); form.querySelector('button').disabled = on; chipsBox.querySelectorAll('button').forEach((b) => (b.disabled = on));
@@ -72,17 +74,17 @@ async function ask(payload, shown) {
   state.chips = []; renderChips();
   lastPayload = payload; setBusy(true);
   try {
-    const response = await fetch('/api/support/message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, sessionId: state.sessionId || undefined }) });
+    const response = await fetch('/api/support/message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, lang, sessionId: state.sessionId || undefined }) });
     const data = await response.json().catch(() => ({}));
     setBusy(false);
-    if (!response.ok) throw Object.assign(new Error('http'), { message: data.message });
+    if (!response.ok) throw Object.assign(new Error('http'), { message: data.error && lang === 'en' ? errorText(data.error, data.message, 'support') : data.message });
     state.sessionId = data.sessionId; state.chips = data.chips || []; state.input = data.input || 'text'; state.escalation = data.escalation || state.escalation;
-    if (data.hours) $('#sb-status').textContent = `ג׳רבי טורס · ${data.hours.open ? 'נציגים זמינים עכשיו' : 'נציגים זמינים בשעות הפעילות'}`;
+    if (data.hours) $('#sb-status').textContent = t('support.ui.statusLine', { availability: data.hours.open ? t('support.ui.agentsNow') : t('support.ui.agentsHours') });
     for (const m of data.messages || []) { const item = { from: 'bot', text: m.text, link: m.link, ...(m.ai ? { ai: true, sources: (m.sources || []).slice(0, 3).map(String) } : {}) }; state.items.push(item); bubble(item); }
   } catch (error) {
     setBusy(false);
-    const el = bubble({ from: 'system', text: error.message && error.message !== 'http' && error.message !== 'Failed to fetch' ? error.message : 'לא הצלחנו להתחבר. בדקו את החיבור ונסו שוב, או השאירו פרטים בטופס צור קשר.' });
-    const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'sb-retry'; retry.textContent = 'נסו שוב';
+    const el = bubble({ from: 'system', text: error.message && error.message !== 'http' && error.message !== 'Failed to fetch' ? error.message : t('support.ui.offline') });
+    const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'sb-retry'; retry.textContent = t('support.ui.retry');
     retry.onclick = () => { el.remove(); ask(lastPayload); }; el.append(retry);
   }
   renderChips(); renderInput(); renderBadge(); save(); log.scrollTop = log.scrollHeight;

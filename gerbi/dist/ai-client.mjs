@@ -3,6 +3,7 @@
 // only when the server says the feature is on. All model text is inserted with textContent.
 import { tailorFromText } from './tailor-fill.mjs';
 import { STYLES, BUDGETS, FLEXIBILITY } from './leads-validate.mjs';
+import { t, lang } from './i18n.mjs';
 
 if (typeof document !== 'undefined' && !document.querySelector('link[href="/ai.css"]')) document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: '/ai.css' }));
 let featuresPromise = null;
@@ -15,10 +16,10 @@ const FIELD_LABEL = { destinations: 'יעד', start: 'תאריכים', flexibili
 
 // ---------- tailor-made form ----------
 export const tailorAssistHtml = () => `<section class="ai-assist" aria-labelledby="ai-assist-title">
-  <div class="ai-assist-head"><img src="/assets/mascot.png" alt="" width="44" height="44"><div><h3 id="ai-assist-title">ספרו במשפט אחד, ונמלא את הטופס בשבילכם</h3><p class="micro-copy">למשל: „ירח דבש ביפן באפריל, 12 לילות, תקציב 40 אלף, אוכל ויין”. אפשר לשנות כל שדה אחר כך.</p></div></div>
-  <label class="sr-only" for="ai-assist-text">תיאור הטיול במילים שלכם</label>
-  <textarea id="ai-assist-text" rows="2" maxlength="1500" placeholder="מי נוסע, לאן, מתי, תקציב ומה חשוב לכם…"></textarea>
-  <div class="ai-assist-actions"><button type="button" class="button secondary" id="ai-assist-run">מילוי הטופס</button><p class="micro-copy ai-assist-status" role="status" aria-live="polite"></p></div>
+  <div class="ai-assist-head"><img src="/assets/mascot.png" alt="" width="44" height="44"><div><h3 id="ai-assist-title">${t('ai.assist.title')}</h3><p class="micro-copy">${t('ai.assist.example')}</p></div></div>
+  <label class="sr-only" for="ai-assist-text">${t('ai.assist.label')}</label>
+  <textarea id="ai-assist-text" rows="2" maxlength="1500" placeholder="${t('ai.assist.placeholder')}"></textarea>
+  <div class="ai-assist-actions"><button type="button" class="button secondary" id="ai-assist-run">${t('ai.assist.run')}</button><p class="micro-copy ai-assist-status" role="status" aria-live="polite"></p></div>
 </section>`;
 
 function applyFields(form, fields) {
@@ -36,8 +37,8 @@ function applyFields(form, fields) {
   setTimeout(() => form.querySelectorAll('.ai-filled').forEach((el) => el.classList.remove('ai-filled')), 2600);
   return done;
 }
-const describe = (f) => [f.destinations && `יעד: ${f.destinations}`, f.start && `תאריכים: ${f.start.split('-').reverse().join('.')}${f.end ? '–' + f.end.split('-').reverse().join('.') : ''}`,
-  !f.start && f.flexibility && FLEXIBILITY[f.flexibility], f.adults && `${f.adults} מבוגרים`, f.children && `${f.children} ילדים`, f.budget && BUDGETS[f.budget],
+const describe = (f) => [f.destinations && t('ai.assist.destination', { value: f.destinations }), f.start && t('ai.assist.dates', { value: `${f.start.split('-').reverse().join(lang === 'en' ? '/' : '.')}${f.end ? '–' + f.end.split('-').reverse().join(lang === 'en' ? '/' : '.') : ''}` }),
+  !f.start && f.flexibility && FLEXIBILITY[f.flexibility], f.adults && t('ai.assist.adults', { count: f.adults }), f.children && t('ai.assist.children', { count: f.children }), f.budget && BUDGETS[f.budget],
   f.styles?.length && f.styles.map((s) => STYLES[s]).join(', ')].filter(Boolean).join(' · ');
 
 export function mountTailorAssist(form, { today = localDay } = {}) {
@@ -46,29 +47,29 @@ export function mountTailorAssist(form, { today = localDay } = {}) {
   const text = box.querySelector('#ai-assist-text'), run = box.querySelector('#ai-assist-run'), out = box.querySelector('.ai-assist-status');
   run.onclick = async () => {
     const value = text.value.trim();
-    if (value.length < 5) { out.textContent = 'כתבו כמה מילים על הטיול: מי נוסע, לאן ומתי.'; text.focus(); return; }
+    if (value.length < 5) { out.textContent = t('ai.assist.tooShort'); text.focus(); return; }
     run.disabled = true;
     // Local rules first: instant and free. The server (AI when enabled) may add destinations, styles and wishes.
     const local = tailorFromText(value, today()).fields;
     let fields = local, ai = false;
     applyFields(form, local);
-    out.textContent = 'ממלאים…';
+    out.textContent = t('ai.assist.filling');
     if ((await aiFeatures()).tailor_fill) {
       try {
-        const r = await fetch('/api/ai/tailor-fill', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: value }) });
+        const r = await fetch('/api/ai/tailor-fill', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: value, lang }) });
         if (r.ok) { const data = await r.json(); if (data.source === 'ai') { fields = data.fields; ai = true; applyFields(form, data.fields); } }
       } catch { /* the local fill stands */ }
     }
     const summary = describe(fields);
-    out.textContent = summary ? `מילאנו ${ai ? 'בעזרת ג׳רבי AI' : ''}: ${summary}. בדקו ושנו כרצונכם, ואז השלימו פרטי קשר.`.replace('מילאנו :', 'מילאנו:') : 'לא זיהינו פרטים בטקסט. אפשר לנסח אחרת או למלא ידנית.';
-    if (!form.elements.notes.value.includes(value)) form.elements.notes.value = (form.elements.notes.value ? form.elements.notes.value + '\n' : '') + `במילים שלי: ${value}`.slice(0, 1990);
+    out.textContent = summary ? (ai ? t('ai.assist.filled', { how: t('ai.assist.withAi'), summary }) : t('ai.assist.filledPlain', { summary })) : t('ai.assist.nothing');
+    if (!form.elements.notes.value.includes(value)) form.elements.notes.value = (form.elements.notes.value ? form.elements.notes.value + '\n' : '') + t('ai.assist.myWords', { text: value }).slice(0, 1990);
     run.disabled = false;
   };
 }
 
 // ---------- flight comparison ----------
-const BAG = { included: 'מזוודה כלולה', paid: 'מזוודה בתשלום', none: 'ללא מזוודה', mixed: 'מזוודה שונה בין הכיוונים', unknown: 'מזוודה לא נמסרה' };
-const minutesText = (m) => (Number.isFinite(m) && m > 0 ? `${Math.floor(m / 60)} ש׳${m % 60 ? ` ${m % 60} ד׳` : ''}` : '');
+const BAG = Object.fromEntries(['included', 'paid', 'none', 'mixed', 'unknown'].map((k) => [k, t(`ai.bag.${k}`)]));
+const minutesText = (m) => (Number.isFinite(m) && m > 0 ? `${t('ai.hours', { h: Math.floor(m / 60) })}${m % 60 ? t('ai.minutes', { m: m % 60 }) : ''}` : '');
 export const flightTakeSlot = () => '<div class="ai-take" id="ai-take" hidden></div>';
 export function takeOffers(facts, formatPrice) {
   return facts.slice(0, 3).map((f) => ({ price: formatPrice(f.price), duration: minutesText(f.totalMinutes), stops: Number.isInteger(f.stops) ? f.stops : null, longestWait: minutesText(f.longestLayover),
@@ -80,22 +81,22 @@ export async function mountFlightTake(host, facts, { formatPrice, brief }) {
   if (!slot || facts.length < 2 || !(await aiFeatures()).flight_explain || !host.contains(slot)) return;
   const offers = takeOffers(facts, formatPrice), signature = JSON.stringify(offers);
   slot.hidden = false;
-  slot.innerHTML = '<button type="button" class="button secondary ai-take-button"><img src="/assets/mascot.png" alt="" width="26" height="26"> ג׳רבי, מה ההבדל בין המובילות?</button><div class="ai-take-body" role="status" aria-live="polite"></div>';
+  slot.innerHTML = `<button type="button" class="button secondary ai-take-button"><img src="/assets/mascot.png" alt="" width="26" height="26"> ${t('ai.take.button')}</button><div class="ai-take-body" role="status" aria-live="polite"></div>`;
   const button = slot.querySelector('button'), body = slot.querySelector('.ai-take-body');
   const show = (data) => {
     body.textContent = '';
-    if (!data?.ok) { const p = document.createElement('p'); p.className = 'micro-copy'; p.textContent = data?.message || 'לא הצלחנו להשוות כרגע.'; body.append(p); return; }
+    if (!data?.ok) { const p = document.createElement('p'); p.className = 'micro-copy'; p.textContent = (lang === 'en' && data?.message && /[\u0590-\u05FF]/.test(data.message) ? '' : data?.message) || t('ai.take.failed'); body.append(p); return; }
     const p = document.createElement('p'); p.textContent = data.summary; body.append(p);
     if (data.tradeoffs?.length) { const ul = document.createElement('ul'); for (const t of data.tradeoffs) { const li = document.createElement('li'); li.textContent = t; ul.append(li); } body.append(ul); }
-    if (data.pick) { const b = document.createElement('p'); b.className = 'ai-take-pick'; b.textContent = `ההמלצה לבקשה שלכם: הטיסה ${({ A: 'הראשונה', B: 'השנייה', C: 'השלישית' })[data.pick]} ברשימה.`; body.append(b); }
-    const note = document.createElement('p'); note.className = 'micro-copy'; note.textContent = 'הסבר אוטומטי על בסיס נתוני החיפוש בלבד. המחיר הקובע הוא זה שבכרטיס ובבדיקת המחיר.'; body.append(note);
+    if (data.pick) { const b = document.createElement('p'); b.className = 'ai-take-pick'; b.textContent = t('ai.take.pick', { which: t(`ai.take.${data.pick}`) }); body.append(b); }
+    const note = document.createElement('p'); note.className = 'micro-copy'; note.textContent = t('ai.take.note'); body.append(note);
   };
   if (takeCache.has(signature)) { button.hidden = true; show(takeCache.get(signature)); return; }
   button.onclick = async () => {
-    button.disabled = true; body.textContent = 'ג׳רבי משווה…';
+    button.disabled = true; body.textContent = t('ai.take.comparing');
     try {
-      const r = await fetch('/api/ai/explain-flights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ offers, brief }) });
-      const data = r.ok ? await r.json() : { ok: false, message: r.status === 429 ? 'יותר מדי בקשות. נסו שוב בעוד דקה.' : '' };
+      const r = await fetch('/api/ai/explain-flights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ offers, brief, lang }) });
+      const data = r.ok ? await r.json() : { ok: false, message: r.status === 429 ? t('ai.take.tooMany') : '' };
       if (data.ok) takeCache.set(signature, data);
       button.hidden = Boolean(data.ok); show(data);
     } catch { show({ ok: false }); }

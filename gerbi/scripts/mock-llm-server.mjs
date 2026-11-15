@@ -8,7 +8,28 @@ import { fileURLToPath } from 'node:url';
 const words = (s) => String(s || '').replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter((w) => w.length >= 3);
 const firstSentences = (text, n = 2) => String(text).split(/(?<=[.!?])\s+/).slice(0, n).join(' ');
 
-export function mockAnswer(task, input) {
+// English site (spec 21): the gateway appends an English-output note to the system prompt; customer tasks answer in English.
+const englishAnswer = (task, input) => {
+  switch (task) {
+    case 'understand': return { want: [], exclude: [], suggest: ['TBS', 'BUS'], adults: 0, children: 0, nights: 0, month: '', beach: 'unknown', city: 'unknown', relaxation: 'unknown', family: 'unknown', couple: 'unknown', interests: ['nature', 'waterfalls'], question: 'Which month would you like to fly?', legs: [] };
+    case 'tiebreak': return { pick: 1, reason: 'Returns at a more convenient hour' };
+    case 'tailor_fill': {
+      const t = String(input.customer_text);
+      return { destinations: /japan/i.test(t) ? 'Japan' : '', start: '', end: '', flexibility: /april|may|june|august/i.test(t) ? 'month' : 'open', adults: /honeymoon|couple/i.test(t) ? 2 : 0, children: 0,
+        budget: 'open', styles: [/food|wine/i.test(t) && 'culinary', /honeymoon/i.test(t) && 'romantic', /luxury/i.test(t) && 'luxury'].filter(Boolean), notes: /honeymoon/i.test(t) ? 'Celebrating a honeymoon — a romantic hotel' : '' };
+    }
+    case 'flight_explain': {
+      const [a, b] = input.offers;
+      return { summary: `Flight A costs ${a.price} and takes ${a.duration || 'an unknown time'}; flight B costs ${b.price}${b.duration ? ` and takes ${b.duration}` : ''}.`, pick: 'A',
+        tradeoffs: [`A: ${a.price}${a.bag ? ' · ' + a.bag : ''}`, `B: ${b.price}${b.bag ? ' · ' + b.bag : ''}`] };
+    }
+    default: return null;
+  }
+};
+
+export function mockAnswer(task, input, system = '') {
+  const english = /English version of the site/.test(system) && englishAnswer(task, input);
+  if (english) return english;
   switch (task) {
     case 'understand': return { want: [], exclude: [], suggest: ['TBS', 'BUS'], adults: 0, children: 0, nights: 0, month: '', beach: 'unknown', city: 'unknown', relaxation: 'unknown', family: 'unknown', couple: 'unknown', interests: ['טבע', 'מפלים'], question: 'באיזה חודש תרצו לטוס?', legs: [] };
     case 'tiebreak': return { pick: 1, reason: 'חוזרת בשעה נוחה יותר' };
@@ -61,7 +82,7 @@ export function startMockLlm({ port = 0, latencyMs = 0, broken = new Set() } = {
     let input = {}; try { input = JSON.parse(body.messages?.find((m) => m.role === 'user')?.content || '{}'); } catch { /* not JSON */ }
     if (latencyMs) await new Promise((r) => setTimeout(r, latencyMs));
     if (broken.has(task)) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: '{"not":"valid"}' } }], usage: { prompt_tokens: 10, completion_tokens: 3 } })); }
-    const content = JSON.stringify(mockAnswer(task, input));
+    const content = JSON.stringify(mockAnswer(task, input, body.messages?.find((m) => m.role === 'system')?.content || ''));
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content } }], usage: { prompt_tokens: Math.ceil(raw.length / 4), completion_tokens: Math.ceil(content.length / 4) } }));
   });

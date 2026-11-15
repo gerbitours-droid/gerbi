@@ -8,7 +8,8 @@ import { partnerClassify, scrub } from './llm-partner.mjs';
 import { supportAnswer, gateway } from './ai-features.mjs';
 import { faqs as builtinFaqs } from '../dist/pages.mjs';
 import { classify, respond, confirmation, newConversation, contactContext } from './support-brain.mjs';
-import { INTENTS, CHIP_LABELS, REASON_LABELS, mergeContent, validateContentUpdate, hoursStatus } from './support-content.mjs';
+import { INTENTS, CHIP_LABELS, REASON_LABELS, mergeContent, validateContentUpdate, hoursStatus, localizeContent, intentTitle, chipLabel as chipText } from './support-content.mjs';
+import { tIn, normLang } from '../dist/i18n.mjs';
 import { whatsappEnabled, sameSecret, validSignature, parseInbound, phoneFromWaId, toWhatsApp, sendPayloads, WINDOW_MS } from './whatsapp.mjs';
 import { CONSENT_TEXT } from '../dist/leads-validate.mjs';
 import { contact as siteContact } from '../dist/data.mjs';
@@ -50,10 +51,12 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     const summary = conv.transcript.filter((m) => m.from === 'user' && !m.meta).slice(-3).map((m) => m.text).join(' · ').slice(0, 300);
     const lead = { id: randomUUID(), createdAt: at, status: 'new', type: 'support', name: conv.contact.name || '', phone: conv.contact.phone || '', email: '',
       channel: conv.channel === 'whatsapp' ? 'whatsapp' : 'phone', marketing: false, source: conv.channel === 'whatsapp' ? '/whatsapp' : '/support', context: null,
-      message: `[${REASON_LABELS[reason] || reason}] ${summary || '(ללא טקסט חופשי)'}`.slice(0, 2000), escalationRef: ref, transcript, consent: { given: true, text: CONSENT_TEXT, at } };
+      message: `[${REASON_LABELS[reason] || reason}] ${summary || '(ללא טקסט חופשי)'}`.slice(0, 2000), escalationRef: ref, transcript, consent: { given: true, text: CONSENT_TEXT, at },
+      // The team reads Hebrew; lang tells them which language to answer in (spec 21).
+      ...(normLang(conv.lang) === 'en' ? { lang: 'en', consent: { given: true, text: tIn('en')('support.brain.consent'), at } } : {}) };
     const { stored, notified } = await recordLead(leadStore, lead, env);
     const record = { id, ref, createdAt: at, status: 'open', handledAt: null, channel: conv.channel, reason, name: lead.name, phone: lead.phone, leadId: stored ? lead.id : null,
-      conversationId: conv.key, lastIntent: intent || null, summary, transcript };
+      conversationId: conv.key, lastIntent: intent || null, summary, transcript, ...(normLang(conv.lang) === 'en' ? { lang: 'en' } : {}) };
     let indexed = true;
     try { await escalations.set(`esc:${id}`, record, TTL); await escalations.push('ids', id, MAX_INDEX); } catch { indexed = false; }
     if (!stored && !notified && !indexed) return { error: 'store_unavailable' };
@@ -63,19 +66,19 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
   }
 
   // Sources for grounded answers: the bot's answers (as edited by the owner, placeholders filled) and the site FAQs.
-  async function groundedAnswer(text, c) {
+  async function groundedAnswer(text, c, lang = 'he') {
     if (!(await gw.enabled('support_answer'))) return null;
     const ctx = contactContext(c, contact), fillCtx = (t) => String(t || '').replace(/\{(hours|phone|whatsapp|email)\}/g, (_, k) => ctx[k] || '').replace(/[\u2066\u2069]/g, '');
-    const sources = Object.entries(INTENTS).filter(([id]) => !['greeting', 'thanks', 'menu'].includes(id)).map(([id, i]) => ({ id, title: i.title, text: fillCtx(c.answers[id]) }));
+    const sources = Object.entries(INTENTS).filter(([id]) => !['greeting', 'thanks', 'menu'].includes(id)).map(([id]) => ({ id, title: intentTitle(id, lang), text: fillCtx(c.answers[id]) }));
     const site = siteStore ? await siteStore.get('site').catch(() => null) : null;
     const faqList = Array.isArray(site?.faqs) && site.faqs.length ? site.faqs.map((f) => [f.q, f.a]) : builtinFaqs;
     faqList.slice(0, 30).forEach(([q, a], i) => sources.push({ id: `faq${i + 1}`, title: String(q).slice(0, 200), text: String(a).slice(0, 1500) }));
-    return supportAnswer(text, sources, { store: llmCache, gw });
+    return supportAnswer(text, sources, { store: llmCache, gw, lang });
   }
 
   // One customer turn through the brain, with the optional LLM router and the escalation side effects.
   async function turn(conv, input, clientKey) {
-    const c = await content(), at = now();
+    const lang = normLang(conv.lang), T = tIn(lang), c = localizeContent(await content(), lang), at = now();
     conv.lastInboundAt = at.toISOString();
     const chipLabel = input.chip ? CHIP_LABELS[input.chip] || INTENTS[input.chip]?.title : '';
     // Details typed for the escalation live in conv.contact and the lead only; the transcript keeps a placeholder.
@@ -84,11 +87,11 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     let routed = input;
     if (input.text && !input.chip && !conv.collect && !conv.offer && !classify(input.text).intent && !classify(input.text).frustrated) {
       // Spec 22 §4.1: an answer composed only from the owner's approved texts; otherwise route to one topic (spec 16 §8).
-      const grounded = await groundedAnswer(input.text, c).catch(() => null);
+      const grounded = await groundedAnswer(input.text, c, lang).catch(() => null);
       if (grounded?.answerable) {
         conv.missCount = 0;
-        const reply = { messages: [{ text: grounded.answer, ai: true, sources: grounded.topics.map((id) => INTENTS[id]?.title || null).filter(Boolean) }],
-          chips: [...grounded.topics.filter((id) => INTENTS[id] && !INTENTS[id].escalate), 'human'].slice(0, 4).map((id) => ({ id, label: CHIP_LABELS[id] || INTENTS[id]?.title || id })), input: 'text', intent: grounded.topics.find((id) => INTENTS[id]) || null };
+        const reply = { messages: [{ text: grounded.answer, ai: true, sources: grounded.topics.map((id) => (INTENTS[id] ? intentTitle(id, lang) : null)).filter(Boolean) }],
+          chips: [...grounded.topics.filter((id) => INTENTS[id] && !INTENTS[id].escalate), 'human'].slice(0, 4).map((id) => ({ id, label: chipText(id, lang) })), input: 'text', intent: grounded.topics.find((id) => INTENTS[id]) || null };
         if (conv.transcript.at(-1)?.from === 'user' && reply.intent) conv.transcript.at(-1).intent = reply.intent;
         log(conv, 'bot', grounded.answer);
         return { reply, content: c, at };
@@ -106,9 +109,9 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     if (reply.escalate) {
       const result = await createEscalation(conv, reply.escalate.reason, conv.transcript.findLast((m) => m.intent)?.intent, clientKey);
       const ctx = contactContext(c, contact);
-      if (result.record) { reply.messages.push(...confirmation(conv, result.record.ref, c, at)); reply.chips = conv.channel === 'whatsapp' ? [] : [{ id: 'menu', label: CHIP_LABELS.menu }]; }
-      else if (result.error === 'rate_limited') reply.messages.push({ text: `נשלחו כמה פניות בזמן קצר, ולכן לא שמרנו את זו. נסו שוב בעוד כמה דקות, או פנו אלינו ישירות: טלפון ${ctx.phone}, וואטסאפ ${ctx.whatsapp}.` });
-      else reply.messages.push({ text: `לא הצלחנו לשמור את הפנייה כרגע. אפשר לפנות אלינו ישירות: טלפון ${ctx.phone}, וואטסאפ ${ctx.whatsapp}.`, link: { href: '#/contact', label: 'טופס צור קשר' } });
+      if (result.record) { reply.messages.push(...confirmation(conv, result.record.ref, c, at)); reply.chips = conv.channel === 'whatsapp' ? [] : [{ id: 'menu', label: chipText('menu', lang) }]; }
+      else if (result.error === 'rate_limited') reply.messages.push({ text: T('support.srv.rateLimitedEscalation', { phone: ctx.phone, whatsapp: ctx.whatsapp }) });
+      else reply.messages.push({ text: T('support.srv.storeFailed', { phone: ctx.phone, whatsapp: ctx.whatsapp }), link: { href: '#/contact', label: T('support.brain.contactForm') } });
     }
     log(conv, 'bot', reply.messages.map((m) => m.text).join('\n'));
     return { reply, content: c, at };
@@ -123,11 +126,13 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     const sessionId = typeof input.sessionId === 'string' && UUID.test(input.sessionId) ? input.sessionId : randomUUID();
     const key = `web:${sessionId}`;
     const conv = (await loadConv(key)) || Object.assign(newConversation(sessionId, 'web', now()), { key });
+    // The page language decides (spec 21): /en/ sends lang 'en'; anything else is Hebrew.
+    conv.lang = normLang(input.lang);
     const fresh = !conv.transcript.length;
     const { reply, content: c, at } = await turn(conv, { text, chip }, `support:${clientOf(req)}`);
+    const status = hoursStatus(c.hours, at, conv.lang);
     // Opening the widget alone (the greeting chip) stores nothing.
     if (!(fresh && chip === 'greeting' && !text)) await saveConv(conv);
-    const status = hoursStatus(c.hours, at);
     return send(200, { sessionId, messages: reply.messages, chips: reply.chips || [], input: reply.input || 'text', intent: reply.intent || null,
       escalation: conv.escalationRef ? { ref: conv.escalationRef, status: 'open' } : null, hours: { open: status.open, text: status.text, next: status.next } });
   }
@@ -213,6 +218,9 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     const conv = (await loadConv(key)) || Object.assign(newConversation(key.slice(3), 'whatsapp', at), { key });
     const previousInbound = conv.lastInboundAt ? Date.parse(conv.lastInboundAt) : 0;
     conv.contact.waId = message.from; conv.contact.phone ||= phoneFromWaId(message.from);
+    // WhatsApp has no page language: a message in English (Latin letters, no Hebrew) switches the bot to English.
+    // One Latin word ("ok", "ESTA") inside a Hebrew chat does not switch it; a first message or a Latin sentence does.
+    if (message.kind === 'text' && message.text) { const t = message.text; if (/[\u0590-\u05FF]/.test(t)) conv.lang = 'he'; else if (/[A-Za-z]{2,}[\s,]+[A-Za-z]{2,}/.test(t) || (!conv.lang && /[A-Za-z]{2}/.test(t))) conv.lang = 'en'; }
     if (message.name && !conv.contact.name) conv.contact.name = message.name.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 80);
     // Handed off: a person answers now. Messages are kept for the owner; the bot stays silent (72 h idle resumes it).
     if (conv.handoff && at.getTime() - previousInbound < HANDOFF_IDLE_MS) {
@@ -220,7 +228,7 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     }
     if (conv.handoff) { conv.handoff = false; conv.escalationRef = null; conv.escalationId = null; }
     let reply;
-    if (message.kind === 'other') { conv.lastInboundAt = at.toISOString(); log(conv, 'user', '[הודעה שאינה טקסט]'); reply = { messages: [{ text: 'כרגע אני מבין רק הודעות טקסט. אפשר לכתוב את השאלה או לבחור נושא.' }], chips: INTENTS.menu.chips.slice(0, 10).map((id) => ({ id, label: CHIP_LABELS[id] })) }; log(conv, 'bot', reply.messages[0].text); }
+    if (message.kind === 'other') { conv.lastInboundAt = at.toISOString(); log(conv, 'user', '[הודעה שאינה טקסט]'); reply = { messages: [{ text: tIn(normLang(conv.lang))('support.srv.textOnly') }], chips: INTENTS.menu.chips.slice(0, 10).map((id) => ({ id, label: chipText(id, conv.lang) })) }; log(conv, 'bot', reply.messages[0].text); }
     else {
       const chip = message.kind === 'chip' && (INTENTS[message.chip] || CHIP_LABELS[message.chip]) ? message.chip : '';
       const text = chip ? '' : (message.text || '').trim();
@@ -229,7 +237,7 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
       ({ reply } = await turn(conv, chip ? { chip } : first ? { text, chip: 'greeting' } : { text }, `wa:${key}`));
     }
     // Free-form replies only inside the 24 h customer-service window (always true when replying to this inbound).
-    if (at.getTime() - Date.parse(conv.lastInboundAt || 0) < WINDOW_MS) await sendPayloads(toWhatsApp(reply, message.from, { siteUrl: env.PUBLIC_SITE_URL }), env);
+    if (at.getTime() - Date.parse(conv.lastInboundAt || 0) < WINDOW_MS) await sendPayloads(toWhatsApp(reply, message.from, { siteUrl: env.PUBLIC_SITE_URL, lang: conv.lang }), env);
     await saveConv(conv);
     return true;
   }

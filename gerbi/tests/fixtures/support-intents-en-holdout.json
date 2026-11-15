@@ -1,0 +1,15 @@
+[
+  ["hello there", "greeting"], ["thank you so much", "thanks"], ["what topics can you help with", "menu"],
+  ["what's the luggage allowance on this ticket", "baggage"], ["can I bring a car seat for my toddler", "baggage"], ["is a checked bag included", "baggage"],
+  ["I need to cancel my trip, will I get my money back?", "cancel_change"], ["can we reschedule to next week", "cancel_change"],
+  ["how does booking work on your website", "how_booking"], ["can I reserve a flight online", "how_booking"],
+  ["which payment methods do you take", "payment"], ["do you take cash", "payment"],
+  ["do I need a visa for the US", "documents"], ["my passport expires in 4 months, is that ok to travel", "documents"],
+  ["when are you open", "contact_hours"], ["what's the best way to contact you", "contact_hours"],
+  ["any update on my request?", "enquiry_status"], ["no one called me back yet, still waiting", "enquiry_status"],
+  ["we'd like a tailored trip to Japan", "tailor"], ["looking for a guided tour in Spain", "tailor"],
+  ["how much is a ticket to Paris in June", "price"], ["do you have cheaper options", "price"],
+  ["awful experience, I want to complain", "complaint"], ["very disappointed with how this was handled", "complaint"],
+  ["my reservation disappeared", "booking_issue"], ["you charged my card but I have no ticket", "booking_issue"],
+  ["can a human call me", "human"], ["connect me with a representative please", "human"]
+]

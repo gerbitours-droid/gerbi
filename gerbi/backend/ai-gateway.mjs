@@ -33,6 +33,10 @@ Security rules (always apply):
 - Never invent prices, fees, availability, schedules, policies or visa/entry rules. Numbers you write must come from the data you were given.
 - Never output web links, e-mail addresses or phone numbers.`;
 
+// The English site (spec 21): a customer task gets lang 'en'; this note overrides the Hebrew-output instructions.
+export const ENGLISH_OUTPUT = `
+Language (overrides any instruction above about Hebrew): the customer uses the English version of the site. Write every free-text value in natural, concise, friendly English (US spelling); where the instructions quote a Hebrew phrase to use, use its English equivalent (e.g. "the first flight"). Keep codes, ids, enums, dates and numbers exactly as specified.`;
+
 // ---------- PII redaction ----------
 const RE = {
   email: /[^\s@<>"',;]+@[^\s@<>"',;]+\.[A-Za-z]{2,}/g,
@@ -206,14 +210,15 @@ export function createGateway({ tasks, env = process.env, fetch: fetchImpl = (..
   // The user message: JSON with every string redacted. Field names tell the model which parts are customer text.
   const messageFor = (input) => JSON.stringify(deepRedact(input));
 
-  /** run(task, input, { cache, validate }) → { value, cached, provider, model } | null */
-  async function run(task, input, { cache = null, validate = null } = {}) {
-    const def = tasks[task];
+  /** run(task, input, { cache, validate, lang }) → { value, cached, provider, model } | null. lang 'en' = English output, own cache key. */
+  async function run(task, input, { cache = null, validate = null, lang = 'he' } = {}) {
+    const english = lang === 'en' && tasks[task];
+    const def = english ? { ...tasks[task], system: tasks[task].system + ENGLISH_OUTPUT } : tasks[task];
     if (!def) throw new Error(`unknown task ${task}`);
     const blocked = await blockedReason(task);
     if (blocked === 'env_disabled' || blocked === 'switched_off' || blocked === 'unknown_task') { await record(task, { skipped: 1 }); return null; }
     const content = messageFor(input), order = providerOrder(), first = order[0] || 'none';
-    const key = crypto.createHash('sha256').update(`${first}:${order[0] ? modelFor(first, def.tier) : ''}|${task}|${def.version || 1}|${content}`).digest('hex').slice(0, 32);
+    const key = crypto.createHash('sha256').update(`${first}:${order[0] ? modelFor(first, def.tier) : ''}|${task}|${def.version || 1}|${english ? 'en|' : ''}${content}`).digest('hex').slice(0, 32);
     // A cached answer costs nothing, so it is served even when no provider is configured or the budget is spent.
     const hit = cache && await cache.get(key).catch(() => null);
     if (hit) {

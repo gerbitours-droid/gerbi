@@ -4,6 +4,7 @@
 import { allow, clientOf, LIMITS as RATE } from './volero-guard.mjs';
 import { sessionValid } from './admin.mjs';
 import { gateway, featureStatus, tailorFill, flightExplain, leadBrief, blogDraft, blogSkeleton, digest } from './ai-features.mjs';
+import { normLang, tIn } from '../dist/i18n.mjs';
 
 RATE.aiFill ??= [10, 60_000];
 RATE.aiExplain ??= [10, 60_000];
@@ -26,9 +27,9 @@ export async function handleAi(req, res, url, { send, body, leadStore, sessions,
   if (path === '/api/ai/tailor-fill') {
     if (req.method !== 'POST') { send(405, { error: 'method_not_allowed' }); return true; }
     if (!allow(clientOf(req), 'aiFill')) { send(429, { error: 'rate_limited', message: 'יותר מדי בקשות בזמן קצר. נסו שוב בעוד דקה.' }); return true; }
-    const text = short((await body(req, 6_000))?.text, 1500);
-    if (text.length < 5) { send(400, { error: 'text_required', message: 'ספרו במשפט על הטיול שאתם מחפשים.' }); return true; }
-    send(200, await tailorFill(text, { store: llmCache, gw, today: now().toISOString().slice(0, 10) })); return true;
+    const input = await body(req, 6_000), text = short(input?.text, 1500), lang = normLang(input?.lang);
+    if (text.length < 5) { send(400, { error: 'text_required', message: tIn(lang)('ai.err.text_required') }); return true; }
+    send(200, await tailorFill(text, { store: llmCache, gw, today: now().toISOString().slice(0, 10), lang })); return true;
   }
 
   if (path === '/api/ai/explain-flights') {
@@ -43,8 +44,8 @@ export async function handleAi(req, res, url, { send, body, leadStore, sessions,
     const b = input?.brief || {}, int = (v, max) => (Number.isInteger(v) && v >= 0 && v <= max ? v : 0);
     const brief = { adults: int(b.adults, 9) || 1, children: int(b.children, 8), route: short(b.route, 120), prefs: (Array.isArray(b.prefs) ? b.prefs : []).map((p) => short(p, 40)).filter(Boolean).slice(0, 6) };
     if (offers.length < 2) { send(400, { error: 'offers_required' }); return true; }
-    const result = await flightExplain(offers, brief, { store: llmCache, gw });
-    send(200, result ? { ok: true, ...result } : { ok: false, message: 'לא הצלחנו להשוות כרגע. ההסבר הקצר בכל כרטיס עדיין תקף.' }); return true;
+    const lang = normLang(input?.lang), result = await flightExplain(offers, brief, { store: llmCache, gw, lang });
+    send(200, result ? { ok: true, ...result } : { ok: false, message: tIn(lang)('ai.take.unavailable') }); return true;
   }
 
   if (!path.startsWith('/api/admin/ai/')) return false;
