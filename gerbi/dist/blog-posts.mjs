@@ -1,4 +1,6 @@
 // Built-in blog guides (were inline in pages.mjs). The owner can edit them from /admin: the first edit stores a copy in the KV that wins over these.
+// Each guide also carries an English version (spec 21: optional post.en, used on /en/ when present).
+import { articlesEn } from './locales/blog-en.mjs';
 export const articles = [
  {id:'family',category:'עם הילדים',title:'פחות לרוץ, יותר להיות בחופשה',subtitle:'איך בונים ימים שגם הילדים וגם ההורים ייהנו מהם.',image:'dubai.jpg',minutes:4,sections:[['מתחילים בקצב, לא ברשימה','בחרו עוגן אחד לכל יום והשאירו מקום להפסקות. נסו להימנע ממעבר תכוף בין אזורים רחוקים, במיוחד ביום ההגעה.'],['המלון הוא חלק מהטיול','רשמו מה חשוב לכם: חדרים סמוכים, בריכה, ארוחת בוקר או אפשרות למנוחה בצהריים. אלה בקשות שצריך לאשר מול מקום האירוח, ולא להסיק מתמונה.'],['משאירים יום פתוח','יום בלי כרטיסים מוזמנים מראש נותן גמישות. אפשר לחזור למקום שאהבתם, להישאר בבריכה או לשנות את התוכנית לפי מצב הרוח.'],['בודקים לפני שמתחייבים','גיל הילדים, הרכב החדרים, כבודה והעברות יכולים לשנות את העלות. בקשו פירוט עדכני לכל הנוסעים לפני החלטה.']]},
  {id:'packing',category:'לפני ההמראה',title:'מזוודה קלה, ראש שקט',subtitle:'רשימה קצרה שתעזור להתחיל את החופשה בנחת.',image:'santorini.jpg',minutes:3,sections:[['מתחילים ממה שבאמת משתמשים בו','חשבו על הימים המתוכננים ובחרו פריטים שניתן לשלב בכמה דרכים. הפרידו את הדברים הדרושים לדרך מאלה שאפשר להשאיר במזוודה.'],['בודקים את הכבודה בפועל','מידות, משקל וכמות תיקים תלויים בכרטיס ובחברת התעופה. בדקו את התנאים בהזמנה עצמה לפני האריזה.'],['שומרים מידע זמין','ריכוז כתובת המלון, פרטי ההזמנה ודרך יצירת קשר במקום נגיש חוסך חיפוש אחרי הנחיתה. בדקו אילו מסמכים נדרשים לנסיעה שלכם מול המקורות הרשמיים.'],['משאירים קצת מקום','מקום פנוי קטן בתיק מועיל בדרך חזרה. הרשימה היא כלי עזר, לא סיבה לקחת משהו שלא תשתמשו בו.']]},
@@ -8,5 +10,10 @@ export const articles = [
 
 // The same guides in the CMS post shape: sections become Markdown "## heading" + paragraph.
 export const builtinPosts = () => articles.map((a) => ({ slug: a.id, title: a.title, category: a.category, excerpt: a.subtitle, cover: `/assets/${a.image}`, minutes: a.minutes,
-  body: a.sections.map(([title, text]) => `## ${title}\n\n${text}`).join('\n\n'), tags: [], publishDate: '', status: 'published', builtin: true, seoTitle: '', seoDescription: '' }));
+  body: a.sections.map(([title, text]) => `## ${title}\n\n${text}`).join('\n\n'), tags: [], publishDate: '', status: 'published', builtin: true, seoTitle: '', seoDescription: '', en: englishPost(a.id) }));
+// The English fields of a built-in guide, in the same shape the owner fills (title, excerpt, body, category, tags, SEO).
+function englishPost(id) {
+  const a = articlesEn[id];
+  return a ? { title: a.title, category: a.category, excerpt: a.subtitle, body: a.sections.map(([title, text]) => `## ${title}\n\n${text}`).join('\n\n'), tags: [], seoTitle: '', seoDescription: '' } : undefined;
+}
 export const BUILTIN_SLUGS = articles.map((a) => a.id);

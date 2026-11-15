@@ -3,30 +3,32 @@
 // questions live in docs/legal/open-questions-he.md, never on the public page.
 // Fields the owner must fill are rendered with fill() so they are easy to spot before go-live.
 import { contact } from './data.mjs';
+import { t, lang, fmtDate } from './i18n.mjs';
+import { termsEn, privacyEn, accessibilityEn } from './locales/legal-en.mjs';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fill = what => `<mark class="fill-in">[למילוי ע״י בעלי האתר: ${what}]</mark>`;
-const draft = `<p class="draft-banner" role="note"><strong>טיוטה – לבדיקת עורך דין.</strong> הנוסח טרם אושר משפטית ואינו מחייב עד לפרסום הנוסח הסופי.</p>`;
+const fill = what => `<mark class="fill-in">[${t('content.legal.fill', { what })}]</mark>`;
+const draft = `<p class="draft-banner" role="note">${t('content.legal.draft')}</p>`;
 export const LAST_A11Y_CHECK = '15.11.2026';
 const LEGAL_UPDATED = '15.11.2026';
-const phoneText = () => contact.phone ? `<a href="tel:${esc(contact.phone)}" dir="ltr">${esc(contact.phone)}</a>` : fill('טלפון');
-const mailText = () => contact.email ? `<a href="mailto:${esc(contact.email)}" dir="ltr">${esc(contact.email)}</a>` : fill('מייל');
-const toc = items => `<nav class="legal-toc" aria-label="תוכן העניינים"><ol>${items.map(([id, label]) => `<li><a href="#${id}" data-legal-jump="${id}">${label}</a></li>`).join('')}</ol></nav>`;
+const phoneText = () => contact.phone ? `<a href="tel:${esc(contact.phone)}" dir="ltr">${esc(contact.phone)}</a>` : fill(t('content.legal.phone'));
+const mailText = () => contact.email ? `<a href="mailto:${esc(contact.email)}" dir="ltr">${esc(contact.email)}</a>` : fill(t('content.legal.email'));
+const toc = items => `<nav class="legal-toc" aria-label="${t('content.legal.toc')}"><ol>${items.map(([id, label]) => `<li><a href="#${id}" data-legal-jump="${id}">${label}</a></li>`).join('')}</ol></nav>`;
 const section = (id, title, body) => `<section id="${id}" aria-labelledby="${id}-h"><h2 id="${id}-h" tabindex="-1">${title}</h2>${body}</section>`;
 
 // ---- Display settings (a convenience, not a substitute for the real fixes) ----
 const PREFS_KEY = 'gerbi-display-prefs-v1';
-const PREFS = [['text', 'טקסט גדול', 'a11y-text-lg'], ['contrast', 'ניגודיות גבוהה', 'a11y-contrast'], ['links', 'הדגשת קישורים', 'a11y-links'], ['motion', 'עצירת אנימציות', 'a11y-still']];
+const PREFS = [['text', t('content.display.text'), 'a11y-text-lg'], ['contrast', t('content.display.contrast'), 'a11y-contrast'], ['links', t('content.display.links'), 'a11y-links'], ['motion', t('content.display.motion'), 'a11y-still']];
 function readPrefs() { try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') || {}; } catch { return {}; } }
 export function applyDisplayPrefs(prefs = readPrefs()) {
   for (const [key, , cls] of PREFS) document.documentElement.classList.toggle(cls, Boolean(prefs[key]));
 }
 function displaySettingsHtml() {
   const prefs = readPrefs();
-  return `<section class="surface-panel display-settings" aria-labelledby="display-settings-h"><h2 id="display-settings-h">הגדרות תצוגה</h2>
-   <p class="micro-copy">ההגדרות נשמרות במכשיר הזה בלבד. אפשר גם להגדיל את התצוגה בדפדפן (Ctrl/⌘ ו־+) ולהשתמש בהגדרות הנגישות של המכשיר.</p>
-   <div class="display-toggles" role="group" aria-label="הגדרות תצוגה">${PREFS.map(([key, label]) => `<button type="button" class="chip-toggle" data-display-pref="${key}" aria-pressed="${Boolean(prefs[key])}">${label}</button>`).join('')}
-   <button type="button" class="text-button" data-display-reset>איפוס</button></div></section>`;
+  return `<section class="surface-panel display-settings" aria-labelledby="display-settings-h"><h2 id="display-settings-h">${t('content.display.title')}</h2>
+   <p class="micro-copy">${t('content.display.note')}</p>
+   <div class="display-toggles" role="group" aria-label="${t('content.display.title')}">${PREFS.map(([key, label]) => `<button type="button" class="chip-toggle" data-display-pref="${key}" aria-pressed="${Boolean(prefs[key])}">${label}</button>`).join('')}
+   <button type="button" class="text-button" data-display-reset>${t('content.display.reset')}</button></div></section>`;
 }
 if (typeof document !== 'undefined') {
   applyDisplayPrefs();
@@ -127,13 +129,18 @@ function accessibility() {
   </div>`;
 }
 
+// English (spec 21): draft translations in locales/legal-en.mjs, built with the same helpers; the Hebrew text prevails.
+const enDate = () => fmtDate('2026-11-15', { day: 'numeric', month: 'long', year: 'numeric' });
+const enHelpers = () => ({ fill, phone: phoneText, mail: mailText, section, toc, draft, updated: enDate(), a11yCheck: enDate() });
+
 export function legalRoutes() {
+  const en = lang === 'en';
   const page = (crumb, kicker, title, lead, body) => ({ view, footer, bread, heading }) => {
     view.innerHTML = `<div class="article-width legal-page">${bread(crumb)}${heading(kicker, title, lead)}${body()}</div>${footer}`;
   };
   return {
-    terms: page('תנאי שימוש', 'טוב לדעת', 'תנאי שימוש ותנאים כלליים', 'מה אנחנו עושים בשבילכם, מה המחירים אומרים, ומה הכללים לביטול ולשינוי.', terms),
-    privacy: page('פרטיות', 'טוב לדעת', 'מדיניות פרטיות', 'איזה מידע נשמר, למה, אצל מי ולכמה זמן — ומה הזכויות שלכם.', privacy),
-    accessibility: page('נגישות', 'טוב לדעת', 'הצהרת נגישות', 'האתר נבנה כך שיהיה נוח לכולם — במקלדת, בקורא מסך ובטלפון.', () => displaySettingsHtml() + accessibility()),
+    terms: page(t('content.legal.terms.crumb'), t('content.legal.goodToKnow'), t('content.legal.terms.title'), t('content.legal.terms.lead'), en ? () => termsEn(enHelpers()) : terms),
+    privacy: page(t('content.legal.privacy.crumb'), t('content.legal.goodToKnow'), t('content.legal.privacy.title'), t('content.legal.privacy.lead'), en ? () => privacyEn(enHelpers()) : privacy),
+    accessibility: page(t('content.legal.a11y.crumb'), t('content.legal.goodToKnow'), t('content.legal.a11y.title'), t('content.legal.a11y.lead'), () => displaySettingsHtml() + (en ? accessibilityEn(enHelpers()) : accessibility())),
   };
 }

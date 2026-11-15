@@ -1,7 +1,53 @@
-// Dictionary area "content" (spec 21). Keys are prefixed "content.". Hebrew = the original text, character for character.
+// Dictionary area "content" (spec 21): UI strings of the legal/accessibility pages. Keys are prefixed "content.".
+// Hebrew = the original text, character for character. Long English legal text lives in legal-en.mjs,
+// built-in blog guides in blog-en.mjs and the demo trips in data-en.mjs.
 export default {
   he: {
+    'content.legal.fill': 'למילוי ע״י בעלי האתר: {what}',
+    'content.legal.draft': '<strong>טיוטה – לבדיקת עורך דין.</strong> הנוסח טרם אושר משפטית ואינו מחייב עד לפרסום הנוסח הסופי.',
+    'content.legal.phone': 'טלפון',
+    'content.legal.email': 'מייל',
+    'content.legal.toc': 'תוכן העניינים',
+    'content.legal.goodToKnow': 'טוב לדעת',
+    'content.legal.terms.crumb': 'תנאי שימוש',
+    'content.legal.terms.title': 'תנאי שימוש ותנאים כלליים',
+    'content.legal.terms.lead': 'מה אנחנו עושים בשבילכם, מה המחירים אומרים, ומה הכללים לביטול ולשינוי.',
+    'content.legal.privacy.crumb': 'פרטיות',
+    'content.legal.privacy.title': 'מדיניות פרטיות',
+    'content.legal.privacy.lead': 'איזה מידע נשמר, למה, אצל מי ולכמה זמן — ומה הזכויות שלכם.',
+    'content.legal.a11y.crumb': 'נגישות',
+    'content.legal.a11y.title': 'הצהרת נגישות',
+    'content.legal.a11y.lead': 'האתר נבנה כך שיהיה נוח לכולם — במקלדת, בקורא מסך ובטלפון.',
+    'content.display.title': 'הגדרות תצוגה',
+    'content.display.note': 'ההגדרות נשמרות במכשיר הזה בלבד. אפשר גם להגדיל את התצוגה בדפדפן (Ctrl/⌘ ו־+) ולהשתמש בהגדרות הנגישות של המכשיר.',
+    'content.display.reset': 'איפוס',
+    'content.display.text': 'טקסט גדול',
+    'content.display.contrast': 'ניגודיות גבוהה',
+    'content.display.links': 'הדגשת קישורים',
+    'content.display.motion': 'עצירת אנימציות'
   },
   en: {
+    'content.legal.fill': 'To be completed by the site owner: {what}',
+    'content.legal.draft': '<strong>Draft – pending legal review.</strong> This English translation has not been legally approved and is not binding; the Hebrew version prevails.',
+    'content.legal.phone': 'phone',
+    'content.legal.email': 'email',
+    'content.legal.toc': 'Contents',
+    'content.legal.goodToKnow': 'Good to know',
+    'content.legal.terms.crumb': 'Terms of use',
+    'content.legal.terms.title': 'Terms of use and general conditions',
+    'content.legal.terms.lead': 'What we do for you, what the prices mean, and the rules for cancellations and changes.',
+    'content.legal.privacy.crumb': 'Privacy',
+    'content.legal.privacy.title': 'Privacy policy',
+    'content.legal.privacy.lead': 'What information is kept, why, by whom and for how long — and what your rights are.',
+    'content.legal.a11y.crumb': 'Accessibility',
+    'content.legal.a11y.title': 'Accessibility statement',
+    'content.legal.a11y.lead': 'The site is built to be comfortable for everyone — by keyboard, with a screen reader and on your phone.',
+    'content.display.title': 'Display settings',
+    'content.display.note': 'Settings are saved on this device only. You can also zoom in with your browser (Ctrl/⌘ and +) and use your device’s accessibility settings.',
+    'content.display.reset': 'Reset',
+    'content.display.text': 'Large text',
+    'content.display.contrast': 'High contrast',
+    'content.display.links': 'Highlight links',
+    'content.display.motion': 'Stop animations'
   }
 };
