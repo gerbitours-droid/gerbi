@@ -7,6 +7,7 @@ import { SITE_DEFAULTS, GUIDE_FIELDS, LIMITS, mergeSite, normalizePost, normaliz
 import { builtinPosts, BUILTIN_SLUGS } from './blog-posts.mjs';
 import { destinationInfo, faqs as builtinFaqs } from './pages.mjs';
 import { trips } from './data.mjs';
+import { setupAdminAi, aiTab, priorityChip, leadAiHtml, wireLeadAi, sortByPriority, mountBlogAssistant } from './admin-ai.mjs';
 
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -25,6 +26,7 @@ async function api(method, path, body) {
   return data;
 }
 const failText = (error) => error.status === 429 ? 'יותר מדי בקשות. נסו שוב בעוד דקה.' : error.status === 503 ? 'האחסון לא זמין כרגע. נסו שוב בעוד רגע.' : error.status === 413 ? 'התוכן גדול מדי.' : error.data?.message || 'משהו השתבש. נסו שוב.';
+setupAdminAi({ api, failText });
 function status(el, text, kind = '') { if (!el) return; el.textContent = text; el.dataset.kind = kind; }
 function showErrors(form, fields = {}) {
   $$('.field-error', form).forEach((el) => el.remove());
@@ -64,7 +66,7 @@ $('#login-form').addEventListener('submit', async (event) => {
 });
 $('#logout').onclick = async () => { if (dirty && !confirm('יש שינויים שלא נשמרו. לצאת בכל זאת?')) return; try { await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' }); } catch {} showLogin('יצאתם מהמערכת.'); };
 
-const TABS = { leads: leadsTab, blog: blogTab, site: siteTab, fx: fxTab, support: supportTab };
+const TABS = { leads: leadsTab, blog: blogTab, site: siteTab, fx: fxTab, support: supportTab, ai: aiTab };
 let currentTab = '';
 function route() {
   const [tab, ...rest] = (location.hash.slice(1) || 'leads').split('/');
@@ -80,6 +82,7 @@ document.addEventListener('click', (e) => { const a = e.target.closest('a[href^=
 const LEAD_STATUS = { new: 'חדש', progress: 'בטיפול', closed: 'נסגר' };
 const LEAD_TYPE = { contact: 'צור קשר', tailor: 'טיול בהתאמה אישית', support: 'שירות לקוחות' };
 const leadFilters = { status: '', type: '', q: '' };
+let leadSort = 'new', leadById = new Map();
 const intl = (phone) => (/^0\d{8,9}$/.test(phone || '') ? '972' + phone.slice(1) : '');
 
 function leadCard(lead) {
@@ -94,11 +97,12 @@ function leadCard(lead) {
   rows.push(['דיוור', lead.marketing ? 'מסכים/ה לקבל עדכונים' : 'לא']);
   const wa = intl(lead.phone), id = esc(lead.id);
   const notes = (lead.adminNotes || []).map((n) => `<li><small>${esc(when(n.at))}</small> ${esc(n.text)}</li>`).join('');
-  return `<article class="lead-card admin-lead" data-lead="${id}"><header><h2>${esc(lead.name)}</h2><span class="lead-tag ${lead.type === 'tailor' ? 'tailor' : ''}">${esc(LEAD_TYPE[lead.type] || lead.type)}</span><small>${esc(when(lead.createdAt))} · ${esc(lead.source || '')}</small>
+  return `<article class="lead-card admin-lead" data-lead="${id}"><header><h2>${esc(lead.name)}</h2><span class="lead-tag ${lead.type === 'tailor' ? 'tailor' : ''}">${esc(LEAD_TYPE[lead.type] || lead.type)}</span>${priorityChip(lead)}<small>${esc(when(lead.createdAt))} · ${esc(lead.source || '')}</small>
     <label class="status-pick status-${esc(lead.status)}"><span class="sr-only">סטטוס</span><select data-status aria-label="סטטוס הפנייה של ${esc(lead.name)}">${Object.entries(LEAD_STATUS).map(([k, v]) => `<option value="${k}"${lead.status === k ? ' selected' : ''}>${v}</option>`).join('')}</select></label></header>
     <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
     <div class="admin-notes"><strong>הערות פנימיות</strong>${notes ? `<ul>${notes}</ul>` : '<p class="micro-copy">אין עדיין הערות.</p>'}
      <form data-note class="note-form"><label class="sr-only" for="note-${id}">הערה חדשה</label><input id="note-${id}" maxlength="1000" placeholder="הוספת הערה (נראית רק לכם)"><button class="button secondary" type="submit">הוספה</button></form></div>
+    ${leadAiHtml(lead)}
     <div class="lead-actions">${wa ? `<a class="button secondary" href="https://wa.me/${wa}" target="_blank" rel="noopener noreferrer">וואטסאפ</a>` : ''}<a class="button secondary" href="tel:${esc(lead.phone)}">חיוג</a></div><p class="admin-status" role="status"></p></article>`;
 }
 
@@ -107,11 +111,13 @@ async function leadsTab() {
   p.innerHTML = `<div class="admin-head"><h1>לידים</h1><a class="button secondary" id="csv" href="#">ייצוא CSV</a></div>
    <div class="lead-filters" role="group" aria-label="סינון לפי סטטוס" id="status-chips"></div>
    <div class="admin-filters"><div class="lead-field"><label for="lead-q">חיפוש</label><input id="lead-q" type="search" placeholder="שם, טלפון, מייל או יעד" value="${esc(leadFilters.q)}"></div>
-    <div class="lead-field"><label for="lead-type">סוג</label><select id="lead-type"><option value="">הכול</option>${Object.entries(LEAD_TYPE).map(([k, v]) => `<option value="${k}"${leadFilters.type === k ? ' selected' : ''}>${v}</option>`).join('')}</select></div></div>
+    <div class="lead-field"><label for="lead-type">סוג</label><select id="lead-type"><option value="">הכול</option>${Object.entries(LEAD_TYPE).map(([k, v]) => `<option value="${k}"${leadFilters.type === k ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
+    <div class="lead-field"><label for="lead-sort">מיון</label><select id="lead-sort"><option value="new"${leadSort === 'new' ? ' selected' : ''}>החדשה ראשונה</option><option value="priority"${leadSort === 'priority' ? ' selected' : ''}>לפי עדיפות</option></select></div></div>
    <p id="leads-status" class="admin-status" role="status">טוענים…</p><section id="lead-list" aria-label="רשימת פניות"></section>`;
   let timer;
   $('#lead-q').oninput = (e) => { clearTimeout(timer); timer = setTimeout(() => { leadFilters.q = e.target.value.trim(); loadLeads(); }, 250); };
   $('#lead-type').onchange = (e) => { leadFilters.type = e.target.value; loadLeads(); };
+  $('#lead-sort').onchange = (e) => { leadSort = e.target.value; loadLeads(); };
   await loadLeads();
 }
 const leadQuery = () => new URLSearchParams(Object.entries(leadFilters).filter(([, v]) => v)).toString();
@@ -125,13 +131,16 @@ async function loadLeads() {
       .map(([k, v, n]) => `<button type="button" data-filter="${k}" aria-pressed="${leadFilters.status === k}">${v} <b>${n}</b></button>`).join('');
     $$('#status-chips button').forEach((b) => b.onclick = () => { leadFilters.status = b.dataset.filter; loadLeads(); });
     status(out, data.counts.all ? `${data.total} פניות מוצגות, החדשה ראשונה.${data.storage === 'file' ? ' (אחסון מקומי)' : ''}` : 'אין עדיין פניות.');
-    list.innerHTML = data.leads.length ? data.leads.map(leadCard).join('') : data.counts.all ? '<p class="empty-note">אין פניות שמתאימות לסינון.</p>' : '';
+    const leads = leadSort === 'priority' ? sortByPriority(data.leads) : data.leads;
+    leadById = new Map(leads.map((l) => [l.id, l]));
+    list.innerHTML = leads.length ? leads.map(leadCard).join('') : data.counts.all ? '<p class="empty-note">אין פניות שמתאימות לסינון.</p>' : '';
     wireLeads(list);
   } catch (error) { if (error.status !== 401) status(out, 'לא הצלחנו לטעון את הפניות. ' + failText(error), 'error'); }
 }
 function wireLeads(list) {
   $$('[data-lead]', list).forEach((card) => {
     const id = card.dataset.lead, out = $('.admin-status', card);
+    wireLeadAi(card, leadById.get(id));
     $('[data-status]', card).onchange = async (e) => {
       try { await api('PATCH', `/api/admin/leads/${encodeURIComponent(id)}`, { status: e.target.value }); status(out, `הסטטוס עודכן ל„${LEAD_STATUS[e.target.value]}”.`, 'ok'); e.target.closest('.status-pick').className = `status-pick status-${e.target.value}`; }
       catch (error) { status(out, failText(error), 'error'); }
@@ -229,6 +238,7 @@ async function postEditor(slug) {
     <section id="versions" hidden></section>
    </form>`;
   const form = $('#post-form'), out = $('#post-status');
+  mountBlogAssistant(form);
   const preview = () => { $('#preview').innerHTML = renderMarkdown($('#f-body').value) || '<p class="micro-copy">הגוף ריק.</p>'; };
   preview();
   form.addEventListener('input', (e) => { dirty = true; if (e.target.id === 'f-body') preview(); if (e.target.id === 'f-cover' && !coverData) { const v = e.target.value.trim(); $('#cover-preview').hidden = !/^https:\/\//.test(v) && !v.startsWith('/'); if (!$('#cover-preview').hidden) $('#cover-preview').src = v; } });

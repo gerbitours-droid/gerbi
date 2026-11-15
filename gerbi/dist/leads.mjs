@@ -3,6 +3,7 @@
 import { validateLead, CHANNELS, FLEXIBILITY, BUDGETS, STYLES, LIMITS, CONSENT_TEXT } from './leads-validate.mjs';
 import { resolvePlace } from './places.mjs';
 import { parseSearchLink } from './saved-flights.mjs';
+import { tailorAssistHtml, mountTailorAssist } from './ai-client.mjs';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -129,6 +130,7 @@ export function leadRoutes({ contact = {} } = {}) {
       ${fromResults && context?.to ? `<div class="soft-notice lead-context"><p><strong>מהחיפוש שלכם:</strong> ${esc(placeName(context.from || 'TLV'))} ← ${esc(placeName(context.to))}${context.depart ? ` · ${esc(heDate(context.depart))}${context.return ? ' עד ' + esc(heDate(context.return)) : ''}` : ''}. מילאנו את הפרטים מראש, ואפשר לשנות הכול.</p></div>` : ''}
       <div class="lead-layout"><section class="surface-panel lead-panel" aria-labelledby="lead-form-title"><h2 id="lead-form-title">ספרו לנו על הטיול</h2><p class="micro-copy">שדות ללא סימון „רשות” הם שדות חובה. כמה דקות, ונחזור אליכם עם רעיונות.</p>
        <form id="lead-form" class="lead-form" novalidate>
+        ${tailorAssistHtml()}
         <h3 class="lead-step">1. לאן ומתי</h3>
         ${field('destinations', 'לאן תרצו לטוס?', input(`type="text" maxlength="${LIMITS.destinations}" required value="${esc(prefill.destinations)}" placeholder="למשל: יפן, או איטליה ויוון"`), { hint: 'אפשר יעד אחד, כמה יעדים, או אזור כללי. עוד לא יודעים? כתבו את זה.' })}
         <div class="lead-grid">
@@ -151,6 +153,7 @@ export function leadRoutes({ contact = {} } = {}) {
        <aside class="lead-aside"><div class="surface-panel"><span class="eyebrow">איך זה עובד</span><h2>שלושה צעדים פשוטים</h2><ol class="lead-how"><li>ממלאים את מה שידוע לכם. לא חייבים הכול.</li><li>נציג ג׳רבי טורס חוזר אליכם לשיחה קצרה.</li><li>מקבלים הצעה מסודרת, ומחליטים בלי לחץ.</li></ol></div>
         <div class="surface-panel"><span class="eyebrow">ערוצים ישירים</span><h2>מעדיפים לדבר?</h2>${quickLinks(contact)}<a class="lead-link" href="#/contact">לטופס יצירת קשר כללי ←</a></div></aside></div></div>${footer}`;
       wire(view.querySelector('#lead-form'), 'tailor', { source: fromResults ? '/flight-results' : '/tailor-made', context }, render);
+      mountTailorAssist(view.querySelector('#lead-form'));
     };
     render();
   }

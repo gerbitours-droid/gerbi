@@ -23,6 +23,9 @@ import { handleAdmin, bridgeAdminSession } from './backend/admin.mjs';
 import { createAccounts } from './backend/accounts.mjs';
 import { createFx, handleFx } from './backend/fx-rates.mjs';
 import { createSupport } from './backend/support.mjs';
+import { handleAi } from './backend/ai-routes.mjs';
+import { gateway } from './backend/ai-features.mjs';
+import { createSearchStats } from './backend/search-stats.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
@@ -34,10 +37,13 @@ const leadStore = createStore('leads', dataDirectory);
 const accounts = createAccounts({ store: createStore('accounts', dataDirectory) });
 // Shekel rates (transfers & cheques, sale) for showing supplier prices in ILS: docs/specs/13-pricing-ils-he.md.
 const fx = createFx({ store: createStore('fx', dataDirectory), log: entry => console.log(JSON.stringify(entry)) });
-// Customer-service bot on the site and WhatsApp (spec 16); escalations become support leads.
-const support = createSupport({ dataDirectory, leadStore, llmCache });
 // Owner admin (spec 18): editable content and owner sessions.
 const contentStore = createStore('content', dataDirectory), adminSessions = createStore('admin', dataDirectory);
+// Customer-service bot on the site and WhatsApp (spec 16); escalations become support leads. Site FAQs ground AI answers (spec 22).
+const support = createSupport({ dataDirectory, leadStore, llmCache, siteStore: contentStore });
+// AI gateway (spec 22): usage counters and kill switches live in the KV store; search counters feed the owner digest.
+gateway.configure({ usageStore: createStore('ai-usage', dataDirectory), flagStore: createStore('ai-control', dataDirectory) });
+const searchStats = createSearchStats(createStore('search-stats', dataDirectory));
 const featureVector = (value) => Object.fromEntries(['hour', 'stop', 'longWait', 'overnight', 'offHours', 'nightDeparture'].map((key) => [key, Number.isFinite(value?.[key]) ? Math.max(0, Math.min(100, value[key])) : 0]));
 const placeCodes = new Set(places.map((place) => place.code));
 // The canonical brief the decision endpoints accept: every field re-validated, nothing free-text.
@@ -182,6 +188,7 @@ export function createServer() {
     try {
       const result = await cachedSearch(request, (input) => withRetry(() => voleroFlightSearch(input)).then(slimSearch));
       logSupplier({ route:'search', ok:true, cached:result.cached, ms:Date.now() - started, offers:result.data.offers.length, legs:request.originDestinations.length, ...(multi ? { multi:true } : {}) });
+      if (!result.cached) background(searchStats.record(request, result.data.offers.length));
       return send(200, { provider:'volero', data:result.data, cached:result.cached, searchedAt:new Date(result.searchedAt).toISOString() });
     } catch (error) { logSupplier({ route:'search', ok:false, ms:Date.now() - started, error:error.message, status:error.status }); return supplierError(send, error); }
    }
@@ -214,6 +221,7 @@ export function createServer() {
    if (await handleLeads(req, url, { send, body, store:leadStore, hooks:accounts.leadHooks })) return;
    if (await handleFx(req, url, { send, body, fx, background, res })) return;
    if (await support.handle(req, res, url, { send, body })) return;
+   if (await handleAi(req, res, url, { send, body, leadStore, sessions:adminSessions, llmCache, searchStats })) return;
    if (await handleAdmin(req, res, url, { send, body, store:contentStore, sessions:adminSessions, leadStore })) return;
    if (url.pathname.startsWith('/api/')) return send(404,{error:'not_found'});
    if (!['GET','HEAD'].includes(req.method)) return send(405,{error:'method_not_allowed'});

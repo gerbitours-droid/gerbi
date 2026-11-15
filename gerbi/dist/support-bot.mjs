@@ -39,6 +39,8 @@ function bubble(item, animate = true) {
     if (/^https?:/.test(item.link.href)) { a.target = '_blank'; a.rel = 'noopener noreferrer'; } else a.addEventListener('click', () => dialog.close());
     el.append(a);
   }
+  // Spec 22: an answer composed by the AI from the owner's texts says so, and names the topics it came from.
+  if (item.ai) { const src = document.createElement('small'); src.className = 'sb-source'; src.textContent = `תשובה אוטומטית מתוך התשובות שלנו${item.sources?.length ? `: ${item.sources.join(' · ')}` : ''}`; el.append(src); }
   if (item.from === 'user') el.setAttribute('aria-label', `אתם: ${item.text}`);
   log.append(el); log.scrollTop = log.scrollHeight;
   return el;
@@ -76,7 +78,7 @@ async function ask(payload, shown) {
     if (!response.ok) throw Object.assign(new Error('http'), { message: data.message });
     state.sessionId = data.sessionId; state.chips = data.chips || []; state.input = data.input || 'text'; state.escalation = data.escalation || state.escalation;
     if (data.hours) $('#sb-status').textContent = `ג׳רבי טורס · ${data.hours.open ? 'נציגים זמינים עכשיו' : 'נציגים זמינים בשעות הפעילות'}`;
-    for (const m of data.messages || []) { const item = { from: 'bot', text: m.text, link: m.link }; state.items.push(item); bubble(item); }
+    for (const m of data.messages || []) { const item = { from: 'bot', text: m.text, link: m.link, ...(m.ai ? { ai: true, sources: (m.sources || []).slice(0, 3).map(String) } : {}) }; state.items.push(item); bubble(item); }
   } catch (error) {
     setBusy(false);
     const el = bubble({ from: 'system', text: error.message && error.message !== 'http' && error.message !== 'Failed to fetch' ? error.message : 'לא הצלחנו להתחבר. בדקו את החיבור ונסו שוב, או השאירו פרטים בטופס צור קשר.' });

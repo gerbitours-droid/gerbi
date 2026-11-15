@@ -13,6 +13,7 @@ import { initSiteContent, cmsRoutes } from './cms-public.mjs';
 import { loadFx, onFx, getFx, fxNote, originalHtml, priceBasis, fareText } from './fx.mjs';
 import { converterRoutes, converterHtml, wireConverter } from './converter.mjs';
 import './support-bot.mjs';
+import { flightTakeSlot, mountFlightTake } from './ai-client.mjs';
 import { initMultiCity } from './multi-city.mjs';
 import { legName, routeText, groundGaps, gapText, multiLink, cleanRoute } from './multi-city-core.mjs';
 import { perPassenger, PTC_LABEL, seatsLeft, FEW_SEATS, fareInclusions, layoverAirports } from './fare-extras.mjs';
@@ -233,10 +234,11 @@ function renderVoleroOffers(payload){
  ${all.length?filterPanel(all):''}
  ${chips.length?`<div class="filter-chips">${chipMarkup(chips)}<button type="button" class="link-button" data-clear-filters>איפוס המסננים</button></div>`:''}
  <p class="micro-copy" role="status">${chips.length?`${visible.length} מתוך ${all.length} הצעות`:`${all.length} הצעות בחיפוש`} · מוצגות ${Math.min(visible.length,visibleOfferCount)}. המחיר לכל הנוסעים, ${getFx()?'בשקלים':'במטבע הספק'}. ${mixed?'התוצאות במטבעות שונים ולכן אינן ממוינות לפי מחיר.':''}</p><p class="fx-line micro-copy">${getFx()?escapeHTML(fxNote())+'. ':''}<button type="button" class="link-button" data-open-converter>מחשבון המרת מטבע</button></p>
- <div class="flight-list">${visible.length?visible.slice(0,visibleOfferCount).map(f=>flightCard(f,payload,byFacts.get(f),tags.get(byFacts.get(f)?.key)||[],why.get(f)||[])).join(''):all.length?`<div class="empty-panel"><h3>אין הצעות שמתאימות לכל המסננים</h3><p>אפשר להסיר מסנן אחד ולראות שוב:</p><div class="filter-chips">${chipMarkup(chips)}</div></div>`:searchContext?.multi?'<div class="empty-panel"><h3>לא מצאנו מסלול שמחבר את כל הטיסות בתאריכים האלה</h3><p>נסו להזיז תאריך באחד המקטעים או לוותר על מקטע.</p><button class="button secondary" data-edit-search>שינוי החיפוש</button></div>':'<div class="empty-panel"><h3>לא מצאנו טיסה בתאריכים האלה</h3><p>אפשר לשנות יעד או תאריכים ולנסות שוב.</p><button class="button secondary" data-edit-search>שינוי החיפוש</button></div>'}</div>
+ ${flightSort==='recommended'&&leaders.length>1?flightTakeSlot():''}<div class="flight-list">${visible.length?visible.slice(0,visibleOfferCount).map(f=>flightCard(f,payload,byFacts.get(f),tags.get(byFacts.get(f)?.key)||[],why.get(f)||[])).join(''):all.length?`<div class="empty-panel"><h3>אין הצעות שמתאימות לכל המסננים</h3><p>אפשר להסיר מסנן אחד ולראות שוב:</p><div class="filter-chips">${chipMarkup(chips)}</div></div>`:searchContext?.multi?'<div class="empty-panel"><h3>לא מצאנו מסלול שמחבר את כל הטיסות בתאריכים האלה</h3><p>נסו להזיז תאריך באחד המקטעים או לוותר על מקטע.</p><button class="button secondary" data-edit-search>שינוי החיפוש</button></div>':'<div class="empty-panel"><h3>לא מצאנו טיסה בתאריכים האלה</h3><p>אפשר לשנות יעד או תאריכים ולנסות שוב.</p><button class="button secondary" data-edit-search>שינוי החיפוש</button></div>'}</div>
  ${visible.length>visibleOfferCount?'<button class="button secondary more-flights" id="more-flights">הצגת הצעות נוספות</button>':''}${compareTray()}`;
  if(focusKey)host.querySelector(focusKey)?.focus();
  markStaleResults();
+ if(flightSort==='recommended'&&leaders.length>1)mountFlightTake(host,leaders.map(x=>x.facts),{formatPrice:formatFare,brief:{adults:state.adults,children:state.children,route:searchContext?.destination||'',prefs:chips.map(c=>c[2])}});
  if(flightSort==='recommended'&&needsTieBreak(ranked))askTieBreak(payload,ranked);
 }
 const liveHost=$('#live-results');

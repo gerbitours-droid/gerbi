@@ -1,5 +1,7 @@
 import { rankDemoTrips, estimateDemoTotal } from './planner.mjs';
 import { understandRequest } from './brief-engine.mjs';
+import { detectLegs } from './multi-city-brief.mjs';
+import { multiLink, routeText } from './multi-city-core.mjs';
 import { STORAGE_KEY, restoreJourney, restoreComparison, filterTrips, itineraryDays, planDestination, applyBriefToDraft } from './journey.mjs';
 import { selectedStyles, constraintSummary } from './personalization.mjs';
 import { site } from './cms-public.mjs';
@@ -116,10 +118,12 @@ export function initPages(ctx) {
   document.querySelectorAll('#page-chat-form button, [data-quick], #clear-chat, #brief-form input, #brief-form select, #brief-form button').forEach(el=>el.disabled=busy);
   $('#page-chat-form')?.setAttribute('aria-busy',String(busy));
  }
+ // A route of several flights (spec 10): the multi-city form is filled from a link; the search runs on the visitor's click.
+ function routeHtml(legs){if(!legs)return '';const days=legs.map(l=>l.date.split('-').reverse().slice(0,2).join('.'));return `<div class="parsed-search"><p><strong>זיהיתי מסלול של כמה יעדים:</strong> ${esc(routeText(legs))} · ${esc(days.join(' · '))} · ${state.adults+state.children} נוסעים</p><a class="button yellow" href="${esc(multiLink({legs,adults:state.adults,children:state.children}))}">פתיחת המסלול בחיפוש טיסות</a><p class="micro-copy">כל הטיסות במחיר אחד מהספק. אפשר לשנות כל טיסה בטופס לפני החיפוש.</p></div>`;}
  // Gerbi's reply is built only from what the engine understood: every fact shows where it came from, every
  // assumption is stated, at most two questions, and a live search is offered only when the request is concrete.
- function replyHtml(result,ranked){
-  const p=result.brief,limits=constraintSummary(p),fs=result.flightSearch;
+ function replyHtml(result,ranked,route=null){
+  const p=result.brief,limits=constraintSummary(p),fs=route?null:result.flightSearch;
   const chips=result.understood.map(item=>`<span class="understood-chip"${item.source?` title="מתוך: ${esc(item.source)}"`:''}>${esc(item.label)}</span>`).join('');
   const needs=[p.kosher?'כשרות':null,p.shabbat?'שמירת שבת':null,p.accessible?'נגישות':null].filter(Boolean);
   const place=code=>ctx.placeLabel(code);
@@ -130,6 +134,7 @@ export function initPages(ctx) {
    limits.excluded.length?`<p>לא אציע: ${esc(limits.excluded.join(', '))}.</p>`:'',
    `<p>${ranked.length?`יש ${ranked.length} כיוונים להשראה שמתאימים לבקשה. ״מציגים אפשרויות״ פותח את ההשוואה.`:'לא מצאתי רעיון חופשה שמתאים לכל התנאים. אפשר לעדכן תקציב או לילות, או לוותר על אחד התנאים.'}</p>`,
    needs.length?`<p class="micro-copy">${esc(needs.join(', '))} נשמרו כדרישות לבדיקה מול הספק.</p>`:'',
+   routeHtml(route),
    fs?`<div class="parsed-search"><p><strong>יש מספיק פרטים לחיפוש טיסות בזמן אמת:</strong> ${esc(place(fs.origin))} ← ${esc(place(fs.destination))} · ${esc(fs.start.split('-').reverse().join('.'))}${fs.end?'–'+esc(fs.end.split('-').reverse().join('.')):' · כיוון אחד'} · ${fs.adults+fs.children} נוסעים${fs.filters.stops==='0'?' · ישירה':''}${fs.filters.checkedBag?' · מזוודה':''}</p><button type="button" class="button yellow" data-run-parsed-search>חיפוש טיסות עכשיו</button><p class="micro-copy">ההעדפות יופיעו כמסננים שאפשר להסיר.</p></div>`:'',
    result.questions.length?`<p class="next-question">${result.questions.map(q=>esc(q.question)).join('<br>')}</p>`:''
   ];
@@ -142,7 +147,8 @@ export function initPages(ctx) {
   const parts=[partner.interests?.length?`<p class="reply-label">ג׳רבי AI הבין גם:</p><p class="understood-chips">${partner.interests.map(x=>`<span class="understood-chip">${esc(x)}</span>`).join('')}</p>`:'',
    partner.patch?.want?.length?`<p>יעד: ${partner.patch.want.map(names).join(', ')}</p>`:'',
    partner.suggest?.length?`<p>שווה לשקול: ${partner.suggest.map(names).join(', ')}. אלה הצעות, לא דרישה שלכם.</p>`:'',
-   partner.question?`<p class="next-question">${esc(partner.question)}</p>`:''].filter(Boolean);
+   partner.question?`<p class="next-question">${esc(partner.question)}</p>`:'',
+   routeHtml(partner.legs)].filter(Boolean);
   if(!parts.length)return;
   chat.push({role:'assistant',html:parts.join('')+'<p class="micro-copy">הושלם בעזרת מודל שפה, רק בחלקים שהכללים לא זיהו. אפשר לתקן בטופס.</p>'});
   persist();drawChat();$('.brief-panel')&&($('.brief-panel').innerHTML=`<span class="eyebrow">הבקשה שלכם, מסודרת</span><h2>אפשר לדייק כל פרט</h2>${briefForm()}`,wireBrief());
@@ -163,7 +169,7 @@ export function initPages(ctx) {
   state.preferences.adults=state.adults;state.preferences.children=state.children;
   lastFlightSearch=result.flightSearch;
   const ranked=rankDemoTrips(trips,state.preferences);
-  chat.push({role:'assistant',html:replyHtml(result,ranked)});
+  chat.push({role:'assistant',html:replyHtml(result,ranked,detectLegs(text,{today:ctx.today(),origin:result.brief.origin||'TLV'})?.legs||null)});
   persist();ctx.syncHome();drawChat();$('.brief-panel').innerHTML=`<span class="eyebrow">הבקשה שלכם, מסודרת</span><h2>אפשר לדייק כל פרט</h2>${briefForm()}`;wireBrief();
  }
 

@@ -1,0 +1,33 @@
+/* Spec 22: AI assistant surfaces on the site and in the owner admin. Same tokens as style.css. */
+.ai-assist{background:linear-gradient(120deg,#eef8ff,#f7fbff);border:1px solid #cfe4f6;border-radius:16px;padding:14px 16px;margin:4px 0 18px}
+.ai-assist-head{display:flex;gap:12px;align-items:center}.ai-assist-head img{width:44px;height:44px;object-fit:contain;flex-shrink:0}
+.ai-assist h3{margin:0;font-size:17px;font-weight:800}.ai-assist .micro-copy{margin:2px 0 0}
+.ai-assist textarea{width:100%;margin-top:10px;border:1px solid #c5d9ec;border-radius:12px;padding:10px 12px;background:#fff;resize:vertical;min-height:62px;font-size:15px}
+.ai-assist-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px}.ai-assist-actions .button{min-height:44px;padding:8px 18px;border-radius:10px;font-weight:800}
+.ai-assist-status{flex:1;min-width:200px;margin:0}
+.ai-filled input,.ai-filled select,.ai-filled textarea,fieldset.ai-filled{box-shadow:0 0 0 3px #ffdf2599;transition:box-shadow .3s}
+.ai-take{margin:10px 0 14px}.ai-take-button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 16px;border-radius:12px;font-weight:800}
+.ai-take-button img{width:26px;height:26px;object-fit:contain}
+.ai-take-body:not(:empty){margin-top:10px;background:#f4f9ff;border:1px solid #d6e6f5;border-radius:14px;padding:12px 16px;line-height:1.7}
+.ai-take-body p{margin:0 0 6px}.ai-take-body ul{margin:4px 0 8px;padding-inline-start:20px}.ai-take-pick{font-weight:800;color:#075db4}
+/* admin */
+.priority-chip{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;border:1px solid transparent;white-space:nowrap}
+.priority-high{background:#ffe9e2;color:#9a2b12;border-color:#f6c3b2}.priority-medium{background:#fff6d5;color:#6e5600;border-color:#f1df93}.priority-low{background:#eef3f8;color:#4a5a72;border-color:#d8e2ec}.priority-done{background:#eaf7ee;color:#21633a}
+.lead-ai{margin:10px 0}.ai-button{display:inline-flex;align-items:center;gap:8px}.ai-button img{width:22px;height:22px;object-fit:contain}
+.lead-ai-panel{margin-top:10px;border:1px solid #d6e6f5;background:#f7fbff;border-radius:14px;padding:12px 14px}
+.lead-ai-panel textarea{width:100%;min-height:120px;border:1px solid #c5d9ec;border-radius:10px;padding:10px;line-height:1.6}
+.lead-ai-panel ul{margin:4px 0 8px;padding-inline-start:20px}.ai-badge-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.ai-source{font-size:12px;font-weight:800;color:#075db4;background:#e3f0fd;border-radius:999px;padding:3px 10px}.lead-ai-summary{margin:6px 0}
+.ai-blog{border:1px solid #cfe4f6;background:#f4f9ff;border-radius:14px;padding:10px 14px;margin-bottom:16px}
+.ai-blog summary{cursor:pointer;font-weight:800;display:flex;align-items:center;gap:8px;min-height:36px}.ai-blog summary img{width:24px;height:24px;object-fit:contain}
+.ai-review{background:#fff8d7;border:1px solid #f1df93;border-radius:12px;padding:10px 14px;margin-top:10px;line-height:1.7}.ai-review ul{margin:4px 0;padding-inline-start:20px}
+.ai-section{margin:16px 0;padding:16px 18px}.ai-section h2{margin:0;font-size:20px}.ai-section h3{font-size:16px;margin:16px 0 6px}
+.ai-headline{font-size:18px;font-weight:800;margin:6px 0 2px}.ai-bullets{padding-inline-start:20px;line-height:1.8}.ai-bullets li[data-kind=risk]::marker{color:#c0391b}.ai-bullets li[data-kind=opportunity]::marker{color:#1b8a4a}
+.ai-actions{padding-inline-start:22px;line-height:1.8;font-weight:600}
+.ai-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0}.ai-stats div{background:#f2f8fe;border-radius:12px;padding:10px;text-align:center}.ai-stats strong{display:block;font-size:24px}.ai-stats span{font-size:12px;color:#55667f}
+.ai-columns{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.ai-pairs{list-style:none;margin:0;padding:0}.ai-pairs li{display:flex;justify-content:space-between;border-bottom:1px solid #e7eef6;padding:5px 0;gap:10px}
+.ai-budget{display:flex;flex-direction:column;gap:6px;margin:10px 0}.ai-meter{height:10px;background:#e8f0f8;border-radius:99px;overflow:hidden;max-width:420px}.ai-meter i{display:block;height:100%;background:linear-gradient(90deg,#1f8bea,#0b5fc0)}
+.ai-master{margin:10px 0;font-weight:800}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ai-table{width:100%;border-collapse:collapse;font-size:14px;min-width:760px}.ai-table th,.ai-table td{padding:8px 6px;border-bottom:1px solid #e3ebf4;text-align:right;vertical-align:middle}.ai-table th{font-size:12px;color:#55667f}
+.ai-switch{display:flex;align-items:center;gap:6px;font-size:12px;min-height:32px}.ai-switch input{width:18px;height:18px}
+@media(max-width:700px){.ai-assist{padding:12px}.ai-assist h3{font-size:15px}.ai-stats{grid-template-columns:repeat(2,1fr)}.ai-columns{grid-template-columns:1fr}.ai-take-button{width:100%;justify-content:center}}

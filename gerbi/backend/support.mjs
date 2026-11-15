@@ -5,6 +5,8 @@ import { createStore } from './kv-store.mjs';
 import { recordLead, tokenMatches } from './leads.mjs';
 import { allow, clientOf } from './volero-guard.mjs';
 import { partnerClassify, scrub } from './llm-partner.mjs';
+import { supportAnswer, gateway } from './ai-features.mjs';
+import { faqs as builtinFaqs } from '../dist/pages.mjs';
 import { classify, respond, confirmation, newConversation, contactContext } from './support-brain.mjs';
 import { INTENTS, CHIP_LABELS, REASON_LABELS, mergeContent, validateContentUpdate, hoursStatus } from './support-content.mjs';
 import { whatsappEnabled, sameSecret, validSignature, parseInbound, phoneFromWaId, toWhatsApp, sendPayloads, WINDOW_MS } from './whatsapp.mjs';
@@ -24,7 +26,7 @@ async function readRaw(req, limit = 256_000) {
   return Buffer.concat(chunks);
 }
 
-export function createSupport({ dataDirectory, leadStore, llmCache = null, env = process.env, contact = siteContact, now = () => new Date(), stores = {} }) {
+export function createSupport({ dataDirectory, leadStore, llmCache = null, env = process.env, contact = siteContact, now = () => new Date(), stores = {}, siteStore = null, gw = gateway }) {
   const conversations = stores.conversations || createStore('support-conversations', dataDirectory);
   const escalations = stores.escalations || createStore('support-escalations', dataDirectory);
   const contentStore = stores.content || createStore('support-content', dataDirectory);
@@ -60,6 +62,17 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     return { record };
   }
 
+  // Sources for grounded answers: the bot's answers (as edited by the owner, placeholders filled) and the site FAQs.
+  async function groundedAnswer(text, c) {
+    if (!(await gw.enabled('support_answer'))) return null;
+    const ctx = contactContext(c, contact), fillCtx = (t) => String(t || '').replace(/\{(hours|phone|whatsapp|email)\}/g, (_, k) => ctx[k] || '').replace(/[\u2066\u2069]/g, '');
+    const sources = Object.entries(INTENTS).filter(([id]) => !['greeting', 'thanks', 'menu'].includes(id)).map(([id, i]) => ({ id, title: i.title, text: fillCtx(c.answers[id]) }));
+    const site = siteStore ? await siteStore.get('site').catch(() => null) : null;
+    const faqList = Array.isArray(site?.faqs) && site.faqs.length ? site.faqs.map((f) => [f.q, f.a]) : builtinFaqs;
+    faqList.slice(0, 30).forEach(([q, a], i) => sources.push({ id: `faq${i + 1}`, title: String(q).slice(0, 200), text: String(a).slice(0, 1500) }));
+    return supportAnswer(text, sources, { store: llmCache, gw });
+  }
+
   // One customer turn through the brain, with the optional LLM router and the escalation side effects.
   async function turn(conv, input, clientKey) {
     const c = await content(), at = now();
@@ -70,9 +83,23 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     if (typed || chipLabel) { log(conv, 'user', typed || chipLabel); if (!input.text || typed !== input.text) conv.transcript.at(-1).meta = true; }
     let routed = input;
     if (input.text && !input.chip && !conv.collect && !conv.offer && !classify(input.text).intent && !classify(input.text).frustrated) {
-      const topics = Object.entries(INTENTS).filter(([id]) => !['greeting', 'thanks', 'menu'].includes(id)).map(([id, i]) => ({ id, title: i.title }));
-      const pick = await partnerClassify(llmCache, input.text, topics).catch(() => null);
-      if (pick) routed = { chip: pick.topic };
+      // Spec 22 §4.1: an answer composed only from the owner's approved texts; otherwise route to one topic (spec 16 §8).
+      const grounded = await groundedAnswer(input.text, c).catch(() => null);
+      if (grounded?.answerable) {
+        conv.missCount = 0;
+        const reply = { messages: [{ text: grounded.answer, ai: true, sources: grounded.topics.map((id) => INTENTS[id]?.title || null).filter(Boolean) }],
+          chips: [...grounded.topics.filter((id) => INTENTS[id] && !INTENTS[id].escalate), 'human'].slice(0, 4).map((id) => ({ id, label: CHIP_LABELS[id] || INTENTS[id]?.title || id })), input: 'text', intent: grounded.topics.find((id) => INTENTS[id]) || null };
+        if (conv.transcript.at(-1)?.from === 'user' && reply.intent) conv.transcript.at(-1).intent = reply.intent;
+        log(conv, 'bot', grounded.answer);
+        return { reply, content: c, at };
+      }
+      if (grounded?.escalate) routed = { chip: 'human' };
+      else if (grounded?.topics?.[0] && INTENTS[grounded.topics[0]]) routed = { chip: grounded.topics[0] };
+      else if (!grounded) {
+        const topics = Object.entries(INTENTS).filter(([id]) => !['greeting', 'thanks', 'menu'].includes(id)).map(([id, i]) => ({ id, title: i.title }));
+        const pick = await partnerClassify(llmCache, input.text, topics).catch(() => null);
+        if (pick) routed = { chip: pick.topic };
+      }
     }
     const reply = respond(conv, routed, { content: c, contact, now: at });
     if (reply.intent && conv.transcript.length && conv.transcript.at(-1).from === 'user') conv.transcript.at(-1).intent = reply.intent;
