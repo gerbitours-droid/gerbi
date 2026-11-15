@@ -31,7 +31,7 @@ function contactFields(prefill = {}) {
 function consentFields() {
   return `<div class="lead-consent">
    <div class="lead-field" data-field="consent"><label class="lead-check"><input type="checkbox" id="lead-consent" name="consent" required aria-describedby="consent-hint consent-error"><span>${CONSENT_TEXT}</span></label>
-    <p class="lead-hint" id="consent-hint">אין חובה חוקית למסור את הפרטים, אבל בלעדיהם לא נוכל לחזור אליכם. הפרטים משמשים רק לטיפול בפנייה ונשמרים בגישה מוגבלת. אפשר לבקש לעיין בהם או למחוק אותם בכל עת. פרטים נוספים ב<a href="#/privacy">הסבר על הפרטיות</a>.</p>
+    <p class="lead-hint" id="consent-hint">אין חובה חוקית למסור את הפרטים, אבל בלעדיהם לא נוכל לחזור אליכם. הפרטים משמשים רק לטיפול בפנייה ונשמרים בגישה מוגבלת. אפשר לבקש לעיין בהם או למחוק אותם בכל עת. פרטים נוספים ב<a href="#/privacy">מדיניות הפרטיות</a> וב<a href="#/terms">תנאי השימוש</a>.</p>
     <p class="lead-error" id="consent-error" hidden></p></div>
    <label class="lead-check lead-marketing"><input type="checkbox" name="marketing"><span>אשמח לקבל מג׳רבי טורס גם רעיונות לחופשה ומבצעים (אפשר להסיר בכל עת).</span></label>
   </div>

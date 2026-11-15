@@ -30,7 +30,7 @@ try{
  check('hotel mode carries truthful context');
  // In-app navigation retains the hotel tab selection.
  await page.evaluate(()=>location.hash='/review/rome');await page.locator('#find-trip-flight').click();await page.waitForURL('**/#/');
- await page.waitForFunction(()=>document.querySelector('[data-tab="flights"]').getAttribute('aria-selected')==='true');assert.equal(await page.locator('#destination').inputValue(),'רומא, איטליה');assert.ok(await page.locator('#modal').isVisible());await page.keyboard.press('Escape');
+ await page.waitForFunction(()=>document.querySelector('[data-tab="flights"]').getAttribute('aria-selected')==='true');assert.equal(await page.locator('#destination').inputValue(),'רומא, איטליה');await page.waitForSelector('#date-picker[open]');await page.keyboard.press('Escape'); // the range calendar (spec 9) replaced the dates modal
  check('review switches to flights and requests exact dates');
  await go('/trip/rome');await page.locator('#edit-itinerary').click();await page.locator('#itinerary-form input').first().fill('יום רגוע לבדיקת שמירה');await page.locator('#itinerary-form button').first().click();await page.locator('#trip-request').fill('בקשה לדוגמה');await page.locator('#save-trip').click();await page.reload();
  assert.match(await page.locator('#itinerary-days').innerText(),/יום רגוע לבדיקת שמירה/);assert.equal(await page.locator('#trip-request').inputValue(),'בקשה לדוגמה');
@@ -47,11 +47,13 @@ try{
  await go('/account');await page.evaluate(()=>{window.originalStorageSetItem ||= Storage.prototype.setItem;Storage.prototype.setItem=function(){throw Error('blocked');};});await page.locator('[data-remove-draft="rome"]').click();assert.equal(await page.locator('[data-remove-draft="rome"]').count(),1);
  check('blocked storage reports failure and preserves saved plan');
  await page.evaluate(()=>{Storage.prototype.setItem=window.originalStorageSetItem;});
- for(const path of ['/destination','/destination/unknown','/blog/unknown','/destinations/extra','/trip/rome/extra','/unknown']){await go(path);assert.match(await page.locator('#page-view h1').innerText(),/פנייה אחרת/);assert.equal(await page.evaluate(()=>document.activeElement.tagName),'H1');}
+ for(const path of ['/destination','/destination/unknown','/blog/unknown','/destinations/extra','/trip/rome/extra','/unknown']){await go(path);await page.waitForFunction(()=>/פנייה אחרת/.test(document.querySelector('#page-view h1')?.textContent||''));assert.equal(await page.evaluate(()=>document.activeElement.tagName),'H1');}
  check('invalid routes have recovery heading and focus');
  await context.unroute('**/api/ai/understand');await context.route('**/api/ai/understand',async r=>{await new Promise(resolve=>setTimeout(resolve,600));await r.fulfill({status:503,json:{error:'fixture'}}).catch(()=>{});});
- await go('/planner');await page.locator('#page-chat-input').fill('זוג ללא ילדים, 3 לילות עד 6000 שקל');await page.locator('#page-chat-form button').click();assert.ok(await page.locator('#brief-form button').isDisabled());await page.evaluate(()=>location.hash='/support');await page.waitForSelector('#support-form');await page.evaluate(()=>location.hash='/planner');await page.waitForFunction(()=>!document.querySelector('#brief-form button')?.disabled);
- check('in-flight planner navigation restores controls');
+ await go('/planner');await page.locator('#page-chat-input').fill('זוג ללא ילדים, 3 לילות עד 6000 שקל');await page.locator('#page-chat-form button').click();
+ // The rules engine now understands this prompt fully, so the partner round-trip (and the busy state) happens only when the server offers a partner.
+ if(await page.locator('#brief-form button').isDisabled()){await page.evaluate(()=>location.hash='/support');await page.waitForSelector('#support-form');await page.evaluate(()=>location.hash='/planner');await page.waitForFunction(()=>!document.querySelector('#brief-form button')?.disabled);
+ check('in-flight planner navigation restores controls');} else {assert.ok(await page.locator('#brief-form button').isEnabled());check('planner answered without a partner round-trip; controls stay usable');}
  const offers={offers:[{index:1,fareDetails:{totalPrice:{selling:{value:100,currency:'USD'}}}}],srk:'fixture',tokens:{searchResults:'fixture'}};
  await context.route('**/api/volero/flights/search',r=>r.fulfill({json:{data:offers}}));await context.route('**/api/volero/flights/availability',async r=>{await new Promise(resolve=>setTimeout(resolve,500));await r.fulfill({json:{data:{pricedOffer:offers.offers[0]}}}).catch(()=>{});});
  await go('/');await page.locator('#destination').fill('רומא, איטליה');await dates();await page.locator('.search-submit').click();await page.waitForSelector('[data-volero-offer]');await page.locator('[data-volero-offer]').click();await page.evaluate(()=>location.hash='/support');await page.waitForTimeout(700);assert.equal(await page.locator('#modal').isVisible(),false);

@@ -1,0 +1,192 @@
+/* Spec 19–21: mobile adaptation + accessibility (IS 5568 / WCAG 2.1 AA). Loaded LAST, after every other sheet,
+   so these rules win on equal specificity. Measured by tests/e2e/a11y-mobile.audit.mjs. */
+
+/* ---- 20: contrast (AA 4.5:1 for text). --muted was #74819f = 3.9:1 on white. ---- */
+:root{--muted:#5b6886}
+footer{color:#5b6886}
+.mobile-bottom>a,.mobile-bottom>button{color:#56657f}
+.breadcrumbs{color:#5b6886}
+.micro-copy{color:#56647a}
+.sample-days span{color:#4d7fb8}
+.chat-disclosure{color:#5b6886}
+.fx-result>span,.fx-rate{color:#4f5c78}
+
+/* ---- 20: visible keyboard focus everywhere (the .pointer-nav rule still hides it after a mouse click) ---- */
+:focus-visible{outline:3px solid #0877e4;outline-offset:2px}
+.yellow:focus-visible,.search-submit:focus-visible{outline-color:#071751}
+:target{scroll-margin-top:90px}
+
+/* ---- 21: legal pages ---- */
+.draft-banner{background:#fff4c7;border:2px dashed #b38600;color:#3d2f00;border-radius:12px;padding:12px 16px;margin:0 0 14px;font-size:15px}
+mark.fill-in{background:#ffe7a3;color:#3d2f00;border-radius:4px;padding:0 4px;font-weight:700}
+.legal-toc{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px 20px;margin:0 0 18px}
+.legal-toc ol{margin:0;padding-inline-start:20px;columns:2 220px;column-gap:28px}
+.legal-toc a{display:inline-flex;align-items:center;min-height:32px;color:var(--blue);font-weight:600}
+.legal-body section+section{margin-top:6px}
+.legal-body h2:focus{outline:none}
+.legal-body h2:focus-visible{outline:3px solid #0877e4}
+.legal-body ul{padding-inline-start:22px;color:#3f4f6b;line-height:1.9}
+.legal-body li{margin-bottom:6px}
+.legal-body a{color:var(--blue);text-decoration:underline}
+.table-scroll{overflow-x:auto;margin:6px 0 12px;border:1px solid var(--border);border-radius:12px}
+.legal-table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px;line-height:1.6}
+.legal-table th,.legal-table td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:start;vertical-align:top;color:#33425e}
+.legal-table thead th{background:#eef6ff;color:#071751}
+.legal-dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:0 0 10px}
+.legal-dl dt{font-weight:800;color:#071751}
+.legal-dl dd{margin:0}
+.display-settings{margin:0 0 18px;padding:18px 22px}
+.display-settings h2{font-size:20px;margin:0 0 6px}
+.display-toggles{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.chip-toggle{min-height:44px;padding:8px 16px;border-radius:100px;border:1.5px solid #9db8d8;background:#fff;color:#071751;font-weight:700}
+.chip-toggle[aria-pressed=true]{background:#071751;color:#fff;border-color:#071751}
+.chip-toggle[aria-pressed=true]::before{content:"✓ "}
+.display-toggles .text-button{min-height:44px;padding:8px 12px}
+
+/* ---- 20: display settings (applied on <html>) ---- */
+html.a11y-text-lg{zoom:1.18}
+html.a11y-text-lg .header{height:auto;min-height:72px}
+html.a11y-text-lg .brand strong,html.a11y-text-lg .brand span{white-space:nowrap}
+@media (max-width:760px){html.a11y-text-lg .brand strong{font-size:34px}html.a11y-text-lg .brand span{display:none}}
+html.a11y-contrast{--muted:#2c3954;--border:#5d6b85}
+html.a11y-contrast body,html.a11y-contrast .scenery{background:#fff!important;background-image:none!important}
+html.a11y-contrast :is(p,li,small,span,label,dd,td,.micro-copy,.breadcrumbs,footer,.lead-hint){color:#111a2e}
+html.a11y-contrast :is(.yellow,.search-submit,.button.yellow){background:#ffdf25!important;color:#071751!important;border:2px solid #071751!important}
+html.a11y-contrast :is(input,select,textarea,.field){border-color:#2c3954!important}
+html.a11y-links a:not(.button):not(.mobile-bottom a):not(.brand):not(.footer-brand){text-decoration:underline!important;text-underline-offset:3px}
+html.a11y-links a:not(.button):hover{background:#fff4a8}
+html.a11y-still *,html.a11y-still *::before,html.a11y-still *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+
+/* ---- 20: reduced motion for every sheet (one existing rule only covered parts of style.css) ---- */
+@media (prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ---- 19: safe areas (index.html declares viewport-fit=cover) ---- */
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+
+/* ---- 19: any touch screen (tablets included): 44px targets and 16px fields ---- */
+@media (pointer:coarse){
+ input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}
+ .header-actions .support,.header-actions .login,.search-tabs button,.trip-type label,.dp-mode button,.chip-toggle,.lead-chip,.card-cta,.chat-button,.link-button,
+ #all-deals,.section-heading button,.back-link,.lead-link,#flight-sort,.filter-option,.leg-add,.text-button,summary,.preference-chips button,.sb-chip,.lead-filters button,.admin-top-actions .button,.header nav a{min-height:44px}
+ .header nav a{display:inline-flex;align-items:center}
+ details>summary{min-height:44px!important}
+ .back-link,.lead-link,.link-button{display:inline-flex;align-items:center}
+ .swap,#swap-route,.favorite,.heart-button,.modal-close,#close-mobile-menu,.dp-nav,.travelers-pop .counter-controls button,.leg-remove{min-width:44px;min-height:44px}
+ .site-footer a{display:flex;align-items:center;min-height:44px;padding:0}
+ #page-view a[href^="#/destination/"]:not(.button),.breadcrumbs a,.legal-toc a{min-height:44px;min-width:44px;display:inline-flex;align-items:center}
+ #home>footer>a,#home>footer>button{display:inline-flex;align-items:center;min-height:44px;padding-inline:6px}
+ .header nav a,.header nav button{padding-inline:4px}
+ .link-button,.lead-check,.compare-check{min-height:44px!important;display:inline-flex;align-items:center}
+ .prompt-input button{min-width:44px;min-height:44px;justify-content:center;align-items:center}
+ .dp-clear{min-width:44px;min-height:44px}
+}
+/* Tablets: the small labels that the phone block lifts to 12px. */
+@media (min-width:761px) and (max-width:1000px){
+ .brand span,.tab-note,#search-mode-note,.home-search-note,.fare-deal b,.fare-deal small,.fare-original,.fare-original span,.demo-chip,.eyebrow,.destination-price small,.card-body small,#home>footer span,#home>footer small,.demo-label,.trust-bar small,.site-footer small,.journey-progress b,.chat-panel-head span,.chat-disclosure,.learning-consent,.header-actions .support{font-size:12px!important}
+ #home>footer a,#home>footer button{font-size:13px!important}
+}
+/* Results: AA contrast for small price notes (#657986 on #fcfdfa was 4.4:1). */
+.flight-price small,.flight-price .fare-original,.filter-option small{color:#4f6271}
+.filter-option[aria-pressed=true] small{color:#fff}
+/* Owner admin on a phone/tablet */
+@media (pointer:coarse),(max-width:760px){
+ .admin-tabs a,.admin-panel select,.admin-panel button{min-height:44px}
+ .admin-tabs a{display:inline-flex;align-items:center}
+ .admin-panel a[href^="tel:"],.admin-panel a[href^="mailto:"]{display:inline-flex;align-items:center;min-height:44px}
+}
+
+/* ---- 19: phones and small tablets ---- */
+@media (max-width:760px){
+ /* iOS zooms into any field under 16px. */
+ input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}
+ .dp-fields input{min-height:44px}
+
+ /* Tap targets ≥ 44×44 */
+ .header-actions .support,.header-actions .login,.search-tabs button,.trip-type label,.dp-mode button,.chip-toggle,.lead-chip,.card-cta,.chat-button,
+ #all-deals,.section-heading button,.back-link,.lead-link,#flight-sort,.filter-option,.leg-add,.text-button,summary,.account-more summary,.preference-chips button,.sb-chip,.lead-filters button,.admin-top-actions .button,.link-button{min-height:44px}
+ #swap-route{width:44px;height:44px;min-width:44px}
+ .dp-clear{min-width:44px;min-height:44px}
+ .legal-toc a{min-height:44px}
+ .back-link,.lead-link{display:inline-flex;align-items:center}
+ .swap,.favorite,.heart-button,.modal-close,#close-mobile-menu,.dp-nav,.travelers-pop .counter-controls button,.leg-remove{min-width:44px;min-height:44px}
+ .swap{width:44px;height:44px}
+ .modal-close,#close-mobile-menu{width:44px;height:44px;place-items:center;justify-content:center;align-items:center}
+ .prompt-input button{min-width:44px;min-height:44px;justify-content:center;align-items:center}
+ .breadcrumbs a{display:inline-flex;align-items:center;min-height:44px}
+ .breadcrumbs{margin-bottom:14px}
+ .site-footer a{display:flex;align-items:center;min-height:44px;padding:0}
+ #home>footer{flex-wrap:wrap;gap:4px 14px;justify-content:center;font-size:12px;padding-bottom:16px}
+ #home>footer>a,#home>footer>button{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;font-size:13px;color:#2f4fa8;text-decoration:underline}
+ #page-view a[href^="#/destination/"]:not(.button){min-height:44px;display:inline-flex;align-items:center}
+ .travelers-pop .counter-controls button{width:44px;height:44px}
+
+ /* Search tabs and trip type fit one row at 360 (labels used to wrap, the "השראה" note spilled out). */
+ .search-tabs button{flex-wrap:wrap;column-gap:6px;row-gap:0;padding:6px 4px;align-content:center}
+ .search-tabs button svg{width:22px;height:22px}
+ .search-tabs .tab-note{flex-basis:100%;text-align:center;margin-top:-2px;line-height:1.1}
+ .trip-type{gap:2px;flex-wrap:wrap}
+ .trip-type label{white-space:nowrap;padding:6px 7px;gap:5px;font-size:13.5px}
+
+ /* Calendar: arrows sit on the month title so the 7 day columns get the full width (≥ 44px days at 360). */
+ .dp-body{display:block}
+ .dp-nav{position:absolute;top:0;z-index:1;width:44px;height:44px}
+ .dp-prev{right:0}.dp-next{left:0}
+ .dp-month h3{line-height:44px;margin:0 0 6px}
+ .dp-row>span{padding:1px 0}
+ .dp-day{min-height:44px;min-width:40px}
+
+ /* Text ≥ 12px */
+ .brand span,.tab-note,.benefits span,#search-mode-note,.home-search-note,.demo-chip,.demo-label,.chat-disclosure,.eyebrow,.breadcrumbs,.breadcrumbs span,footer,footer span,footer small,.site-footer small,
+ .fare-deal b,.fare-deal small,.fare-original,.fare-meta,.fare-dates,.steps li,.steps b,.dp-dow span,.card-badge,.card-description,.card-body small,.preference-chips button,
+ #reset-styles,.trust-bar strong,.trust-bar small,.filter-chips button,.destination-price small,.destination-hero span,.booking-card>small,.journey-progress li,.journey-progress b,
+ .chat-panel-head span,.quick-prompts button,.learning-consent,.account-stats span{font-size:12px!important}
+ .sb-chips .sb-chip,.sb-chip{min-height:44px!important}
+ .breadcrumbs a{min-width:44px;justify-content:center}
+ .legal-toc a{min-width:44px}
+ .brand span{font-size:12px}
+ .tab-note,.benefits span,.home-search-note,.demo-chip,.eyebrow,.chat-disclosure{font-size:12px}
+ .mobile-bottom>a,.mobile-bottom>button{font-size:12px;min-height:50px}
+
+ /* Fixed layers: bottom nav (z 20) < bot launcher (z 21) < toast (z 30). The launcher becomes a round
+    icon button just above the nav; toasts sit above both. Content gets room so nothing hides under them. */
+ .sb-launcher{width:52px;height:52px;min-height:52px;padding:0!important;justify-content:center;border-radius:50%;z-index:21;bottom:calc(78px + env(safe-area-inset-bottom))}
+ .sb-launcher .sb-launcher-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ .sb-launcher svg{width:24px;height:24px}
+ #toast{z-index:30;bottom:calc(140px + env(safe-area-inset-bottom))}
+ main{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+
+ /* Multi-city: leave room under the last leg for the place list so "add flight" stays reachable. */
+ .multi-legs .place-list{max-height:min(300px,45dvh)}
+ .multi-legs .leg-row .field,.multi-legs .leg-date{scroll-margin-bottom:180px}
+
+ /* Inputs scrolled above the on-screen keyboard and the bottom nav. */
+ input,select,textarea{scroll-margin-bottom:120px;scroll-margin-top:90px}
+
+ /* Dialogs: phone-sized and scrollable */
+ dialog#modal{width:calc(100% - 16px);max-width:none;max-height:calc(100dvh - 16px);padding:24px 18px calc(18px + env(safe-area-inset-bottom));border-radius:18px}
+ .legal-dl{grid-template-columns:1fr}
+ .legal-toc ol{columns:1}
+ .display-settings{padding:16px}
+}
+
+/* Landscape phones: the calendar dialog scrolls instead of clipping. */
+@media (max-height:500px) and (orientation:landscape){
+ dialog.date-picker,dialog#modal,.sb-dialog{max-height:100dvh;overflow:auto}
+ .mobile-bottom{padding-top:3px;padding-bottom:calc(3px + env(safe-area-inset-bottom))}
+ .mobile-bottom>a,.mobile-bottom>button{min-height:44px;flex-direction:row;gap:6px}
+}
+
+/* Small tablets (701–900px): the header row was ~35–80px wider than the screen (horizontal scroll at 768). */
+@media (min-width:701px) and (max-width:900px){
+ .header-inner{gap:14px}
+ .header nav{gap:12px}
+ .brand{min-width:0}
+ .brand strong{font-size:40px;letter-spacing:-2px}
+ .header-actions{gap:8px}
+ .support{padding:8px 10px}
+}
+@media (min-width:701px) and (max-width:780px){
+ .header nav a[href="#/tailor-made"]{display:none}
+}

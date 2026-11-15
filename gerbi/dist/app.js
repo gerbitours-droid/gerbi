@@ -12,6 +12,7 @@ import { leadRoutes, installResultsCta } from './leads.mjs';
 import { initSiteContent, cmsRoutes } from './cms-public.mjs';
 import { loadFx, onFx, getFx, fxNote, originalHtml, priceBasis, fareText } from './fx.mjs';
 import { converterRoutes, converterHtml, wireConverter } from './converter.mjs';
+import { legalRoutes } from './legal.mjs';
 import './support-bot.mjs';
 import { flightTakeSlot, mountFlightTake } from './ai-client.mjs';
 import { initMultiCity } from './multi-city.mjs';
@@ -365,7 +366,7 @@ if(!contactActions(contact,'x').length)document.querySelectorAll('.support, nav 
 window.addEventListener('hashchange',()=>{if(!activeSearch&&restoreSharedSearch())document.dispatchEvent(new Event('brief-changed'));});
 // Owner-edited texts and contact details (spec 18): cached copy now, fresh copy when /api/content/site answers.
 initSiteContent({contact,rerender:()=>pages.navigate(location.hash.slice(1)||'/')});
-const pages=initPages({routes:{...leadRoutes({contact}),...converterRoutes(),...cmsRoutes()},state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
+const pages=initPages({routes:{...leadRoutes({contact}),...converterRoutes(),...cmsRoutes(),...legalRoutes()},state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
  getFavorites:()=>favorites,
  getSavedFlights:()=>savedFlights,
  removeSavedFlight(id){return storeSavedFlights(savedFlights.filter(item=>item.id!==id));},

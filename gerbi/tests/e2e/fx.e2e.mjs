@@ -48,7 +48,7 @@ if (!LIVE || process.env.VERIFY === '1') {
   await page.locator('.flight-card').first().locator('[data-volero-offer]').click(); await page.waitForSelector('[data-save-flight]', { timeout: 60000 });
   log('verify modal price:', (await page.locator('.verified-price').innerText()).replace(/\n+/g, ' / '));
   await page.screenshot({ path: `${OUT}/verify-${tag}.png` });
-  await page.locator('[data-save-flight]').click(); await page.locator('#save-flight-status a').click(); await page.waitForSelector('.saved-flight');
+  await page.locator('[data-save-flight]').click(); await page.locator('#save-flight-status a[href="#/account"]').click(); await page.waitForSelector('.saved-flight');
   log('saved:', (await page.locator('.saved-flight').first().innerText()).replace(/\n+/g, ' / ').slice(0, 400));
   await page.locator('.saved-flight').first().scrollIntoViewIfNeeded(); await page.screenshot({ path: `${OUT}/saved-${tag}.png` });
   await page.locator('[data-copy-flight]').first().click().catch(() => {}); await page.waitForTimeout(200);
