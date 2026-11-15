@@ -58,39 +58,64 @@ for (const width of WIDTHS) for (const lang of LANGS) {
     await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: width < 700 ? false : true });
     results.push({ lang, width, route, ...r, errors: errors.splice(0) });
   }
-  // Interactive states on the home page: date picker, travelers, support bot, mobile menu.
+  // Interactive states: pickers, support bot (incl. an answer), planner chat, form validation, mobile menu.
+  const en = lang === 'en';
   const states = [
-    ['dates', async () => { await page.click('#dates-button'); }],
-    ['travelers', async () => { await page.click('#travelers-button'); }],
-    ['place-list', async () => { await page.fill('#destination', lang === 'en' ? 'lo' : 'לו'); }],
-    ['support-bot', async () => { await page.click('.sb-launcher'); }],
-    ...(width < 700 ? [['mobile-menu', async () => { await page.click('#mobile-menu-button'); }]] : [])
+    ['dates', '/', async () => { await page.click('#dates-button'); }],
+    ['travelers', '/', async () => { await page.click('#travelers-button'); }],
+    ['place-list', '/', async () => { await page.fill('#destination', en ? 'lo' : 'לו'); }],
+    ['support-bot', '/', async () => { await page.click('.sb-launcher'); }],
+    ['support-answer', '/', async () => { await page.click('.sb-launcher'); await page.waitForTimeout(300); await page.keyboard.type(en ? 'How much luggage can I take?' : 'כמה מזוודות מותר?'); await page.keyboard.press('Enter'); await page.waitForTimeout(1200); }],
+    ['planner-chat', '/planner', async () => { await page.fill('#page-chat-input', en ? 'from Tel Aviv to Rome in June, 2 adults 1 child 5 nights' : 'מתל אביב לרומא ביוני, 2 מבוגרים וילד, 5 לילות'); await page.click('#page-chat-form button[type=submit], #page-chat-form button'); await page.waitForTimeout(1500); }],
+    ['contact-invalid', '/contact', async () => { await page.click('form.lead-form [type=submit]'); }],
+    ['tailor-invalid', '/tailor-made', async () => { await page.click('form.lead-form [type=submit]'); }],
+    ['signup-invalid', '/account', async () => { await page.click('#signup-form [type=submit], #login-form [type=submit]'); }],
+    ['multi-city', '/', async () => { await page.check('[name=trip-type][value=multi]', { force: true }); }],
+    ...(width < 700 ? [['mobile-menu', '/', async () => { await page.click('#mobile-menu-button'); }]] : [])
   ];
-  for (const [state, act] of states) {
-    await page.goto(`${BASE}${root}`, { waitUntil: 'networkidle' }).catch(() => {});
-    await page.waitForTimeout(300);
+  if (process.env.LIVE) states.push(['live-results', '/', async () => {
+    await page.fill('#destination', en ? 'Rome' : 'רומא');
+    await page.click('#dates-button'); await page.fill('#start-date', '2027-03-10'); await page.fill('#end-date', '2027-03-15'); await page.click('#date-form button');
+    await page.click('.search-submit');
+    await page.waitForSelector('#live-results:not([hidden]) .flight-card, #live-results:not([hidden]) .empty-panel', { timeout: 60000 });
+    await page.waitForTimeout(800);
+  }], ['price-check', '/', async () => {
+    await page.fill('#destination', en ? 'Rome' : 'רומא');
+    await page.click('#dates-button'); await page.fill('#start-date', '2027-03-10'); await page.fill('#end-date', '2027-03-15'); await page.click('#date-form button');
+    await page.click('.search-submit');
+    await page.waitForSelector('#live-results:not([hidden]) .flight-card', { timeout: 60000 });
+    await page.locator('.flight-card').first().locator('[data-volero-offer]').click();
+    await page.waitForSelector('#modal[open]', { timeout: 60000 }); await page.waitForTimeout(2500);
+  }]);
+  for (const [state, path, act] of states) {
+    await page.goto(`${BASE}${root}#${path}`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.waitForTimeout(400);
     try { await act(); } catch (e) { results.push({ lang, width, route: `state:${state}`, failed: String(e.message).slice(0, 120) }); continue; }
     await page.waitForTimeout(400);
     const r = await page.evaluate(scan);
-    await page.screenshot({ path: `${OUT}/${lang}-${width}-state-${state}.png` });
+    await page.screenshot({ path: `${OUT}/${lang}-${width}-state-${state}.png`, fullPage: state === 'live-results' && width >= 700 });
     results.push({ lang, width, route: `state:${state}`, ...r, errors: errors.splice(0) });
   }
-  if (process.env.LIVE) {
-    await page.goto(`${BASE}${root}`, { waitUntil: 'networkidle' });
-    await page.fill('#destination', lang === 'en' ? 'Rome' : 'רומא');
-    await page.keyboard.press('Enter').catch(() => {});
-    await page.click('#dates-button');
-    await page.waitForTimeout(300);
-    const days = await page.$$('.dp-grid button:not([disabled])');
-    if (days.length > 30) { await days[20].click(); await days[25].click(); }
-    await page.keyboard.press('Escape').catch(() => {});
-    await page.click('.search-submit');
-    await page.waitForSelector('#live-results:not([hidden]) .live-offer, #live-results:not([hidden]) .search-error, #live-results:not([hidden]) [role=alert]', { timeout: 60000 }).catch(() => {});
-    await page.waitForTimeout(800);
-    const r = await page.evaluate(scan);
-    await page.screenshot({ path: `${OUT}/${lang}-${width}-state-live-results.png`, fullPage: width >= 700 });
-    results.push({ lang, width, route: 'state:live-results', ...r, errors: errors.splice(0) });
-  }
+  await context.close();
+}
+// Language switch: keeps the inner route, is remembered for a bare homepage visit, never redirects an inner Hebrew link.
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  const check = (name, ok, detail) => results.push({ lang: 'switch', width: 1440, route: `switch:${name}`, failed: ok ? undefined : detail, overflow: 0, hebrew: [], keys: [] });
+  await page.goto(`${BASE}/#/contact`, { waitUntil: 'load' });
+  await Promise.all([page.waitForURL(/\/en\/#\/contact$/), page.click('.header-actions .lang-switch')]);
+  check('keeps-route', page.url().endsWith('/en/#/contact'), page.url());
+  await page.goto(`${BASE}/`, { waitUntil: 'load' }); await page.waitForTimeout(300);
+  check('remembered', new URL(page.url()).pathname === '/en/', page.url());
+  await page.goto(`${BASE}/#/destinations`, { waitUntil: 'load' }); await page.waitForTimeout(300);
+  check('inner-link-stays-hebrew', new URL(page.url()).pathname === '/' && (await page.evaluate(() => document.documentElement.lang)) === 'he', page.url());
+  await Promise.all([page.waitForURL(/\/en\/#\/destinations$/), page.click('.header-actions .lang-switch')]);
+  await Promise.all([page.waitForURL((u) => new URL(u).pathname === '/'), page.click('.header-actions .lang-switch')]);
+  await page.goto(`${BASE}/`, { waitUntil: 'load' }); await page.waitForTimeout(300);
+  check('back-to-hebrew-remembered', new URL(page.url()).pathname === '/', page.url());
+  const head = await (await fetch(`${BASE}/en/`)).text();
+  check('server-en-head', /<html lang="en" dir="ltr">/.test(head) && /hreflang="he"/.test(head) && /<title[^>]*>Gerbi Tours/.test(head), head.slice(0, 200));
   await context.close();
 }
 await browser.close();
