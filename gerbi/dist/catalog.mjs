@@ -2,11 +2,16 @@
 // destination page, home showcase, inspiration, planner suggestions — and for the magic trip builder.
 // Pure data + helpers: no DOM, no i18n import, safe in Node and the browser.
 //   import { destinations, byCode, byId, search, rank, curatedPicks } from './catalog.mjs';
-// Text fields are { he, en }. Budget figures are rough per-person estimates (no flights) and are always shown as such.
+// Text fields are { he, en }. dailyBudgetIls {low,mid,high} = ₪ per person per day ON THE GROUND, excluding flights AND
+// lodging (food, attractions, local transport) — rough estimates, always shown as such.
+// `code` is an IATA city/airport code usable for flight search; optional `hotelCity` is the IATA city code to search hotels
+// under when it differs from `code`. Attractions may carry `area` = the English name of one of `areas[].name.en`.
 import greeceItaly from './catalog/greece-cyprus-italy.mjs';
 import iberiaBalkans from './catalog/iberia-balkans.mjs';
 import europeNorth from './catalog/europe-north.mjs';
+import europeCentralNordic from './catalog/europe-central-nordic.mjs';
 import eastMed from './catalog/east-med.mjs';
+import africa from './catalog/africa.mjs';
 import africaAsia from './catalog/africa-asia.mjs';
 import americasOceania from './catalog/americas-oceania.mjs';
 import images from './catalog/images.mjs';
@@ -34,7 +39,7 @@ const imageOf = (id) => {
   return { src: `/assets/destinations/${id}.webp`, thumb: `/assets/destinations/${id}-600.webp`, alt: meta.alt || { he: '', en: '' }, credit: meta.credit || '', license: meta.license || '', source: meta.source || '' };
 };
 
-export const destinations = [...greeceItaly, ...iberiaBalkans, ...europeNorth, ...eastMed, ...africaAsia, ...americasOceania]
+export const destinations = [...greeceItaly, ...iberiaBalkans, ...europeNorth, ...europeCentralNordic, ...eastMed, ...africa, ...africaAsia, ...americasOceania]
   .map((d) => ({ ...d, image: { ...imageOf(d.id), ...(d.image || {}), alt: { ...imageOf(d.id).alt, ...(d.image?.alt || {}) } } }));
 
 // Rough order of popularity with Israeli travellers: the tie-break of every ranking and the default listing order.
@@ -184,5 +189,8 @@ export function validateDestination(d) {
   need(/^[A-Z]{3}$/.test(pr.currency || '') && text(pr.language) && /^[A-Za-z_]+\/[A-Za-z_]+/.test(pr.timeZone || '') && text(pr.visaNoteForIsraelis) && text(pr.kosher) && text(pr.shabbat), 'practical');
   need(text(d.seasonsNote), 'seasonsNote');
   need(!d.advisory || text(d.advisory), 'advisory');
+  need(d.hotelCity === undefined || /^[A-Z]{3}$/.test(d.hotelCity), 'hotelCity');
+  const areaNames = (d.areas || []).map((a) => a.name?.en);
+  need((d.attractions || []).every((a) => a.area === undefined || areaNames.includes(a.area)), `attraction area ${(d.attractions || []).filter((a) => a.area !== undefined && !areaNames.includes(a.area)).map((a) => a.area)}`);
   return problems;
 }

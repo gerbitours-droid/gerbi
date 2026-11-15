@@ -5,7 +5,7 @@ export default [
     id: 'dubai', trip: 'dubai', code: 'DXB', airports: ['DXB'],
     name: { he: 'דובאי', en: 'Dubai' }, country: { he: 'איחוד האמירויות', en: 'United Arab Emirates' }, region: 'middle-east',
     tags: ['city', 'beach', 'family', 'with_children', 'water_slides', 'shopping', 'luxury', 'direct_flight', 'kosher'],
-    bestMonths: [11, 12, 1, 2, 3], flightHours: 3.5, direct: true, budgetLevel: 3, dailyBudgetIls: { low: 450, mid: 850, high: 1800 },
+    bestMonths: [11, 12, 1, 2, 3], flightHours: 3.5, direct: true, budgetLevel: 3, dailyBudgetIls: { low: 200, mid: 450, high: 1000 },
     summary: { he: 'עיר של שיאים: גורדי שחקים, קניונים ענקיים, פארקי מים וחופים — עם מזג אוויר נעים בחורף, ומתאימה במיוחד למשפחות.', en: 'A city of superlatives: skyscrapers, giant malls, water parks and beaches — with pleasant winter weather, and great for families.' },
     highlights: [
       { he: 'תצפית מבורג׳ ח׳ליפה', en: 'The view from the Burj Khalifa' },

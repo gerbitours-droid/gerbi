@@ -5,7 +5,7 @@ export default [
     id: 'santorini', trip: 'santorini', code: 'JTR', airports: ['JTR'],
     name: { he: 'סנטוריני', en: 'Santorini' }, country: { he: 'יוון', en: 'Greece' }, region: 'europe',
     tags: ['beach', 'couple', 'relaxation', 'short_break', 'direct_flight', 'luxury', 'food'],
-    bestMonths: [5, 6, 9, 10], flightHours: 2.5, direct: true, budgetLevel: 3, dailyBudgetIls: { low: 450, mid: 800, high: 1600 },
+    bestMonths: [5, 6, 9, 10], flightHours: 2.5, direct: true, budgetLevel: 3, dailyBudgetIls: { low: 220, mid: 400, high: 750 },
     summary: { he: 'אי געשי עם כפרים לבנים על שפת מכתש ענק, שקיעות מפורסמות וחופים של חול שחור — יעד זוגי קלאסי במרחק טיסה קצרה.', en: 'A volcanic island of whitewashed villages on the rim of a vast caldera, famous sunsets and black-sand beaches — a classic couples’ escape a short flight away.' },
     highlights: [
       { he: 'שקיעה מעל הקלדרה באויה', en: 'Sunset over the caldera in Oia' },
@@ -51,7 +51,7 @@ export default [
     id: 'rome', trip: 'rome', code: 'FCO', airports: ['FCO'],
     name: { he: 'רומא', en: 'Rome' }, country: { he: 'איטליה', en: 'Italy' }, region: 'europe',
     tags: ['city', 'culture', 'food', 'couple', 'short_break', 'direct_flight', 'kosher', 'shopping'],
-    bestMonths: [3, 4, 5, 6, 9, 10, 11], flightHours: 3.5, direct: true, budgetLevel: 3, dailyBudgetIls: { low: 400, mid: 700, high: 1400 },
+    bestMonths: [3, 4, 5, 6, 9, 10, 11], flightHours: 3.5, direct: true, budgetLevel: 3, dailyBudgetIls: { low: 200, mid: 350, high: 650 },
     summary: { he: 'העיר הנצחית: אלפיים שנות היסטוריה בכל פינה, כיכרות ומזרקות, אוכל איטלקי אמיתי ורובע יהודי עתיק — טוב לסופ״ש ארוך או לשבוע.', en: 'The Eternal City: two thousand years of history on every corner, piazzas and fountains, real Italian food and an ancient Jewish quarter — great for a long weekend or a week.' },
     highlights: [
       { he: 'הקולוסיאום והפורום הרומי', en: 'The Colosseum and the Roman Forum' },

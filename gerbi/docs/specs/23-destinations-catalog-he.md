@@ -42,12 +42,13 @@ import { destinations, byCode, byId, search, rank } from './catalog.mjs';
 | `flightHours` | number | טיסה טיפוסית מנתב״ג (כולל עצירה אם אין ישירה) — הערכה |
 | `direct` | bool | יש בדרך כלל קו ישיר מנתב״ג (עונתי נחשב) |
 | `budgetLevel` | 1..4 | 1 = זול יחסית, 4 = יקר מאוד |
-| `dailyBudgetIls` | `{low,mid,high}` | ₪ לאדם ליום **ללא טיסה**, הערכה גסה בלבד; מוצג תמיד עם "הערכה" |
+| `dailyBudgetIls` | `{low,mid,high}` | ₪ לאדם ליום **בשטח — בלי טיסות ובלי לינה** (אוכל, אטרקציות, תחבורה מקומית). הערכה גסה בלבד; מוצג תמיד עם "הערכה" |
+| `hotelCity` | IATA אופציונלי | קוד עיר לחיפוש מלונות אצל הספק כשהוא שונה מ־`code` (למשל שדה של אי) |
 | `image` | `{src, thumb, alt{he,en}, credit, license, source}` | מגיע מ־`dist/catalog/images.mjs` |
 | `summary` | `{he,en}` | 1–2 משפטים |
 | `highlights` | `{he,en}[]` | 5–8 |
 | `areas` | `{name{he,en}, forWhom{he,en}}[]` | איפה לישון — אזורים, לא מלונות |
-| `attractions` | `{name{he,en}, kind, durationH, tags}[]` | 8–15 מקומות אמיתיים. `kind`: `landmark, museum, nature, beach, neighborhood, market, viewpoint, park, experience, religious` |
+| `attractions` | `{name{he,en}, kind, durationH, tags, area?}[]` | 8–15 מקומות אמיתיים. `area` (אופציונלי) = השם האנגלי של אחד מ־`areas` — לקיבוץ ימים. `kind`: `landmark, museum, nature, beach, neighborhood, market, viewpoint, park, experience, religious` |
 | `dayTrips` | `{name{he,en}, hours, note{he,en}}[]` | `hours` = נסיעה לכל כיוון |
 | `transport` | `{carRecommended, note{he,en}}` | |
 | `practical` | `{currency, language{he,en}, timeZone, visaNoteForIsraelis{he,en}, kosher{he,en}, shabbat{he,en}}` | ויזה: ניסוח כללי + "לבדוק במקורות הרשמיים" |
