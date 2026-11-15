@@ -1,0 +1,1607 @@
+{
+ "base": "http://127.0.0.1:4188",
+ "checked": 135,
+ "problems": 0,
+ "results": [
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/destinations",
+   "dir": "rtl",
+   "title": "לאן מתחשק לכם להגיע? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: לאן מתחשק לכם להגיע? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/destination/rome",
+   "dir": "rtl",
+   "title": "רומא.החופשה מתחילה כאן. | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: רומא.החופשה מתחילה כאן. | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/inspiration",
+   "dir": "rtl",
+   "title": "קודם בוחרים איך רוצים להרגיש | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: קודם בוחרים איך רוצים להרגיש | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/planner",
+   "dir": "rtl",
+   "title": "אז… על איזו חופשה חולמים? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: אז… על איזו חופשה חולמים? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/results",
+   "dir": "rtl",
+   "title": "מוצאים את החופשה שמתאימה לכם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: מוצאים את החופשה שמתאימה לכם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/trip/rome",
+   "dir": "rtl",
+   "title": "החופשה שלכם ברומא | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: החופשה שלכם ברומא | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/compare",
+   "dir": "rtl",
+   "title": "מה מתאים לכם יותר? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: מה מתאים לכם יותר? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/blog",
+   "dir": "rtl",
+   "title": "המדריכים של ג׳רבי טורס | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: המדריכים של ג׳רבי טורס | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/blog/__first",
+   "dir": "rtl",
+   "title": "פחות לרוץ, יותר להיות בחופשה | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: פחות לרוץ, יותר להיות בחופשה | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/favorites",
+   "dir": "rtl",
+   "title": "המועדפים שלי | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: המועדפים שלי | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/account",
+   "dir": "rtl",
+   "title": "החופשות שלכם מתחילות כאן | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: החופשות שלכם מתחילות כאן | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/contact",
+   "dir": "rtl",
+   "title": "נשמח לשמוע מכם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: נשמח לשמוע מכם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/tailor-made",
+   "dir": "rtl",
+   "title": "הטיול שלכם, בדיוק כמו שדמיינתם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: הטיול שלכם, בדיוק כמו שדמיינתם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/support",
+   "dir": "rtl",
+   "title": "במה אפשר לעזור? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: במה אפשר לעזור? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/converter",
+   "dir": "rtl",
+   "title": "מחשבון המרת מטבע | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: מחשבון המרת מטבע | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/privacy",
+   "dir": "rtl",
+   "title": "מדיניות פרטיות | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: מדיניות פרטיות | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/terms",
+   "dir": "rtl",
+   "title": "תנאי שימוש ותנאים כלליים | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: תנאי שימוש ותנאים כלליים | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/accessibility",
+   "dir": "rtl",
+   "title": "הצהרת נגישות | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: הצהרת נגישות | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "/no-such-page",
+   "dir": "rtl",
+   "title": "נראה שלקחנו פנייה אחרת | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: נראה שלקחנו פנייה אחרת | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:dates",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:travelers",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:place-list",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:support-bot",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:support-answer",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:planner-chat",
+   "dir": "rtl",
+   "title": "אז… על איזו חופשה חולמים? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: אז… על איזו חופשה חולמים? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:contact-invalid",
+   "dir": "rtl",
+   "title": "נשמח לשמוע מכם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: נשמח לשמוע מכם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:tailor-invalid",
+   "dir": "rtl",
+   "title": "הטיול שלכם, בדיוק כמו שדמיינתם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: הטיול שלכם, בדיוק כמו שדמיינתם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:signup-invalid",
+   "dir": "rtl",
+   "title": "החופשות שלכם מתחילות כאן | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: החופשות שלכם מתחילות כאן | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:multi-city",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:live-results",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 1440,
+   "route": "state:price-check",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/destinations",
+   "dir": "ltr",
+   "title": "Where would you like to go? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/destination/rome",
+   "dir": "ltr",
+   "title": "Rome.Your holiday starts here. | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/inspiration",
+   "dir": "ltr",
+   "title": "First, choose how you want to feel | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/planner",
+   "dir": "ltr",
+   "title": "So… what holiday are you dreaming of? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/results",
+   "dir": "ltr",
+   "title": "Find the holiday that suits you | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/trip/rome",
+   "dir": "ltr",
+   "title": "Your holiday in Rome | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/compare",
+   "dir": "ltr",
+   "title": "Which suits you better? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/blog",
+   "dir": "ltr",
+   "title": "Gerbi Tours travel guides | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/blog/__first",
+   "dir": "ltr",
+   "title": "Less rushing, more holiday | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/favorites",
+   "dir": "ltr",
+   "title": "My favorites | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/account",
+   "dir": "ltr",
+   "title": "Your holidays start here | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/contact",
+   "dir": "ltr",
+   "title": "We’d love to hear from you | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/tailor-made",
+   "dir": "ltr",
+   "title": "Your trip, exactly as you imagined it | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/support",
+   "dir": "ltr",
+   "title": "How can we help? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/converter",
+   "dir": "ltr",
+   "title": "Currency converter | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/privacy",
+   "dir": "ltr",
+   "title": "Privacy policy | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/terms",
+   "dir": "ltr",
+   "title": "Terms of use and general conditions | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/accessibility",
+   "dir": "ltr",
+   "title": "Accessibility statement | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "/no-such-page",
+   "dir": "ltr",
+   "title": "Looks like we took a wrong turn | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:dates",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:travelers",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:place-list",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:support-bot",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:support-answer",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:planner-chat",
+   "dir": "ltr",
+   "title": "So… what holiday are you dreaming of? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:contact-invalid",
+   "dir": "ltr",
+   "title": "We’d love to hear from you | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:tailor-invalid",
+   "dir": "ltr",
+   "title": "Your trip, exactly as you imagined it | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:signup-invalid",
+   "dir": "ltr",
+   "title": "Your holidays start here | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:multi-city",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:live-results",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 1440,
+   "route": "state:price-check",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/destinations",
+   "dir": "rtl",
+   "title": "לאן מתחשק לכם להגיע? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: לאן מתחשק לכם להגיע? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/destination/rome",
+   "dir": "rtl",
+   "title": "רומא.החופשה מתחילה כאן. | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: רומא.החופשה מתחילה כאן. | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/inspiration",
+   "dir": "rtl",
+   "title": "קודם בוחרים איך רוצים להרגיש | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: קודם בוחרים איך רוצים להרגיש | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/planner",
+   "dir": "rtl",
+   "title": "אז… על איזו חופשה חולמים? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: אז… על איזו חופשה חולמים? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/results",
+   "dir": "rtl",
+   "title": "מוצאים את החופשה שמתאימה לכם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: מוצאים את החופשה שמתאימה לכם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/trip/rome",
+   "dir": "rtl",
+   "title": "החופשה שלכם ברומא | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: החופשה שלכם ברומא | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/compare",
+   "dir": "rtl",
+   "title": "מה מתאים לכם יותר? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: מה מתאים לכם יותר? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/blog",
+   "dir": "rtl",
+   "title": "המדריכים של ג׳רבי טורס | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: המדריכים של ג׳רבי טורס | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/blog/__first",
+   "dir": "rtl",
+   "title": "פחות לרוץ, יותר להיות בחופשה | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: פחות לרוץ, יותר להיות בחופשה | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/favorites",
+   "dir": "rtl",
+   "title": "המועדפים שלי | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: המועדפים שלי | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/account",
+   "dir": "rtl",
+   "title": "החופשות שלכם מתחילות כאן | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: החופשות שלכם מתחילות כאן | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/contact",
+   "dir": "rtl",
+   "title": "נשמח לשמוע מכם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: נשמח לשמוע מכם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/tailor-made",
+   "dir": "rtl",
+   "title": "הטיול שלכם, בדיוק כמו שדמיינתם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: הטיול שלכם, בדיוק כמו שדמיינתם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/support",
+   "dir": "rtl",
+   "title": "במה אפשר לעזור? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: במה אפשר לעזור? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/converter",
+   "dir": "rtl",
+   "title": "מחשבון המרת מטבע | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: מחשבון המרת מטבע | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/privacy",
+   "dir": "rtl",
+   "title": "מדיניות פרטיות | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: מדיניות פרטיות | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/terms",
+   "dir": "rtl",
+   "title": "תנאי שימוש ותנאים כלליים | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: תנאי שימוש ותנאים כלליים | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/accessibility",
+   "dir": "rtl",
+   "title": "הצהרת נגישות | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: הצהרת נגישות | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "/no-such-page",
+   "dir": "rtl",
+   "title": "נראה שלקחנו פנייה אחרת | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: נראה שלקחנו פנייה אחרת | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:dates",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:travelers",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:place-list",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:support-bot",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:support-answer",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:planner-chat",
+   "dir": "rtl",
+   "title": "אז… על איזו חופשה חולמים? | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: אז… על איזו חופשה חולמים? | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:contact-invalid",
+   "dir": "rtl",
+   "title": "נשמח לשמוע מכם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: נשמח לשמוע מכם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:tailor-invalid",
+   "dir": "rtl",
+   "title": "הטיול שלכם, בדיוק כמו שדמיינתם | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: הטיול שלכם, בדיוק כמו שדמיינתם | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:signup-invalid",
+   "dir": "rtl",
+   "title": "החופשות שלכם מתחילות כאן | ג׳רבי טורס",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: החופשות שלכם מתחילות כאן | ג׳רבי טורס"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:multi-city",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:mobile-menu",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:live-results",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "he",
+   "width": 375,
+   "route": "state:price-check",
+   "dir": "rtl",
+   "title": "ג׳רבי טורס | החופשה שלכם מתחילה כאן",
+   "overflow": 0,
+   "hebrew": [
+    "<title>: ג׳רבי טורס | החופשה שלכם מתחילה כאן"
+   ],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/destinations",
+   "dir": "ltr",
+   "title": "Where would you like to go? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/destination/rome",
+   "dir": "ltr",
+   "title": "Rome.Your holiday starts here. | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/inspiration",
+   "dir": "ltr",
+   "title": "First, choose how you want to feel | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/planner",
+   "dir": "ltr",
+   "title": "So… what holiday are you dreaming of? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/results",
+   "dir": "ltr",
+   "title": "Find the holiday that suits you | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/trip/rome",
+   "dir": "ltr",
+   "title": "Your holiday in Rome | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/compare",
+   "dir": "ltr",
+   "title": "Which suits you better? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/blog",
+   "dir": "ltr",
+   "title": "Gerbi Tours travel guides | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/blog/__first",
+   "dir": "ltr",
+   "title": "Less rushing, more holiday | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/favorites",
+   "dir": "ltr",
+   "title": "My favorites | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/account",
+   "dir": "ltr",
+   "title": "Your holidays start here | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/contact",
+   "dir": "ltr",
+   "title": "We’d love to hear from you | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/tailor-made",
+   "dir": "ltr",
+   "title": "Your trip, exactly as you imagined it | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/support",
+   "dir": "ltr",
+   "title": "How can we help? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/converter",
+   "dir": "ltr",
+   "title": "Currency converter | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/privacy",
+   "dir": "ltr",
+   "title": "Privacy policy | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/terms",
+   "dir": "ltr",
+   "title": "Terms of use and general conditions | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/accessibility",
+   "dir": "ltr",
+   "title": "Accessibility statement | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "/no-such-page",
+   "dir": "ltr",
+   "title": "Looks like we took a wrong turn | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:dates",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:travelers",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:place-list",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:support-bot",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:support-answer",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:planner-chat",
+   "dir": "ltr",
+   "title": "So… what holiday are you dreaming of? | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:contact-invalid",
+   "dir": "ltr",
+   "title": "We’d love to hear from you | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:tailor-invalid",
+   "dir": "ltr",
+   "title": "Your trip, exactly as you imagined it | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:signup-invalid",
+   "dir": "ltr",
+   "title": "Your holidays start here | Gerbi Tours",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:multi-city",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:mobile-menu",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:live-results",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "en",
+   "width": 375,
+   "route": "state:price-check",
+   "dir": "ltr",
+   "title": "Gerbi Tours | Your holiday starts here",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": [],
+   "errors": []
+  },
+  {
+   "lang": "switch",
+   "width": 1440,
+   "route": "switch:keeps-route",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": []
+  },
+  {
+   "lang": "switch",
+   "width": 1440,
+   "route": "switch:remembered",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": []
+  },
+  {
+   "lang": "switch",
+   "width": 1440,
+   "route": "switch:inner-link-stays-hebrew",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": []
+  },
+  {
+   "lang": "switch",
+   "width": 1440,
+   "route": "switch:back-to-hebrew-remembered",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": []
+  },
+  {
+   "lang": "switch",
+   "width": 1440,
+   "route": "switch:server-en-head",
+   "overflow": 0,
+   "hebrew": [],
+   "keys": []
+  }
+ ]
+}
