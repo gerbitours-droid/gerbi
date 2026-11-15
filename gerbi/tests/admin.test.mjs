@@ -167,6 +167,7 @@ test('leads: status, notes, filters, counts and a safe CSV export; the session a
     assert.deepEqual(data.counts, { all: 2, new: 2, progress: 0, closed: 0 });
     assert.equal((await c.call('PATCH', '/api/admin/leads/aaaaaaaa-1111', { status: 'progress' })).status, 200);
     assert.equal((await c.call('PATCH', '/api/admin/leads/aaaaaaaa-1111', { note: 'התקשרתי, תחזור מחר' })).status, 200);
+    assert.equal((await leadStore.list('all', 10)).find((l) => l.id === 'aaaaaaaa-1111').status, 'progress', 'status stored on the lead record too');
     assert.equal((await c.call('PATCH', '/api/admin/leads/aaaaaaaa-1111', { status: 'bogus' })).status, 400);
     assert.equal((await c.call('PATCH', '/api/admin/leads/aaaaaaaa-1111', { note: 'x'.repeat(1001) })).status, 400);
     assert.equal((await c.call('PATCH', '/api/admin/leads/zzzzzzzz-9999', { status: 'closed' })).status, 404);

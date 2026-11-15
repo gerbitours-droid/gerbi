@@ -180,6 +180,8 @@ async function route(req, res, url, { send, body, store, sessions, leadStore, en
     entry.updatedAt = new Date().toISOString();
     meta[match[1]] = entry;
     await leadStore.set('meta', meta);
+    // The status also lives on the lead record itself, so other readers (the customer area) see it.
+    if (input.status && /^[A-Za-z0-9-]+$/.test(match[1])) await leadStore.setListStatus?.('all', match[1], input.status);
     send(200, { ok: true, status: entry.status, notes: entry.notes }); return true;
   }
 

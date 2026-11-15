@@ -372,7 +372,7 @@ async function fxTab() {
   const put = async (body, done) => {
     status(out, 'שומרים…');
     try {
-      const r = await fetch('/api/fx/override', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const r = await fetch('/api/fx/override', { method: body ? 'PUT' : 'DELETE', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
       const data = await r.json().catch(() => null);
       if (r.status === 404) return unavailable();
       if (r.status === 401) return showLogin('החיבור הסתיים. היכנסו שוב.');
@@ -390,7 +390,7 @@ async function fxTab() {
     const exp = $('#fx-exp').value, note = $('#fx-note').value.trim();
     put({ rates, ...(note ? { note } : {}), ...(exp ? { expiresAt: new Date(exp + 'T23:59:59+02:00').toISOString() } : {}) }, 'השער הידני נשמר.');
   };
-  $('#fx-clear').onclick = () => { if (confirm('לבטל את השער הידני ולחזור לשער האוטומטי?')) { $('#fx-usd').value = ''; $('#fx-eur').value = ''; put({ rates: null }, 'השער הידני בוטל. חזרנו לשער האוטומטי.'); } };
+  $('#fx-clear').onclick = () => { if (confirm('לבטל את השער הידני ולחזור לשער האוטומטי?')) { $('#fx-usd').value = ''; $('#fx-eur').value = ''; put(null, 'השער הידני בוטל. חזרנו לשער האוטומטי.'); } };
 }
 
 // ---------- Support escalations (support bot module: GET /api/support/escalations) ----------
