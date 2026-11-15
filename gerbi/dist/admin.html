@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">
+<title>ניהול האתר | ג׳רבי טורס</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/pages.css"><link rel="stylesheet" href="/leads.css"><link rel="stylesheet" href="/cms.css"><link rel="stylesheet" href="/admin.css">
+<script type="module" src="/admin.mjs"></script>
+</head>
+<body class="admin-body">
+<section id="login-view" class="admin-login" hidden>
+ <form id="login-form" class="admin-card" novalidate>
+  <span class="eyebrow">ג׳רבי טורס · לבעלי האתר בלבד</span>
+  <h1>כניסה לניהול האתר</h1>
+  <div class="lead-field"><label for="password">סיסמה</label><input id="password" name="password" type="password" autocomplete="current-password" dir="ltr" required aria-describedby="login-status"></div>
+  <button class="button yellow" type="submit">כניסה</button>
+  <p id="login-status" role="status" class="admin-status"></p>
+ </form>
+</section>
+<div id="app-view" class="admin-shell" hidden>
+ <header class="admin-top">
+  <strong>ג׳רבי טורס <span>· ניהול</span></strong>
+  <div class="admin-top-actions"><a class="button secondary" href="/" target="_blank" rel="noopener">לאתר</a><button class="button secondary" type="button" id="logout">יציאה</button></div>
+ </header>
+ <nav class="admin-tabs" aria-label="אזורי ניהול">
+  <a href="#leads" data-tab="leads">לידים</a>
+  <a href="#blog" data-tab="blog">בלוג</a>
+  <a href="#site" data-tab="site">תוכן האתר</a>
+  <a href="#fx" data-tab="fx">שער מטבע</a>
+  <a href="#support" data-tab="support">שיחות שירות</a>
+ </nav>
+ <main id="panel" class="admin-panel" tabindex="-1"></main>
+</div>
+</body>
+</html>

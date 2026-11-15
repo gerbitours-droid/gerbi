@@ -9,9 +9,35 @@
     }
   },
   "rewrites": [
-    { "source": "/leads-admin", "destination": "/leads-admin.html" }
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    }
   ],
   "headers": [
-    { "source": "/leads-admin(.html)?", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "no-store" }] }
+    {
+      "source": "/admin(.html)?",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/leads-admin(.html)?",
+      "destination": "/admin",
+      "permanent": true
+    }
   ]
 }

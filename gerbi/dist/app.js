@@ -9,6 +9,7 @@ import { scoreOffers, rankScored, needsTieBreak, badges, diverseTop, explain, it
 import { SAVED_FLIGHTS_KEY, flightSnapshot, restoreSavedFlights, addSavedFlight, searchLink, parseSearchLink, followUpText, contactActions } from './saved-flights.mjs';
 import { initPages } from './pages.mjs';
 import { leadRoutes, installResultsCta } from './leads.mjs';
+import { initSiteContent, cmsRoutes } from './cms-public.mjs';
 const icons=name=>`<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const money=n=>new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:0}).format(n);
 const $=s=>document.querySelector(s);
@@ -330,7 +331,9 @@ initDealsStrip({after:$('.search-panel'),today:()=>localDate(),onPick(deal){
  state.start=deal.depart;state.end=deal.back;showDates();document.dispatchEvent(new Event('brief-changed'));$('#search-form').requestSubmit();}});
 if(!contactActions(contact,'x').length)document.querySelectorAll('.support, nav a[href="#/support"]').forEach(el=>{const icon=el.querySelector('svg');el.textContent='עזרה ושאלות';if(icon)el.prepend(icon);});
 window.addEventListener('hashchange',()=>{if(!activeSearch&&restoreSharedSearch())document.dispatchEvent(new Event('brief-changed'));});
-const pages=initPages({routes:leadRoutes({contact}),state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
+// Owner-edited texts and contact details (spec 18): cached copy now, fresh copy when /api/content/site answers.
+initSiteContent({contact,rerender:()=>pages.navigate(location.hash.slice(1)||'/')});
+const pages=initPages({routes:{...leadRoutes({contact}),...cmsRoutes()},state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
  getFavorites:()=>favorites,
  getSavedFlights:()=>savedFlights,
  removeSavedFlight(id){return storeSavedFlights(savedFlights.filter(item=>item.id!==id));},

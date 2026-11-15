@@ -1,0 +1,11 @@
+/* Owner-edited content on the public site (spec 18): announcement banner and Markdown blog bodies. */
+.site-banner{background:var(--navy);color:#fff;text-align:center;font-size:14px;line-height:1.6;padding:9px 16px}
+.site-banner a{color:var(--yellow);font-weight:700;text-decoration:underline;margin-inline-start:6px}
+.cms-body ul,.cms-body ol{color:#536480;line-height:2;padding-inline-start:22px;margin:0 0 16px}
+.cms-body h3{font-size:19px;margin:22px 0 8px}
+.cms-body blockquote{margin:18px 0;padding:10px 16px;border-inline-start:4px solid var(--yellow);background:#fffbe6;border-radius:8px;color:#4a5872;line-height:1.9}
+.cms-body img{max-width:100%;height:auto;border-radius:14px;margin:10px 0}
+.cms-body a{color:var(--blue);text-decoration:underline}
+.cms-body code{background:#eef4fb;border-radius:5px;padding:1px 5px;font-size:.92em}
+.cms-body hr{border:0;border-top:1px solid var(--border);margin:24px 0}
+.article-tags{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0}

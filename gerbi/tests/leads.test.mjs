@@ -175,11 +175,14 @@ test('the site server routes /api/leads and serves the noindex owner page', asyn
     assert.equal((await fetch(`${base}/api/leads`)).status, 404);
     const invalid = await fetch(`${base}/api/leads`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.0.3.1' }, body: JSON.stringify({ type: 'contact' }) });
     assert.equal(invalid.status, 400);
-    const page = await fetch(`${base}/leads-admin`);
+    const legacy = await fetch(`${base}/leads-admin`, { redirect: 'manual' });
+    assert.equal(legacy.status, 301);
+    assert.equal(legacy.headers.get('location'), '/admin');
+    const page = await fetch(`${base}/admin`);
     assert.equal(page.status, 200);
     assert.equal(page.headers.get('x-robots-tag'), 'noindex, nofollow');
     assert.match(await page.text(), /<meta name="robots" content="noindex, nofollow">/);
-    for (const file of ['/leads.mjs', '/leads-validate.mjs', '/leads.css', '/leads-admin.mjs']) assert.equal((await fetch(base + file)).status, 200, file);
+    for (const file of ['/leads.mjs', '/leads-validate.mjs', '/leads.css', '/admin.mjs']) assert.equal((await fetch(base + file)).status, 200, file);
   } finally {
     if (saved !== undefined) process.env.LEADS_ADMIN_TOKEN = saved;
     serverDefault.closeAllConnections(); await new Promise((resolve) => serverDefault.close(resolve));

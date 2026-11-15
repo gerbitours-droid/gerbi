@@ -19,6 +19,7 @@ import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm
 import { places } from './dist/places.mjs';
 import { learnFromChoice } from './dist/scoring.mjs';
 import { handleLeads } from './backend/leads.mjs';
+import { handleAdmin, bridgeAdminSession } from './backend/admin.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
@@ -27,6 +28,8 @@ const llmCache = createStore('llm-cache', dataDirectory);
 // Learned multipliers on the prices of time and inconvenience (spec §2.6), shared by all travelers.
 const learnedStore = createStore('learned-costs', dataDirectory);
 const leadStore = createStore('leads', dataDirectory);
+// Owner admin (spec 18): editable content and owner sessions.
+const contentStore = createStore('content', dataDirectory), adminSessions = createStore('admin', dataDirectory);
 const featureVector = (value) => Object.fromEntries(['hour', 'stop', 'longWait', 'overnight', 'offHours', 'nightDeparture'].map((key) => [key, Number.isFinite(value?.[key]) ? Math.max(0, Math.min(100, value[key])) : 0]));
 const placeCodes = new Set(places.map((place) => place.code));
 // The canonical brief the decision endpoints accept: every field re-validated, nothing free-text.
@@ -90,6 +93,7 @@ export function createServer() {
   const send = (code,data) => json(res, code, data);
   try {
    const url = new URL(req.url,'http://localhost');
+   await bridgeAdminSession(req, url, { store:adminSessions });
    if (url.pathname === '/api/status') { const partner = partnerStatus(); return send(200,{ mode:'demo', provider:'supplier', credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), connected:Boolean(supplier.lastOkAt && (!supplier.lastErrorAt || supplier.lastOkAt > supplier.lastErrorAt)), supplier:{ lastOkAt:supplier.lastOkAt, lastErrorAt:supplier.lastErrorAt, lastError:supplier.lastError, calls:supplier.calls, cacheHits:supplier.cacheHits }, booking:process.env.VOLERO_BOOKING_ENABLED === 'true' ? 'enabled' : 'disabled', storage:process.env.UPSTASH_REDIS_REST_URL ? 'upstash' : 'local', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available:partner.configured && !partner.circuitOpen && partner.tokensLeftToday > 2000 } }); }
    if (url.pathname === '/api/deals' && req.method === 'GET') {
     const result = process.env.VOLERO_CLIENT_ID ? await deals.get({ background }) : { deals: [], updatedAt: null, stale: false, refreshing: false };
@@ -197,15 +201,17 @@ export function createServer() {
     return send(503,{error:'provider_not_connected',message:'אין כרגע חיבור מאומת לספק. לא ניתן לאשר מחיר או זמינות, ולא בוצעה הזמנה.'});
    }
    if (await handleLeads(req, url, { send, body, store:leadStore })) return;
+   if (await handleAdmin(req, res, url, { send, body, store:contentStore, sessions:adminSessions, leadStore })) return;
    if (url.pathname.startsWith('/api/')) return send(404,{error:'not_found'});
    if (!['GET','HEAD'].includes(req.method)) return send(405,{error:'method_not_allowed'});
    let decoded;
    try { decoded = decodeURIComponent(url.pathname); } catch { return send(400,{error:'invalid_path'}); }
-   if (decoded === '/leads-admin' || decoded === '/leads-admin.html') { decoded = '/leads-admin.html'; res.setHeader('X-Robots-Tag','noindex, nofollow'); }
+   if (decoded === '/leads-admin' || decoded === '/leads-admin.html') { res.writeHead(301, { Location:'/admin', 'Cache-Control':'no-store' }); return res.end(); }
+   if (decoded === '/admin' || decoded === '/admin.html') { decoded = '/admin.html'; res.setHeader('X-Robots-Tag','noindex, nofollow'); res.setHeader('Referrer-Policy','no-referrer'); }
    const file = path.resolve(root, '.' + (decoded === '/' ? '/index.html' : decoded));
    if (!file.startsWith(root + path.sep) || decoded.split('/').some(x=>x.startsWith('.'))) return send(404,{error:'not_found'});
    const fileBody = await readFile(file);
-   res.writeHead(200,{'Content-Type':types[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache'});
+   res.writeHead(200,{'Content-Type':types[path.extname(file)] || 'application/octet-stream','Cache-Control':decoded === '/admin.html' ? 'no-store' : 'no-cache'});
    res.end(req.method === 'HEAD' ? undefined : fileBody);
   } catch (error) {
    if (error.message === 'payload_too_large') return send(413, { error:'payload_too_large' });
