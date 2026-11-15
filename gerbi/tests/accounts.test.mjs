@@ -8,6 +8,8 @@ import { createAccounts, hashPassword, verifyPassword, sameOrigin, emailSender }
 import { handleLeads } from '../backend/leads.mjs';
 import { createStore } from '../backend/kv-store.mjs';
 import { validateSignup, passwordProblem, cleanSaved, mergeSaved, savedSignature, addSearch, cleanSearch } from '../dist/account-core.mjs';
+// These tests stand in for a trusted reverse proxy: clientOf() then keys limits on the right-most X-Forwarded-For hop.
+process.env.TRUST_PROXY = '1';
 
 const flight = (id, savedAt = '2026-11-01T10:00:00.000Z') => ({ id, savedAt, checkedAt: savedAt, price: 1200, currency: 'ILS', destination: 'אתונה', trip: null, from: 'TLV', to: 'ATH', start: '2027-03-01', end: '2027-03-05', adults: 2, children: 0, carriers: ['Aegean'], checked: 'included', trolley: 'included',
   legs: [{ from: 'TLV', to: 'ATH', departDate: '2027-03-01', departTime: '08:00', arriveDate: '2027-03-01', arriveTime: '10:00', stops: 0, minutes: 120, dayOffset: 0 }] });

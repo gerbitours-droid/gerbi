@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { validSearch, validAvailability, slimSearch, cachedSearch, withRetry, allow } from '../backend/volero-guard.mjs';
 import { offerFacts } from '../dist/flight-view.mjs';
 import { createServer } from '../server.mjs';
+// These tests stand in for a trusted reverse proxy: clientOf() then keys limits on the right-most X-Forwarded-For hop.
+process.env.TRUST_PROXY = '1';
 
 const today = '2026-10-29';
 const leg = (o, d, date, type = 'a') => ({ origin: { code: o, type: 'a' }, destination: { code: d, type }, date });

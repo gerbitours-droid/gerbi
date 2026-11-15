@@ -158,7 +158,7 @@ test('GET /api/fx: rates with source and date, cacheable; ok:false (not cached) 
   await withFxServer({}, leumiOnly, async base => {
     const response = await fetch(base);
     assert.equal(response.status, 200);
-    assert.match(response.headers.get('cache-control'), /max-age=600/);
+    assert.match(response.headers.get('cache-control'), /max-age=60\b/);
     const data = await response.json();
     assert.equal(data.ok, true);
     assert.equal(data.base, 'ILS');

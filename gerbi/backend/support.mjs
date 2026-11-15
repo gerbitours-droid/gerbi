@@ -3,7 +3,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createStore } from './kv-store.mjs';
 import { recordLead, tokenMatches } from './leads.mjs';
-import { allow, clientOf } from './volero-guard.mjs';
+import { allow, allowShared, clientOf } from './volero-guard.mjs';
 import { partnerClassify, scrub } from './llm-partner.mjs';
 import { supportAnswer, gateway } from './ai-features.mjs';
 import { faqs as builtinFaqs } from '../dist/pages.mjs';
@@ -46,7 +46,7 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
   const log = (conv, from, text, intent) => { if (text) conv.transcript.push({ from, text: from === 'user' ? redact(text) : String(text).slice(0, 500), at: now().toISOString(), ...(intent ? { intent } : {}) }); };
 
   async function createEscalation(conv, reason, intent, clientKey) {
-    if (!allow(clientKey, 'leads')) return { error: 'rate_limited' };
+    if (!(await allowShared(clientKey, 'leads'))) return { error: 'rate_limited' };
     const at = now().toISOString(), id = randomUUID(), ref = id.slice(0, 8);
     const transcript = conv.transcript.slice(-20);
     const summary = conv.transcript.filter((m) => m.from === 'user' && !m.meta).slice(-3).map((m) => m.text).join(' · ').slice(0, 300);

@@ -112,12 +112,17 @@ export function publicRates(live, override, now = Date.now()) {
   };
 }
 
+// A manual rate must reach visitors within about a minute (QA O4): instances re-read the override every 30 s, and
+// browsers/CDN keep /api/fx for 60 s (+30 s stale-while-revalidate), so the worst case is about 2 minutes and typically under 1.
+export const OVERRIDE_RECHECK_MS = 30_000;
+export const FX_CACHE_CONTROL = 'public, max-age=60, s-maxage=60, stale-while-revalidate=30';
 // store: kv-store ({get,set}). Returns {get(), refresh(), setOverride(), clearOverride()}.
 export function createFx({ store, sources = providers(), now = Date.now, refreshMs = refreshMsFrom(), log = () => {} }) {
-  let memo = null, inFlight = null, override, overrideLoaded = false;
+  let memo = null, inFlight = null, override, overrideCheckedAt = -Infinity;
   async function load() {
     if (!memo) { try { memo = await store.get('latest'); } catch { memo = null; } }
-    if (!overrideLoaded) { try { override = await store.get('override'); overrideLoaded = true; } catch { override = override ?? null; } }
+    // Re-read the owner's override every OVERRIDE_RECHECK_MS: on serverless another instance may have set or cleared it.
+    if (now() - overrideCheckedAt >= OVERRIDE_RECHECK_MS) { try { override = await store.get('override'); overrideCheckedAt = now(); } catch { override = override ?? null; } }
     return memo;
   }
   function refresh() {
@@ -145,8 +150,8 @@ export function createFx({ store, sources = providers(), now = Date.now, refresh
     else if (now() - memo.at > refreshMs && !inFlight) background(refresh());
     return publicRates(memo, override, now());
   }
-  async function setOverride(value) { await store.set('override', value); override = value; overrideLoaded = true; return get(); }
-  async function clearOverride() { await store.set('override', null); override = null; overrideLoaded = true; return get(); }
+  async function setOverride(value) { await store.set('override', value); override = value; overrideCheckedAt = now(); return get(); }
+  async function clearOverride() { await store.set('override', null); override = null; overrideCheckedAt = now(); return get(); }
   return { get, refresh, setOverride, clearOverride };
 }
 
@@ -158,7 +163,7 @@ export async function handleFx(req, url, { send, body, fx, env = process.env, ba
     // 200 + ok:false (not 5xx): the page treats it as "show supplier currency", and browsers log no failed request.
     if (!result) { send(200, { ok: false, error: 'fx_unavailable', rates: null, message: 'שערי המטבע אינם זמינים כרגע.' }); return true; }
     // A small public payload: let browsers and the CDN keep it for a while (the server's own json() says no-store).
-    if (res) { res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=600, s-maxage=1800, stale-while-revalidate=86400' }); res.end(req.method === 'HEAD' ? undefined : JSON.stringify(result)); }
+    if (res) { res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': FX_CACHE_CONTROL }); res.end(req.method === 'HEAD' ? undefined : JSON.stringify(result)); }
     else send(200, result);
     return true;
   }

@@ -103,7 +103,7 @@ export async function withRetry(run, { retryWithinMs = 15000, delayMs = 800, sle
   }
 }
 
-// Token bucket per client and route. ponytail: per instance; a shared store (Upstash) if abuse spans instances.
+// Token bucket per client and route, per instance: traffic shaping for the supplier/AI routes (see allowShared below for security limits).
 const buckets = new Map();
 export const LIMITS = { search: [12, 60000], searchMulti: [6, 60000], availability: [30, 60000], ai: [40, 60000], book: [3, 60000], leads: [5, 600000], leadsAdmin: [10, 60000] };
 export function allow(client, route, now = Date.now()) {
@@ -114,4 +114,52 @@ export function allow(client, route, now = Date.now()) {
   if (bucket.tokens < 1) { buckets.set(key, bucket); return false; }
   bucket.tokens -= 1; buckets.set(key, bucket); return true;
 }
-export const clientOf = req => String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
+// The client address every limit is keyed on. Never the left-most X-Forwarded-For: the browser writes that one.
+//   Vercel: x-vercel-forwarded-for / x-real-ip, set by the platform edge (it also overwrites X-Forwarded-For).
+//   TRUST_PROXY=1 (own reverse proxy in front): the right-most X-Forwarded-For hop, the one that proxy appended.
+//   Otherwise (direct): the socket address.
+const header = (value) => String(Array.isArray(value) ? value[0] : value || '');
+const ip = (value) => { const v = value.trim().slice(0, 64); return /^[0-9A-Fa-f:.]+$/.test(v) ? v : ''; };
+export function clientOf(req, env = process.env) {
+  const h = req.headers || {}, xff = header(h['x-forwarded-for']).split(',').map((part) => part.trim()).filter(Boolean);
+  if (env.VERCEL) { const v = ip(header(h['x-vercel-forwarded-for']).split(',')[0]) || ip(header(h['x-real-ip'])) || ip(xff.at(-1) || ''); if (v) return v; }
+  else if (env.TRUST_PROXY === '1' && xff.length) return xff.at(-1).slice(0, 64);
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+// Limits that guard secrets and storage (owner login, account sign-in, lead creation) must hold across serverless
+// instances: fixed-window counters in the KV store (Upstash INCR + EXPIRE; data/ratelimit.json locally).
+// Without a configured store, or when it fails, an in-process counter stands in, so a KV outage never locks people out.
+let sharedStore = null;
+const memory = new Map();
+export function configureLimits(store) { sharedStore = store; memory.clear(); }
+function memoryIncr(key, seconds, now) {
+  const entry = memory.get(key);
+  if (!entry || entry.expires < now) { if (memory.size > 20000) memory.clear(); memory.set(key, { value: 1, expires: now + seconds * 1000 }); return 1; }
+  return ++entry.value;
+}
+let warned = false;
+const fallback = (error) => { if (!warned) { warned = true; console.log(JSON.stringify({ evt: 'rate_limit_store', ok: false, error: String(error?.message || error).slice(0, 80) })); } };
+export const counters = {
+  async hit(key, seconds, now = Date.now()) {
+    if (sharedStore?.incr) try { return await sharedStore.incr(`rl:${key}`, seconds); } catch (error) { fallback(error); }
+    return memoryIncr(key, seconds, now);
+  },
+  async peek(key, now = Date.now()) {
+    if (sharedStore) try { return Number(await sharedStore.get(`rl:${key}`)) || 0; } catch (error) { fallback(error); }
+    const entry = memory.get(key); return entry && entry.expires >= now ? entry.value : 0;
+  },
+  async lock(key, seconds, now = Date.now()) {
+    if (sharedStore) try { await sharedStore.set(`rl:${key}`, 1, seconds); return; } catch (error) { fallback(error); }
+    memory.set(key, { value: 1, expires: now + seconds * 1000 });
+  },
+  async clear(key) {
+    memory.delete(key);
+    if (sharedStore) try { await sharedStore.del(`rl:${key}`); } catch (error) { fallback(error); }
+  }
+};
+// Same LIMITS table as allow(), fixed window instead of a token bucket; false = over the limit.
+export async function allowShared(client, route) {
+  const [capacity, windowMs] = LIMITS[route] || [60, 60000];
+  return (await counters.hit(`${route}:${client}`, Math.ceil(windowMs / 1000))) <= capacity;
+}

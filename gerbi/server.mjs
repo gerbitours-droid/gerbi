@@ -12,20 +12,24 @@ import { destinationTags, publicTagCatalog } from './backend/tag-catalog.mjs';
 import { extractSignals, missingFields, scoreDestinations, understandRequest } from './backend/understanding.mjs';
 import { voleroFlightAvailability, voleroFlightBook, voleroFlightSearch } from './backend/volero-client.mjs';
 import { createStore } from './backend/kv-store.mjs';
-import { validSearch, isMultiCity, validAvailability, slimSearch, slimAvailability, cachedSearch, withRetry, allow, clientOf } from './backend/volero-guard.mjs';
+import { validSearch, isMultiCity, validAvailability, slimSearch, slimAvailability, cachedSearch, withRetry, allow, clientOf, configureLimits } from './backend/volero-guard.mjs';
 import { createDeals, searchForDeals } from './backend/deals.mjs';
 import { QueryMemory, EVENT_WEIGHTS } from './backend/query-memory.mjs';
 import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm-partner.mjs';
 import { places } from './dist/places.mjs';
 import { learnFromChoice } from './dist/scoring.mjs';
-import { handleLeads } from './backend/leads.mjs';
-import { handleAdmin, bridgeAdminSession } from './backend/admin.mjs';
+import { handleLeads, tokenMatches } from './backend/leads.mjs';
+import { handleAdmin, bridgeAdminSession, enforceAdminToken } from './backend/admin.mjs';
 import { createAccounts } from './backend/accounts.mjs';
 import { createFx, handleFx } from './backend/fx-rates.mjs';
 import { createSupport } from './backend/support.mjs';
 import { handleAi } from './backend/ai-routes.mjs';
 import { gateway } from './backend/ai-features.mjs';
 import { createSearchStats } from './backend/search-stats.mjs';
+const isMain = process.argv[1] === fileURLToPath(import.meta.url);
+// A weak owner password is refused in production before any route can use it (backend/admin.mjs).
+enforceAdminToken();
+const version = String(process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version;
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
@@ -34,6 +38,10 @@ const llmCache = createStore('llm-cache', dataDirectory);
 // Learned multipliers on the prices of time and inconvenience (spec §2.6), shared by all travelers.
 const learnedStore = createStore('learned-costs', dataDirectory);
 const leadStore = createStore('leads', dataDirectory);
+// Security rate limits (owner login, account sign-in, leads) count in the KV store so they hold across instances.
+// Locally only the running server persists them (data/ratelimit.json); a module imported by tests keeps memory counters.
+const limitStore = createStore('ratelimit', dataDirectory);
+if (limitStore.kind === 'upstash' || isMain) configureLimits(limitStore);
 const accounts = createAccounts({ store: createStore('accounts', dataDirectory) });
 // Shekel rates (transfers & cheques, sale) for showing supplier prices in ILS: docs/specs/13-pricing-ils-he.md.
 const fx = createFx({ store: createStore('fx', dataDirectory), log: entry => console.log(JSON.stringify(entry)) });
@@ -62,6 +70,21 @@ function safeBrief(input = {}) {
 }
 const itemKey = (value) => (typeof value === 'string' && /^[A-Za-z0-9@:+|?._-]{1,240}$/.test(value) && !['__proto__', 'constructor', 'prototype'].includes(value) ? value : '');
 const types = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.png':'image/png', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml', '.woff2':'font/woff2' };
+
+// Every response (the static pages too; vercel.json repeats these for the CDN-served files). The pages load only
+// same-origin module scripts, so script-src needs no 'unsafe-inline'; inline style attributes are used by the
+// rendered templates, hence style-src 'unsafe-inline'. Blog/markdown images may be any https URL.
+export const CSP = ["default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' data: blob: https:", "connect-src 'self'", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'", "manifest-src 'self'", "worker-src 'self'"].join('; ');
+export function securityHeaders(req, res, env = process.env) {
+  res.setHeader('Content-Security-Policy', CSP);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  if (env.VERCEL || String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https') res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+}
 
 function json(res, code, data) {
   const text = JSON.stringify(data), headers = { 'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'no-store', Vary:'Accept-Encoding' };
@@ -101,14 +124,17 @@ function supplierError(send, error) {
 }
 export function createServer() {
  return http.createServer(async (req,res) => {
-  res.setHeader('X-Content-Type-Options','nosniff');
-  res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  securityHeaders(req, res);
   const send = (code,data) => json(res, code, data);
   try {
    const url = new URL(req.url,'http://localhost');
    await bridgeAdminSession(req, url, { store:adminSessions });
-   if (url.pathname === '/api/status') { const partner = partnerStatus(); return send(200,{ mode:'demo', provider:'supplier', credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), connected:Boolean(supplier.lastOkAt && (!supplier.lastErrorAt || supplier.lastOkAt > supplier.lastErrorAt)), supplier:{ lastOkAt:supplier.lastOkAt, lastErrorAt:supplier.lastErrorAt, lastError:supplier.lastError, calls:supplier.calls, cacheHits:supplier.cacheHits }, booking:process.env.VOLERO_BOOKING_ENABLED === 'true' ? 'enabled' : 'disabled', storage:process.env.UPSTASH_REDIS_REST_URL ? 'upstash' : 'local', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available:partner.configured && !partner.circuitOpen && partner.tokensLeftToday > 2000 } }); }
+   if (url.pathname === '/api/status') {
+    const partner = partnerStatus(), available = partner.configured && !partner.circuitOpen && partner.tokensLeftToday > 2000;
+    // Public: liveness, version and whether the AI helper is up (the page reads partner.available). Details need the owner (token or admin session).
+    if (!tokenMatches(req.headers.authorization, process.env.LEADS_ADMIN_TOKEN)) return send(200, { ok:true, version, partner:{ available } });
+    return send(200,{ ok:true, version, mode:'demo', provider:'supplier', credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), connected:Boolean(supplier.lastOkAt && (!supplier.lastErrorAt || supplier.lastOkAt > supplier.lastErrorAt)), supplier:{ lastOkAt:supplier.lastOkAt, lastErrorAt:supplier.lastErrorAt, lastError:supplier.lastError, calls:supplier.calls, cacheHits:supplier.cacheHits }, booking:process.env.VOLERO_BOOKING_ENABLED === 'true' ? 'enabled' : 'disabled', storage:process.env.UPSTASH_REDIS_REST_URL ? 'upstash' : 'local', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available } });
+   }
    if (url.pathname === '/api/deals' && req.method === 'GET') {
     const result = process.env.VOLERO_CLIENT_ID ? await deals.get({ background }) : { deals: [], updatedAt: null, stale: false, refreshing: false };
     // Browsers and the CDN may keep it a few minutes; the server's own cache spans hours.
@@ -203,11 +229,13 @@ export function createServer() {
    }
    if (url.pathname === '/api/volero/flights/book') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
-    const input = await body(req);
     // A live booking charges the agency's supplier account; the browser has no booking flow yet, so the public
     // deployment refuses it unless an operator turns it on deliberately.
     if (process.env.VOLERO_BOOKING_ENABLED !== 'true') return send(403,{error:'booking_disabled',message:'הזמנה אינה זמינה באתר בשלב זה.'});
     if (!allow(clientOf(req), 'book')) return tooMany(send);
+    // Even when enabled, only the owner (admin session via the bridge, or the token) may book on the agency's account.
+    if (!tokenMatches(req.headers.authorization, process.env.LEADS_ADMIN_TOKEN)) return send(401,{error:'unauthorized'});
+    const input = await body(req);
     if (input?.confirm !== true) return send(428,{error:'explicit_booking_confirmation_required',message:'Booking requires confirm:true.'});
     if (!input?.srk || !input?.searchToken || typeof input.offerIndex !== 'string' || !input.offerIndex || !input.input || typeof input.input !== 'object') return send(400,{error:'booking_input_required'});
     try { return send(200, { provider:'volero', data:await voleroFlightBook(input) }); }
@@ -244,4 +272,4 @@ export function createServer() {
 // Deployment runtimes import the server; only direct CLI execution binds a local port.
 const server = createServer();
 export default server;
-if(process.argv[1] === fileURLToPath(import.meta.url)) server.listen(Number(process.env.PORT || 4173),'127.0.0.1',()=>console.log(`Gerbi is ready at http://localhost:${process.env.PORT || 4173}`));
+if(isMain) server.listen(Number(process.env.PORT || 4173),'127.0.0.1',()=>console.log(`Gerbi is ready at http://localhost:${process.env.PORT || 4173}`));

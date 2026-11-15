@@ -9,6 +9,8 @@ import { tailorLinkFromSearch } from '../dist/leads.mjs';
 import { handleLeads, tokenMatches } from '../backend/leads.mjs';
 import { createStore } from '../backend/kv-store.mjs';
 import serverDefault from '../server.mjs';
+// These tests stand in for a trusted reverse proxy: clientOf() then keys limits on the right-most X-Forwarded-For hop.
+process.env.TRUST_PROXY = '1';
 
 const TODAY = '2026-11-15';
 const contact = (extra = {}) => ({ type: 'contact', name: 'דנה כהן', phone: '050-123-4567', channel: 'whatsapp', consent: true, message: 'שלום', ...extra });
