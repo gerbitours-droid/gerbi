@@ -189,4 +189,8 @@ export function englishPlace(place) {
   const sub = SUB_EN[place.sub] || SUB_EN[place.he?.sub] || place.sub;
   return { name: place.en, sub, label: LABEL_EN[place.code] || (place.type === 'c' ? `${place.en} – all airports` : `${place.en}, ${sub}`) };
 }
-if (lang === 'en') for (const place of places) { const english = englishPlace(place); place.he = { name: place.name, sub: place.sub, label: place.label }; Object.assign(place, english); }
+if (lang === 'en') for (const place of places) {
+  const english = englishPlace(place); place.he = { name: place.name, sub: place.sub, label: place.label }; Object.assign(place, english);
+  // The English label/name the field shows ("Tel Aviv (Ben Gurion)") must resolve back to the place too.
+  forms.set(place, [...new Set([...forms.get(place), ...[english.name, english.label, english.label.split(/[,·]/)[0]].map(normalizePlace)])]);
+}

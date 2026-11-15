@@ -74,13 +74,13 @@ for (const width of WIDTHS) for (const lang of LANGS) {
     ...(width < 700 ? [['mobile-menu', '/', async () => { await page.click('#mobile-menu-button'); }]] : [])
   ];
   if (process.env.LIVE) states.push(['live-results', '/', async () => {
-    await page.fill('#destination', en ? 'Rome' : 'רומא');
+    await page.fill('#destination', en ? 'Rome' : 'רומא'); await page.keyboard.press('Escape');
     await page.click('#dates-button'); await page.fill('#start-date', '2027-03-10'); await page.fill('#end-date', '2027-03-15'); await page.click('#date-form button');
     await page.click('.search-submit');
     await page.waitForSelector('#live-results:not([hidden]) .flight-card, #live-results:not([hidden]) .empty-panel', { timeout: 60000 });
     await page.waitForTimeout(800);
   }], ['price-check', '/', async () => {
-    await page.fill('#destination', en ? 'Rome' : 'רומא');
+    await page.fill('#destination', en ? 'Rome' : 'רומא'); await page.keyboard.press('Escape');
     await page.click('#dates-button'); await page.fill('#start-date', '2027-03-10'); await page.fill('#end-date', '2027-03-15'); await page.click('#date-form button');
     await page.click('.search-submit');
     await page.waitForSelector('#live-results:not([hidden]) .flight-card', { timeout: 60000 });

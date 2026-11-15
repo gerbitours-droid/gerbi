@@ -66,3 +66,11 @@ test('converter is English', () => {
   assert.ok(!HEBREW.test(converterHtml()));
   assert.equal(formatAgorot(1234.5), '₪1,234.50');
 });
+
+test('English place labels shown in the fields resolve back to their places (the default origin included)', async () => {
+  const { resolvePlace, placeByCode, placeText } = await import('../dist/places.mjs');
+  const { DICTS } = await import('../dist/i18n.mjs');
+  assert.equal(resolvePlace(DICTS.en['home.field.originValue'])?.code, 'TLV');
+  for (const [text, code] of [['Ramon, Eilat', 'ETM'], ['London – all airports', 'LON'], ['The Maldives', 'MLE'], ['רומא', 'FCO'], ['Rome', 'FCO']]) assert.equal(resolvePlace(text)?.code, code, text);
+  for (const code of ['TLV', 'LHR', 'PAR', 'HER']) { const place = placeByCode(code); assert.equal(resolvePlace(place.label)?.code, code); assert.equal(resolvePlace(placeText(place))?.code, code); }
+});
