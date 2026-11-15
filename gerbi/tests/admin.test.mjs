@@ -291,3 +291,32 @@ test('site content: validated save, public read with cache headers, versions and
     assert.equal((await fetch(base + '/api/content/site', { method: 'POST' })).status, 405);
   });
 });
+
+test('full server: /admin page, legacy redirect, and the owner session unlocks the support + FX admin endpoints', async () => {
+  const { createServer } = await import('../server.mjs');
+  const saved = process.env.LEADS_ADMIN_TOKEN;
+  process.env.LEADS_ADMIN_TOKEN = TOKEN;
+  const server = createServer();
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const page = await fetch(base + '/admin');
+    assert.equal(page.status, 200);
+    assert.equal(page.headers.get('x-robots-tag'), 'noindex, nofollow');
+    assert.equal(page.headers.get('cache-control'), 'no-store');
+    assert.equal((await fetch(base + '/leads-admin', { redirect: 'manual' })).headers.get('location'), '/admin');
+    const c = client(base);
+    assert.equal((await c.call('GET', '/api/support/content')).status, 401, 'no session, no token');
+    assert.equal((await c.login()).status, 204);
+    const content = await c.call('GET', '/api/support/content');
+    assert.equal(content.status, 200);
+    assert.ok((await content.json()).intents.some((i) => i.id === 'baggage'));
+    assert.equal((await c.call('GET', '/api/support/escalations?limit=5')).status, 200);
+    assert.equal((await c.call('PUT', '/api/fx/override', { rates: { USD: 'x' } })).status, 400, 'reaches validation, i.e. authorised');
+    assert.equal((await c.call('PUT', '/api/fx/override', { rates: { USD: 'x' } }, { Origin: 'https://evil.example' })).status, 401, 'cross-origin writes are not bridged');
+    await c.call('POST', '/api/admin/logout', {});
+  } finally {
+    if (saved === undefined) delete process.env.LEADS_ADMIN_TOKEN; else process.env.LEADS_ADMIN_TOKEN = saved;
+    server.closeAllConnections(); await new Promise((resolve) => server.close(resolve));
+  }
+});

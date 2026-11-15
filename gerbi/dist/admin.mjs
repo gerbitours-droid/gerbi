@@ -308,7 +308,7 @@ async function siteTab() {
     <fieldset><legend>באנר הודעה בראש האתר</legend><label class="lead-check"><input type="checkbox" id="s-banner-on" data-key="banner.enabled"${s.banner.enabled ? ' checked' : ''}><span>להציג את הבאנר</span></label>
      ${field('banner.text', 'טקסט הבאנר', s.banner.text, { max: LIMITS.banner })}${field('banner.link', 'קישור (לא חובה)', s.banner.link, { ltr: true, max: 300, hint: 'למשל #/tailor-made או https://…' })}</fieldset>
     <fieldset><legend>פוטר</legend>${field('footer.tagline', 'שורת המותג', s.footer.tagline)}${field('footer.blurb', 'משפט קצר', s.footer.blurb)}${field('footer.legal', 'שורת זכויות והבהרה (דפים פנימיים)', s.footer.legal)}${field('footer.note', 'הבהרה בתחתית דף הבית', s.footer.note)}</fieldset>
-    <fieldset><legend>שאלות נפוצות (דף שירות ועזרה)</legend><ol id="faq-list" class="faq-list">${faqRows.map(faqRow).join('')}</ol><button type="button" class="button secondary" id="faq-add">הוספת שאלה</button></fieldset>
+    <fieldset><legend>שאלות נפוצות (דף „שירות ועזרה” באתר)</legend><p class="lead-hint">התשובות של בוט השירות נערכות בנפרד: <a href="#support/content">שיחות שירות › תשובות הבוט</a>.</p><ol id="faq-list" class="faq-list">${faqRows.map(faqRow).join('')}</ol><button type="button" class="button secondary" id="faq-add">הוספת שאלה</button></fieldset>
     <fieldset><legend>מדריכי יעדים</legend>${trips.map((t) => `<details class="guide-box"><summary>${esc(t.name)}</summary>${GUIDE_FIELDS.map(([k, label]) => field(`guides.${t.id}.${k}`, label, s.guides[t.id]?.[k] || destinationInfo[t.id]?.guide?.[k] || '', { area: true, max: LIMITS.guide, rows: 2 })).join('')}</details>`).join('')}</fieldset>
     <div class="form-actions sticky-actions"><button class="button yellow" type="submit">שמירה</button><button class="button secondary" type="button" id="site-versions">גרסאות קודמות</button></div>
     <p id="site-status" class="admin-status" role="status"></p><section id="versions" hidden></section>
@@ -394,9 +394,11 @@ async function fxTab() {
 }
 
 // ---------- Support escalations (support bot module: GET /api/support/escalations) ----------
-async function supportTab() {
+const supportNav = (current) => `<nav class="sub-tabs" aria-label="שירות לקוחות"><a href="#support"${current === 'list' ? ' aria-current="page"' : ''}>שיחות שהועברו לנציג</a><a href="#support/content"${current === 'content' ? ' aria-current="page"' : ''}>תשובות הבוט ושעות פעילות</a></nav>`;
+async function supportTab(sub) {
+  if (sub === 'content') return botContentTab();
   const p = panel();
-  p.innerHTML = `<div class="admin-head"><h1>שיחות שירות</h1></div><p class="micro-copy">שיחות שהבוט העביר לנציג. אחרי שטיפלתם — סמנו „טופל” והבוט יחזור לענות בשיחה.</p>
+  p.innerHTML = `<div class="admin-head"><h1>שיחות שירות</h1></div>${supportNav('list')}<p class="micro-copy">שיחות שהבוט העביר לנציג. אחרי שטיפלתם — סמנו „טופל” והבוט יחזור לענות בשיחה.</p>
    <div class="lead-filters" role="group" aria-label="סינון"><button type="button" data-esc="open" aria-pressed="true">פתוחות</button><button type="button" data-esc="" aria-pressed="false">הכול</button></div>
    <p id="esc-status" class="admin-status" role="status">טוענים…</p><section id="esc-list"></section>`;
   let filter = 'open';
@@ -422,6 +424,52 @@ async function supportTab() {
   };
   $$('[data-esc]').forEach((b) => b.onclick = () => { filter = b.dataset.esc; $$('[data-esc]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); load(); });
   await load();
+}
+
+// Bot answers + business hours live in the support module's own store (GET/PUT /api/support/content, kv support-content/faq).
+const DAY_LABELS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+async function botContentTab() {
+  const p = panel();
+  p.innerHTML = `<div class="admin-head"><h1>שיחות שירות</h1></div>${supportNav('content')}<p class="admin-status" role="status">טוענים…</p>`;
+  let data;
+  try {
+    const r = await fetch('/api/support/content', { credentials: 'same-origin', cache: 'no-store' });
+    if (r.status === 404) { status($('#panel .admin-status'), 'היכולת עוד לא זמינה בשרת הזה (בוט השירות לא הותקן).', 'warn'); return; }
+    if (r.status === 401) { showLogin('החיבור הסתיים. היכנסו שוב.'); return; }
+    if (!r.ok) throw new Error();
+    data = await r.json();
+  } catch { status($('#panel .admin-status'), 'לא הצלחנו לטעון את תוכן הבוט.', 'error'); return; }
+  const days = data.hours?.days || {};
+  p.innerHTML = `<div class="admin-head"><h1>שיחות שירות</h1></div>${supportNav('content')}
+   <p class="micro-copy">אלה התשובות שהבוט נותן באתר ובוואטסאפ. אפשר להשתמש ב־{hours}, {phone}, {whatsapp}, {email} — הם יוחלפו בפרטים העדכניים. תשובה שמוחקים לגמרי חוזרת לנוסח המקורי.</p>
+   <form id="bot-form" class="admin-form" novalidate><div class="form-errors" role="alert"></div>
+    <fieldset><legend>שעות פעילות</legend>
+     <div class="lead-field"><label for="h-text">איך השעות מוצגות ללקוחות</label><input id="h-text" maxlength="200" value="${esc(data.hours?.text || '')}"></div>
+     <div class="hours-grid">${DAY_LABELS.map((label, d) => { const slot = days[d]; return `<div class="hours-row" data-day="${d}"><strong>${label}</strong>
+       <label class="lead-check"><input type="checkbox" data-closed${slot ? '' : ' checked'}><span>סגור</span></label>
+       <label><span class="sr-only">פתיחה ביום ${label}</span><input type="time" data-from value="${esc(slot?.[0] || '09:00')}"${slot ? '' : ' disabled'}></label>
+       <label><span class="sr-only">סגירה ביום ${label}</span><input type="time" data-to value="${esc(slot?.[1] || '18:00')}"${slot ? '' : ' disabled'}></label></div>`; }).join('')}</div>
+    </fieldset>
+    <fieldset><legend>תשובות לפי נושא</legend>${(data.intents || []).map((i) => `<div class="lead-field"><label for="a-${esc(i.id)}">${esc(i.title)} <span class="state-chip">${i.default ? 'נוסח מקורי' : 'נערך'}</span></label><textarea id="a-${esc(i.id)}" data-intent="${esc(i.id)}" data-original="${i.default ? '1' : ''}" maxlength="1200" rows="3">${esc(i.answer)}</textarea></div>`).join('')}</fieldset>
+    <div class="form-actions sticky-actions"><button class="button yellow" type="submit">שמירה</button></div><p id="bot-status" class="admin-status" role="status"></p></form>`;
+  const form = $('#bot-form'), initial = Object.fromEntries((data.intents || []).map((i) => [i.id, i.answer]));
+  form.addEventListener('input', () => { dirty = true; });
+  form.addEventListener('change', (e) => { if (e.target.matches('[data-closed]')) { const row = e.target.closest('.hours-row'); $$('input[type=time]', row).forEach((x) => { x.disabled = e.target.checked; }); dirty = true; } });
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const out = $('#bot-status'), answers = {}, hoursDays = {}, errors = [];
+    // Only changed answers are sent; an emptied one goes back to the built-in text.
+    $$('[data-intent]', form).forEach((t) => { const v = t.value.trim(); if (v !== initial[t.dataset.intent].trim()) answers[t.dataset.intent] = v; });
+    $$('.hours-row', form).forEach((row) => { const d = row.dataset.day; if ($('[data-closed]', row).checked) hoursDays[d] = null; else { const from = $('[data-from]', row).value, to = $('[data-to]', row).value; if (!(from && to && from < to)) errors.push(DAY_LABELS[d]); hoursDays[d] = [from, to]; } });
+    if (errors.length) { status(out, `שעות לא תקינות ביום ${errors.join(', ')}: שעת הסגירה צריכה להיות אחרי שעת הפתיחה.`, 'error'); return; }
+    status(out, 'שומרים…');
+    try {
+      const r = await fetch('/api/support/content', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers, hours: { text: $('#h-text').value.trim(), days: hoursDays } }) });
+      if (r.status === 401) { showLogin('החיבור הסתיים. היכנסו שוב.'); return; }
+      if (!r.ok) { status(out, r.status === 429 ? 'יותר מדי בקשות. נסו שוב בעוד דקה.' : 'השמירה נכשלה. בדקו את הטקסטים.', 'error'); return; }
+      dirty = false; await botContentTab(); status($('#bot-status'), 'נשמר. הבוט עונה מעכשיו בנוסח החדש (עד דקה).', 'ok');
+    } catch { status(out, 'אין חיבור לשרת.', 'error'); }
+  };
 }
 
 // ---------- Start ----------
