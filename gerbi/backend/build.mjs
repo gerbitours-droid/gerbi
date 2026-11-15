@@ -11,7 +11,11 @@ import { setLang, lang as pageLang, normLang } from '../dist/i18n.mjs';
 import { validSearch, slimSearch, cachedSearch, withRetry, allow, clientOf } from './volero-guard.mjs';
 import { validHotelSearch, createHotelSearch, IMAGE_SRC } from './hotels.mjs';
 
-const FLIGHT_TTL = 20 * 60, SHARE_TTL = 30 * 86400;
+const FLIGHT_TTL = 20 * 60, SHARE_TTL = 30 * 86400, AGENT_TTL = 14 * 86400;
+// Owner decisions (spec 24 §1.3): supplier hotels are public only when HOTELS_PUBLIC_DISPLAY is on; the insurance
+// partner link (Harel) only when INSURANCE_PARTNER_URL is an https URL. Both off by default.
+export const hotelsPublic = (env = process.env) => ['1', 'true'].includes(String(env.HOTELS_PUBLIC_DISPLAY || '').toLowerCase());
+export const insuranceUrl = (env = process.env) => (/^https:\/\/[^\s<>"']{4,300}$/.test(env.INSURANCE_PARTNER_URL || '') ? env.INSURANCE_PARTNER_URL : '');
 const fixtures = (env) => env.GERBI_SUPPLIER_FIXTURES === '1' && !env.VERCEL;
 const fixture = async (name) => JSON.parse(await readFile(new URL(`../tests/fixtures/build/${name}.json`, import.meta.url), 'utf8'));
 const hash = (value) => createHash('sha1').update(JSON.stringify(value)).digest('hex');
@@ -76,12 +80,14 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     const p = planPackage(request, { today: t0, chosenId: chosen });
     const { coverage, legs, ...publicRequest } = p.request;
     return { id: randomUUID().slice(0, 12), createdAt: new Date(now()).toISOString(), lang: l, ...p, request: publicRequest,
+      config: { hotelsPublic: hotelsPublic(env), insuranceUrl: insuranceUrl(env) },
       understood: request.understood, questions: request.questions, flightSearch: validSearch(p.flightSearch, t0), hotelSearches: (p.hotelSearches || []).map((s) => validHotelSearch(s, t0) && s) };
   }
 
   async function route(req, res, url, { send, body }) {
     const path = url.pathname, client = clientOf(req);
     if (path === '/api/build/hotel-image' && req.method === 'GET') {
+      if (!hotelsPublic(env)) return send(404, { error: 'not_found' });
       const src = url.searchParams.get('src') || '';
       if (!IMAGE_SRC.test(src)) return send(400, { error: 'invalid_src' });
       try {
@@ -117,7 +123,16 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
       if (!search) return send(400, { error: 'search_input_invalid' });
       if (!env.VOLERO_CLIENT_ID && !fixtures(env)) return send(200, { status: 'quote', reason: 'not_connected' });
       const started = now();
-      try { return send(200, await hotels(search)); }
+      try {
+        const { estimate, ...result } = await hotels(search);
+        if (hotelsPublic(env)) return send(200, result);
+        // Private mode: statistics only; the agent's top options stay on the server, keyed by an opaque reference.
+        const ref = randomUUID().replace(/-/g, '').slice(0, 16);
+        if (result.picks.length) await store?.set('agent-hotels:' + ref, { searchedAt: result.searchedAt, city: search.city, checkIn: search.checkIn, checkOut: search.checkOut, area: search.area,
+          picks: result.picks.slice(0, 3).map(({ name, stars, board, price, address, refundable, role }) => ({ name, stars, board, price, address, refundable, role })) }, AGENT_TTL).catch(() => {});
+        return send(200, { status: estimate ? 'estimate' : 'quote', mode: 'private', searchedAt: result.searchedAt, nights: result.nights, board: result.board, boardFallback: result.boardFallback,
+          minStars: search.minStars, estimate, ref: result.picks.length ? ref : '' });
+      }
       catch (error) { log({ route: 'build_hotels', ok: false, ms: now() - started, error: error.message, status: error.status }); return send(200, { status: 'quote', reason: 'supplier_error' }); }
     }
     if (path === '/api/build/polish') {
@@ -137,8 +152,16 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     return send(404, { error: 'not_found' });
   }
 
+  // Leads hook (backend/leads.mjs): a package lead gets the agent-only hotel options it was built from (admin is private).
+  async function enrichLead(lead) {
+    if (lead?.type !== 'package' || !lead.package) return null;
+    const groups = lead.package.hotels?.stops || [lead.package.hotels];
+    const agentHotels = (await Promise.all(groups.map(async (g, i) => (/^[a-f0-9]{16}$/.test(g?.ref || '') ? { stop: i, ...(await store?.get('agent-hotels:' + g.ref).catch(() => null)) } : null)))).filter((x) => x?.picks?.length);
+    return agentHotels.length ? { agentHotels } : null;
+  }
+
   return {
-    plan, flights, hotels,
+    plan, flights, hotels, enrichLead,
     async handle(req, res, url, helpers) {
       if (url.pathname !== '/api/build' && !url.pathname.startsWith('/api/build/')) return false;
       await route(req, res, url, helpers);

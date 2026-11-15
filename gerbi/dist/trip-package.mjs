@@ -54,16 +54,22 @@ export function pricePackage(pkg, fx) {
   else lines.push({ id: 'flight', kind: fl.status === 'pending' ? 'pending' : 'quote' });
   selectedHotels(pkg).forEach(({ group, pick }, i) => {
     const id = pkg.hotels?.stops?.length ? `hotel:${i}` : 'hotel';
+    const est = group.status === 'estimate' ? group.estimate : null;
     if (pick) lines.push({ id, stop: i, kind: 'live', price: pick.price, ils: toIls(pick.price, fx), at: group.searchedAt });
+    // Hotels kept private (spec 24 §1.3): a range from the supplier's prices for the fitting hotels, never a hotel.
+    else if (est) { const low = toIls({ value: est.stay.low, currency: est.currency }, fx), high = toIls({ value: est.stay.high, currency: est.currency }, fx);
+      lines.push({ id, stop: i, kind: 'estimate', hotel: true, range: low === null ? null : { low: Math.round(low), high: Math.round(high) }, original: { ...est.stay, currency: est.currency }, at: group.searchedAt }); }
     else lines.push({ id, stop: i, kind: group.status === 'pending' ? 'pending' : 'quote' });
   });
   const ground = groundEstimate(pkg);
   if (ground) lines.push({ id: 'ground', kind: 'estimate', range: ground });
   if (pkg?.car?.include) lines.push({ id: 'car', kind: 'quote' });
-  lines.push({ id: 'extras', kind: 'quote' });
-  const live = lines.filter((l) => l.kind === 'live'), missingFx = live.some((l) => l.ils === null);
+  if (pkg?.insurance?.include) lines.push({ id: 'insurance', kind: 'quote' });
+  lines.push({ id: 'transfers', kind: 'quote' });
+  const live = lines.filter((l) => l.kind === 'live'), hotelEst = lines.filter((l) => l.hotel), missingFx = live.some((l) => l.ils === null) || hotelEst.some((l) => !l.range);
   const liveIls = live.length && !missingFx ? Math.round(live.reduce((s, l) => s + l.ils, 0)) : live.length ? null : 0;
-  const total = liveIls === null ? null : { live: liveIls, low: liveIls + (ground?.low || 0), high: liveIls + (ground?.high || 0) };
+  const est = hotelEst.reduce((s, l) => (l.range ? { low: s.low + l.range.low, high: s.high + l.range.high } : s), { low: ground?.low || 0, high: ground?.high || 0 });
+  const total = liveIls === null || missingFx ? null : { live: liveIls, low: liveIls + est.low, high: liveIls + est.high };
   const perPerson = total ? { live: Math.round(total.live / people), low: Math.round(total.low / people), high: Math.round(total.high / people) } : null;
   let budget = null;
   if (num(r.budget, 1) && total) budget = { amount: r.budget, verdict: total.high <= r.budget ? 'within' : total.low > r.budget ? 'over' : 'tight', diff: Math.round(total.low - r.budget) };
@@ -77,7 +83,11 @@ function cleanFlightPick(p) {
     badges: list(p?.badges, 4).map((b) => slug(b)).filter(Boolean), reasons: list(p?.reasons, 3).map((x) => str(x, 120)), bag: slug(p?.bag) };
 }
 function cleanHotelGroup(g) {
-  return { status: ['live', 'none', 'quote', 'pending', 'error'].includes(g?.status) ? g.status : 'quote', searchedAt: iso(g?.searchedAt), stop: int(g?.stop, 0, 4),
+  const e = g?.estimate, money = (v) => num(v, 0, 1e7);
+  return { status: ['live', 'none', 'quote', 'pending', 'error', 'estimate'].includes(g?.status) ? g.status : 'quote', searchedAt: iso(g?.searchedAt), stop: int(g?.stop, 0, 4),
+    ref: typeof g?.ref === 'string' && /^[a-f0-9]{16}$/.test(g.ref) ? g.ref : '', minStars: int(g?.minStars, 0, 5) ?? 0,
+    estimate: e && /^[A-Z]{3}$/.test(e.currency || '') && [e.perNight?.low, e.perNight?.high, e.stay?.low, e.stay?.high].every((v) => money(v) !== null)
+      ? { perNight: { low: e.perNight.low, high: e.perNight.high }, stay: { low: e.stay.low, high: e.stay.high }, currency: e.currency, count: int(e.count, 0, 10000) ?? 0, areaScope: e.areaScope === true, nights: int(e.nights, 1, 60) ?? 1 } : null,
     board: BOARDS.includes(g?.board) ? g.board : '', boardFallback: g?.boardFallback === true, total: int(g?.total, 0, 100000),
     area: g?.area ? { name: txt(g.area.name, 80), forWhom: txt(g.area.forWhom, 200) } : null, selected: str(g?.selected, 20),
     picks: list(g?.picks, MAX_PICKS).map((h) => ({ id: str(h?.id, 20), name: str(h?.name, 120), stars: int(h?.stars, 0, 5) ?? 0, board: BOARDS.includes(h?.board) ? h.board : '', boards: list(h?.boards, 7).filter((b) => BOARDS.includes(b)),
@@ -102,6 +112,7 @@ export function sanitizePackage(pkg) {
     flights: { status: ['live', 'none', 'quote', 'pending', 'error'].includes(fl.status) ? fl.status : 'quote', searchedAt: iso(fl.searchedAt), total: int(fl.total, 0, 100000), selected: str(fl.selected, 240), picks: list(fl.picks, 3).map(cleanFlightPick) },
     hotels: pkg.hotels?.stops?.length ? { stops: list(pkg.hotels.stops, 4).map(cleanHotelGroup) } : cleanHotelGroup(pkg.hotels),
     car: { advice: ['recommended', 'optional', 'not_needed'].includes(pkg.car?.advice) ? pkg.car.advice : 'optional', include: pkg.car?.include === true, note: txt(pkg.car?.note, 300) },
+    insurance: { include: pkg.insurance?.include === true },
     itinerary: list(pkg.itinerary, 40).map((d) => ({ day: int(d?.day, 1, 61) ?? 1, date: day(d?.date), kind: slug(d?.kind) || 'full', stop: int(d?.stop, 0, 4) ?? 0, title: str(d?.title, 140), note: str(d?.note, 240),
       items: list(d?.items, 6).map((x) => ({ name: str(x?.name, 120), kind: slug(x?.kind), durationH: num(x?.durationH, 0, 24) ?? 0, mapsUrl: mapsUrl(str(x?.name, 120), str(x?.where, 80)), where: str(x?.where, 80) })) })),
     practical: pkg.practical && typeof pkg.practical === 'object' ? Object.fromEntries(['visa', 'currency', 'language', 'timeZone', 'kosher', 'shabbat', 'season', 'transport'].map((k) => [k, str(pkg.practical[k], 600)])) : null,
@@ -120,7 +131,7 @@ export function packageLeadFields(pkg, l = 'he') {
   const budget = r.budget ? BUDGET_BANDS.find(([max]) => r.budget <= max)[1] : 'open';
   const styles = [...new Set([...(r.styles || []), r.occasion].map((s) => STYLE_MAP[s]).filter(Boolean))];
   const needs = [r.needs.allInclusive && (l === 'en' ? 'all-inclusive' : 'הכול כלול'), r.needs.kosher && (l === 'en' ? 'kosher' : 'כשר'), r.needs.shabbat && (l === 'en' ? 'Shabbat observant' : 'שומרי שבת'),
-    r.needs.accessible && (l === 'en' ? 'accessibility' : 'נגישות'), pkg.car?.include && (l === 'en' ? 'car rental' : 'השכרת רכב'), r.childAges?.length && (l === 'en' ? `children's ages ${r.childAges.join(', ')}` : `גילי ילדים ${r.childAges.join(', ')}`)].filter(Boolean);
+    r.needs.accessible && (l === 'en' ? 'accessibility' : 'נגישות'), pkg.car?.include && (l === 'en' ? 'car rental' : 'השכרת רכב'), pkg.insurance?.include && (l === 'en' ? 'travel insurance (Harel)' : 'ביטוח נסיעות (הראל)'), r.childAges?.length && (l === 'en' ? `children's ages ${r.childAges.join(', ')}` : `גילי ילדים ${r.childAges.join(', ')}`)].filter(Boolean);
   return { destinations: stops.map((s) => name(s.name, l)).filter(Boolean).join(', ').slice(0, 200) || '—', start: r.start || '', end: r.end || '', flexibility: r.datesAssumed ? 'month' : 'exact',
     adults: r.adults, children: r.children, budget, styles, notes: [l === 'en' ? 'Package from the magic trip builder.' : 'חבילה מבונה החופשות.', needs.join(' · ')].filter(Boolean).join(' ').slice(0, 2000) };
 }

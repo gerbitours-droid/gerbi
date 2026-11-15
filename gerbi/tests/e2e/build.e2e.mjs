@@ -5,7 +5,9 @@
 // One live run against the real supplier (a running server with credentials, no fixtures): LIVE=1 (1440 Hebrew only).
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const BASE = process.env.BASE_URL || 'http://localhost:4192', OUT = process.env.OUT || 'verification/24-builder', NOKEY = process.env.NOKEY === '1', LIVE = process.env.LIVE === '1';
-const sfx = LIVE ? '-live' : NOKEY ? '-nokey' : '';
+// PUBLIC=1: the server runs with HOTELS_PUBLIC_DISPLAY=1 (named hotels); default = hotels private (aggregate estimate only).
+const PUBLIC = process.env.PUBLIC === '1';
+const sfx = (LIVE ? '-live' : NOKEY ? '-nokey' : '') + (PUBLIC ? '-public' : '');
 const results = [], check = (name, ok, extra = '') => { results.push({ name, ok: !!ok }); console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? ' — ' + extra : '')); };
 const noHScroll = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 const TEXT = { he: 'זוג עם ילד בן 8, 4 לילות ברומא בינואר, מלון 4 כוכבים, עם רכב', en: 'A couple with a child aged 8, 4 nights in Rome in January, a 4-star hotel, with a car' };
@@ -39,7 +41,9 @@ try {
     await settled(page);
     const flights = await page.locator('[data-pick-flight]').count(), hotels = await page.locator('[data-pick-hotel]').count();
     check(`${tag} flights card: live picks with check time`, flights >= 1 && flights <= 3 && /\d{1,2}:\d{2}/.test(await page.textContent('#bc-flights')), `${flights} picks`);
-    check(`${tag} hotels card: live hotels with stars and stay price`, hotels >= 1 && await page.locator('#bc-hotels .bk-stars').count() >= 1, `${hotels} hotels`);
+    if (PUBLIC) check(`${tag} hotels card: live hotels with stars and stay price`, hotels >= 1 && await page.locator('#bc-hotels .bk-stars').count() >= 1, `${hotels} hotels`);
+    else check(`${tag} hotels card (private): area + star level + estimate range, no hotel names or photos`, hotels === 0 && await page.locator('#bc-hotels img').count() === 0
+      && /₪[\s\S]*₪/.test(await page.textContent('#bc-hotels .bk-hotel-est')) && (l === 'en' ? /Estimate[\s\S]*4★/ : /הערכה[\s\S]*4★/).test(await page.textContent('#bc-hotels')));
     check(`${tag} understood chips show travellers/car/stars`, await page.locator('.bk-understood .understood-chip').count() >= 3);
     const total = await page.textContent('#bc-total');
     check(`${tag} total: live + estimate range + quote legend`, (l === 'en' ? /Live[\s\S]*Estimate[\s\S]*On request/ : /חי[\s\S]*הערכה[\s\S]*לפי הצעה/).test(total) && /₪/.test(total));
@@ -49,7 +53,7 @@ try {
     check(`${tag} every item has a Google Maps search link`, await page.locator('#bc-itinerary a[href^="https://www.google.com/maps/search/?api=1&query="]').count() >= 3);
     await page.screenshot({ path: `${OUT}/${tag}-package${sfx}.png`, fullPage: true });
     check(`${tag} no horizontal scroll`, await noHScroll(page));
-    if (LIVE) { check(`${tag} live: flight + hotel prices are live (₪ from supplier)`, flights > 0 && hotels > 0); await ctx.close(); continue; }
+    if (LIVE) { check(`${tag} live: flight prices are live and hotels are ${PUBLIC ? 'live' : 'a live-based estimate'}`, flights > 0 && (PUBLIC ? hotels > 0 : await page.locator('#bc-hotels .bk-hotel-est').count() === 1)); await ctx.close(); continue; }
 
     // Choose another flight → the total follows.
     if (flights > 1) { const before = await page.textContent('#bc-total'); await page.locator('[data-pick-flight]').nth(1).click(); check(`${tag} picking another flight updates the total`, (await page.textContent('#bc-total')) !== before && await page.locator('[data-pick-flight][aria-pressed=true]').count() === 1); }
@@ -63,6 +67,9 @@ try {
     check(`${tag} remove an item → it moves to "more ideas"`, await page.locator('[data-remove-item]').count() === items - 1 && await page.locator('[data-add-spare]').count() >= 1);
     await page.locator('.bk-spare summary').click(); await page.locator('[data-add-spare]').first().click();
     check(`${tag} add it back`, await page.locator('[data-remove-item]').count() === items);
+    // Insurance add-on (Harel): on request, carried in the total and the lead.
+    await page.locator('[data-insurance]').check();
+    check(`${tag} insurance add-on adds an "on request" line`, (l === 'en' ? /Travel insurance \(Harel\)/ : /ביטוח נסיעות \(הראל\)/).test(await page.textContent('#bc-total')));
     // Car off → the car line leaves the total.
     await page.locator('[data-car]').uncheck();
     check(`${tag} car toggle removes the car line`, !(l === 'en' ? /Car rental/ : /השכרת רכב/).test(await page.textContent('#bc-total')));
@@ -85,7 +92,7 @@ try {
       await other.close();
     }
     // Hand-off: send to a representative (lead type package). Leads are limited to 5 per 10 minutes per visitor: wide screens only.
-    if (width > 500) {
+    if (width > 500 && (l === 'he' || process.env.LEADS_EN === '1')) {
     await page.click('[data-act="lead"]');
     await page.waitForSelector('#build-lead');
     await page.click('#build-lead [type=submit]');
@@ -120,7 +127,8 @@ try {
     await page.goto(BASE + '/admin'); await page.fill('#password', process.env.ADMIN_PASSWORD); await page.click('#login-form button');
     await page.waitForSelector('.admin-package', { timeout: 10000 });
     const card = page.locator('.lead-card', { has: page.locator('.admin-package') }).first();
-    check('admin: package lead shows flight, hotel, car and the day plan', /טיסה[\s\S]*מלון[\s\S]*רכב/.test(await card.textContent()) && await card.locator('.admin-days li').count() >= 5);
+    check('admin: package lead shows flight, hotel, car, insurance and the day plan', /טיסה[\s\S]*מלון[\s\S]*רכב[\s\S]*ביטוח נסיעות/.test(await card.textContent()) && await card.locator('.admin-days li').count() >= 5);
+    if (!PUBLIC) check('admin: the agent-only hotel options are attached to the lead', /אפשרויות מלון לנציג/.test(await card.textContent()));
     await card.scrollIntoViewIfNeeded(); await card.screenshot({ path: `${OUT}/1440-admin-package-lead${sfx}.png` });
     await ctx.close();
   }

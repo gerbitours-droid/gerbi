@@ -71,7 +71,7 @@ async function build(input) {
     if (mine !== version) return;
     pkg = { ...plan, flights: { status: plan.flightSearch ? 'pending' : 'quote' },
       hotels: plan.stops?.length ? { stops: plan.hotelSearches.map((s, i) => ({ status: s ? 'pending' : 'quote', stop: i, area: plan.hotelAreas[i] })) } : { status: plan.hotelSearches[0] ? 'pending' : 'quote', area: plan.hotelAreas[0] },
-      car: { ...plan.car }, polish: null };
+      car: { ...plan.car }, insurance: { include: false }, polish: null };
     if (!pkg.destination) { out.removeAttribute('aria-busy'); out.innerHTML = suggestionsOnlyHtml(); announce(t('build.status.suggest')); return; }
     render(); announce(t('build.status.skeleton', { place: L(pkg.destination.name) }));
     $('#build-result h2')?.focus({ preventScroll: false });
@@ -101,11 +101,11 @@ async function fetchHotels(mine, i, area) {
   try {
     const result = await post('/api/build/hotels', { search: spec });
     if (mine !== version) return;
-    Object.assign(group, result.status === 'live' ? { ...result, selected: result.picks[0]?.id } : { status: 'quote', picks: [], reason: result.reason || result.status });
+    Object.assign(group, result.status === 'live' ? { ...result, selected: result.picks[0]?.id } : result.status === 'estimate' ? { ...result, picks: [] } : { status: 'quote', picks: [], reason: result.reason || result.status });
   } catch (error) { if (mine === version) Object.assign(group, { status: 'quote', picks: [], reason: error.status === 429 ? 'rate_limited' : '' }); }
   if (mine !== version) return;
   paint('hotels'); paint('total'); persist();
-  announce(group.status === 'live' ? t('build.status.hotels', { count: group.picks.length }) : t('build.status.hotelsQuote'));
+  announce(group.status === 'live' ? t('build.status.hotels', { count: group.picks.length }) : group.status === 'estimate' ? t('build.status.hotelsEstimate') : t('build.status.hotelsQuote'));
 }
 async function fetchPolish(mine) {
   try {
@@ -150,6 +150,7 @@ function render() {
      <section class="bk-card" id="bc-flights" aria-labelledby="bh-flights"></section>
      <section class="bk-card" id="bc-hotels" aria-labelledby="bh-hotels"></section>
      <section class="bk-card" id="bc-car" aria-labelledby="bh-car"></section>
+     <section class="bk-card" id="bc-insurance" aria-labelledby="bh-insurance"></section>
      <section class="bk-card" id="bc-itinerary" aria-labelledby="bh-itinerary"></section>
      <section class="bk-card" id="bc-practical" aria-labelledby="bh-practical"></section>
     </div>
@@ -165,7 +166,7 @@ function render() {
      <section class="bk-card bk-lead" id="bc-lead" ${leadOpen ? '' : 'hidden'}></section>
     </aside>
    </div>`;
-  for (const part of ['where', 'flights', 'hotels', 'car', 'itinerary', 'practical', 'total']) paint(part);
+  for (const part of ['where', 'flights', 'hotels', 'car', 'insurance', 'itinerary', 'practical', 'total']) paint(part);
   if (leadOpen) paintLead();
   wireImages(out);
 }
@@ -222,6 +223,13 @@ const PAINT = {
       const areaPick = areas.length > 1 ? `<label class="bk-area-pick">${t('build.hotels.otherArea')}<select data-area="${i}">${areas.map((a) => `<option value="${esc(L(a.name).length ? (a.name.en || L(a.name)) : '')}" ${g.area && L(g.area.name) === L(a.name) ? 'selected' : ''}>${esc(L(a.name))}</option>`).join('')}</select></label>` : '';
       const title = groups.length > 1 ? `<h4>${esc(L(stop.name))} · ${t('build.nights', { count: stop.nights })}</h4>` : '';
       if (g.status === 'pending') return title + areaLine + `<p class="bk-pending" aria-busy="true">${t('build.hotels.pending')}</p>`;
+      if (g.status === 'estimate' && g.estimate) {
+        const e = g.estimate, conv = (v) => fare({ value: v, currency: e.currency });
+        const what = [g.minStars ? t('build.hotels.estStars', { stars: g.minStars }) : '', g.board && !g.boardFallback ? t(`build.board.${g.board}`) : ''].filter(Boolean).join(' · ');
+        return title + areaLine + areaPick + `<div class="bk-hotel-est"><p>${kindPill('estimate')} <strong>${t('build.hotels.estLine', { low: `<span class="bk-range" dir="ltr">${esc(conv(e.perNight.low))} – ${esc(conv(e.perNight.high))}</span>`, what: esc(what || t('build.hotels.estAny')), where: e.areaScope && g.area ? t('build.hotels.estInArea', { area: esc(L(g.area.name)) }) : t('build.hotels.estInDest') })}</strong></p>
+          <p>${t('build.hotels.estStay', { nights: e.nights, range: `<span class="bk-range" dir="ltr">${esc(conv(e.stay.low))} – ${esc(conv(e.stay.high))}</span>` })}</p>
+          <p class="micro-copy">${t('build.hotels.estNote', { count: e.count, time: esc(checked(g.searchedAt)) })}${g.boardFallback ? ' · ' + t('build.hotels.boardFallback', { board: t(`build.board.${g.board}`) }) : ''}</p></div>`;
+      }
       if (g.status !== 'live') return title + areaLine + areaPick + `<p>${kindPill('quote')} ${t(g.reason === 'not_connected' ? 'build.hotels.notConnected' : g.reason === 'rate_limited' ? 'build.err.rateLimited' : 'build.hotels.quote')}</p>`;
       const shown = showAllHotels.has(i) ? g.picks : g.picks.slice(0, 3);
       return title + areaLine + areaPick + `<p class="micro-copy">${kindPill('live')} ${t('build.hotels.found', { count: g.total })} · ${esc(checked(g.searchedAt))}${g.boardFallback ? ' · ' + t('build.hotels.boardFallback', { board: t(`build.board.${g.board}`) }) : ''}${g.relaxedStars ? ' · ' + t('build.hotels.relaxed') : ''}</p>
@@ -242,6 +250,12 @@ const PAINT = {
      <label class="lead-check"><input type="checkbox" data-car ${c.include ? 'checked' : ''}><span>${t('build.car.include')}</span></label>
      ${c.include ? `<p>${kindPill('quote')} ${t('build.car.quote')}</p><p class="micro-copy">${esc(c.driverAgeNote || t('build.car.age'))}</p>` : ''}`;
   },
+  insurance() {
+    const url = pkg.config?.insuranceUrl;
+    return `<h3 id="bh-insurance">${icon('shield')}${t('build.insurance.title')}</h3><label class="lead-check"><input type="checkbox" data-insurance ${pkg.insurance?.include ? 'checked' : ''}><span>${t('build.insurance.include')}</span></label>
+     ${pkg.insurance?.include ? `<p>${kindPill('quote')} ${t('build.insurance.quote')}</p>` : `<p class="micro-copy">${t('build.insurance.hint')}</p>`}
+     ${url ? `<p class="micro-copy"><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${t('build.insurance.partner')}</a></p>` : ''}`;
+  },
   itinerary() {
     const days = pkg.itinerary, movable = (d) => ['full', 'daytrip', 'rest'].includes(d.kind);
     return `<h3 id="bh-itinerary">${icon('calendar')}${t('build.itinerary.title')}</h3><p class="micro-copy">${t('build.itinerary.hint')}${pkg.polish ? ' ' + t('build.ai.note') : ''}</p>
@@ -258,7 +272,7 @@ const PAINT = {
   },
   total() {
     const pr = pricePackage(pkg, getFx()), label = (l) => t(`build.line.${l.id.split(':')[0]}`, { place: l.stop !== undefined && pkg.stops?.length ? L(pkg.stops[l.stop]?.name) : '' });
-    const value = (l) => l.kind === 'live' ? `<strong dir="ltr">${esc(l.ils === null ? formatOriginal(l.price) : formatIls(l.ils))}</strong>` : l.kind === 'estimate' ? range(l.range.low, l.range.high) : l.kind === 'pending' ? `<span class="bk-pending">${t('build.kind.pending')}</span>` : `<span>${t('build.price.byRep')}</span>`;
+    const value = (l) => l.kind === 'live' ? `<strong dir="ltr">${esc(l.ils === null ? formatOriginal(l.price) : formatIls(l.ils))}</strong>` : l.kind === 'estimate' ? (l.range ? range(l.range.low, l.range.high) : `<span class="bk-range" dir="ltr">${esc(formatOriginal({ value: l.original.low, currency: l.original.currency }))} – ${esc(formatOriginal({ value: l.original.high, currency: l.original.currency }))}</span>`) : l.kind === 'pending' ? `<span class="bk-pending">${t('build.kind.pending')}</span>` : `<span>${t('build.price.byRep')}</span>`;
     return `<h3 id="bh-total">${icon('tag')}${t('build.total.title')}</h3><table class="bk-lines"><tbody>${pr.lines.map((l) => `<tr><th scope="row">${esc(label(l))}<br>${kindPill(l.kind)}</th><td>${value(l)}${l.at ? `<small>${esc(checked(l.at))}</small>` : ''}</td></tr>`).join('')}</tbody></table>
      ${pr.total ? `<div class="bk-sum"><p>${t('build.total.live')} <strong dir="ltr">${esc(formatIls(pr.total.live))}</strong></p><p>${t('build.total.withEstimate')} <strong>${range(pr.total.low, pr.total.high)}</strong></p>
        <p class="micro-copy">${t('build.total.perPerson', { live: esc(formatIls(pr.perPerson.live)), low: esc(formatIls(pr.perPerson.low)), high: esc(formatIls(pr.perPerson.high)), count: pr.people })}</p></div>` : pr.missingFx ? `<p class="micro-copy">${t('build.total.noFx')}</p>` : ''}
@@ -394,6 +408,7 @@ function wire() {
   });
   document.addEventListener('change', (e) => {
     if (!view?.contains(e.target) || !pkg) return;
+    if (e.target.matches('[data-insurance]')) { pkg.insurance = { include: e.target.checked }; paint('insurance'); paint('total'); persist(); $('[data-insurance]', view)?.focus(); }
     if (e.target.matches('[data-car]')) { pkg.car.include = e.target.checked; paint('car'); paint('total'); persist(); $('[data-car]', view)?.focus(); }
     if (e.target.matches('[data-area]')) { const i = Number(e.target.dataset.area), area = (pkg.areas[i] || []).find((a) => (a.name.en || L(a.name)) === e.target.value); hotelGroups()[i].area = area || null; fetchHotels(version, i, e.target.value); }
   });

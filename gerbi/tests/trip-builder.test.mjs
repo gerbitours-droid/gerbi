@@ -109,7 +109,7 @@ test('pricing: live lines carry their time, the ground estimate is a range, the 
   const pkg = { ...p, flights: { status: 'live', searchedAt: '2026-11-15T10:00:00Z', selected: 'a', picks: [{ key: 'a', price: { value: 400, currency: 'USD' } }, { key: 'b', price: { value: 500, currency: 'USD' } }] },
     hotels: { status: 'live', searchedAt: '2026-11-15T10:01:00Z', selected: 'h2', picks: [{ id: 'h1', price: { value: 200, currency: 'USD' } }, { id: 'h2', price: { value: 300, currency: 'USD' } }] }, car: { include: true } };
   const fx = { rates: { USD: 3.5 } }, pr = pricePackage(pkg, fx);
-  assert.deepEqual(pr.lines.map((l) => [l.id, l.kind]), [['flight', 'live'], ['hotel', 'live'], ['ground', 'estimate'], ['car', 'quote'], ['extras', 'quote']]);
+  assert.deepEqual(pr.lines.map((l) => [l.id, l.kind]), [['flight', 'live'], ['hotel', 'live'], ['ground', 'estimate'], ['car', 'quote'], ['transfers', 'quote']]);
   assert.equal(pr.total.live, 2450, '400×3.5 + 300×3.5 (the selected hotel)');
   const g = groundEstimate(pkg), d = byId('rome').dailyBudgetIls;
   assert.deepEqual(g, { low: Math.round(d.low * 4 * 2.6 / 10) * 10, high: Math.round(d.mid * 4 * 2.6 / 10) * 10 });
@@ -170,9 +170,9 @@ test('hotels: validated input → supplier body (ISO nationality 376), array fil
 });
 
 // The builder routes + accounts + leads behind one HTTP server, recorded supplier answers.
-async function withServer(run) {
+async function withServer(run, extraEnv = {}) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'gerbi-build-'));
-  const env = { GERBI_SUPPLIER_FIXTURES: '1' };
+  const env = { GERBI_SUPPLIER_FIXTURES: '1', ...extraEnv };
   const leadStore = createStore('leads', directory), accounts = createAccounts({ store: createStore('accounts', directory), leadStore, env });
   const builder = createBuilder({ store: createStore('build', directory), env, polish: async (destination, travellers, days) => ({ intro: `חופשה ב${destination}`, dayTitles: days.map((d, i) => `יום ${i + 1}`) }) });
   const body = async (req) => { let raw = ''; for await (const chunk of req) raw += chunk; return raw ? JSON.parse(raw) : {}; };
@@ -181,7 +181,7 @@ async function withServer(run) {
     const url = new URL(req.url, 'http://x');
     if (await builder.handle(req, res, url, { send, body })) return;
     if (await accounts.handle(req, res, url, { send, body })) return;
-    if (await handleLeads(req, url, { send, body, store: leadStore, env, hooks: accounts.leadHooks })) return;
+    if (await handleLeads(req, url, { send, body, store: leadStore, env, hooks: { ...accounts.leadHooks, enrich: builder.enrichLead } })) return;
     send(404, {});
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -192,10 +192,10 @@ async function withServer(run) {
     const set = response.headers.get('set-cookie'); if (set) cookie = set.split(';')[0];
     return { status: response.status, data: await response.json().catch(() => null) };
   };
-  try { await run(call); } finally { server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); await rm(directory, { recursive: true, force: true }); }
+  try { await run(call, leadStore); } finally { server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); await rm(directory, { recursive: true, force: true }); }
 }
 
-test('HTTP: plan → flights + hotels (recorded) → share → package lead in the account; invalid input is refused', async () => {
+test('HTTP (HOTELS_PUBLIC_DISPLAY on): plan → flights + hotels (recorded) → share → package lead in the account; invalid input is refused', async () => {
   await withServer(async (call) => {
     assert.equal((await call('POST', '/api/build', { text: '' })).status, 400);
     const planned = await call('POST', '/api/build', { text: 'זוג עם ילד בן 8, 4 לילות ברומא בינואר', lang: 'he' });
@@ -230,6 +230,34 @@ test('HTTP: plan → flights + hotels (recorded) → share → package lead in t
     assert.equal((await call('POST', '/api/account/packages', { id: shared.data.id, title: 'רומא · ינואר' })).status, 200);
     assert.deepEqual((await call('GET', '/api/account/packages')).data.packages.map((x) => x.id), [shared.data.id]);
     assert.equal((await call('POST', '/api/account/packages', { id: 'nope' })).status, 400);
+  }, { HOTELS_PUBLIC_DISPLAY: '1' });
+});
+
+test('HTTP (default, hotels private): aggregate estimate only – no hotel names, photos or rates; the agent sees the options in the lead', async () => {
+  await withServer(async (call, leadStore) => {
+    const p = (await call('POST', '/api/build', { text: 'זוג עם ילד בן 8, 4 לילות ברומא בינואר', lang: 'he' })).data;
+    assert.equal(p.config.hotelsPublic, false); assert.equal(p.config.insuranceUrl, '');
+    const hotels = (await call('POST', '/api/build/hotels', { search: p.hotelSearches[0] })).data;
+    assert.equal(hotels.status, 'estimate'); assert.equal(hotels.mode, 'private'); assert.equal(hotels.picks, undefined);
+    assert.match(hotels.ref, /^[a-f0-9]{16}$/);
+    const e = hotels.estimate;
+    assert.ok(e.perNight.low > 0 && e.perNight.low <= e.perNight.high && e.stay.low === e.perNight.low * 4 && e.count >= 3 && /^[A-Z]{3}$/.test(e.currency));
+    const text = JSON.stringify(hotels);
+    for (const word of ['SEVEN HILLS', 'Via ', 'hotel-image', 'name']) assert.ok(!text.includes(word), `no ${word} in the public answer`);
+    assert.equal((await call('GET', '/api/build/hotel-image?src=' + encodeURIComponent('hotel:1/x.jpg'))).status, 404, 'no photo proxy');
+    const flights = (await call('POST', '/api/build/flights', { search: p.flightSearch, request: p.request })).data;
+    const pkg = { ...p, flights: { ...flights, selected: flights.picks[0].key }, hotels: { ...hotels, area: p.hotelAreas[0] }, insurance: { include: true } };
+    const pr = pricePackage(pkg, { rates: { USD: 3.5 } });
+    assert.deepEqual(pr.lines.map((l) => [l.id, l.kind]), [['flight', 'live'], ['hotel', 'estimate'], ['ground', 'estimate'], ['insurance', 'quote'], ['transfers', 'quote']]);
+    assert.equal(pr.total.low, pr.total.live + pr.lines[1].range.low + pr.lines[2].range.low, 'the hotel range adds to the estimate, never to the live sum');
+    const snapshot = sanitizePackage(pkg);
+    assert.equal(snapshot.hotels.ref, hotels.ref); assert.equal(snapshot.insurance.include, true);
+    const fields = packageLeadFields(snapshot);
+    assert.match(fields.notes, /ביטוח נסיעות \(הראל\)/);
+    assert.equal((await call('POST', '/api/leads', { type: 'package', name: 'דנה כהן', phone: '050-1234567', channel: 'whatsapp', consent: true, ...fields, package: snapshot })).status, 201);
+    const [lead] = await leadStore.list('all', 1);
+    assert.equal(lead.agentHotels.length, 1); assert.ok(lead.agentHotels[0].picks.length >= 1 && lead.agentHotels[0].picks[0].name, 'the agent (admin only) sees the hotel options');
+    assert.equal(lead.package.insurance.include, true);
   });
 });
 

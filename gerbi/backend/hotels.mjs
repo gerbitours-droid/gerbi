@@ -84,6 +84,22 @@ export function rankHotels(list, spec) {
   return { picks: ordered.map(({ score, lat, lon, ...h }) => ({ ...h, role: roles.get(scored.find((x) => x.id === h.id)) || '' })), relaxedStars };
 }
 
+// Owner decision (spec 24 §1.3): unless HOTELS_PUBLIC_DISPLAY is on, the public page never shows a supplier hotel
+// (no name, photo or per-hotel rate). It gets aggregate statistics only: the middle half (25th–75th percentile) of
+// per-night prices of the hotels that fit (stars, board; the recommended area when it has at least 5), from 3 hotels up.
+export function hotelEstimate(list, spec) {
+  const nights = nightsOf(spec) || 1, fitting = list.filter((h) => h.price && h.stars >= spec.minStars);
+  const currency = [...fitting.reduce((m, h) => m.set(h.price.currency, (m.get(h.price.currency) || 0) + 1), new Map())].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const pool = fitting.filter((h) => h.price.currency === currency);
+  const words = String(spec.area || '').toLowerCase().split(/[^a-z\u00c0-\u024f]+/).filter((w) => w.length >= 4);
+  const inArea = words.length ? pool.filter((h) => words.some((w) => h.address.toLowerCase().includes(w) || h.name.toLowerCase().includes(w))) : [];
+  const scope = inArea.length >= 5 ? inArea : pool;
+  if (scope.length < 3) return null;
+  const per = scope.map((h) => h.price.value / nights).sort((a, b) => a - b), at = (p) => per[Math.round(p * (per.length - 1))];
+  const low = Math.round(at(0.25)), high = Math.max(low, Math.round(at(0.75)));
+  return { perNight: { low, high }, stay: { low: low * nights, high: high * nights }, currency, count: scope.length, areaScope: scope === inArea, nights };
+}
+
 // Search → slim (KV cache 30 min, in-flight de-dup) → rank per request. The cache key holds only what the supplier
 // receives, so another area or family preference re-ranks the same list without a new supplier call.
 const HOTEL_TTL = 30 * 60;
@@ -111,6 +127,7 @@ export function createHotelSearch({ store, search, log = () => {}, now = () => D
     const found = await list(spec), ranked = rankHotels(found.list, spec), nights = nightsOf(spec);
     return { status: ranked.picks.length ? 'live' : 'none', searchedAt: found.searchedAt, total: found.total, nights, cached: found.cached,
       board: spec.board, boardFallback: Boolean(spec.board) && !found.filtered, relaxedStars: ranked.relaxedStars,
-      picks: ranked.picks.map((h) => ({ ...h, nights, image: h.image ? `/api/build/hotel-image?src=${encodeURIComponent(h.image)}` : '' })) };
+      picks: ranked.picks.map((h) => ({ ...h, nights, image: h.image ? `/api/build/hotel-image?src=${encodeURIComponent(h.image)}` : '' })),
+      estimate: hotelEstimate(found.list, spec) };
   };
 }

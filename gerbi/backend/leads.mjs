@@ -67,7 +67,9 @@ export async function handleLeads(req, url, { send, body, store, env = process.e
     const { lead, errors } = validateLead(input, { lang: normLang(input?.lang) });
     if (!lead) { send(400, { error: 'lead_invalid', fields: errors, message: 'חלק מהפרטים חסרים או לא תקינים.' }); return true; }
     const userId = await hooks?.userOf?.(req);
-    const record = { id: randomUUID(), createdAt: new Date().toISOString(), status: 'new', ...lead, consent: { given: true, text: consentText(lead.lang), at: new Date().toISOString() }, ...(userId ? { userId } : {}) };
+    // hooks.enrich (spec 24): server-side facts the visitor never sent (a package's agent-only hotel options).
+    const extra = await hooks?.enrich?.(lead)?.catch?.(() => null) ?? null;
+    const record = { id: randomUUID(), createdAt: new Date().toISOString(), status: 'new', ...lead, consent: { given: true, text: consentText(lead.lang), at: new Date().toISOString() }, ...(userId ? { userId } : {}), ...(extra && typeof extra === 'object' ? extra : {}) };
     const webhook = env.LEADS_WEBHOOK_URL ? notify(env.LEADS_WEBHOOK_URL, record) : null;
     try { await store.push(LIST_KEY, record, MAX_STORED); }
     catch (error) {

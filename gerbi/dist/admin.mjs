@@ -103,7 +103,7 @@ function leadCard(lead) {
   const notes = (lead.adminNotes || []).map((n) => `<li><small>${esc(when(n.at))}</small> ${esc(n.text)}</li>`).join('');
   return `<article class="lead-card admin-lead" data-lead="${id}"><header><h2>${esc(lead.name)}</h2><span class="lead-tag ${['tailor', 'package'].includes(lead.type) ? 'tailor' : ''}">${esc(LEAD_TYPE[lead.type] || lead.type)}</span>${priorityChip(lead)}<small>${esc(when(lead.createdAt))} · ${esc(lead.source || '')}</small>
     <label class="status-pick status-${esc(lead.status)}"><span class="sr-only">סטטוס</span><select data-status aria-label="סטטוס הפנייה של ${esc(lead.name)}">${Object.entries(LEAD_STATUS).map(([k, v]) => `<option value="${k}"${lead.status === k ? ' selected' : ''}>${v}</option>`).join('')}</select></label></header>
-    <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>${lead.package ? packageHtml(lead.package) : ''}
+    <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>${lead.package ? packageHtml(lead.package, lead.agentHotels) : ''}
     <div class="admin-notes"><strong>הערות פנימיות</strong>${notes ? `<ul>${notes}</ul>` : '<p class="micro-copy">אין עדיין הערות.</p>'}
      <form data-note class="note-form"><label class="sr-only" for="note-${id}">הערה חדשה</label><input id="note-${id}" maxlength="1000" placeholder="הוספת הערה (נראית רק לכם)"><button class="button secondary" type="submit">הוספה</button></form></div>
     ${leadAiHtml(lead)}
@@ -114,7 +114,7 @@ function leadCard(lead) {
 const BOARD = { RO: 'לינה בלבד', SC: 'עצמאי', BB: 'ארוחת בוקר', HB: 'חצי פנסיון', FB: 'פנסיון מלא', AI: 'הכול כלול', RD: 'לפי החדר' };
 const money = (p) => (p ? `${Number(p.value).toLocaleString('he-IL', { maximumFractionDigits: 0 })} ${p.currency}` : '');
 const nm = (v) => (v && typeof v === 'object' ? v.he || v.en || '' : v || '');
-function packageHtml(p) {
+function packageHtml(p, agentHotels = []) {
   const r = p.request || {}, f = p.flights?.picks?.[0], groups = p.hotels?.stops || (p.hotels ? [p.hotels] : []), stops = p.stops?.length ? p.stops : [p.destination].filter(Boolean);
   const rows = [
     ['מסלול', esc(stops.map((s) => `${nm(s.name)} (${s.nights} לילות)`).join(' ← '))],
@@ -122,6 +122,9 @@ function packageHtml(p) {
     ['טיסה', f ? esc(`${f.carriers.join(' + ')} · ${f.stops ? f.stops + ' עצירות' : 'ישירה'} · ${f.legs.map((l) => `${l.from} ${l.depart} → ${l.to} ${l.arrive} (${l.date})`).join(' | ')} · ${money(f.price)} (נבדק ${when(p.flights.searchedAt)})`) : 'לפי הצעה (לא נבחרה טיסה חיה)'],
     ...groups.map((g, i) => [groups.length > 1 ? `מלון ${i + 1}` : 'מלון', g.picks?.[0] ? esc(`${g.picks[0].name} · ${'★'.repeat(g.picks[0].stars || 0)} · ${BOARD[g.picks[0].board] || ''} · ${money(g.picks[0].price)} לשהות (נבדק ${when(g.searchedAt)})${g.area ? ' · אזור: ' + nm(g.area.name) : ''}`) : esc(`לפי הצעה${g.area ? ' · אזור מומלץ: ' + nm(g.area.name) : ''}`)]),
     ['רכב', p.car?.include ? 'כן – להציע השכרת רכב' : 'לא'],
+    ['ביטוח נסיעות', p.insurance?.include ? 'כן – הראל, להציע פוליסה' : 'לא'],
+    ...groups.filter((g) => g.estimate).map((g) => ['הערכת מלון שהלקוח ראה', esc(`${g.estimate.perNight.low}–${g.estimate.perNight.high} ${g.estimate.currency} ללילה · ${g.minStars ? g.minStars + '★ ומעלה' : ''} ${BOARD[g.board] || ''} (מ־${g.estimate.count} מלונות)`)]),
+    ...(agentHotels || []).map((x) => [`אפשרויות מלון לנציג${(agentHotels || []).length > 1 ? ' ' + (x.stop + 1) : ''}`, (x.picks || []).map((h) => esc(`${h.name} · ${'★'.repeat(h.stars || 0)} · ${BOARD[h.board] || ''} · ${money(h.price)} לשהות${h.refundable === false ? ' · ללא החזר' : ''}`)).join('<br>') + `<br><small>${esc(`${x.city} ${x.checkIn}–${x.checkOut} · נבדק ${when(x.searchedAt)} · פנימי, לא מוצג ללקוח`)}</small>`]),
     ['צרכים', esc([r.needs?.allInclusive && 'הכול כלול', r.needs?.kosher && 'כשר', r.needs?.shabbat && 'שומרי שבת', r.needs?.accessible && 'נגישות', r.needs?.minStars && `${r.needs.minStars}★ ומעלה`, r.childAges?.length && `גילי ילדים ${r.childAges.join(', ')}`].filter(Boolean).join(' · ') || '—')],
     ['הבקשה המקורית', esc(r.text || '—')]
   ];

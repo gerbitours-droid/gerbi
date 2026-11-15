@@ -255,7 +255,7 @@ export function createServer() {
    }
    if (await builder.handle(req, res, url, { send, body })) return;
    if (await accounts.handle(req, res, url, { send, body })) return;
-   if (await handleLeads(req, url, { send, body, store:leadStore, hooks:accounts.leadHooks })) return;
+   if (await handleLeads(req, url, { send, body, store:leadStore, hooks:{ ...accounts.leadHooks, enrich: builder.enrichLead } })) return;
    if (await handleFx(req, url, { send, body, fx, background, res })) return;
    if (await support.handle(req, res, url, { send, body })) return;
    if (await handleAi(req, res, url, { send, body, leadStore, sessions:adminSessions, llmCache, searchStats })) return;
