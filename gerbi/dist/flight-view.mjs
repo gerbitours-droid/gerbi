@@ -1,10 +1,14 @@
+import { toIls, formatIls, priceBasis } from './fx.mjs';
 export function offerPrice(offer) {
   const price = offer?.fareDetails?.totalPrice?.selling;
   return price && typeof price.value === 'number' && Number.isFinite(price.value) && price.value >= 0 &&
     /^[A-Z]{3}$/.test(price.currency) ? {value:price.value,currency:price.currency} : null;
 }
+// Shekels first when a rate is loaded (dist/fx.mjs); the supplier's currency otherwise.
 export function formatFare(price) {
   if (!price) return 'מחיר אינו זמין';
+  const ils = toIls(price);
+  if (ils !== null) return formatIls(ils);
   try {return new Intl.NumberFormat('he-IL',{style:'currency',currency:price.currency,maximumFractionDigits:2}).format(price.value);}
   catch {return `${price.value.toFixed(2)} ${price.currency}`;}
 }
@@ -106,6 +110,8 @@ export function matchesFilters(facts, filters) {
 }
 export function sortFacts(list, sort = 'supplier') {
   if (sort === 'duration') return [...list].sort((a, b) => (a.totalMinutes ?? Infinity) - (b.totalMinutes ?? Infinity) || (a.price?.value ?? Infinity) - (b.price?.value ?? Infinity));
-  if (sort !== 'price' || new Set(list.map(item => item.price?.currency).filter(Boolean)).size > 1) return [...list];
-  return [...list].sort((a, b) => (a.price?.value ?? Infinity) - (b.price?.value ?? Infinity) || (a.totalMinutes ?? Infinity) - (b.totalMinutes ?? Infinity));
+  // Price order compares what is shown: rounded shekels when converted, so mixed supplier currencies still sort.
+  const basis = new Map(list.map(item => [item, priceBasis(item.price)]));
+  if (sort !== 'price' || new Set([...basis.values()].map(item => item?.currency).filter(Boolean)).size > 1) return [...list];
+  return [...list].sort((a, b) => (basis.get(a)?.value ?? Infinity) - (basis.get(b)?.value ?? Infinity) || (a.totalMinutes ?? Infinity) - (b.totalMinutes ?? Infinity));
 }
