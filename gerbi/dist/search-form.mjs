@@ -2,6 +2,7 @@
 // Plain DOM, no framework; app.js wires them to its state.
 import { searchPlaces, resolvePlace, placeText, placeByCode, POPULAR_DESTINATIONS, POPULAR_ORIGINS } from './places.mjs';
 import { addMonths, monthGrid, pickDate, dayState, parseIso, nightsBetween, selectable, maxDate } from './date-range.mjs';
+import { t, lang, locale } from './i18n.mjs';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const icon = name => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
@@ -10,14 +11,14 @@ const icon = name => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 export const countText = (n, one, many) => (n === 1 ? one : `${n} ${many}`);
 export const travelersText = (adults, children = 0) => {
   const total = adults + children;
-  return `${countText(total, 'נוסע אחד', 'נוסעים')}${children ? ` · מתוכם ${countText(children, 'ילד אחד', 'ילדים')}` : ''}`;
+  return children ? t('search.travelersWithChildren', { travelers: t('search.travelers', { count: total }), children: t('search.children', { count: children }) }) : t('search.travelers', { count: total });
 };
 
 // ---- Place autocomplete (WAI-ARIA combobox with a listbox popup).
 export function placeCombobox(input, { kind = 'destination', exclude = () => '', onCommit = () => {} } = {}) {
   const id = `${input.id || 'place'}-list`, list = document.createElement('ul');
   list.id = id; list.className = 'place-list'; list.setAttribute('role', 'listbox'); list.hidden = true;
-  list.setAttribute('aria-label', kind === 'origin' ? 'שדות מוצא' : 'יעדים');
+  list.setAttribute('aria-label', kind === 'origin' ? t('search.place.originList') : t('search.place.destinationList'));
   input.removeAttribute('list');
   Object.assign(input, { autocomplete: 'off', spellcheck: false });
   input.setAttribute('role', 'combobox'); input.setAttribute('aria-autocomplete', 'list'); input.setAttribute('aria-expanded', 'false'); input.setAttribute('aria-controls', id);
@@ -26,7 +27,7 @@ export function placeCombobox(input, { kind = 'destination', exclude = () => '',
 
   const optionHTML = (place, i) => {
     const child = Boolean(place.city), raw = !place.names;
-    const sub = raw ? 'קוד שדה תעופה' : [place.sub, place.en].filter(Boolean).join(' · ');
+    const sub = raw ? t('search.place.airportCode') : [place.sub, place.en].filter(Boolean).join(' · ');
     return `<li role="option" id="${id}-${i}" data-index="${i}" class="place-option${child ? ' is-airport' : ''}" aria-selected="${i === active}">`
       + `${icon(place.type === 'c' ? 'globe' : child ? 'plane' : 'pin')}<span class="place-text"><strong>${esc(place.name || place.label)}</strong><small>${esc(sub)}</small></span>`
       + `<b class="place-code" dir="ltr">${esc(place.code)}</b></li>`;
@@ -38,8 +39,8 @@ export function placeCombobox(input, { kind = 'destination', exclude = () => '',
     items = typed ? searchPlaces(query, { exclude: exclude() }) : (kind === 'origin' ? POPULAR_ORIGINS : POPULAR_DESTINATIONS).map(placeByCode).filter(p => p && p.code !== exclude());
     if (typed && /^[a-z]{3}$/i.test(query) && !items.some(p => p.code === query.toUpperCase())) items.push({ code: query.toUpperCase(), name: query.toUpperCase(), label: query.toUpperCase() });
     active = Math.min(active, items.length - 1);
-    const heading = typed ? '' : `<li role="presentation" class="place-heading">${kind === 'origin' ? 'שדות תעופה בישראל' : 'יעדים פופולריים'}</li>`;
-    list.innerHTML = items.length ? heading + items.map(optionHTML).join('') : `<li role="presentation" class="place-empty">לא מצאנו „${esc(query)}”. נסו שם בעברית או באנגלית, או קוד בן 3 אותיות (למשל LHR).</li>`;
+    const heading = typed ? '' : `<li role="presentation" class="place-heading">${kind === 'origin' ? t('search.place.homeAirports') : t('search.place.popular')}</li>`;
+    list.innerHTML = items.length ? heading + items.map(optionHTML).join('') : `<li role="presentation" class="place-empty">${t('search.place.notFound', { query: esc(query) })}</li>`;
     open();
     sync();
   }
@@ -50,7 +51,7 @@ export function placeCombobox(input, { kind = 'destination', exclude = () => '',
   }
   function open() {
     const field = input.closest('.field'), host = list.parentElement;
-    if (field && host) { const f = field.getBoundingClientRect(), h = host.getBoundingClientRect(); list.style.top = `${f.bottom - h.top + 6}px`; list.style.right = `${h.right - f.right}px`; }
+    if (field && host) { const f = field.getBoundingClientRect(), h = host.getBoundingClientRect(); list.style.top = `${f.bottom - h.top + 6}px`; if (lang === 'en') { list.style.left = `${f.left - h.left}px`; list.style.right = ''; } else list.style.right = `${h.right - f.right}px`; }
     list.hidden = false; input.setAttribute('aria-expanded', 'true'); }
   function close() { list.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; }
   function commit(place) {
@@ -85,10 +86,10 @@ export function placeCombobox(input, { kind = 'destination', exclude = () => '',
 }
 
 // ---- Range date picker in a modal dialog: two months side by side on wide screens, one on phones.
-const DOW = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
-const monthTitle = (y, m) => new Date(Date.UTC(y, m, 15)).toLocaleDateString('he-IL', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-const dayLabel = iso => new Date(iso + 'T12:00:00Z').toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-const shortLabel = iso => (iso ? new Date(iso + 'T12:00:00Z').toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : '');
+const DOW = t('search.dp.dow').split(',');
+const monthTitle = (y, m) => new Date(Date.UTC(y, m, 15)).toLocaleDateString(locale(), { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const dayLabel = iso => new Date(iso + 'T12:00:00Z').toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const shortLabel = iso => (iso ? new Date(iso + 'T12:00:00Z').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : '');
 
 export function openRangePicker({ start = '', end = '', oneWay = false, today, returnFocus = null, validate = () => true, onTripType = () => {}, onApply = () => {} }) {
   let dialog = document.querySelector('#date-picker');
@@ -106,11 +107,11 @@ export function openRangePicker({ start = '', end = '', oneWay = false, today, r
   const atMax = () => { const last = addMonths(view.y, view.m, months() - 1); return last.y * 12 + last.m >= maxView.y * 12 + maxView.m; };
 
   function hint() {
-    if (oneWay) return sel.start ? `יציאה ב${shortLabel(sel.start)}` : 'בחרו תאריך יציאה';
-    if (!sel.start) return 'בחרו תאריך יציאה';
-    if (!sel.end) return 'עכשיו בחרו תאריך חזרה';
+    if (oneWay) return sel.start ? t('search.dp.departOn', { date: shortLabel(sel.start) }) : t('search.dp.pickDepart');
+    if (!sel.start) return t('search.dp.pickDepart');
+    if (!sel.end) return t('search.dp.pickReturn');
     const n = nightsBetween(sel.start, sel.end);
-    return `${shortLabel(sel.start)} – ${shortLabel(sel.end)} · ${n === 0 ? 'חזרה באותו יום' : countText(n, 'לילה אחד', 'לילות')}`;
+    return `${shortLabel(sel.start)} – ${shortLabel(sel.end)} · ${n === 0 ? t('search.dp.sameDay') : t('search.nights', { count: n })}`;
   }
   const monthHTML = (y, m) => `<div class="dp-month"><h3>${esc(monthTitle(y, m))}</h3><div class="dp-grid" role="grid" aria-label="${esc(monthTitle(y, m))}">`
     + `<div role="row" class="dp-row dp-dow">${DOW.map(d => `<span role="columnheader">${d}</span>`).join('')}</div>`
@@ -135,17 +136,17 @@ export function openRangePicker({ start = '', end = '', oneWay = false, today, r
   }
   function render(keepFocus = false) {
     const shown = Array.from({ length: months() }, (_, i) => addMonths(view.y, view.m, i));
-    dialog.innerHTML = `<button type="button" class="modal-close" aria-label="סגירה">${icon('close')}</button>`
-      + `<div class="dp-head"><h2 id="date-picker-title">מתי טסים?</h2><div class="dp-mode" role="radiogroup" aria-label="סוג נסיעה">`
-      + `<button type="button" role="radio" data-mode="round" aria-checked="${!oneWay}">הלוך־חזור</button><button type="button" role="radio" data-mode="oneway" aria-checked="${oneWay}">כיוון אחד</button></div>`
-      + `<button type="button" class="dp-clear text-button">ניקוי</button></div>`
+    dialog.innerHTML = `<button type="button" class="modal-close" aria-label="${t('search.dp.close')}">${icon('close')}</button>`
+      + `<div class="dp-head"><h2 id="date-picker-title">${t('search.dp.title')}</h2><div class="dp-mode" role="radiogroup" aria-label="${t('search.dp.tripType')}">`
+      + `<button type="button" role="radio" data-mode="round" aria-checked="${!oneWay}">${t('search.dp.round')}</button><button type="button" role="radio" data-mode="oneway" aria-checked="${oneWay}">${t('search.dp.oneway')}</button></div>`
+      + `<button type="button" class="dp-clear text-button">${t('search.dp.clear')}</button></div>`
       + `<p class="dp-hint" aria-live="polite"></p>`
-      + `<div class="dp-body"><button type="button" class="dp-nav dp-prev" aria-label="החודש הקודם" ${atMin() ? 'disabled' : ''}>›</button>`
+      + `<div class="dp-body"><button type="button" class="dp-nav dp-prev" aria-label="${t('search.dp.prev')}" ${atMin() ? 'disabled' : ''}>${t('search.dp.prevArrow')}</button>`
       + `<div class="dp-months">${shown.map(({ y, m }) => monthHTML(y, m)).join('')}</div>`
-      + `<button type="button" class="dp-nav dp-next" aria-label="החודש הבא" ${atMax() ? 'disabled' : ''}>‹</button></div>`
-      + `<form id="date-form" novalidate><div class="dp-fields"><label class="modal-field">יציאה<input id="start-date" type="date" min="${today}" max="${maxDate(today)}"></label>`
-      + (oneWay ? '' : `<label class="modal-field">חזרה<input id="end-date" type="date" max="${maxDate(today)}"></label>`)
-      + `</div><p id="date-error" class="inline-error" hidden></p><button class="yellow dialog-primary dp-apply">אישור תאריכים</button></form>`;
+      + `<button type="button" class="dp-nav dp-next" aria-label="${t('search.dp.next')}" ${atMax() ? 'disabled' : ''}>${t('search.dp.nextArrow')}</button></div>`
+      + `<form id="date-form" novalidate><div class="dp-fields"><label class="modal-field">${t('search.dp.depart')}<input id="start-date" type="date" min="${today}" max="${maxDate(today)}"></label>`
+      + (oneWay ? '' : `<label class="modal-field">${t('search.dp.return')}<input id="end-date" type="date" max="${maxDate(today)}"></label>`)
+      + `</div><p id="date-error" class="inline-error" hidden></p><button class="yellow dialog-primary dp-apply">${t('search.dp.apply')}</button></form>`;
     paint();
     if (keepFocus) dialog.querySelector(`.dp-day[data-date="${focusIso}"]`)?.focus();
   }
@@ -159,7 +160,7 @@ export function openRangePicker({ start = '', end = '', oneWay = false, today, r
   }
   function apply() {
     const s = sel.start, e = oneWay ? '' : sel.end, error = dialog.querySelector('#date-error');
-    if (!validate(s, e, oneWay)) { error.textContent = oneWay ? 'בחרו תאריך יציאה (לא בעבר).' : !s ? 'בחרו תאריך יציאה.' : !e ? 'בחרו גם תאריך חזרה.' : 'תאריך החזרה לא יכול להיות לפני היציאה.'; error.hidden = false; return; }
+    if (!validate(s, e, oneWay)) { error.textContent = oneWay ? t('search.dp.errOneway') : !s ? t('search.dp.errStart') : !e ? t('search.dp.errEnd') : t('search.dp.errOrder'); error.hidden = false; return; }
     dialog.close(); onApply({ start: s, end: e, oneWay });
   }
 
@@ -182,8 +183,8 @@ export function openRangePicker({ start = '', end = '', oneWay = false, today, r
   dialog.onmouseover = e => { const day = e.target.closest('.dp-day'); if (day && !oneWay && sel.start && !sel.end && sel.hover !== day.dataset.date) { sel.hover = day.dataset.date; paint(); } };
   dialog.onkeydown = e => {
     const day = e.target.closest('.dp-day'); if (!day) return;
-    // RTL: the week runs right to left, so ArrowLeft is the next day.
-    const step = { ArrowLeft: 1, ArrowRight: -1, ArrowDown: 7, ArrowUp: -7 }[e.key];
+    // RTL: the week runs right to left, so ArrowLeft is the next day (mirrored on the English, LTR page).
+    const step = (lang === 'en' ? { ArrowLeft: -1, ArrowRight: 1, ArrowDown: 7, ArrowUp: -7 } : { ArrowLeft: 1, ArrowRight: -1, ArrowDown: 7, ArrowUp: -7 })[e.key];
     const iso = day.dataset.date, d = new Date(iso + 'T12:00:00Z');
     let target = null;
     if (step) target = new Date(d.getTime() + step * 86400000);
@@ -212,17 +213,18 @@ export function travelersPopover(button, { get, set, onClose = () => {} }) {
   if (existing) { existing.remove(); button.setAttribute('aria-expanded', 'false'); return; }
   let { adults, children } = get();
   const pop = document.createElement('div');
-  pop.id = 'travelers-pop'; pop.className = 'travelers-pop'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'מי נוסע');
+  pop.id = 'travelers-pop'; pop.className = 'travelers-pop'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', t('search.tr.title'));
   const row = (key, title, note) => `<div class="counter"><span><strong>${title}</strong><small>${note}</small></span><div class="counter-controls">`
-    + `<button type="button" aria-label="הוספת ${key === 'adult' ? 'מבוגר' : 'ילד'}" data-counter="${key}-plus">+</button><strong id="${key}-count" aria-live="polite"></strong>`
-    + `<button type="button" aria-label="הסרת ${key === 'adult' ? 'מבוגר' : 'ילד'}" data-counter="${key}-minus">−</button></div></div>`;
-  pop.innerHTML = row('adult', 'מבוגרים', 'מגיל 12 ומעלה') + row('child', 'ילדים', 'גילאי 2–11') + '<p class="micro-copy">עד 9 נוסעים בהזמנה אחת.</p><button type="button" id="save-travelers" class="yellow dialog-primary">סיום</button>';
+    + `<button type="button" aria-label="${key === 'adult' ? t('search.tr.addAdult') : t('search.tr.addChild')}" data-counter="${key}-plus">+</button><strong id="${key}-count" aria-live="polite"></strong>`
+    + `<button type="button" aria-label="${key === 'adult' ? t('search.tr.removeAdult') : t('search.tr.removeChild')}" data-counter="${key}-minus">−</button></div></div>`;
+  pop.innerHTML = row('adult', t('search.tr.adults'), t('search.tr.adultsNote')) + row('child', t('search.tr.children'), t('search.tr.childrenNote')) + `<p class="micro-copy">${t('search.tr.max')}</p><button type="button" id="save-travelers" class="yellow dialog-primary">${t('search.tr.done')}</button>`;
   const host = button.closest('.search-panel') || document.body;
   host.append(pop);
   const place = () => {
     const a = button.getBoundingClientRect(), h = host.getBoundingClientRect();
     pop.style.top = `${a.bottom - h.top + 8}px`;
     if (window.matchMedia('(max-width: 700px)').matches) { pop.style.right = '10px'; pop.style.left = '10px'; }
+    else if (lang === 'en') { pop.style.left = `${Math.max(10, a.left - h.left)}px`; pop.style.right = 'auto'; }
     else { pop.style.right = `${Math.max(10, h.right - a.right)}px`; pop.style.left = 'auto'; }
   };
   const update = () => {

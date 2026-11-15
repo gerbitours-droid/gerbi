@@ -1,6 +1,7 @@
 // Multi-city (2–5 legs, incl. open jaw): pure logic shared by the form, the share link and saved flights.
 // Spec: docs/specs/10-multi-city-he.md. The supplier prices all legs together in one request.
 import { resolvePlace, placeByCode, placeType } from './places.mjs';
+import { t, lang } from './i18n.mjs';
 
 export const MIN_LEGS = 2, MAX_LEGS = 5;
 const DAY = /^\d{4}-\d{2}-\d{2}$/, CODE = /^[A-Z]{3}$/;
@@ -9,19 +10,19 @@ const fail = (message, index, part) => Object.assign(new Error(message), { field
 
 // legs: [{ from, to, date }] where from/to are what the traveler typed or picked. Returns codes; throws a Hebrew error.
 export function validateLegs(legs, today) {
-  if (!Array.isArray(legs) || legs.length < MIN_LEGS) throw fail(`מסלול של כמה יעדים צריך לפחות ${MIN_LEGS} טיסות.`, 0, 'from');
-  if (legs.length > MAX_LEGS) throw fail(`אפשר לחפש עד ${MAX_LEGS} טיסות במסלול אחד.`, MAX_LEGS - 1, 'from');
+  if (!Array.isArray(legs) || legs.length < MIN_LEGS) throw fail(t('search.mc.tooFew', { min: MIN_LEGS }), 0, 'from');
+  if (legs.length > MAX_LEGS) throw fail(t('search.mc.tooMany', { max: MAX_LEGS }), MAX_LEGS - 1, 'from');
   const limit = addYear(today);
   return legs.map((leg, i, all) => {
     const n = i + 1, from = resolvePlace(leg.from), to = resolvePlace(leg.to);
-    if (!String(leg.from || '').trim()) throw fail(`בחרו מאיפה יוצאת טיסה ${n}.`, i, 'from');
-    if (!from) throw fail(`לא זיהינו את „${leg.from}” בטיסה ${n}. בחרו מהרשימה או הזינו קוד שדה תעופה (למשל FCO).`, i, 'from');
-    if (!String(leg.to || '').trim()) throw fail(`בחרו לאן טסה טיסה ${n}.`, i, 'to');
-    if (!to) throw fail(`לא זיהינו את „${leg.to}” בטיסה ${n}. בחרו מהרשימה או הזינו קוד שדה תעופה (למשל CDG).`, i, 'to');
-    if (from.code === to.code) throw fail(`בטיסה ${n} המוצא והיעד זהים.`, i, 'to');
-    if (!DAY.test(leg.date || '')) throw fail(`בחרו תאריך לטיסה ${n}.`, i, 'date');
-    if (leg.date < today || leg.date > limit) throw fail(`התאריך של טיסה ${n} מחוץ לטווח: מהיום ועד שנה קדימה.`, i, 'date');
-    if (i && DAY.test(all[i - 1].date || '') && leg.date < all[i - 1].date) throw fail(`טיסה ${n} לא יכולה לצאת לפני טיסה ${i}. בחרו תאריך זהה או מאוחר יותר.`, i, 'date');
+    if (!String(leg.from || '').trim()) throw fail(t('search.mc.noFrom', { n }), i, 'from');
+    if (!from) throw fail(t('search.mc.unknownFrom', { place: leg.from, n }), i, 'from');
+    if (!String(leg.to || '').trim()) throw fail(t('search.mc.noTo', { n }), i, 'to');
+    if (!to) throw fail(t('search.mc.unknownTo', { place: leg.to, n }), i, 'to');
+    if (from.code === to.code) throw fail(t('search.mc.same', { n }), i, 'to');
+    if (!DAY.test(leg.date || '')) throw fail(t('search.mc.noDate', { n }), i, 'date');
+    if (leg.date < today || leg.date > limit) throw fail(t('search.mc.dateRange', { n }), i, 'date');
+    if (i && DAY.test(all[i - 1].date || '') && leg.date < all[i - 1].date) throw fail(t('search.mc.dateOrder', { n, prev: i }), i, 'date');
     return { from: from.code, to: to.code, date: leg.date };
   });
 }
@@ -33,7 +34,7 @@ export const multiRequest = (legs, adults, children) => ({
 });
 
 const cityOf = code => placeByCode(code)?.city || code;
-export const nameOf = code => placeByCode(code)?.names?.[0] || placeByCode(code)?.sub || code;
+export const nameOf = code => (lang === 'en' ? placeByCode(code)?.name : placeByCode(code)?.names?.[0]) || placeByCode(code)?.sub || code;
 // "תל אביב → רומא → פריז → תל אביב"; a leg that starts somewhere else than where the last one landed opens a new run.
 export function routeText(legs) {
   const runs = [];
@@ -42,10 +43,10 @@ export function routeText(legs) {
 }
 // Legs the traveler must reach on their own: landing in Rome, the next flight leaves Paris.
 export const groundGaps = legs => legs.flatMap((l, i) => (i && cityOf(legs[i - 1].to) !== cityOf(l.from) ? [{ index: i, from: legs[i - 1].to, to: l.from }] : []));
-export const gapText = gap => `בין ${nameOf(gap.from)} ל${nameOf(gap.to)} אין טיסה במסלול: תצטרכו להגיע בעצמכם.`;
+export const gapText = gap => t('search.mc.gap', { from: nameOf(gap.from), to: nameOf(gap.to) });
 // "Round trip" for two legs that mirror each other; anything else is multi-city (incl. open jaw).
 export const isRoundShape = legs => legs.length === 2 && cityOf(legs[0].to) === cityOf(legs[1].from) && cityOf(legs[0].from) === cityOf(legs[1].to);
-export const legName = (i, multi) => (multi ? `טיסה ${i + 1}` : i === 0 ? 'הלוך' : 'חזור');
+export const legName = (i, multi) => (multi ? t('search.mc.flightN', { n: i + 1 }) : i === 0 ? t('search.mc.outbound') : t('search.mc.inbound'));
 
 // Route in a stored record (last search, saved flight): codes and dates only, never trusted as-is.
 export function cleanRoute(list) {

@@ -1,9 +1,10 @@
 // Shekel display for supplier prices (docs/specs/13-pricing-ils-he.md). Shared by the browser and Node tests:
 // no DOM at import time. Rates = ILS per 1 unit at the bank's transfers-and-cheques SALE rate, from GET /api/fx.
+import { t, lang, locale, fmtDate } from './i18n.mjs';
 let current = null, settled = null;
 const listeners = new Set();
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const grouping = new Intl.NumberFormat('he-IL', { maximumFractionDigits: 0 });
+const grouping = new Intl.NumberFormat(locale(), { maximumFractionDigits: 0 });
 
 // Accepts the /api/fx payload; anything malformed clears the rates (prices fall back to the supplier currency).
 export function setFx(data) {
@@ -36,7 +37,7 @@ export function priceBasis(price, fx = current) {
 }
 export function formatOriginal(price) {
   if (!price) return '';
-  try { return new Intl.NumberFormat('he-IL', { style: 'currency', currency: price.currency, maximumFractionDigits: 2 }).format(price.value); }
+  try { return new Intl.NumberFormat(locale(), { style: 'currency', currency: price.currency, maximumFractionDigits: 2 }).format(price.value); }
   catch { return `${price.value.toFixed(2)} ${price.currency}`; }
 }
 // "Converted" = shown in shekels although the supplier priced it in something else.
@@ -46,23 +47,23 @@ const heDate = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? iso.split('-').rev
 // "לפי שער העברות והמחאות – מכירה, נכון ל־13.11.2026" (or the estimate wording on the Bank of Israel fallback).
 export function fxNote(fx = current) {
   if (!fx) return '';
-  const date = heDate(fx.asOf), when = date ? `, נכון ל־${date}` : '';
+  const date = lang === 'en' && heDate(fx.asOf) ? fmtDate(fx.asOf) : heDate(fx.asOf), when = date ? t('search.fx.asOf', { date }) : '';
   const base = fx.method === 'representative-plus-markup'
-    ? `לפי הערכת שער העברות והמחאות – מכירה (יציג + ${fx.markupPct}%)${when}`
-    : `לפי שער העברות והמחאות – מכירה${when}`;
-  return base + (fx.stale ? ' · ייתכן שהשער התעדכן' : '');
+    ? t('search.fx.estimate', { pct: fx.markupPct, when })
+    : t('search.fx.rate', { when });
+  return base + (fx.stale ? t('search.fx.stale') : '');
 }
 // Small secondary line under a converted price: the supplier's own amount. Empty when nothing was converted.
 export function originalHtml(price, fx = current) {
   if (!converted(price, fx)) return '';
-  return `<small class="fare-original" title="המחיר המקורי של הספק. ${esc(fxNote(fx))}">במקור <span dir="ltr">${esc(formatOriginal(price))}</span></small>`;
+  return `<small class="fare-original" title="${t('search.fx.originalTitle', { note: esc(fxNote(fx)) })}">${t('search.fx.original')} <span dir="ltr">${esc(formatOriginal(price))}</span></small>`;
 }
 export const fxNoteHtml = (fx = current) => fx ? `<small class="fx-note">${esc(fxNote(fx))}</small>` : '';
 // Plain text for messages: "₪4,567 (במקור $1,234.56, לפי שער …)".
 export function fareText(price, fx = current) {
-  if (!price) return 'מחיר אינו זמין';
+  if (!price) return t('search.fx.unavailable');
   if (!converted(price, fx)) return price.currency === 'ILS' ? formatIls(price.value) : formatOriginal(price);
-  return `${formatIls(toIls(price, fx))} (במקור ${formatOriginal(price)}, ${fxNote(fx)})`;
+  return t('search.fx.fareText', { ils: formatIls(toIls(price, fx)), original: formatOriginal(price), note: fxNote(fx) });
 }
 
 // Loads /api/fx once; resolves (never rejects) with the rates or null. Never blocks rendering.

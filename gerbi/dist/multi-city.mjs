@@ -3,10 +3,11 @@
 import { placeCombobox, openRangePicker } from './search-form.mjs';
 import { resolvePlace, placeText, placeByCode } from './places.mjs';
 import { MIN_LEGS, MAX_LEGS, validateLegs, multiRequest, routeText, groundGaps, gapText } from './multi-city-core.mjs';
+import { t, locale } from './i18n.mjs';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const icon = name => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
-const shortDay = iso => (iso ? new Date(iso + 'T12:00:00Z').toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : '');
+const shortDay = iso => (iso ? new Date(iso + 'T12:00:00Z').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : '');
 const textOf = code => placeText(placeByCode(code)) || code || '';
 
 // seed(): the main form's {from, to, start, end} when switching in; unseed(values) writes them back when switching out.
@@ -15,7 +16,7 @@ export function initMultiCity({ form, today, seed, unseed, changed = () => docum
   const fields = form.querySelector('.search-fields');
   const host = document.createElement('div');
   host.className = 'multi-legs'; host.id = 'multi-legs'; host.hidden = true;
-  host.setAttribute('role', 'group'); host.setAttribute('aria-label', 'הטיסות במסלול');
+  host.setAttribute('role', 'group'); host.setAttribute('aria-label', t('search.mc.legsGroup'));
   fields.before(host);
   let legs = [], shown = false;
 
@@ -28,12 +29,12 @@ export function initMultiCity({ form, today, seed, unseed, changed = () => docum
   function render(focus) {
     host.innerHTML = `<ol class="leg-list">${legs.map((leg, i) => `<li class="leg-row" data-leg="${i}">`
       + `<span class="leg-number" aria-hidden="true">${i + 1}</span>`
-      + `<label class="field leg-from">${icon('pin')}<span><span class="field-label">טיסה ${i + 1} · מ־</span><input id="leg-${i}-from" data-part="from" value="${esc(leg.from)}" aria-label="טיסה ${i + 1}: מאיפה" placeholder="עיר או שדה"></span></label>`
-      + `<label class="field leg-to">${icon('pin')}<span><span class="field-label">אל</span><input id="leg-${i}-to" data-part="to" value="${esc(leg.to)}" aria-label="טיסה ${i + 1}: לאן" placeholder="עיר או שדה"></span></label>`
-      + `<button type="button" class="field leg-date" data-part="date" aria-label="טיסה ${i + 1}: תאריך${leg.date ? ' ' + esc(shortDay(leg.date)) : ''}">${icon('calendar')}<span><span class="field-label">תאריך</span><span class="field-value${leg.date ? '' : ' muted'}">${leg.date ? esc(shortDay(leg.date)) : 'בחרו תאריך'}</span></span></button>`
-      + (legs.length > MIN_LEGS ? `<button type="button" class="leg-remove" data-remove-leg="${i}" aria-label="הסרת טיסה ${i + 1}">${icon('close')}</button>` : '<span class="leg-remove-spacer"></span>')
+      + `<label class="field leg-from">${icon('pin')}<span><span class="field-label">${t('search.mc.fromLabel', { n: i + 1 })}</span><input id="leg-${i}-from" data-part="from" value="${esc(leg.from)}" aria-label="${t('search.mc.fromAria', { n: i + 1 })}" placeholder="${t('search.mc.placeholder')}"></span></label>`
+      + `<label class="field leg-to">${icon('pin')}<span><span class="field-label">${t('search.mc.toLabel')}</span><input id="leg-${i}-to" data-part="to" value="${esc(leg.to)}" aria-label="${t('search.mc.toAria', { n: i + 1 })}" placeholder="${t('search.mc.placeholder')}"></span></label>`
+      + `<button type="button" class="field leg-date" data-part="date" aria-label="${t('search.mc.dateAria', { n: i + 1 })}${leg.date ? ' ' + esc(shortDay(leg.date)) : ''}">${icon('calendar')}<span><span class="field-label">${t('search.mc.dateLabel')}</span><span class="field-value${leg.date ? '' : ' muted'}">${leg.date ? esc(shortDay(leg.date)) : t('search.mc.pickDate')}</span></span></button>`
+      + (legs.length > MIN_LEGS ? `<button type="button" class="leg-remove" data-remove-leg="${i}" aria-label="${t('search.mc.remove', { n: i + 1 })}">${icon('close')}</button>` : '<span class="leg-remove-spacer"></span>')
       + '</li>').join('')}</ol>`
-      + `<div class="multi-actions"><button type="button" class="button secondary leg-add" data-add-leg ${legs.length >= MAX_LEGS ? 'disabled' : ''}>+ הוספת טיסה</button><small>${legs.length >= MAX_LEGS ? `הגעתם למקסימום: ${MAX_LEGS} טיסות במסלול.` : `עד ${MAX_LEGS} טיסות · מחיר אחד לכל המסלול`}</small></div><div class="multi-gaps" aria-live="polite"></div>`;
+      + `<div class="multi-actions"><button type="button" class="button secondary leg-add" data-add-leg ${legs.length >= MAX_LEGS ? 'disabled' : ''}>${t('search.mc.add')}</button><small>${legs.length >= MAX_LEGS ? t('search.mc.maxReached', { max: MAX_LEGS }) : t('search.mc.upTo', { max: MAX_LEGS })}</small></div><div class="multi-gaps" aria-live="polite"></div>`;
     legs.forEach((_, i) => {
       for (const part of ['from', 'to']) {
         const input = host.querySelector(`#leg-${i}-${part}`);
@@ -68,7 +69,7 @@ export function initMultiCity({ form, today, seed, unseed, changed = () => docum
         (next || form.querySelector('#travelers-button'))?.focus();
       } });
     // Same calendar, single date: the round-trip/one-way switch inside it does not apply here.
-    dialog.classList.add('single-only'); dialog.querySelector('#date-picker-title').textContent = `מתי טסים בטיסה ${i + 1}?`;
+    dialog.classList.add('single-only'); dialog.querySelector('#date-picker-title').textContent = t('search.mc.dateTitle', { n: i + 1 });
     const close = dialog.onclose; dialog.onclose = () => { dialog.classList.remove('single-only'); close?.(); };
   }
   host.addEventListener('click', e => {
