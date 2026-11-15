@@ -2,9 +2,11 @@
 // saved items synced across devices, linked enquiries, export and deletion. Storage is the KV store only.
 import { createHash, randomBytes, randomInt, randomUUID, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
-import { validateSignup, validateProfile, passwordProblem, normalizeEmail, cleanSaved, addSearch, marketingText, privacyText } from '../dist/account-core.mjs';
+import { validateSignup, validateProfile, passwordProblem, normalizeEmail, cleanSaved, addSearch, MARKETING_TEXT, PRIVACY_TEXT, marketingText, privacyText } from '../dist/account-core.mjs';
 import { tIn, normLang, homePath } from '../dist/i18n.mjs';
-import { clientOf } from './volero-guard.mjs';
+import { allowShared, clientOf, LIMITS } from './volero-guard.mjs';
+
+LIMITS.accountAuth ??= [10, 600_000];
 
 const scryptAsync = promisify(scrypt);
 const SESSION_TTL = 30 * 86400, CODE_TTL = 600, RESET_TTL = 1800, FAIL_TTL = 900, MAX_FAILS = 8, CODE_ATTEMPTS = 5, MAX_LEADS = 50;
@@ -32,7 +34,7 @@ export async function verifyPassword(password, stored) {
 let dummyHash;
 const dummy = () => (dummyHash ||= hashPassword(randomBytes(12).toString('hex')));
 
-// In-process limiter per client IP (the per-email failure counter in the KV store is the cross-instance guard).
+// In-process limiter per client IP for general traffic; sign-in routes use the shared KV counters (allowShared).
 const buckets = new Map();
 export function limited(key, capacity, windowMs, now = Date.now()) {
   const bucket = buckets.get(key);
@@ -113,7 +115,7 @@ export function createAccounts({ store, env = process.env, now = () => Date.now(
       if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) return reply(415, { error: 'json_required' });
     } else if (method !== 'GET') return reply(405, { error: 'method_not_allowed' });
     const authRoute = ['/signup', '/login', '/code/request', '/code/verify', '/password/forgot', '/password/reset'].includes(path);
-    if (authRoute && method === 'POST' && limited(`auth:${ip}`, 10, 600_000)) return reply(429, { error: 'rate_limited', message: TOO_MANY });
+    if (authRoute && method === 'POST' && !(await allowShared(ip, 'accountAuth'))) return reply(429, { error: 'rate_limited', message: TOO_MANY });
     const input = method === 'POST' ? await body(req, 64_000) : {};
     // Spec 21: the page language comes with every POST; field messages, success messages and emails follow it.
     // Error `message`s stay Hebrew for compatibility; the English page maps the `error` code.

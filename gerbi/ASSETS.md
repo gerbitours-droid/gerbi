@@ -2,8 +2,8 @@
 
 Generated with the built-in Imagegen tool using the user-supplied screenshot as visual reference; no external generation API key used.
 
-- `dist/assets/hero.png`: generated Santorini background.
-- `dist/assets/mascot.png`: generated waving mascot, transparent alpha.
+- `dist/assets/hero.webp` (1536px, 180KB), `hero-820.webp` (phones, 60KB), `hero.jpg` (fallback, 213KB): generated Santorini background (was a 2.4MB PNG).
+- `dist/assets/mascot.webp` (400px, 27KB, alpha) used by the site; `mascot.png` (400px, 200KB) kept as a fallback: generated waving mascot (was 1254px, 1.7MB).
 - Originals also retained in `../generated-assets/`.
 
 ## Background prompt

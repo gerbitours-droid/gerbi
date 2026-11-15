@@ -20,7 +20,7 @@ export function priorityChip(lead) {
   return `<span class="priority-chip priority-${p.level}" title="${esc(p.reasons.join(' · ') || 'אין נימוקים')}">${esc(PRIORITY_LABEL[p.level])}${p.level === 'done' ? '' : ` · ${p.score}`}</span>`;
 }
 export const sortByPriority = (leads) => [...leads].sort((a, b) => priorityOf(b).score - priorityOf(a).score || String(b.createdAt).localeCompare(String(a.createdAt)));
-export const leadAiHtml = (lead) => `<div class="lead-ai"><button type="button" class="button secondary ai-button" data-ai-lead><img src="/assets/mascot.png" alt="" width="22" height="22"> תקציר והצעת תשובה</button><div class="lead-ai-panel" hidden></div></div>`;
+export const leadAiHtml = (lead) => `<div class="lead-ai"><button type="button" class="button secondary ai-button" data-ai-lead><img src="/assets/mascot.webp" alt="" width="22" height="22"> תקציר והצעת תשובה</button><div class="lead-ai-panel" hidden></div></div>`;
 
 export function wireLeadAi(card, lead) {
   const button = $('[data-ai-lead]', card), box = $('.lead-ai-panel', card);
@@ -48,7 +48,7 @@ export function wireLeadAi(card, lead) {
 
 // ---------- blog ----------
 export function mountBlogAssistant(form) {
-  form.insertAdjacentHTML('afterbegin', `<details class="ai-blog"><summary><img src="/assets/mascot.png" alt="" width="24" height="24"> עוזר כתיבה (ג׳רבי AI) — טיוטה מנושא</summary>
+  form.insertAdjacentHTML('afterbegin', `<details class="ai-blog"><summary><img src="/assets/mascot.webp" alt="" width="24" height="24"> עוזר כתיבה (ג׳רבי AI) — טיוטה מנושא</summary>
     <div class="admin-grid"><div class="lead-field wide"><label for="ai-topic">נושא הפוסט</label><input id="ai-topic" maxlength="160" placeholder="למשל: סופ״ש ברומא עם ילדים"></div>
      <div class="lead-field"><label for="ai-kw">מילות מפתח (בפסיקים)</label><input id="ai-kw" maxlength="200" placeholder="רומא עם ילדים, rome-kids"></div>
      <div class="lead-field"><label for="ai-aud">קהל</label><select id="ai-aud"><option value="general">כללי</option><option value="families">משפחות</option><option value="couples">זוגות</option></select></div>

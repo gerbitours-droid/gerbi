@@ -1,12 +1,33 @@
 // Leads from the contact and tailor-made forms: validated server-side, stored newest-first in the KV store,
 // optionally forwarded to an owner webhook, and readable only with LEADS_ADMIN_TOKEN.
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
-import { validateLead, consentText } from '../dist/leads-validate.mjs';
+import { validateLead, CONSENT_TEXT, consentText } from '../dist/leads-validate.mjs';
 import { normLang } from '../dist/i18n.mjs';
-import { allow, clientOf } from './volero-guard.mjs';
+import { allow, allowShared, clientOf } from './volero-guard.mjs';
 
 const LIST_KEY = 'all', MAX_STORED = 5000;
 const digest = (value) => createHash('sha256').update(String(value)).digest();
+
+// Retention (privacy): leads older than LEADS_RETENTION_DAYS (default 730, minimum 30) are deleted, with their admin
+// status/notes. Runs lazily when the owner lists leads, at most once a day (marker in the store, so once across instances).
+export const DEFAULT_RETENTION_DAYS = 730;
+export const retentionDays = (env = process.env) => { const n = Number.parseInt(env.LEADS_RETENTION_DAYS, 10); return Number.isInteger(n) ? Math.max(30, n) : DEFAULT_RETENTION_DAYS; };
+let lastRetention = 0;
+export async function applyRetention(store, { env = process.env, now = Date.now(), force = false } = {}) {
+  if (!store?.trimOlder || (!force && now - lastRetention < 3600_000)) return { ran: false };
+  lastRetention = now;
+  try {
+    if (!force && await store.get('retention:ran')) return { ran: false };
+    await store.set('retention:ran', { at: new Date(now).toISOString() }, 86400);
+    const days = retentionDays(env), removed = await store.trimOlder(LIST_KEY, new Date(now - days * 86400_000).toISOString());
+    if (removed) {
+      const meta = await store.get('meta'), ids = new Set((await store.list(LIST_KEY, MAX_STORED)).map((lead) => lead.id));
+      if (meta) { for (const id of Object.keys(meta)) if (!ids.has(id)) delete meta[id]; await store.set('meta', meta); }
+    }
+    console.log(JSON.stringify({ evt: 'lead_retention', ok: true, days, removed }));
+    return { ran: true, removed, days };
+  } catch (error) { console.log(JSON.stringify({ evt: 'lead_retention', ok: false, error: error.message })); return { ran: false }; }
+}
 
 // Constant-time: compare fixed-length hashes, so neither content nor length leaks through timing.
 export function tokenMatches(header, expected) {
@@ -38,7 +59,7 @@ export async function recordLead(store, record, env = process.env) {
 export async function handleLeads(req, url, { send, body, store, env = process.env, hooks }) {
   if (url.pathname !== '/api/leads') return false;
   if (req.method === 'POST') {
-    if (!allow(clientOf(req), 'leads')) { send(429, { error: 'rate_limited', message: 'נשלחו כמה פניות בזמן קצר. נסו שוב בעוד כמה דקות, או פנו אלינו ישירות.' }); return true; }
+    if (!(await allowShared(clientOf(req), 'leads'))) { send(429, { error: 'rate_limited', message: 'נשלחו כמה פניות בזמן קצר. נסו שוב בעוד כמה דקות, או פנו אלינו ישירות.' }); return true; }
     const input = await body(req, 16_000);
     // Honeypot: a hidden field people never see. Bots that fill it get a normal-looking success and nothing is stored.
     if (typeof input?.website === 'string' && input.website.trim()) { send(201, { ok: true, id: randomUUID().slice(0, 8) }); return true; }
@@ -65,6 +86,7 @@ export async function handleLeads(req, url, { send, body, store, env = process.e
     if (!env.LEADS_ADMIN_TOKEN) { send(404, { error: 'not_found' }); return true; }
     if (!allow(clientOf(req), 'leadsAdmin')) { send(429, { error: 'rate_limited' }); return true; }
     if (!tokenMatches(req.headers.authorization, env.LEADS_ADMIN_TOKEN)) { send(401, { error: 'unauthorized' }); return true; }
+    await applyRetention(store, { env });
     const limit = Math.min(500, Math.max(1, Number.parseInt(url.searchParams.get('limit') || '200', 10) || 200));
     const leads = await store.list(LIST_KEY, limit);
     leads.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));

@@ -29,6 +29,8 @@ test('Server serves app and refuses secret paths or fake provider availability',
   assert.match((await fetch(base+'/planner.mjs')).headers.get('content-type'),/javascript/);
   for(const route of ['/.env','/../.env','/%2eenv','/server.mjs']) assert.equal((await fetch(base+route)).status,404);
   const response=await fetch(base+'/api/revalidate',{method:'POST'});assert.equal(response.status,503);assert.equal((await response.json()).error,'provider_not_connected');
-  const status=await(await fetch(base+'/api/status')).json();assert.equal(status.connected,false);assert.equal(status.mode,'demo');assert.equal('secret' in status,false);
+  // Public status: liveness only (QA O7); the details need the owner.
+  const status=await(await fetch(base+'/api/status')).json();assert.equal(status.ok,true);assert.deepEqual(Object.keys(status).sort(),['ok','partner','version']);assert.deepEqual(Object.keys(status.partner),['available']);
+  if(process.env.LEADS_ADMIN_TOKEN){const full=await(await fetch(base+'/api/status',{headers:{Authorization:`Bearer ${process.env.LEADS_ADMIN_TOKEN}`}})).json();assert.equal(full.connected,false);assert.equal(full.mode,'demo');assert.equal('secret' in full,false);}
  }finally{await new Promise(resolve=>server.close(resolve));}
 });

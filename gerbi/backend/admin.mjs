@@ -1,9 +1,10 @@
 // Owner admin + CMS API (spec 18): session login, leads workflow (status, notes, CSV), blog posts and site content
 // with versions, and the public read endpoints the site uses. Storage is the KV store only.
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { allow, clientOf, LIMITS as RATE } from './volero-guard.mjs';
+import { allow, allowShared, clientOf, counters, LIMITS as RATE } from './volero-guard.mjs';
 import { normalizePost, normalizeSite, isLive, COVER_DATA_RE, LIMITS } from '../dist/content-model.mjs';
 import { BUILTIN_SLUGS } from '../dist/blog-posts.mjs';
+import { applyRetention } from './leads.mjs';
 
 RATE.adminLogin ??= [5, 600_000];
 RATE.admin ??= [120, 60_000];
@@ -12,6 +13,30 @@ export const COOKIE = 'gerbi_admin';
 const SESSION_SECONDS = 12 * 3600, VERSIONS = 10, MAX_POSTS = 200, LEAD_STATUSES = ['new', 'progress', 'closed'];
 const sha = (value) => createHash('sha256').update(String(value)).digest();
 const hex = (value) => sha(value).toString('hex');
+// Progressive lockout for owner login, shared across instances (KV counters, see volero-guard.mjs):
+//   per IP: from the 5th failure in 24 h, locked for 1, 2, 4 … up to 60 minutes (doubling per further failure);
+//   global: 100 failures from all addresses within 15 minutes lock the login for 15 minutes (distributed guessing).
+export const LOCKOUT = { freeFailures: 4, baseSeconds: 60, maxSeconds: 3600, failWindow: 86400, globalFailures: 100, globalWindow: 900, globalSeconds: 900 };
+const lockSeconds = (failures) => Math.min(LOCKOUT.maxSeconds, LOCKOUT.baseSeconds * 2 ** (failures - LOCKOUT.freeFailures - 1));
+async function loginLocked(client) { return (await counters.peek('adminlock:global')) > 0 || (await counters.peek(`adminlock:${client}`)) > 0; }
+async function loginFailed(client) {
+  const failures = await counters.hit(`adminfail:${client}`, LOCKOUT.failWindow), all = await counters.hit('adminfail:global', LOCKOUT.globalWindow);
+  if (failures > LOCKOUT.freeFailures) await counters.lock(`adminlock:${client}`, lockSeconds(failures));
+  if (all >= LOCKOUT.globalFailures) { await counters.lock('adminlock:global', LOCKOUT.globalSeconds); console.log(JSON.stringify({ evt: 'admin_login', ok: false, error: 'global_lockout' })); }
+}
+
+// The owner password (LEADS_ADMIN_TOKEN) is the only secret in front of every lead. A short one is refused in
+// production (NODE_ENV=production or on Vercel) unless ALLOW_WEAK_ADMIN_TOKEN=1; local development keeps any value.
+export const MIN_ADMIN_TOKEN = 16;
+export function enforceAdminToken(env = process.env, log = (entry) => console.error(JSON.stringify(entry))) {
+  const token = env.LEADS_ADMIN_TOKEN;
+  if (!token || token.length >= MIN_ADMIN_TOKEN || !(env.NODE_ENV === 'production' || env.VERCEL)) return 'ok';
+  if (env.ALLOW_WEAK_ADMIN_TOKEN === '1') { log({ evt: 'admin_token', level: 'warn', error: 'weak_token', minLength: MIN_ADMIN_TOKEN, allowed: true }); return 'weak_allowed'; }
+  delete env.LEADS_ADMIN_TOKEN; // every owner endpoint then answers 404, as if no admin were configured
+  log({ evt: 'admin_token', level: 'error', error: 'weak_token_refused', minLength: MIN_ADMIN_TOKEN, hint: 'set a random LEADS_ADMIN_TOKEN of 32+ characters, or ALLOW_WEAK_ADMIN_TOKEN=1' });
+  return 'refused';
+}
+
 const passwordMatches = (given, expected) => Boolean(expected) && typeof given === 'string' && timingSafeEqual(sha(given), sha(expected));
 
 function cookieOf(req) {
@@ -70,7 +95,8 @@ function filterLeads(leads, params) {
     && (!q || [l.name, l.phone, l.email, l.destinations, l.message, l.notes, ...(l.adminNotes || []).map((n) => n.text)].some((v) => String(v || '').toLowerCase().includes(q))));
 }
 
-async function allLeads(leadStore) {
+async function allLeads(leadStore, env) {
+  await applyRetention(leadStore, { env });
   const [leads, meta] = await Promise.all([leadStore.list('all', 5000), leadStore.get('meta')]);
   return leads.map((lead) => { const m = meta?.[lead.id]; return { ...lead, status: m?.status || (LEAD_STATUSES.includes(lead.status) ? lead.status : 'new'), adminNotes: m?.notes || [], adminUpdatedAt: m?.updatedAt || null }; })
     .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
@@ -130,9 +156,11 @@ async function route(req, res, url, { send, body, store, sessions, leadStore, en
 
   if (path === '/api/admin/login') {
     if (req.method !== 'POST') { send(405, { error: 'method_not_allowed' }); return true; }
-    if (!allow(client, 'adminLogin')) { send(429, { error: 'rate_limited', message: 'יותר מדי ניסיונות כניסה. נסו שוב בעוד כמה דקות.' }); return true; }
+    const tooMany = () => send(429, { error: 'rate_limited', message: 'יותר מדי ניסיונות כניסה. נסו שוב בעוד כמה דקות.' });
+    if (!(await allowShared(client, 'adminLogin')) || await loginLocked(client)) { tooMany(); return true; }
     const input = await body(req, 2_000);
-    if (!passwordMatches(input?.password, env.LEADS_ADMIN_TOKEN)) { send(401, { error: 'unauthorized', message: 'הסיסמה שגויה.' }); return true; }
+    if (!passwordMatches(input?.password, env.LEADS_ADMIN_TOKEN)) { await loginFailed(client); send(401, { error: 'unauthorized', message: 'הסיסמה שגויה.' }); return true; }
+    await counters.clear(`adminfail:${client}`);
     const id = randomBytes(32).toString('base64url');
     try { await sessions.set(`session:${hex(id)}`, { createdAt: new Date().toISOString(), ua: String(req.headers['user-agent'] || '').slice(0, 120) }, SESSION_SECONDS); }
     catch { send(503, { error: 'storage_unavailable', message: 'האחסון לא זמין כרגע. נסו שוב בעוד רגע.' }); return true; }
@@ -153,13 +181,13 @@ async function route(req, res, url, { send, body, store, sessions, leadStore, en
 
   // ---- Leads ----
   if (path === '/api/admin/leads' && req.method === 'GET') {
-    const leads = await allLeads(leadStore);
+    const leads = await allLeads(leadStore, env);
     const counts = Object.fromEntries(['all', ...LEAD_STATUSES].map((s) => [s, s === 'all' ? leads.length : leads.filter((l) => l.status === s).length]));
     const filtered = filterLeads(leads, url.searchParams);
     send(200, { leads: filtered.slice(0, 500), total: filtered.length, counts, storage: leadStore.kind }); return true;
   }
   if (path === '/api/admin/leads.csv' && req.method === 'GET') {
-    const csv = leadsCsv(filterLeads(await allLeads(leadStore), url.searchParams));
+    const csv = leadsCsv(filterLeads(await allLeads(leadStore, env), url.searchParams));
     res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="gerbi-leads-${new Date().toISOString().slice(0, 10)}.csv"`, 'Cache-Control': 'no-store' });
     res.end(csv); return true;
   }
@@ -188,6 +216,9 @@ async function route(req, res, url, { send, body, store, sessions, leadStore, en
 
   // ---- Blog ----
   if (path === '/api/admin/blog' && req.method === 'GET') { send(200, await blogIndex(store)); return true; }
+  // Spec 18 #20: a malformed slug is invalid input (400 with the field), not a missing post.
+  const raw = /^\/api\/admin\/blog\/([^/]*)/.exec(path)?.[1];
+  if (raw !== undefined && !/^[a-z0-9-]{1,60}$/.test(raw)) { send(400, { error: 'invalid', fields: { slug: normalizePost({}, raw).errors.slug } }); return true; }
   match = /^\/api\/admin\/blog\/([a-z0-9-]{1,60})(\/versions|\/restore|\/unhide)?$/.exec(path);
   if (match) {
     const [, slug, action] = match, key = `post:${slug}`;

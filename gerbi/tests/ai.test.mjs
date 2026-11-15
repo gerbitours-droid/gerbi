@@ -20,6 +20,8 @@ import { startMockLlm } from '../scripts/mock-llm-server.mjs';
 import { scoreLead, missingDetails, whatsappTemplate, fillName } from '../dist/lead-score.mjs';
 import { tailorFromText, cleanTailor } from '../dist/tailor-fill.mjs';
 import { detectLegs } from '../dist/multi-city-brief.mjs';
+// These tests stand in for a trusted reverse proxy: clientOf() then keys limits on the right-most X-Forwarded-For hop.
+process.env.TRUST_PROXY = '1';
 
 const memoryStore = () => { const m = new Map(); return { get: async (k) => m.get(k) ?? null, set: async (k, v) => { m.set(k, v); }, push: async (k, v) => m.set(k, [v, ...(m.get(k) || [])]), list: async (k, n) => (m.get(k) || []).slice(0, n), m, kind: 'memory' }; };
 const quiet = () => {};

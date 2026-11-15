@@ -12,6 +12,8 @@ import { mergedPosts } from '../dist/cms-public.mjs';
 import { handleAdmin, bridgeAdminSession } from '../backend/admin.mjs';
 import { handleLeads } from '../backend/leads.mjs';
 import { createStore } from '../backend/kv-store.mjs';
+// These tests stand in for a trusted reverse proxy: clientOf() then keys limits on the right-most X-Forwarded-For hop.
+process.env.TRUST_PROXY = '1';
 
 test('markdown: allow-listed syntax renders, everything else is inert text', () => {
   const html = renderMarkdown('## כותרת\n\nשורה **מודגשת** ו*נטויה*\nשורה שנייה\n\n- א\n- ב\n\n1. ראשון\n\n> ציטוט\n\n[קישור](https://example.com/a?b=1&c=2) [פנימי](#/blog) ![תמונה](https://example.com/x.jpg)');
@@ -201,7 +203,9 @@ test('blog: draft → publish → unpublish → delete, scheduled posts stay hid
     assert.equal((await c.call('PUT', '/api/admin/blog/new-post', post)).status, 201);
     assert.equal((await c.call('PUT', '/api/admin/blog/new-post', post)).status, 409, 'create on an existing slug');
     assert.equal((await c.call('PUT', '/api/admin/blog/family', { ...post })).status, 409, 'a built-in slug is not a new post');
-    assert.equal((await c.call('PUT', '/api/admin/blog/Bad_Slug', { ...post, create: false })).status, 404);
+    const badSlug = await c.call('PUT', '/api/admin/blog/Bad_Slug', { ...post, create: false });
+    assert.equal(badSlug.status, 400, 'spec 18 #20: an invalid slug is a 400 with the field');
+    assert.ok((await badSlug.json()).fields.slug);
     let pub = await (await c.call('GET', '/api/content/blog')).json();
     assert.equal(pub.posts.length, 0, 'drafts are not public');
     assert.equal((await c.call('GET', '/api/content/blog/new-post')).status, 404);

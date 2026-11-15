@@ -16,7 +16,7 @@ const FIELD_LABEL = { destinations: 'יעד', start: 'תאריכים', flexibili
 
 // ---------- tailor-made form ----------
 export const tailorAssistHtml = () => `<section class="ai-assist" aria-labelledby="ai-assist-title">
-  <div class="ai-assist-head"><img src="/assets/mascot.png" alt="" width="44" height="44"><div><h3 id="ai-assist-title">${t('ai.assist.title')}</h3><p class="micro-copy">${t('ai.assist.example')}</p></div></div>
+  <div class="ai-assist-head"><img src="/assets/mascot.webp" alt="" width="44" height="44"><div><h3 id="ai-assist-title">${t('ai.assist.title')}</h3><p class="micro-copy">${t('ai.assist.example')}</p></div></div>
   <label class="sr-only" for="ai-assist-text">${t('ai.assist.label')}</label>
   <textarea id="ai-assist-text" rows="2" maxlength="1500" placeholder="${t('ai.assist.placeholder')}"></textarea>
   <div class="ai-assist-actions"><button type="button" class="button secondary" id="ai-assist-run">${t('ai.assist.run')}</button><p class="micro-copy ai-assist-status" role="status" aria-live="polite"></p></div>
@@ -81,7 +81,7 @@ export async function mountFlightTake(host, facts, { formatPrice, brief }) {
   if (!slot || facts.length < 2 || !(await aiFeatures()).flight_explain || !host.contains(slot)) return;
   const offers = takeOffers(facts, formatPrice), signature = JSON.stringify(offers);
   slot.hidden = false;
-  slot.innerHTML = `<button type="button" class="button secondary ai-take-button"><img src="/assets/mascot.png" alt="" width="26" height="26"> ${t('ai.take.button')}</button><div class="ai-take-body" role="status" aria-live="polite"></div>`;
+  slot.innerHTML = `<button type="button" class="button secondary ai-take-button"><img src="/assets/mascot.webp" alt="" width="26" height="26"> ${t('ai.take.button')}</button><div class="ai-take-body" role="status" aria-live="polite"></div>`;
   const button = slot.querySelector('button'), body = slot.querySelector('.ai-take-body');
   const show = (data) => {
     body.textContent = '';
