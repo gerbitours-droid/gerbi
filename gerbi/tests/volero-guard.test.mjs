@@ -32,7 +32,8 @@ test('trimming keeps every fact the site shows', () => {
   const a = offerFacts(raw.offers[0], raw), b = offerFacts(slim.offers[0], slim);
   for (const key of ['price', 'totalMinutes', 'stops', 'carriers', 'checked', 'trolley', 'refundable', 'airports']) assert.deepEqual(b[key], a[key], key);
   assert.equal(b.refundable, 'no');
-  assert.equal(slim.offers[0].fareDetails.brandedFare[0].serviceList.length, 2, 'only baggage services travel');
+  assert.deepEqual(slim.offers[0].fareDetails.brandedFare[0].serviceList.map(x => x.categoryCode), ['CY', 'ML', 'BG'], 'baggage and fare-family services travel (spec 10 §7)');
+  assert.ok(!JSON.stringify(slim.offers[0].offerItems).includes('zzz'), 'unknown offer-item fields never travel');
   assert.ok(JSON.stringify(slim).length < JSON.stringify(raw).length / 2);
 });
 
