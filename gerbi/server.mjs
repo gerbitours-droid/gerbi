@@ -13,6 +13,7 @@ import { extractSignals, missingFields, scoreDestinations, understandRequest } f
 import { voleroFlightAvailability, voleroFlightBook, voleroFlightSearch } from './backend/volero-client.mjs';
 import { createStore } from './backend/kv-store.mjs';
 import { validSearch, validAvailability, slimSearch, slimAvailability, cachedSearch, withRetry, allow, clientOf } from './backend/volero-guard.mjs';
+import { createDeals, searchForDeals } from './backend/deals.mjs';
 import { QueryMemory, EVENT_WEIGHTS } from './backend/query-memory.mjs';
 import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm-partner.mjs';
 import { places } from './dist/places.mjs';
@@ -52,6 +53,10 @@ function json(res, code, data) {
 // One JSON line per supplier call for the hosting logs: route, outcome, timing, size – never passenger data.
 const supplier = { lastOkAt: null, lastErrorAt: null, lastError: null, calls: 0, cacheHits: 0 };
 function logSupplier(entry) { supplier.calls++; if (entry.cached) supplier.cacheHits++; if (entry.ok) supplier.lastOkAt = new Date().toISOString(); else { supplier.lastErrorAt = new Date().toISOString(); supplier.lastError = entry.error; } console.log(JSON.stringify({ evt:'volero', ...entry })); }
+// Homepage deals: long cache, stale-while-refresh, a handful of supplier probes per refresh window (backend/deals.mjs).
+const deals = createDeals({ search: searchForDeals(voleroFlightSearch, withRetry), store: createStore('deals', dataDirectory), log: entry => logSupplier({ ...entry, cached: false, ...(entry.ok ? {} : { error: 'deals_refresh_empty' }) }) });
+// On Vercel the function freezes after the response; waitUntil keeps the background refresh alive.
+const background = promise => { const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.(); if (ctx?.waitUntil) ctx.waitUntil(promise.catch(() => {})); else promise.catch(() => {}); };
 const tooMany = (send) => send(429, { error:'rate_limited', message:'יותר מדי בקשות בזמן קצר. נסו שוב בעוד דקה.' });
 
 async function body(req, limit = 32_000) {
@@ -84,6 +89,12 @@ export function createServer() {
   try {
    const url = new URL(req.url,'http://localhost');
    if (url.pathname === '/api/status') { const partner = partnerStatus(); return send(200,{ mode:'demo', provider:'Volero', credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), connected:Boolean(supplier.lastOkAt && (!supplier.lastErrorAt || supplier.lastOkAt > supplier.lastErrorAt)), supplier:{ lastOkAt:supplier.lastOkAt, lastErrorAt:supplier.lastErrorAt, lastError:supplier.lastError, calls:supplier.calls, cacheHits:supplier.cacheHits }, booking:process.env.VOLERO_BOOKING_ENABLED === 'true' ? 'enabled' : 'disabled', storage:process.env.UPSTASH_REDIS_REST_URL ? 'upstash' : 'local', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available:partner.configured && !partner.circuitOpen && partner.tokensLeftToday > 2000 } }); }
+   if (url.pathname === '/api/deals' && req.method === 'GET') {
+    const result = process.env.VOLERO_CLIENT_ID ? await deals.get({ background }) : { deals: [], updatedAt: null, stale: false, refreshing: false };
+    // Browsers and the CDN may keep it a few minutes; the server's own cache spans hours.
+    res.writeHead(200, { 'Content-Type':'application/json; charset=utf-8', 'Cache-Control': result.deals.length ? 'public, max-age=300, s-maxage=900, stale-while-revalidate=3600' : 'no-store' });
+    return res.end(JSON.stringify(result));
+   }
    if (url.pathname === '/api/tags' && req.method === 'GET') return send(200, { facets: publicTagCatalog(), destinations: destinationTags });
    if (url.pathname === '/api/learning/summary' && req.method === 'GET') return send(200, await learning.summary());
    if (url.pathname.startsWith('/api/ai/') && req.method === 'POST' && !allow(clientOf(req), 'ai')) return tooMany(send);

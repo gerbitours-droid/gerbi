@@ -1,0 +1,103 @@
+/* Search form: autocomplete, range date picker, passengers popover, mobile layout, cheapest-fares strip. */
+.search-panel{position:relative}
+.search-fields{position:relative}
+.field:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px #096bd21f}
+.field input{text-overflow:ellipsis}
+
+/* Autocomplete */
+.place-list{position:absolute;z-index:40;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px #0a2a5a2e;max-height:min(420px,60vh);overflow:auto;width:min(420px,calc(100vw - 32px))}
+.place-heading{font-size:12px;font-weight:700;color:var(--muted);padding:8px 10px 4px}
+.place-empty{font-size:14px;color:#566682;padding:12px 10px;line-height:1.6}
+.place-option{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;cursor:pointer;min-height:48px}
+.place-option svg{width:20px;height:20px;flex:none;color:var(--blue)}
+.place-option.is-airport{padding-right:30px}
+.place-option.is-airport svg{width:17px;height:17px;color:var(--muted)}
+.place-text{display:flex;flex-direction:column;min-width:0;flex:1}
+.place-text strong{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.place-text small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.place-code{font-size:13px;font-weight:800;letter-spacing:.5px;color:var(--navy);background:var(--pale);border-radius:6px;padding:3px 7px;flex:none}
+.place-option:hover,.place-option[aria-selected=true]{background:#eef6ff}
+.place-option[aria-selected=true]{box-shadow:inset 0 0 0 2px #096bd255}
+
+/* Swap */
+button.swap svg{transition:transform .25s ease}
+button.swap.is-flipped svg{transform:rotate(180deg)}
+
+/* Range date picker */
+dialog.date-picker{width:min(760px,calc(100% - 24px));padding:24px 24px 20px}
+.dp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-left:40px}
+.dp-head h2{margin:0;font-size:24px}
+.dp-mode{display:flex;background:var(--pale);border-radius:100px;padding:3px;gap:2px}
+.dp-mode button{border-radius:100px;padding:6px 14px;font-size:14px;min-height:36px}
+.dp-mode button[aria-checked=true]{background:#fff;font-weight:800;box-shadow:0 1px 4px #0a2a5a22}
+.dp-clear{margin-inline-start:auto;font-size:14px;color:var(--blue);text-decoration:underline;padding:6px}
+.dp-hint{margin:12px 0 4px;font-weight:700;color:var(--navy)!important;min-height:1.7em}
+.dp-body{position:relative;display:flex;align-items:flex-start;gap:4px}
+.dp-months{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:28px;flex:1}
+.dp-nav{width:40px;height:40px;border-radius:50%;font-size:26px;line-height:1;flex:none;margin-top:2px;color:var(--navy)}
+.dp-nav:hover:not(:disabled){background:var(--pale)}
+.dp-nav:disabled{opacity:.25;cursor:default}
+.dp-month h3{text-align:center;margin:8px 0 10px;font-size:17px}
+.dp-row{display:grid;grid-template-columns:repeat(7,1fr)}
+.dp-dow span{font-size:12px;color:var(--muted);text-align:center;padding-bottom:6px;font-weight:700}
+.dp-row>span{display:flex;justify-content:center;padding:2px 0}
+.dp-day{width:100%;max-width:44px;aspect-ratio:1;border-radius:50%;font-size:15px;font-variant-numeric:tabular-nums;position:relative}
+.dp-day:hover:not(:disabled){background:var(--pale)}
+.dp-day:disabled{color:#b7c2d3;cursor:default;opacity:1;text-decoration:line-through;text-decoration-color:#d5dde8}
+.dp-day.is-today{box-shadow:inset 0 0 0 1.5px #9db8d8}
+.dp-row>span:has(.in-range){background:#e5f1ff}
+.has-range .dp-row>span:has(.is-start){background:linear-gradient(to left,transparent 50%,#e5f1ff 50%)}
+.has-range .dp-row>span:has(.is-end){background:linear-gradient(to right,transparent 50%,#e5f1ff 50%)}
+.has-range .dp-row>span:has(.is-start.is-end){background:none}
+.dp-day.is-start,.dp-day.is-end{background:var(--blue)!important;color:#fff;font-weight:800}
+.dp-fields{display:flex;gap:12px;margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+.dp-fields .modal-field{flex:1;font-size:12px;color:var(--muted)}
+.dp-fields input{padding:8px 10px}
+.dp-apply{margin-top:12px!important;opacity:.7}
+.dp-apply.is-ready{opacity:1}
+
+/* Passengers popover */
+.travelers-pop{position:absolute;z-index:45;width:320px;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 50px #0a2a5a2e;padding:8px 18px 16px}
+.travelers-pop .counter:last-of-type{border-bottom:0}
+.travelers-pop .counter-controls button{width:40px;height:40px}
+.travelers-pop .counter-controls strong{min-width:1.5ch;text-align:center;font-size:18px}
+.travelers-pop .micro-copy{font-size:12px;color:var(--muted);margin:4px 0 0}
+.travelers-pop .dialog-primary{margin-top:12px}
+
+/* Cheapest fares strip */
+.fare-deals{margin-top:18px}
+.fare-deals-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.fare-deals-head h2{font-size:24px;margin:0;font-weight:900}
+.fare-deals-head p{margin:0;font-size:13px;color:var(--muted)}
+.fare-deals-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.fare-deal{display:flex;flex-direction:column;gap:5px;width:100%;height:100%;text-align:right;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s,border-color .15s}
+.fare-deal:hover{transform:translateY(-2px);border-color:var(--blue);box-shadow:0 8px 22px #0a2a5a1f}
+.fare-route{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.fare-route strong{font-size:17px}
+.fare-route b{font-size:11px;color:var(--muted);letter-spacing:.4px;white-space:nowrap}
+.fare-dates,.fare-meta{font-size:12px;color:#566682}
+.fare-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fare-price{margin-top:auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 5px}
+.fare-price strong{font-size:22px;font-weight:900;color:var(--navy)}
+.fare-price small{font-size:11px;color:var(--muted)}
+.fare-price small:last-child{flex-basis:100%}
+@media (max-width:1100px){.fare-deals-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Phones: origin and destination stacked with the swap button on their edge; dates and passengers side by side */
+@media (max-width:700px){
+ .search-fields{grid-template-columns:1fr 1fr;grid-template-areas:"origin origin" "dest dest" "dates travelers" "submit submit";position:relative}
+ .search-fields .origin-field{grid-area:origin}.search-fields .destination-field{grid-area:dest}.search-fields .date-field{grid-area:dates}.search-fields .travelers-field{grid-area:travelers}.search-fields .search-submit{grid-area:submit}
+ .dp-head{padding-left:36px}.dp-clear{margin-inline-start:0}
+ .search-fields.hotel-mode{grid-template-areas:"dest dest" "dates travelers" "submit submit"}
+ button.swap{position:absolute;left:14px;top:41px;z-index:3;margin:0;background:#fff;border:1.5px solid var(--border);box-shadow:0 2px 8px #0a2a5a1a;width:40px;height:40px;min-width:40px;transform:rotate(90deg)}
+ .origin-field,.destination-field{padding-left:60px}
+ .place-list{width:auto;left:0!important}
+ .field{gap:10px}
+ .date-field .field-value,.travelers-field .field-value{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ dialog.date-picker{width:100%;max-width:100%;max-height:100dvh;height:100dvh;margin:0;border-radius:0;padding:18px 14px}
+ .dp-head h2{font-size:20px}
+ .dp-day{max-width:none}
+ .fare-deals-head h2{font-size:20px}
+ .fare-deals-list{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding-bottom:6px;margin-inline:-4%;padding-inline:4%}
+ .fare-deals-list li{flex:0 0 72%;scroll-snap-align:start}
+}

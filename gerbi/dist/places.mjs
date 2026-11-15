@@ -1,65 +1,88 @@
-// Flight destinations the search field understands: label shown to the traveler, the airport code sent to the
-// supplier (kept apart from the label), and short Hebrew/English names people actually type. `trip` links the four
-// demo destinations. ponytail: a curated list of popular routes from Israel; a supplier airport lookup replaces it
-// once Volero's location endpoint is in the contract.
+// Flight destinations the search field understands. Each place has:
+//   label  – the long Hebrew description (saved flights, messages)
+//   name   – the short Hebrew name shown in the field ("לונדון"), sub – its context ("בריטניה", "כל שדות התעופה")
+//   en     – the English name, code – the IATA code sent to the supplier (a city code for type 'c')
+//   names  – lower-case Hebrew/English forms people type (also read by the free-text engine, brief-engine.mjs)
+// `trip` links the four demo destinations; `home` marks Israeli airports. ponytail: a curated list of popular
+// routes from Israel; any other 3-letter IATA code is still accepted as typed.
+const P = (code, name, sub, en, names, extra = {}) => ({ label: extra.label || `${name}, ${sub}`, code, name, sub, en, names, ...extra });
+const A = (code, city, name, en, names, extra = {}) => ({ label: `${city.he} – ${name} (${code})`, code, name, sub: city.he, en, city: city.code, names, ...extra });
+const LON = { code: 'LON', he: 'לונדון' }, PAR = { code: 'PAR', he: 'פריז' }, MIL = { code: 'MIL', he: 'מילאנו' }, NYC = { code: 'NYC', he: 'ניו יורק' }, ISTC = { code: 'IST', he: 'איסטנבול' };
 export const places = [
   // Home airports: valid as origin or destination, never read as a holiday wish by the planner.
-  { label: 'תל אביב (נתב״ג)', code: 'TLV', home: true, names: ['תל אביב', 'נתבג', 'בן גוריון', 'tel aviv', 'ben gurion'] },
-  { label: 'רמון, אילת', code: 'ETM', home: true, names: ['רמון', 'אילת', 'ramon', 'eilat'] },
-  { label: 'חיפה', code: 'HFA', home: true, names: ['חיפה', 'haifa'] },
-  { label: 'רומא, איטליה', code: 'FCO', trip: 'rome', names: ['רומא', 'rome', 'roma'] },
-  { label: 'סנטוריני, יוון', code: 'JTR', trip: 'santorini', names: ['סנטוריני', 'santorini', 'thira'] },
-  { label: 'האיים המלדיביים', code: 'MLE', trip: 'maldives', names: ['מלדיביים', 'המלדיביים', 'מלדיבים', 'האיים המלדיביים', 'מאלה', 'maldives', 'male'] },
-  { label: 'דובאי, איחוד האמירויות', code: 'DXB', trip: 'dubai', names: ['דובאי', 'dubai'] },
-  { label: 'פריז – כל שדות התעופה', code: 'PAR', type: 'c', airports: ['CDG', 'ORY', 'BVA'], names: ['פריז', 'פאריז', 'paris'] },
-  { label: 'פריז – שארל דה גול (CDG)', code: 'CDG', city: 'PAR', names: ['שארל דה גול', 'charles de gaulle'] },
-  { label: 'פריז – אורלי (ORY)', code: 'ORY', city: 'PAR', names: ['אורלי', 'orly'] },
-  { label: 'פריז – בובה (BVA), כ־85 ק״מ מהעיר', code: 'BVA', city: 'PAR', names: ['בובה', 'beauvais'] },
-  { label: 'לונדון – כל שדות התעופה', code: 'LON', type: 'c', airports: ['LHR', 'LGW', 'LTN', 'STN', 'LCY'], names: ['לונדון', 'london'] },
-  { label: 'לונדון – הית׳רו (LHR)', code: 'LHR', city: 'LON', names: ['הית\'רו', 'היתרו', 'heathrow'] },
-  { label: 'לונדון – גטוויק (LGW)', code: 'LGW', city: 'LON', names: ['גטוויק', 'gatwick'] },
-  { label: 'לונדון – לוטון (LTN)', code: 'LTN', city: 'LON', names: ['לוטון', 'luton'] },
-  { label: 'לונדון – סטנסטד (STN)', code: 'STN', city: 'LON', names: ['סטנסטד', 'stansted'] },
-  { label: 'לונדון – סיטי (LCY)', code: 'LCY', city: 'LON', names: ['לונדון סיטי', 'london city'] },
-  { label: 'ברצלונה, ספרד', code: 'BCN', names: ['ברצלונה', 'barcelona'] },
-  { label: 'מדריד, ספרד', code: 'MAD', names: ['מדריד', 'madrid'] },
-  { label: 'אמסטרדם, הולנד', code: 'AMS', names: ['אמסטרדם', 'amsterdam'] },
-  { label: 'ברלין, גרמניה', code: 'BER', names: ['ברלין', 'berlin'] },
-  { label: 'מינכן, גרמניה', code: 'MUC', names: ['מינכן', 'munich'] },
-  { label: 'פראג, צ׳כיה', code: 'PRG', names: ['פראג', 'prague'] },
-  { label: 'בודפשט, הונגריה', code: 'BUD', names: ['בודפשט', 'budapest'] },
-  { label: 'וינה, אוסטריה', code: 'VIE', names: ['וינה', 'vienna'] },
-  { label: 'אתונה, יוון', code: 'ATH', names: ['אתונה', 'athens'] },
-  { label: 'כרתים (הרקליון), יוון', code: 'HER', names: ['כרתים', 'הרקליון', 'crete', 'heraklion'] },
-  { label: 'רודוס, יוון', code: 'RHO', names: ['רודוס', 'rhodes'] },
-  { label: 'מילאנו – כל שדות התעופה', code: 'MIL', type: 'c', airports: ['MXP', 'LIN', 'BGY'], names: ['מילאנו', 'milan', 'milano'] },
-  { label: 'מילאנו – מלפנסה (MXP)', code: 'MXP', city: 'MIL', names: ['מלפנסה', 'malpensa'] },
-  { label: 'מילאנו – לינאטה (LIN)', code: 'LIN', city: 'MIL', names: ['לינאטה', 'linate'] },
-  { label: 'מילאנו – ברגמו (BGY), כ־50 ק״מ מהעיר', code: 'BGY', city: 'MIL', names: ['ברגמו', 'bergamo'] },
-  { label: 'ונציה, איטליה', code: 'VCE', names: ['ונציה', 'venice'] },
-  { label: 'נאפולי, איטליה', code: 'NAP', names: ['נאפולי', 'naples'] },
-  { label: 'ניס, צרפת', code: 'NCE', names: ['ניס', 'nice'] },
-  { label: 'ליסבון, פורטוגל', code: 'LIS', names: ['ליסבון', 'lisbon'] },
-  { label: 'ציריך, שווייץ', code: 'ZRH', names: ['ציריך', 'zurich'] },
-  { label: 'לרנקה, קפריסין', code: 'LCA', names: ['לרנקה', 'larnaca'] },
-  { label: 'פאפוס, קפריסין', code: 'PFO', names: ['פאפוס', 'paphos'] },
-  { label: 'טביליסי, גאורגיה', code: 'TBS', names: ['טביליסי', 'tbilisi'] },
-  { label: 'בטומי, גאורגיה', code: 'BUS', names: ['בטומי', 'batumi'] },
-  { label: 'איסטנבול – כל שדות התעופה', code: 'IST', type: 'c', airports: ['IST', 'SAW'], names: ['איסטנבול', 'istanbul'] },
-  { label: 'איסטנבול – סביחה גוקצ׳ן (SAW)', code: 'SAW', city: 'IST', names: ['סביחה', 'sabiha'] },
-  { label: 'אנטליה, טורקיה', code: 'AYT', names: ['אנטליה', 'antalya'] },
-  { label: 'בוקרשט, רומניה', code: 'OTP', names: ['בוקרשט', 'bucharest'] },
-  { label: 'סופיה, בולגריה', code: 'SOF', names: ['סופיה', 'sofia'] },
-  { label: 'קרקוב, פולין', code: 'KRK', names: ['קרקוב', 'krakow'] },
-  { label: 'ורשה, פולין', code: 'WAW', names: ['ורשה', 'וורשה', 'warsaw'] },
-  { label: 'בלגרד, סרביה', code: 'BEG', names: ['בלגרד', 'belgrade'] },
-  { label: 'אבו דאבי, איחוד האמירויות', code: 'AUH', names: ['אבו דאבי', 'abu dhabi'] },
-  { label: 'ניו יורק – כל שדות התעופה', code: 'NYC', type: 'c', airports: ['JFK', 'EWR', 'LGA'], names: ['ניו יורק', 'new york', 'nyc'] },
-  { label: 'ניו יורק – JFK', code: 'JFK', city: 'NYC', names: ['קנדי', 'kennedy'] },
-  { label: 'ניו יורק – ניוארק (EWR)', code: 'EWR', city: 'NYC', names: ['ניוארק', 'newark'] },
-  { label: 'ניו יורק – לה גוארדיה (LGA)', code: 'LGA', city: 'NYC', names: ['לה גוארדיה', 'laguardia'] },
-  { label: 'בנגקוק, תאילנד', code: 'BKK', names: ['בנגקוק', 'bangkok'] },
-  { label: 'פוקט, תאילנד', code: 'HKT', names: ['פוקט', 'phuket'] }
+  P('TLV', 'תל אביב', 'נתב״ג', 'Tel Aviv', ['תל אביב', 'נתבג', 'בן גוריון', 'tel aviv', 'ben gurion'], { home: true, label: 'תל אביב (נתב״ג)' }),
+  P('ETM', 'אילת', 'שדה רמון', 'Eilat Ramon', ['רמון', 'אילת', 'ramon', 'eilat'], { home: true, label: 'רמון, אילת' }),
+  P('HFA', 'חיפה', 'ישראל', 'Haifa', ['חיפה', 'haifa'], { home: true, label: 'חיפה' }),
+  P('FCO', 'רומא', 'איטליה', 'Rome', ['רומא', 'rome', 'roma', 'fiumicino'], { trip: 'rome' }),
+  P('JTR', 'סנטוריני', 'יוון', 'Santorini', ['סנטוריני', 'santorini', 'thira'], { trip: 'santorini' }),
+  P('MLE', 'מלדיביים', 'מאלה', 'Maldives', ['מלדיביים', 'המלדיביים', 'מלדיבים', 'האיים המלדיביים', 'מאלה', 'maldives', 'male'], { trip: 'maldives', label: 'האיים המלדיביים' }),
+  P('DXB', 'דובאי', 'איחוד האמירויות', 'Dubai', ['דובאי', 'dubai'], { trip: 'dubai' }),
+  P('PAR', 'פריז', 'כל שדות התעופה', 'Paris', ['פריז', 'פאריז', 'paris'], { type: 'c', airports: ['CDG', 'ORY', 'BVA'], label: 'פריז – כל שדות התעופה' }),
+  A('CDG', PAR, 'שארל דה גול', 'Charles de Gaulle', ['שארל דה גול', 'charles de gaulle']),
+  A('ORY', PAR, 'אורלי', 'Orly', ['אורלי', 'orly']),
+  A('BVA', PAR, 'בובה', 'Beauvais', ['בובה', 'beauvais'], { label: 'פריז – בובה (BVA), כ־85 ק״מ מהעיר', sub: 'פריז · כ־85 ק״מ מהעיר' }),
+  P('LON', 'לונדון', 'כל שדות התעופה', 'London', ['לונדון', 'london'], { type: 'c', airports: ['LHR', 'LGW', 'LTN', 'STN', 'LCY'], label: 'לונדון – כל שדות התעופה' }),
+  A('LHR', LON, 'הית׳רו', 'Heathrow', ['הית\'רו', 'היתרו', 'heathrow']),
+  A('LGW', LON, 'גטוויק', 'Gatwick', ['גטוויק', 'gatwick']),
+  A('LTN', LON, 'לוטון', 'Luton', ['לוטון', 'luton']),
+  A('STN', LON, 'סטנסטד', 'Stansted', ['סטנסטד', 'stansted']),
+  A('LCY', LON, 'לונדון סיטי', 'London City', ['לונדון סיטי', 'london city']),
+  P('BCN', 'ברצלונה', 'ספרד', 'Barcelona', ['ברצלונה', 'barcelona']),
+  P('MAD', 'מדריד', 'ספרד', 'Madrid', ['מדריד', 'madrid']),
+  P('AMS', 'אמסטרדם', 'הולנד', 'Amsterdam', ['אמסטרדם', 'amsterdam']),
+  P('BER', 'ברלין', 'גרמניה', 'Berlin', ['ברלין', 'berlin']),
+  P('MUC', 'מינכן', 'גרמניה', 'Munich', ['מינכן', 'munich', 'munchen']),
+  P('PRG', 'פראג', 'צ׳כיה', 'Prague', ['פראג', 'prague', 'praha']),
+  P('BUD', 'בודפשט', 'הונגריה', 'Budapest', ['בודפשט', 'budapest']),
+  P('VIE', 'וינה', 'אוסטריה', 'Vienna', ['וינה', 'vienna', 'wien']),
+  P('ATH', 'אתונה', 'יוון', 'Athens', ['אתונה', 'athens']),
+  P('HER', 'כרתים', 'הרקליון, יוון', 'Crete (Heraklion)', ['כרתים', 'הרקליון', 'crete', 'heraklion'], { label: 'כרתים (הרקליון), יוון' }),
+  P('RHO', 'רודוס', 'יוון', 'Rhodes', ['רודוס', 'rhodes']),
+  P('MIL', 'מילאנו', 'כל שדות התעופה', 'Milan', ['מילאנו', 'milan', 'milano'], { type: 'c', airports: ['MXP', 'LIN', 'BGY'], label: 'מילאנו – כל שדות התעופה' }),
+  A('MXP', MIL, 'מלפנסה', 'Malpensa', ['מלפנסה', 'malpensa']),
+  A('LIN', MIL, 'לינאטה', 'Linate', ['לינאטה', 'linate']),
+  A('BGY', MIL, 'ברגמו', 'Bergamo', ['ברגמו', 'bergamo'], { label: 'מילאנו – ברגמו (BGY), כ־50 ק״מ מהעיר', sub: 'מילאנו · כ־50 ק״מ מהעיר' }),
+  P('VCE', 'ונציה', 'איטליה', 'Venice', ['ונציה', 'venice', 'venezia']),
+  P('NAP', 'נאפולי', 'איטליה', 'Naples', ['נאפולי', 'naples', 'napoli']),
+  P('NCE', 'ניס', 'צרפת', 'Nice', ['ניס', 'nice']),
+  P('LIS', 'ליסבון', 'פורטוגל', 'Lisbon', ['ליסבון', 'lisbon', 'lisboa']),
+  P('ZRH', 'ציריך', 'שווייץ', 'Zurich', ['ציריך', 'zurich']),
+  P('LCA', 'לרנקה', 'קפריסין', 'Larnaca', ['לרנקה', 'larnaca']),
+  P('PFO', 'פאפוס', 'קפריסין', 'Paphos', ['פאפוס', 'paphos']),
+  P('TBS', 'טביליסי', 'גאורגיה', 'Tbilisi', ['טביליסי', 'tbilisi']),
+  P('BUS', 'בטומי', 'גאורגיה', 'Batumi', ['בטומי', 'batumi']),
+  P('IST', 'איסטנבול', 'כל שדות התעופה', 'Istanbul', ['איסטנבול', 'istanbul'], { type: 'c', airports: ['IST', 'SAW'], label: 'איסטנבול – כל שדות התעופה' }),
+  A('SAW', ISTC, 'סביחה גוקצ׳ן', 'Sabiha Gokcen', ['סביחה', 'sabiha', 'sabiha gokcen']),
+  P('AYT', 'אנטליה', 'טורקיה', 'Antalya', ['אנטליה', 'antalya']),
+  P('OTP', 'בוקרשט', 'רומניה', 'Bucharest', ['בוקרשט', 'bucharest']),
+  P('SOF', 'סופיה', 'בולגריה', 'Sofia', ['סופיה', 'sofia']),
+  P('KRK', 'קרקוב', 'פולין', 'Krakow', ['קרקוב', 'krakow', 'cracow']),
+  P('WAW', 'ורשה', 'פולין', 'Warsaw', ['ורשה', 'וורשה', 'warsaw']),
+  P('BEG', 'בלגרד', 'סרביה', 'Belgrade', ['בלגרד', 'belgrade']),
+  P('AUH', 'אבו דאבי', 'איחוד האמירויות', 'Abu Dhabi', ['אבו דאבי', 'abu dhabi']),
+  P('NYC', 'ניו יורק', 'כל שדות התעופה', 'New York', ['ניו יורק', 'new york', 'nyc'], { type: 'c', airports: ['JFK', 'EWR', 'LGA'], label: 'ניו יורק – כל שדות התעופה' }),
+  A('JFK', NYC, 'ג׳ון פ. קנדי', 'John F. Kennedy', ['קנדי', 'kennedy'], { label: 'ניו יורק – JFK' }),
+  A('EWR', NYC, 'ניוארק', 'Newark', ['ניוארק', 'newark']),
+  A('LGA', NYC, 'לה גוארדיה', 'LaGuardia', ['לה גוארדיה', 'laguardia']),
+  P('BKK', 'בנגקוק', 'תאילנד', 'Bangkok', ['בנגקוק', 'bangkok']),
+  P('HKT', 'פוקט', 'תאילנד', 'Phuket', ['פוקט', 'phuket']),
+  // Added 2026-11: more popular routes, so their names and codes resolve in both languages.
+  P('FRA', 'פרנקפורט', 'גרמניה', 'Frankfurt', ['פרנקפורט', 'frankfurt']),
+  P('BRU', 'בריסל', 'בלגיה', 'Brussels', ['בריסל', 'brussels', 'bruxelles']),
+  P('CPH', 'קופנהגן', 'דנמרק', 'Copenhagen', ['קופנהגן', 'copenhagen']),
+  P('DUB', 'דבלין', 'אירלנד', 'Dublin', ['דבלין', 'dublin']),
+  P('GVA', 'ז׳נבה', 'שווייץ', 'Geneva', ['ז\'נבה', 'ג\'נבה', 'זנבה', 'geneva', 'geneve']),
+  P('OPO', 'פורטו', 'פורטוגל', 'Porto', ['פורטו', 'porto', 'oporto']),
+  P('AGP', 'מלאגה', 'ספרד', 'Malaga', ['מלאגה', 'malaga']),
+  P('PMI', 'פלמה דה מיורקה', 'ספרד', 'Palma de Mallorca', ['פלמה דה מיורקה', 'מיורקה', 'palma', 'mallorca', 'majorca']),
+  P('SKG', 'סלוניקי', 'יוון', 'Thessaloniki', ['סלוניקי', 'תסלוניקי', 'thessaloniki']),
+  P('DBV', 'דוברובניק', 'קרואטיה', 'Dubrovnik', ['דוברובניק', 'dubrovnik']),
+  P('TIV', 'טיבאט', 'מונטנגרו', 'Tivat', ['טיבאט', 'tivat']),
+  P('EVN', 'ירוואן', 'ארמניה', 'Yerevan', ['ירוואן', 'yerevan']),
+  P('GYD', 'באקו', 'אזרבייג׳ן', 'Baku', ['באקו', 'baku']),
+  P('RIX', 'ריגה', 'לטביה', 'Riga', ['ריגה', 'riga']),
+  P('LAX', 'לוס אנג׳לס', 'ארצות הברית', 'Los Angeles', ['לוס אנג\'לס', 'לוס אנגלס', 'los angeles']),
+  P('MIA', 'מיאמי', 'ארצות הברית', 'Miami', ['מיאמי', 'miami'])
 ];
 
 export const countries = [
@@ -74,26 +97,75 @@ export const countries = [
   { names: ['טורקיה', 'turkey'], codes: ['IST', 'AYT'] },
   { names: ['תאילנד', 'thailand'], codes: ['BKK', 'HKT'] },
   { names: ['איחוד האמירויות', 'האמירויות', 'emirates', 'uae'], codes: ['DXB', 'AUH'] },
-  { names: ['הולנד', 'netherlands'], codes: ['AMS'] },
+  { names: ['הולנד', 'netherlands', 'holland'], codes: ['AMS'] },
   { names: ['פורטוגל', 'portugal'], codes: ['LIS'] },
-  { names: ['ארצות הברית', 'ארה"ב', 'ארהב', 'אמריקה', 'usa'], codes: ['NYC'] }
+  { names: ['ארצות הברית', 'ארה"ב', 'ארהב', 'אמריקה', 'usa'], codes: ['NYC'] },
+  { names: ['בלגיה', 'belgium'], codes: ['BRU'] },
+  { names: ['דנמרק', 'denmark'], codes: ['CPH'] },
+  { names: ['אירלנד', 'ireland'], codes: ['DUB'] },
+  { names: ['קרואטיה', 'croatia'], codes: ['DBV'] },
+  { names: ['מונטנגרו', 'montenegro'], codes: ['TIV'] },
+  { names: ['ארמניה', 'armenia'], codes: ['EVN'] },
+  { names: ['אזרבייג\'ן', 'azerbaijan'], codes: ['GYD'] },
+  { names: ['לטביה', 'latvia'], codes: ['RIX'] }
 ];
 
-export const placeType = code => places.find(place => place.code === code)?.type || 'a';
+const byCode = new Map(places.map(place => [place.code, place]));
+export const placeByCode = code => byCode.get(String(code || '').toUpperCase()) || null;
+export const placeType = code => byCode.get(code)?.type || 'a';
 
 export const normalizePlace = value => String(value || '').normalize('NFKC').toLowerCase()
-  .replace(/[״"׳']/g, '').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+  .replace(/[״"׳'`’]/g, '').replace(/[()]/g, ' ').replace(/[–—־-]/g, ' ').replace(/\s+/g, ' ').trim();
 
-// The label, any short name, the name before the comma ("רומא" from "רומא, איטליה") or an IATA code.
+// What the field shows once a place is chosen: "לונדון · LON", "הית׳רו · LHR".
+export const placeText = place => (place ? `${place.name || place.label} · ${place.code}` : '');
+
+// Every form a place answers to, normalized once.
+const forms = new Map(places.map(place => [place, [...new Set([place.name, place.en, place.label, ...place.names].filter(Boolean).map(normalizePlace))]]));
+
+// The label, the short name, English or Hebrew, "name · CODE" as the field shows it, or an IATA code.
 export function resolvePlace(input) {
   const raw = String(input || '').trim();
-  if (/^[a-z]{3}$/i.test(raw)) return places.find(place => place.code === raw.toUpperCase()) || { label: raw.toUpperCase(), code: raw.toUpperCase() };
-  const value = normalizePlace(raw), head = normalizePlace(raw.split(',')[0]);
-  return places.find(place => normalizePlace(place.label) === value || place.names.some(name => name === value || name === head)) || null;
+  const tagged = /(?:·|\(|\s)\s*([A-Za-z]{3})\)?\s*$/.exec(raw);
+  if (tagged && byCode.has(tagged[1].toUpperCase())) return byCode.get(tagged[1].toUpperCase());
+  if (/^[a-z]{3}$/i.test(raw)) {
+    // A known code first; then an English name that happens to be 3 letters ("nyc"); else trust the code as typed.
+    return byCode.get(raw.toUpperCase()) || places.find(place => forms.get(place).includes(raw.toLowerCase())) || { label: raw.toUpperCase(), name: raw.toUpperCase(), code: raw.toUpperCase() };
+  }
+  const value = normalizePlace(raw), head = normalizePlace(raw.split(/[,·]/)[0]);
+  if (!value) return null;
+  return places.find(place => forms.get(place).includes(value)) || places.find(place => forms.get(place).includes(head)) || null;
+}
+
+// Ranked matches for the autocomplete, Hebrew or English, by name or code; a city brings its airports right after it.
+export function searchPlaces(input, { limit = 8, exclude = '' } = {}) {
+  const value = normalizePlace(input), code = /^[a-z]{2,3}$/.test(value) ? value.toUpperCase() : '';
+  if (!value) return [];
+  const rank = place => {
+    const list = forms.get(place);
+    if (code && place.code === code) return 0;
+    if (list.includes(value)) return 1;
+    if (list.some(form => form.startsWith(value))) return 2;
+    if (code && place.code.startsWith(code)) return 3;
+    if (list.some(form => form.split(' ').some(word => word.startsWith(value)))) return 4;
+    if (value.length >= 3 && list.some(form => form.includes(value))) return 5;
+    return 9;
+  };
+  const scored = places.map((place, order) => ({ place, order, rank: rank(place) })).filter(item => item.rank < 9 && item.place.code !== exclude)
+    .sort((a, b) => a.rank - b.rank || (a.place.city ? 1 : 0) - (b.place.city ? 1 : 0) || a.order - b.order);
+  const out = [];
+  for (const { place } of scored) {
+    if (out.includes(place)) continue;
+    out.push(place);
+    if (place.type === 'c') for (const airport of places.filter(p => p.city === place.code && p.code !== exclude)) if (!out.includes(airport)) out.push(airport);
+  }
+  return out.slice(0, limit);
 }
 
 export function placeSuggestions(input, limit = 3) {
-  const value = normalizePlace(input);
-  if (value.length < 2) return [];
-  return places.filter(place => place.names.some(name => name.startsWith(value) || name.includes(value))).slice(0, limit);
+  return normalizePlace(input).length < 2 ? [] : searchPlaces(input, { limit });
 }
+
+// What the field offers before anything is typed.
+export const POPULAR_DESTINATIONS = ['LON', 'PAR', 'FCO', 'ATH', 'BCN', 'LCA', 'DXB', 'NYC'];
+export const POPULAR_ORIGINS = ['TLV', 'ETM', 'HFA'];
