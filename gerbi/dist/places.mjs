@@ -5,6 +5,7 @@
 //   names  – lower-case Hebrew/English forms people type (also read by the free-text engine, brief-engine.mjs)
 // `trip` links the four demo destinations; `home` marks Israeli airports. ponytail: a curated list of popular
 // routes from Israel; any other 3-letter IATA code is still accepted as typed.
+import { lang } from './i18n.mjs';
 const P = (code, name, sub, en, names, extra = {}) => ({ label: extra.label || `${name}, ${sub}`, code, name, sub, en, names, ...extra });
 const A = (code, city, name, en, names, extra = {}) => ({ label: `${city.he} – ${name} (${code})`, code, name, sub: city.he, en, city: city.code, names, ...extra });
 const LON = { code: 'LON', he: 'לונדון' }, PAR = { code: 'PAR', he: 'פריז' }, MIL = { code: 'MIL', he: 'מילאנו' }, NYC = { code: 'NYC', he: 'ניו יורק' }, ISTC = { code: 'IST', he: 'איסטנבול' };
@@ -169,3 +170,23 @@ export function placeSuggestions(input, limit = 3) {
 // What the field offers before anything is typed.
 export const POPULAR_DESTINATIONS = ['LON', 'PAR', 'FCO', 'ATH', 'BCN', 'LCA', 'DXB', 'NYC'];
 export const POPULAR_ORIGINS = ['TLV', 'ETM', 'HFA'];
+
+// English page (spec 21): the fields the UI shows switch to English once, after every Hebrew/English form above is
+// indexed, so typing Hebrew or English still resolves and every consumer (field, results, saved flights) shows English.
+// The Hebrew originals stay on place.he.
+const SUB_EN = { 'נתב״ג': 'Ben Gurion', 'שדה רמון': 'Ramon Airport', 'ישראל': 'Israel', 'איטליה': 'Italy', 'יוון': 'Greece', 'מאלה': 'Malé', 'איחוד האמירויות': 'UAE',
+  'כל שדות התעופה': 'All airports', 'ספרד': 'Spain', 'הולנד': 'Netherlands', 'גרמניה': 'Germany', 'צ׳כיה': 'Czechia', 'הונגריה': 'Hungary', 'אוסטריה': 'Austria',
+  'הרקליון, יוון': 'Heraklion, Greece', 'צרפת': 'France', 'פורטוגל': 'Portugal', 'שווייץ': 'Switzerland', 'קפריסין': 'Cyprus', 'גאורגיה': 'Georgia', 'טורקיה': 'Turkey',
+  'רומניה': 'Romania', 'בולגריה': 'Bulgaria', 'פולין': 'Poland', 'סרביה': 'Serbia', 'תאילנד': 'Thailand', 'בלגיה': 'Belgium', 'דנמרק': 'Denmark', 'אירלנד': 'Ireland',
+  'קרואטיה': 'Croatia', 'מונטנגרו': 'Montenegro', 'ארמניה': 'Armenia', 'אזרבייג׳ן': 'Azerbaijan', 'לטביה': 'Latvia', 'ארצות הברית': 'USA', 'בריטניה': 'UK', 'אנגליה': 'England',
+  'המלדיביים': 'The Maldives', 'האיים המלדיביים': 'The Maldives' };
+const LABEL_EN = { TLV: 'Tel Aviv (Ben Gurion)', ETM: 'Ramon, Eilat', HFA: 'Haifa', MLE: 'The Maldives', HER: 'Crete (Heraklion), Greece' };
+const FAR_EN = { BVA: '~85 km from the city', BGY: '~50 km from the city' };
+export const countryNameEn = (name) => SUB_EN[name] || name;
+export function englishPlace(place) {
+  const city = place.city && byCode.get(place.city), far = FAR_EN[place.code];
+  if (city) return { name: place.en, sub: city.en +(far ? ` · ${far}` : ''), label: `${city.en} – ${place.en} (${place.code})${far ? `, ${far}` : ''}` };
+  const sub = SUB_EN[place.sub] || SUB_EN[place.he?.sub] || place.sub;
+  return { name: place.en, sub, label: LABEL_EN[place.code] || (place.type === 'c' ? `${place.en} – all airports` : `${place.en}, ${sub}`) };
+}
+if (lang === 'en') for (const place of places) { const english = englishPlace(place); place.he = { name: place.name, sub: place.sub, label: place.label }; Object.assign(place, english); }
