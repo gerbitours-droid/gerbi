@@ -3,6 +3,7 @@
 // the order of two offers never depends on which other offers happen to be in the list (v1's ratio-to-cheapest
 // utilities flipped 30% of pairs when an unrelated cheap offer appeared). Filters run before; nothing rejected returns.
 import { timeBucket } from './flight-view.mjs';
+import { t } from './i18n.mjs';
 
 export const MEMORY_WEIGHT = 0.08, PARTNER_WEIGHT = 0.05, TIE_EPSILON = 0.03;
 const REMOTE_AIRPORTS = new Set(['BVA', 'BGY']);
@@ -120,13 +121,13 @@ export function explain(item, scored, format = price => `${Math.round(price)}`) 
   const cheapest = sameCurrency ? scored.filter(x => Number.isFinite(x.facts.price?.value)).reduce((a, b) => (b.facts.price.value < a.facts.price.value ? b : a), item) : null;
   const typicalPrice = median(scored.map(x => x.facts.price?.value).filter(Number.isFinite));
   if (cheapest && cheapest !== item && Number.isFinite(f.totalMinutes) && Number.isFinite(cheapest.facts.totalMinutes) && cheapest.facts.totalMinutes - f.totalMinutes >= 45)
-    reasons.push(`עוד ${format(f.price.value - cheapest.facts.price.value)} וחוסכת ${clock(cheapest.facts.totalMinutes - f.totalMinutes)} שע׳ לעומת הזולה`);
-  else if (sameCurrency && Number.isFinite(f.price?.value) && f.price.value < typicalPrice * 0.9) reasons.push(`זולה ב־${Math.round((1 - f.price.value / typicalPrice) * 100)}% מהמחיר הטיפוסי בחיפוש`);
-  if (f.stops === 0) reasons.push('ישירה');
-  else if (item.gc.features.longWait === 0 && !f.overnight) reasons.push('המתנה קצרה בין הטיסות');
-  if (f.checked === 'included') reasons.push('מזוודה כלולה');
-  if (item.memory > 0.2) reasons.push('נבחרה לעיתים קרובות בחיפושים דומים');
-  if (item.partner) reasons.push('ג׳רבי AI הכריע בין אפשרויות שקולות');
+    reasons.push(t('app.why.fasterForMore', { price: format(f.price.value - cheapest.facts.price.value), time: clock(cheapest.facts.totalMinutes - f.totalMinutes) }));
+  else if (sameCurrency && Number.isFinite(f.price?.value) && f.price.value < typicalPrice * 0.9) reasons.push(t('app.why.cheaper', { pct: Math.round((1 - f.price.value / typicalPrice) * 100) }));
+  if (f.stops === 0) reasons.push(t('app.direct'));
+  else if (item.gc.features.longWait === 0 && !f.overnight) reasons.push(t('app.why.shortWait'));
+  if (f.checked === 'included') reasons.push(t('app.bag.included'));
+  if (item.memory > 0.2) reasons.push(t('app.why.popular'));
+  if (item.partner) reasons.push(t('app.why.partner'));
   return reasons.slice(0, 3);
 }
 

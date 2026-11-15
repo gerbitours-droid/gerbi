@@ -18,11 +18,12 @@ import { flightTakeSlot, mountFlightTake } from './ai-client.mjs';
 import { initMultiCity } from './multi-city.mjs';
 import { legName, routeText, groundGaps, gapText, multiLink, cleanRoute } from './multi-city-core.mjs';
 import { perPassenger, PTC_LABEL, seatsLeft, FEW_SEATS, fareInclusions, layoverAirports } from './fare-extras.mjs';
+import { t as tr, lang, locale, fmtMoney, errorText } from './i18n.mjs';
 const icons=name=>`<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
-const money=n=>new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:0}).format(n);
+const money=n=>fmtMoney(n);
 const $=s=>document.querySelector(s);
 let favorites=[];try{favorites=JSON.parse(localStorage.getItem('gerbi-favorites')||'[]');if(!Array.isArray(favorites))favorites=[];favorites=[...new Set(favorites.filter(id=>trips.some(t=>t.id===id)))];}catch{}
-function renderCards(items=trips){$('#cards').innerHTML=items.map(t=>`<article class="card"><div class="card-image"><img src="/assets/${t.image}" alt="${t.name}" loading="lazy" width="560" height="400"><button class="favorite" data-favorite="${t.id}" aria-pressed="${favorites.includes(t.id)}" aria-label="${favorites.includes(t.id)?'הסרת':'שמירת'} ${t.short}">${icons('heart')}</button><span class="card-badge">${icons(t.id==='rome'?'hotel':t.id==='dubai'?'globe':'sun')}${t.badge}</span></div><div class="card-body"><h3>${t.name}</h3><p class="card-description">${t.description}</p>${t.matchReason?`<p class="match-reason">${escapeHTML(t.matchReason)}</p>`:''}<div class="card-bottom"><button class="yellow card-cta" data-trip="${t.id}">לפרטים ותכנון</button><div class="card-price"><small>הדגמה · לאדם, החל מ־</small><strong>${money(t.price)}</strong></div></div></div></article>`).join('');}
+function renderCards(items=trips){$('#cards').innerHTML=items.map(t=>`<article class="card"><div class="card-image"><img src="/assets/${t.image}" alt="${t.name}" loading="lazy" width="560" height="400"><button class="favorite" data-favorite="${t.id}" aria-pressed="${favorites.includes(t.id)}" aria-label="${favorites.includes(t.id)?tr('app.card.unsave',{name:t.short}):tr('app.card.save',{name:t.short})}">${icons('heart')}</button><span class="card-badge">${icons(t.id==='rome'?'hotel':t.id==='dubai'?'globe':'sun')}${t.badge}</span></div><div class="card-body"><h3>${t.name}</h3><p class="card-description">${t.description}</p>${t.matchReason?`<p class="match-reason">${escapeHTML(t.matchReason)}</p>`:''}<div class="card-bottom"><button class="yellow card-cta" data-trip="${t.id}">${tr('app.card.cta')}</button><div class="card-price"><small>${tr('app.card.priceFrom')}</small><strong>${money(t.price)}</strong></div></div></div></article>`).join('');}
 renderCards();
 for(const image of document.querySelectorAll('img[src="/assets/mascot.png"]')){image.onload=()=>image.hidden=false;if(image.complete&&image.naturalWidth)image.hidden=false;}
 const state={tab:'flights',adults:2,children:0,start:'',end:'',preferences:{},activeTrip:null,edits:{},requests:{},voleroResults:null};
@@ -40,12 +41,12 @@ $('.modal-close').addEventListener('click',()=>modal.close());
 modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
 const onHome=()=>(location.hash.slice(1)||'/').split('?')[0]==='/';
 function localDate(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
-function shortDate(value){return new Date(value+'T12:00:00').toLocaleDateString('he-IL',{day:'numeric',month:'short'});}
+function shortDate(value){return new Date(value+'T12:00:00').toLocaleDateString(locale(),{day:'numeric',month:'short'});}
 const oneWay=()=>document.querySelector('[name="trip-type"]:checked')?.value==='oneway';
 const setTripType=type=>{const input=document.querySelector(`[name="trip-type"][value="${['oneway','multi'].includes(type)?type:'round'}"]`);if(input)input.checked=true;multiCity?.sync();};
 const originPlace=()=>resolvePlace($('#origin').value);
-function showDates(){const has=oneWay()?Boolean(state.start):Boolean(state.start&&state.end);$('#dates-value').textContent=has?(oneWay()?shortDate(state.start):`${shortDate(state.start)} – ${shortDate(state.end)}`):'בחרו תאריכים';$('#dates-value').classList.toggle('muted',!has);}
-function longDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value||'')?new Date(value+'T12:00:00').toLocaleDateString('he-IL',{weekday:'short',day:'numeric',month:'numeric',year:'numeric'}):'';}
+function showDates(){const has=oneWay()?Boolean(state.start):Boolean(state.start&&state.end);$('#dates-value').textContent=has?(oneWay()?shortDate(state.start):`${shortDate(state.start)} – ${shortDate(state.end)}`):tr('app.dates.placeholder');$('#dates-value').classList.toggle('muted',!has);}
+function longDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value||'')?new Date(value+'T12:00:00').toLocaleDateString(locale(),{weekday:'short',day:'numeric',month:'numeric',year:'numeric'}):'';}
 function openDates(){
  openRangePicker({start:state.start,end:state.end,oneWay:oneWay(),today:localDate(),returnFocus:$('#dates-button'),validate:(start,end,single)=>validFlightDates(start,end,localDate(),single),
   onTripType:type=>{setTripType(type);showDates();markStaleResults();},
@@ -64,34 +65,34 @@ const multiCity=initMultiCity({form:$('#search-form'),today:()=>localDate(),
  seed:()=>({from:$('#origin').value,to:$('#destination').value,start:state.start,end:state.end}),
  unseed:({from,to,start,end})=>{$('#origin').value=from;$('#destination').value=to;state.start=start;state.end=end&&end>=start?end:'';showDates();}});
 const isMulti=()=>multiCity.active()&&state.tab==='flights';
-function selectTab(tab){if(activeSearch)return;state.tab=tab;$('.trip-type').hidden=tab!=='flights';$('#search-mode-note').textContent=tab==='flights'?'חיפוש טיסות בזמן אמת מול הספקים שאנחנו עובדים איתם · הלוך־חזור או כיוון אחד':'מלונות וחבילות: השראה ותכנון בלבד, ללא חיפוש זמינות';document.querySelectorAll('[data-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===tab));b.tabIndex=b.dataset.tab===tab?0:-1;});$('.origin-field').style.display=tab==='hotels'?'none':'';$('.swap').style.display=tab==='hotels'?'none':'';$('.search-fields').classList.toggle('hotel-mode',tab==='hotels');$('.search-submit').innerHTML=icons('search')+({flights:'חפשו טיסה',hotels:'השראה למלונות',packages:'רעיונות לחופשה'})[tab];}
-const tabButtons=[...document.querySelectorAll('[data-tab]')];tabButtons.forEach((b,i)=>{b.tabIndex=i===0?0:-1;b.onclick=()=>selectTab(b.dataset.tab);b.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowLeft'?1:-1)+3)%3;selectTab(tabButtons[n].dataset.tab);tabButtons[n].focus();}};});
+function selectTab(tab){if(activeSearch)return;state.tab=tab;$('.trip-type').hidden=tab!=='flights';$('#search-mode-note').textContent=tab==='flights'?tr('app.mode.flights'):tr('app.mode.inspiration');document.querySelectorAll('[data-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===tab));b.tabIndex=b.dataset.tab===tab?0:-1;});$('.origin-field').style.display=tab==='hotels'?'none':'';$('.swap').style.display=tab==='hotels'?'none':'';$('.search-fields').classList.toggle('hotel-mode',tab==='hotels');$('.search-submit').innerHTML=icons('search')+({flights:tr('app.tab.flights.submit'),hotels:tr('app.tab.hotels.submit'),packages:tr('app.tab.packages.submit')})[tab];}
+const tabButtons=[...document.querySelectorAll('[data-tab]')];tabButtons.forEach((b,i)=>{b.tabIndex=i===0?0:-1;b.onclick=()=>selectTab(b.dataset.tab);b.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?2:(i+(e.key===(lang==='en'?'ArrowRight':'ArrowLeft')?1:-1)+3)%3;selectTab(tabButtons[n].dataset.tab);tabButtons[n].focus();}};});
 function currentPreferences(){return{...state.preferences,adults:state.adults,children:state.children,...(state.start&&state.end?{nights:Math.round((new Date(state.end)-new Date(state.start))/86400000)}:{})};}
 function voleroSearchRequest(){
  if(isMulti())return multiCity.request(state.adults,state.children);
  const destination=($('#destination').value||'').trim(), place=resolvePlace(destination), code=place?.code||'';
  const from=originPlace(), single=oneWay();
  const fail=(message,field)=>Object.assign(new Error(message),{field});
- const unknown=(value,example)=>{const near=placeSuggestions(value);return near.length?`לא זיהינו את „${value}”. התכוונתם ל${near.map(x=>x.label).join(' / ')}?`:`„${value}” עוד לא ברשימה שלנו. בחרו מהרשימה, או הזינו קוד שדה תעופה באנגלית (למשל ${example}).`;};
- if(!from) throw fail($('#origin').value.trim()?unknown($('#origin').value.trim(),'TLV לתל אביב'):'בחרו שדה מוצא.','#origin');
- if(!destination) throw fail('בחרו יעד מהרשימה או כתבו שם עיר.','#destination');
- if(!validFlightDates(state.start,state.end,localDate(),single)) throw fail(single?'בחרו תאריך יציאה לפני חיפוש טיסה.':'בחרו תאריכי יציאה וחזרה לפני חיפוש טיסה.','#dates-button');
- if(!place) throw fail(unknown(destination,'CDG לפריז'),'#destination');
- if(code===from.code) throw fail('בחרו יעד שונה משדה המוצא.','#destination');
+ const unknown=(value,example)=>{const near=placeSuggestions(value);return near.length?tr('app.err.unknownNear', { value, options: near.map(x=>x.label).join(' / ') }):tr('app.err.unknownPlace', { value, example });};
+ if(!from) throw fail($('#origin').value.trim()?unknown($('#origin').value.trim(),tr('app.err.exampleOrigin')):tr('app.err.noOrigin'),'#origin');
+ if(!destination) throw fail(tr('app.err.noDestination'),'#destination');
+ if(!validFlightDates(state.start,state.end,localDate(),single)) throw fail(single?tr('app.err.noDate'):tr('app.err.noDates'),'#dates-button');
+ if(!place) throw fail(unknown(destination,tr('app.err.exampleDestination')),'#destination');
+ if(code===from.code) throw fail(tr('app.err.sameRoute'),'#destination');
  $('#destination').value=placeText(place);$('#origin').value=placeText(from);
  const leg=(a,b,date)=>({origin:{code:a,type:placeType(a)},destination:{code:b,type:placeType(b)},date});
  return {originDestinations:single?[leg(from.code,code,state.start)]:[leg(from.code,code,state.start),leg(code,from.code,state.end)],passengers:{ptcList:[{ptc:'ADT',count:state.adults},...(state.children?[{ptc:'CHD',count:state.children}]:[] )]},sellingChannel:'B2B',language:'en_GB',timeout:10};
 }
 let savedFlights=[];try{savedFlights=restoreSavedFlights(localStorage.getItem(SAVED_FLIGHTS_KEY));}catch{ /* Saving needs browser storage; the search still works without it. */ }
-function storeSavedFlights(list){savedFlights=list;try{localStorage.setItem(SAVED_FLIGHTS_KEY,JSON.stringify(list));return true;}catch{toast('לא ניתן לשמור במכשיר הזה. העתיקו את פרטי הטיסה כדי לא לאבד אותם.');return false;}}
+function storeSavedFlights(list){savedFlights=list;try{localStorage.setItem(SAVED_FLIGHTS_KEY,JSON.stringify(list));return true;}catch{toast(tr('app.save.storageFailed'));return false;}}
 const verifiedPrices=new Map();
-const verifiedStamp=v=>`<p class="verified-stamp">נבדק ב־${escapeHTML(v.at.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}))}: <strong dir="ltr">${escapeHTML(formatFare(v.price))}</strong>${v.changed?' · המחיר השתנה מאז החיפוש':''}</p>`;
+const verifiedStamp=v=>`<p class="verified-stamp">${tr('app.verified.at', { time: escapeHTML(v.at.toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'})) })} <strong dir="ltr">${escapeHTML(formatFare(v.price))}</strong>${v.changed?tr('app.verified.changed'):''}</p>`;
 let pendingFilters=null;
 let searchContext=null, activeSearch=null, visibleOfferCount=12, flightSort='recommended';
 // ---- Decision layer (docs/gerbi-decision-engine-spec-he.md): score → memory boost → LLM only on a near tie.
 let partnerAvailable=false;fetch('/api/status').then(r=>r.json()).then(s=>{partnerAvailable=s.partner?.available===true;}).catch(()=>{});
 const decision={boosts:{},learned:{},pick:null,reason:'',asked:new Set(),order:[]};
-const BADGE_LABELS={recommended:'המומלצת',cheapest:'הזולה ביותר',fastest:'הקצרה ביותר',value:'תמורה טובה'};
+const BADGE_LABELS={recommended:tr('app.badge.recommended'),cheapest:tr('app.badge.cheapest'),fastest:tr('app.badge.fastest'),value:tr('app.badge.value')};
 // The brief that weighs the score: the planner's request plus what this search asked for.
 const decisionBrief=()=>{const p=state.preferences||{};return {cheaper:p.cheaper===true,children:state.children,adults:state.adults,stops:p.stops,out:p.out,back:p.back,checkedBag:p.checkedBag===true,carrier:p.carrier};};
 const memoryBrief=()=>({...decisionBrief(),origin:searchContext?.search?.origin,destination:searchContext?.destinationCode,start:searchContext?.search?.start,tripType:searchContext?.search?.type,nights:state.preferences?.nights,beach:state.preferences?.beach,city:state.preferences?.city,relaxation:state.preferences?.relaxation,family:state.preferences?.family,couple:state.preferences?.couple});
@@ -115,11 +116,11 @@ const LAST_SEARCH_KEY='gerbi-last-flight-search-v1';
 function saveLastSearch(){try{localStorage.setItem(LAST_SEARCH_KEY,JSON.stringify(isMulti()?{type:'multi',legs:searchContext.search.legs}:{origin:originPlace()?.code||'',destination:$('#destination').value.trim(),start:state.start,end:oneWay()?'':state.end,type:oneWay()?'oneway':'round'}));}catch{ /* Restoring is a convenience only. */ }}
 function restoreLastSearch(){
  let saved=null;try{saved=JSON.parse(localStorage.getItem(LAST_SEARCH_KEY)||'null');}catch{return;}
- if(saved?.type==='multi'){const legs=cleanRoute(saved.legs);if(!legs||legs[0].date<localDate())return;setTripType('multi');multiCity.setLegs(legs);$('#search-feedback').textContent='שחזרנו את המסלול האחרון שחיפשתם. לחצו „חפשו טיסה” כדי לקבל מחירים עדכניים; מחירים קודמים לא נשמרים.';$('#search-feedback').hidden=false;return;}
+ if(saved?.type==='multi'){const legs=cleanRoute(saved.legs);if(!legs||legs[0].date<localDate())return;setTripType('multi');multiCity.setLegs(legs);$('#search-feedback').textContent=tr('app.restore.route');$('#search-feedback').hidden=false;return;}
  const place=resolvePlace(saved?.destination);if(!place||!validFlightDates(saved.start,saved.end,localDate(),saved.type==='oneway'))return;
  setTripType(saved.type);const from=resolvePlace(saved.origin);if(from)$('#origin').value=placeText(from);
  $('#destination').value=placeText(place);state.start=saved.start;state.end=saved.end;
- $('#search-feedback').textContent='שחזרנו את פרטי החיפוש האחרון. לחצו „חפשו טיסה” כדי לקבל מחירים עדכניים; מחירים קודמים לא נשמרים.';$('#search-feedback').hidden=false;
+ $('#search-feedback').textContent=tr('app.restore.search');$('#search-feedback').hidden=false;
 }
 // Results stay visible after the traveler edits the brief, but never look like an answer to the new details.
 function markStaleResults(){
@@ -128,12 +129,12 @@ function markStaleResults(){
  host.querySelectorAll('[data-volero-offer]').forEach(b=>b.disabled=stale);
  const note=$('#stale-note');
  if(stale&&!activeSearch)$('#search-feedback').hidden=true;
- if(stale&&!note){host.insertAdjacentHTML('afterbegin',`<div id="stale-note" class="stale-note" role="status"><p><strong>התוצאות האלה שייכות לחיפוש הקודם</strong> · ${escapeHTML(searchContext.destination)} · ${escapeHTML(searchContext.dates)} · ${searchContext.travelers} נוסעים. שיניתם פרטים, ולכן המחירים כאן אינם מתאימים לבקשה הנוכחית.</p><button type="button" class="button yellow" id="search-again">חיפוש מחדש לפרטים הנוכחיים</button></div>`);$('#search-again').onclick=()=>$('#search-form').requestSubmit();}
+ if(stale&&!note){host.insertAdjacentHTML('afterbegin',`<div id="stale-note" class="stale-note" role="status"><p>${tr('app.stale.text', { destination: escapeHTML(searchContext.destination), dates: escapeHTML(searchContext.dates), count: searchContext.travelers })}</p><button type="button" class="button yellow" id="search-again">${tr('app.stale.again')}</button></div>`);$('#search-again').onclick=()=>$('#search-form').requestSubmit();}
  else if(!stale)note?.remove();
 }
 $('#destination').addEventListener('input',markStaleResults);$('#origin').addEventListener('input',markStaleResults);
 document.querySelectorAll('[name="trip-type"]').forEach(input=>input.addEventListener('change',()=>{showDates();markStaleResults();}));
-$('#swap-route').onclick=()=>{const origin=$('#origin').value;$('#origin').value=$('#destination').value;$('#destination').value=origin;$('#swap-route').classList.toggle('is-flipped');markStaleResults();toast('המוצא והיעד הוחלפו.');};
+$('#swap-route').onclick=()=>{const origin=$('#origin').value;$('#origin').value=$('#destination').value;$('#destination').value=origin;$('#swap-route').classList.toggle('is-flipped');markStaleResults();toast(tr('app.swap.done'));};
 // Autocomplete: Hebrew, English or IATA code; choosing the origin moves on to the destination, the destination to the dates.
 placeCombobox($('#origin'),{kind:'origin',exclude:()=>resolvePlace($('#destination').value)?.code||'',onCommit:()=>{if(!$('#destination').value.trim())$('#destination').focus();}});
 placeCombobox($('#destination'),{kind:'destination',exclude:()=>originPlace()?.code||'',onCommit:()=>{if(state.tab==='flights'&&!(oneWay()?state.start:state.start&&state.end))setTimeout(openDates,60);}});
@@ -143,23 +144,23 @@ let flightFilters=emptyFilters(),filtersOpen=!window.matchMedia('(max-width: 760
 const openDetails=new Set(),compareOffers=new Map(),factsCache=new WeakMap();
 const factsOf=payload=>{if(!factsCache.has(payload))factsCache.set(payload,(Array.isArray(payload?.offers)?payload.offers:[]).map(offer=>offerFacts(offer,payload)));return factsCache.get(payload);};
 const point=p=>`${escapeHTML(p?.time||'—')} <small>${escapeHTML(p?.airport?.code||'')}</small>`;
-const stopsText=n=>n===0?'טיסה ישירה':n===1?'החלפה אחת':`${n} החלפות`;
-const layoverText=l=>`המתנה של ${hoursText(l.minutes)} · <span dir="ltr">${escapeHTML(l.city?`${l.city} (${l.airport})`:l.airport)}</span>${l.overnight?' · כולל לילה':''}${l.changeAirport?` · <strong>מעבר לשדה אחר (<span dir="ltr">${escapeHTML(l.nextAirport)}</span>)</strong>`:''}`;
-const carrierLine=segment=>{const c=carrierOf(segment);return `${escapeHTML(c.name||'חברת התעופה לא נמסרה בהצעה')}${c.number?` · טיסה <span dir="ltr">${escapeHTML(c.number)}</span>`:''}${c.operator?` · מופעלת על ידי ${escapeHTML(c.operator)}`:''}`;};
+const stopsText=n=>n===0?tr('app.stops.direct'):n===1?tr('app.stops.one'):tr('app.stops.many', { count: n });
+const layoverText=l=>`${tr('app.layover.wait', { time: hoursText(l.minutes) })} · <span dir="ltr">${escapeHTML(l.city?`${l.city} (${l.airport})`:l.airport)}</span>${l.overnight?tr('app.layover.overnight'):''}${l.changeAirport?` · <strong>${tr('app.layover.changeAirport', { airport: escapeHTML(l.nextAirport) })}</strong>`:''}`;
+const carrierLine=segment=>{const c=carrierOf(segment);return `${escapeHTML(c.name||tr('app.carrier.unknown'))}${c.number?` · ${tr('app.carrier.flight', { number: escapeHTML(c.number) })}`:''}${c.operator?` · ${tr('app.carrier.operatedBy', { operator: escapeHTML(c.operator) })}`:''}`;};
 // "Not provided" must never read like a perk: only supplier-confirmed baggage gets the positive style.
-const BAG={included:['yes','מזוודה כלולה'],paid:['no','מזוודה בתשלום נוסף'],none:['no','ללא מזוודה בתעריף'],mixed:['unknown','מזוודה שונה בין הכיוונים'],unknown:['unknown','מזוודה: לא נמסר, נדרש בירור']};
-const TROLLEY={included:['yes','טרולי כלול'],paid:['no','טרולי בתשלום'],mixed:['unknown','טרולי שונה בין הכיוונים'],unknown:['unknown','טרולי: לא נמסר']};
+const BAG={included:['yes',tr('app.bag.included')],paid:['no',tr('app.bag.paid')],none:['no',tr('app.bag.none')],mixed:['unknown',tr('app.bag.mixed')],unknown:['unknown',tr('app.bag.unknown')]};
+const TROLLEY={included:['yes',tr('app.trolley.included')],paid:['no',tr('app.trolley.paid')],mixed:['unknown',tr('app.trolley.mixed')],unknown:['unknown',tr('app.trolley.unknown')]};
 const bagPill=([kind,text])=>`<span class="bag bag-${kind}">${text}</span>`;
 // Multi-city: this leg leaves another airport of the city the previous leg landed in (ORY → CDG).
-function legAirportChange(f,i){const landed=f.legs[i-1]?.segments.at(-1)?.arrival,leaves=f.legs[i]?.segments[0]?.departure;if(!i||!landed?.airport?.code||!leaves?.airport?.code||landed.airport.code===leaves.airport.code||(landed.city?.code&&leaves.city?.code&&landed.city.code!==leaves.city.code))return '';return `יוצאת משדה אחר מזה שנחתתם בו: <span dir="ltr">${escapeHTML(landed.airport.code)} → ${escapeHTML(leaves.airport.code)}</span>`;}
+function legAirportChange(f,i){const landed=f.legs[i-1]?.segments.at(-1)?.arrival,leaves=f.legs[i]?.segments[0]?.departure;if(!i||!landed?.airport?.code||!leaves?.airport?.code||landed.airport.code===leaves.airport.code||(landed.city?.code&&leaves.city?.code&&landed.city.code!==leaves.city.code))return '';return `${tr('app.leg.otherAirport', { from: escapeHTML(landed.airport.code), to: escapeHTML(leaves.airport.code) })}`;}
 function legMarkupOf(f,key){
  return f.legs.map((leg,i)=>{
-  const first=leg.segments[0],last=leg.segments.at(-1);if(!first||!last)return '<p class="micro-copy">פירוט המקטעים אינו זמין בהצעה הזו.</p>';
+  const first=leg.segments[0],last=leg.segments.at(-1);if(!first||!last)return tr('app.leg.noSegments');
   const s=leg.summary,id=`${key}:${i}`;
   // Facts that change the decision (landing on another day, a long or overnight wait) stay outside the collapsed details.
-  const warnings=[s.dayOffset>0?`נחיתה ב${escapeHTML(longDate(s.arriveDate))} (+${s.dayOffset})`:'',...s.layovers.filter(l=>l.overnight||l.changeAirport||l.minutes>=LONG_LAYOVER_MINUTES).map(layoverText),i===1&&f.airportChange&&!searchContext?.multi?`החזרה יוצאת משדה אחר: <span dir="ltr">${escapeHTML(f.airports.join(' / '))}</span>`:'',searchContext?.multi?legAirportChange(f,i):''].filter(Boolean);
+  const warnings=[s.dayOffset>0?`${tr('app.leg.landsLater', { date: escapeHTML(longDate(s.arriveDate)), days: s.dayOffset })}`:'',...s.layovers.filter(l=>l.overnight||l.changeAirport||l.minutes>=LONG_LAYOVER_MINUTES).map(layoverText),i===1&&f.airportChange&&!searchContext?.multi?`${tr('app.leg.returnOtherAirport', { airports: escapeHTML(f.airports.join(' / ')) })}`:'',searchContext?.multi?legAirportChange(f,i):''].filter(Boolean);
   const name=legName(i,searchContext?.multi);
-  return `<div class="flight-leg"><span>${escapeHTML(name)}</span><b dir="ltr">${point(first.departure)} → ${point(last.arrival)}</b><small>${escapeHTML(longDate(s.departDate))} · ${stopsText(s.stops)} · ${Number.isFinite(leg.minutes)?hoursText(leg.minutes)+' בדרך':'משך לא נמסר'}</small>${warnings.map(w=>`<small class="leg-warning">${w}</small>`).join('')}</div><details class="flight-segments" data-detail="${escapeHTML(id)}" ${openDetails.has(id)?'open':''}><summary>פירוט ותנאים ל${searchContext?.multi?escapeHTML(name):i===0?'הלוך':'חזור'}</summary>${leg.segments.map((segment,n)=>`${n?`<p class="layover">${layoverText(s.layovers[n-1])}</p>`:''}<p><strong dir="ltr">${point(segment.departure)} → ${point(segment.arrival)}</strong><br><span>יציאה: ${escapeHTML(longDate(segment.departure?.date)||'לא נמסר')} · הגעה: ${escapeHTML(longDate(segment.arrival?.date)||'לא נמסר')}</span><br><span>${carrierLine(segment)}</span></p>`).join('')}<p class="leg-bags">${bagPill(BAG[leg.baggage.checked])}${leg.baggage.pieces>1?` <small>(${leg.baggage.pieces} יחידות לנוסע)</small>`:''} ${bagPill(TROLLEY[leg.baggage.trolley])}${leg.baggage.fare?` <small>תעריף: ${escapeHTML(leg.baggage.fare)}${leg.baggage.cabin?' · '+escapeHTML(leg.baggage.cabin):''}</small>`:''}</p>${(list=>list.length?`<p class="fare-inclusions"><small>מה כולל התעריף (לפי הספק):</small> ${list.map(x=>bagPill([x.state==='included'?'yes':x.state==='no'?'no':'unknown',x.text])).join('')}</p>`:'')(fareInclusions(f.offer,leg))}<p class="micro-copy">השעות מקומיות לכל שדה תעופה. כבודה לפי נתוני הספק לנוסע מבוגר; תנאי שינוי וביטול טעונים בירור לפני רכישה.</p></details>`;
+  return `<div class="flight-leg"><span>${escapeHTML(name)}</span><b dir="ltr">${point(first.departure)} → ${point(last.arrival)}</b><small>${escapeHTML(longDate(s.departDate))} · ${stopsText(s.stops)} · ${Number.isFinite(leg.minutes)?hoursText(leg.minutes)+tr('app.leg.travelTime'):tr('app.duration.unknown')}</small>${warnings.map(w=>`<small class="leg-warning">${w}</small>`).join('')}</div><details class="flight-segments" data-detail="${escapeHTML(id)}" ${openDetails.has(id)?'open':''}><summary>${tr('app.leg.details', { leg: searchContext?.multi?escapeHTML(name):i===0?tr('app.leg.out'):tr('app.leg.back') })}</summary>${leg.segments.map((segment,n)=>`${n?`<p class="layover">${layoverText(s.layovers[n-1])}</p>`:''}<p><strong dir="ltr">${point(segment.departure)} → ${point(segment.arrival)}</strong><br><span>${tr('app.leg.times', { dep: escapeHTML(longDate(segment.departure?.date)||tr('app.notGiven')), arr: escapeHTML(longDate(segment.arrival?.date)||tr('app.notGiven')) })}</span><br><span>${carrierLine(segment)}</span></p>`).join('')}<p class="leg-bags">${bagPill(BAG[leg.baggage.checked])}${leg.baggage.pieces>1?` <small>${tr('app.bag.pieces', { count: leg.baggage.pieces })}</small>`:''} ${bagPill(TROLLEY[leg.baggage.trolley])}${leg.baggage.fare?` <small>${tr('app.bag.fare', { fare: escapeHTML(leg.baggage.fare) })}${leg.baggage.cabin?' · '+escapeHTML(leg.baggage.cabin):''}</small>`:''}</p>${(list=>list.length?`<p class="fare-inclusions"><small>${tr('app.fare.includes')}</small> ${list.map(x=>bagPill([x.state==='included'?'yes':x.state==='no'?'no':'unknown',x.text])).join('')}</p>`:'')(fareInclusions(f.offer,leg))}<p class="micro-copy">${tr('app.leg.note')}</p></details>`;
  }).join('');
 }
 function legMarkup(offer,payload){return legMarkupOf(offerFacts(offer,payload),'check-'+offer.index);}
@@ -167,21 +168,21 @@ function legMarkup(offer,payload){return legMarkupOf(offerFacts(offer,payload),'
 function paxLine(f){const list=perPassenger(f.offer,f.price);if(!list||(list.length===1&&list[0].count===1))return '';return `<small class="pax-prices">${list.map(x=>`${PTC_LABEL[x.ptc]} <span dir="ltr">${escapeHTML(formatFare({value:x.value,currency:x.currency}))}</span>`).join(' · ')}</small>`;}
 function flightCard(f,payload,scoredItem,badgeList=[],reasons=[]){
  const key=payload?.srk+':'+f.index;
- return `<article class="flight-card" data-offer-card="${escapeHTML(f.index)}" data-itinerary="${escapeHTML(scoredItem?.key||'')}"><div class="flight-details">${badgeList.length?`<p class="flight-badges">${badgeList.map(b=>`<span class="flight-badge badge-${b}">${BADGE_LABELS[b]}</span>`).join('')}</p>`:''}<h3>${escapeHTML(f.carriers.join(' + ')||'חברת התעופה לא נמסרה')}</h3>${reasons.length?`<p class="why">למה: ${reasons.map(escapeHTML).join(' · ')}</p>`:''}${legMarkupOf(f,f.index)}<p class="bag-line">${bagPill(BAG[f.checked])}${bagPill(TROLLEY[f.trolley])}${f.refundable==='no'?bagPill(['no','ללא החזר כספי']):f.refundable==='yes'?bagPill(['yes','ניתן לביטול עם החזר (לפי הספק)']):''}</p></div><div class="flight-price"><small>${searchContext.multi?'מחיר אחד לכל המסלול · ':''}לכל ${searchContext.travelers} הנוסעים</small><strong dir="ltr">${escapeHTML(formatFare(f.price))}</strong>${originalHtml(f.price)}${paxLine(f)}${(n=>n&&n<=FEW_SEATS?`<span class="seats-left">${n===1?'נותר מקום אחד':`נותרו ${n} מקומות`} בתעריף הזה</span>`:'')(seatsLeft(f.offer))}<button class="yellow button" data-volero-offer="${escapeHTML(f.index)}">בדיקת מחיר וזמינות ←</button>${verifiedPrices.has(key)?verifiedStamp(verifiedPrices.get(key)):''}<label class="compare-check"><input type="checkbox" data-compare-offer="${escapeHTML(f.index)}" ${compareOffers.has(f.index)?'checked':''}>השוואה</label></div></article>`;
+ return `<article class="flight-card" data-offer-card="${escapeHTML(f.index)}" data-itinerary="${escapeHTML(scoredItem?.key||'')}"><div class="flight-details">${badgeList.length?`<p class="flight-badges">${badgeList.map(b=>`<span class="flight-badge badge-${b}">${BADGE_LABELS[b]}</span>`).join('')}</p>`:''}<h3>${escapeHTML(f.carriers.join(' + ')||tr('app.carrier.none'))}</h3>${reasons.length?`<p class="why">${tr('app.card.why', { reasons: reasons.map(escapeHTML).join(' · ') })}</p>`:''}${legMarkupOf(f,f.index)}<p class="bag-line">${bagPill(BAG[f.checked])}${bagPill(TROLLEY[f.trolley])}${f.refundable==='no'?bagPill(['no',tr('app.refund.no')]):f.refundable==='yes'?bagPill(['yes',tr('app.refund.yes')]):''}</p></div><div class="flight-price"><small>${searchContext.multi?tr('app.price.wholeRoute'):''}${tr('app.price.allTravelers',{count:searchContext.travelers})}</small><strong dir="ltr">${escapeHTML(formatFare(f.price))}</strong>${originalHtml(f.price)}${paxLine(f)}${(n=>n&&n<=FEW_SEATS?`<span class="seats-left">${n===1?tr('app.seats.one'):tr('app.seats.many',{count:n})}</span>`:'')(seatsLeft(f.offer))}<button class="yellow button" data-volero-offer="${escapeHTML(f.index)}"${tr('app.card.check')}${verifiedPrices.has(key)?verifiedStamp(verifiedPrices.get(key)):''}<label class="compare-check"><input type="checkbox" data-compare-offer="${escapeHTML(f.index)}" ${compareOffers.has(f.index)?'checked':''}>${tr('app.card.compare')}</div></article>`;
 }
-const filterLabels={stops:{'0':'טיסה ישירה','1':'עד החלפה אחת'},bucket:Object.fromEntries(TIME_BUCKETS.map(([id,label,from,to])=>[id,`${label} (${String(from).padStart(2,'0')}–${String(to%24).padStart(2,'0')})`]))};
+const filterLabels={stops:{'0':tr('app.stops.direct'),'1':tr('app.filter.upToOne')},bucket:Object.fromEntries(TIME_BUCKETS.map(([id,label,from,to])=>[id,`${label} (${String(from).padStart(2,'0')}–${String(to%24).padStart(2,'0')})`]))};
 function activeChips(){
  const chips=[];
  if(flightFilters.stops!=='any')chips.push(['stops',flightFilters.stops,filterLabels.stops[flightFilters.stops]]);
- flightFilters.out.forEach(v=>chips.push(['out',v,'הלוך: '+filterLabels.bucket[v]]));
- flightFilters.back.forEach(v=>chips.push(['back',v,'חזור: '+filterLabels.bucket[v]]));
+ flightFilters.out.forEach(v=>chips.push(['out',v,tr('app.filter.outPrefix')+filterLabels.bucket[v]]));
+ flightFilters.back.forEach(v=>chips.push(['back',v,tr('app.filter.backPrefix')+filterLabels.bucket[v]]));
  flightFilters.carriers.forEach(v=>chips.push(['carriers',v,v]));
- flightFilters.airports.forEach(v=>chips.push(['airports',v,'שדה '+v]));
- if(flightFilters.checkedBag)chips.push(['checkedBag','true','מזוודה כלולה']);
- (flightFilters.avoid||[]).forEach(v=>chips.push(['avoid',v,'בלי עצירה ב־'+v]));
+ flightFilters.airports.forEach(v=>chips.push(['airports',v,tr('app.filter.airportPrefix')+v]));
+ if(flightFilters.checkedBag)chips.push(['checkedBag','true',tr('app.bag.included')]);
+ (flightFilters.avoid||[]).forEach(v=>chips.push(['avoid',v,tr('app.filter.avoidPrefix')+v]));
  return chips;
 }
-const chipMarkup=chips=>chips.map(([k,v,label])=>`<button type="button" class="filter-chip" data-remove-filter="${k}" data-value="${escapeHTML(v)}" aria-label="הסרת המסנן ${escapeHTML(label)}">${escapeHTML(label)} ✕</button>`).join('');
+const chipMarkup=chips=>chips.map(([k,v,label])=>`<button type="button" class="filter-chip" data-remove-filter="${k}" data-value="${escapeHTML(v)}" aria-label="${tr('app.filter.remove', { label: escapeHTML(label) })}">${escapeHTML(label)} ✕</button>`).join('');
 function filterPanel(all){
  // An option's count = results if that option alone were chosen in its group, everything else unchanged.
  const count=(group,patch)=>all.filter(f=>matchesFilters(f,{...flightFilters,...patch})).length;
@@ -189,35 +190,35 @@ function filterPanel(all){
  const carriers=[...all.reduce((m,f)=>{f.carriers.forEach(c=>m.set(c,(m.get(c)||0)+1));return m;},new Map())].sort((a,b)=>b[1]-a[1]).slice(0,10).map(([c])=>c);
  const buckets=group=>TIME_BUCKETS.map(([id])=>toggle(group,id,filterLabels.bucket[id],flightFilters[group].includes(id),count(group,{[group]:[id]}))).join('');
  const active=activeChips().length;
- return `<details class="flight-filters" id="flight-filters" ${filtersOpen?'open':''}><summary>סינון תוצאות${active?` · ${active} פעילים`:''}</summary><div class="filter-groups">
-  <fieldset><legend>החלפות</legend>${[['any','הכול'],['0','ישירה בלבד'],['1','עד החלפה אחת']].map(([v,l])=>toggle('stops',v,l,flightFilters.stops===v,count('stops',{stops:v}))).join('')}</fieldset>
-  <fieldset><legend>${searchContext?.multi?'המראה בטיסה הראשונה':'המראה בהלוך'}</legend>${buckets('out')}</fieldset>
-  ${all.some(f=>f.legs.length>1)?`<fieldset><legend>${searchContext?.multi?'המראה בטיסה האחרונה':'המראה בחזור'}</legend>${buckets('back')}</fieldset>`:''}
-  ${(airports=>airports.length>1?`<fieldset><legend>${searchContext?.multi?'שדות תעופה בדרך':'שדה תעופה ביעד'}</legend>${airports.map(code=>toggle('airports',code,code,flightFilters.airports.includes(code),count('airports',{airports:[code]}))).join('')}</fieldset>`:'')([...new Set(all.flatMap(f=>f.airports))].sort())}
-  <fieldset><legend>חברת תעופה</legend>${carriers.map(c=>toggle('carriers',c,c,flightFilters.carriers.includes(c),count('carriers',{carriers:[c]}))).join('')}</fieldset>
-  ${(stops=>stops.length?`<fieldset><legend>בלי עצירה ב־</legend>${stops.map(([code])=>toggle('avoid',code,code,(flightFilters.avoid||[]).includes(code),count('avoid',{avoid:[...(flightFilters.avoid||[]).filter(v=>v!==code),code]}))).join('')}<small class="micro-copy">לחיצה מסתירה הצעות שעוצרות בשדה הזה.</small></fieldset>`:'')(layoverAirports(all))}
-  <fieldset><legend>כבודה</legend>${toggle('checkedBag','true','מזוודה כלולה לפי הספק',flightFilters.checkedBag,count('checkedBag',{checkedBag:true}))}<small class="micro-copy">הצעות שבהן הספק לא מסר כבודה אינן נכללות כאן, וגם אינן מסומנות כ„ללא”.</small></fieldset>
+ return `<details class="flight-filters" id="flight-filters" ${filtersOpen?'open':''}><summary>${tr('app.filter.title')}${active?tr('app.filter.active',{count:active}):''}</summary><div class="filter-groups">
+  <fieldset>${tr('app.filter.stops')}${[['any',tr('app.filter.any')],['0',tr('app.filter.directOnly')],['1',tr('app.filter.upToOne')]].map(([v,l])=>toggle('stops',v,l,flightFilters.stops===v,count('stops',{stops:v}))).join('')}</fieldset>
+  <fieldset><legend>${searchContext?.multi?tr('app.filter.departFirst'):tr('app.filter.departOut')}</legend>${buckets('out')}</fieldset>
+  ${all.some(f=>f.legs.length>1)?`<fieldset><legend>${searchContext?.multi?tr('app.filter.departLast'):tr('app.filter.departBack')}</legend>${buckets('back')}</fieldset>`:''}
+  ${(airports=>airports.length>1?`<fieldset><legend>${searchContext?.multi?tr('app.filter.routeAirports'):tr('app.filter.destAirport')}</legend>${airports.map(code=>toggle('airports',code,code,flightFilters.airports.includes(code),count('airports',{airports:[code]}))).join('')}</fieldset>`:'')([...new Set(all.flatMap(f=>f.airports))].sort())}
+  <fieldset>${tr('app.filter.airline')}${carriers.map(c=>toggle('carriers',c,c,flightFilters.carriers.includes(c),count('carriers',{carriers:[c]}))).join('')}</fieldset>
+  ${(stops=>stops.length?`<fieldset>${tr('app.filter.avoid')}${stops.map(([code])=>toggle('avoid',code,code,(flightFilters.avoid||[]).includes(code),count('avoid',{avoid:[...(flightFilters.avoid||[]).filter(v=>v!==code),code]}))).join('')}<small class="micro-copy">${tr('app.filter.avoidHint')}</small></fieldset>`:'')(layoverAirports(all))}
+  <fieldset>${tr('app.filter.baggage')}${toggle('checkedBag','true',tr('app.filter.bagIncluded'),flightFilters.checkedBag,count('checkedBag',{checkedBag:true}))}<small class="micro-copy">${tr('app.filter.bagHint')}</small></fieldset>
  </div></details>`;
 }
 function compareTray(){
  const n=compareOffers.size;if(!n)return '';
- return `<div class="flight-compare-tray" role="region" aria-label="השוואת טיסות"><span><strong>${n} טיסות בהשוואה</strong> <small>עד 3</small></span><div><button type="button" class="button yellow" data-open-compare ${n<2?'disabled':''}>השוואה</button><button type="button" class="button secondary" data-clear-compare>ניקוי</button></div></div>`;
+ return `<div class="flight-compare-tray" role="region" ${tr('app.compare.regionAttr')}><span>${tr('app.compare.tray', { count: n })}</span><div><button type="button" class="button yellow" data-open-compare ${n<2?'disabled':''}${tr('app.compare.open')}<button type="button" class="button secondary" data-clear-compare${tr('app.compare.clear')}</div></div>`;
 }
 function openFlightComparison(){
  const list=[...compareOffers.values()];if(list.length<2)return;
  const basis=new Map(list.map(f=>[f,priceBasis(f.price)])),currencies=new Set([...basis.values()].map(b=>b?.currency).filter(Boolean)),same=currencies.size===1;
  const cheapest=same?Math.min(...list.map(f=>basis.get(f)?.value??Infinity)):null;
  const shortest=Math.min(...list.map(f=>f.totalMinutes??Infinity));
- const leg=(f,i)=>{const l=f.legs[i];if(!l?.segments.length)return 'לא נמסר';const s=l.summary;return `<span dir="ltr">${escapeHTML(l.segments[0].departure?.time||'')} → ${escapeHTML(l.segments.at(-1).arrival?.time||'')}</span>${s.dayOffset>0?` (+${s.dayOffset})`:''}<br><small>${escapeHTML(longDate(s.departDate))} · ${stopsText(s.stops)} · ${hoursText(l.minutes)}</small>`;};
+ const leg=(f,i)=>{const l=f.legs[i];if(!l?.segments.length)return tr('app.notGiven');const s=l.summary;return `<span dir="ltr">${escapeHTML(l.segments[0].departure?.time||'')} → ${escapeHTML(l.segments.at(-1).arrival?.time||'')}</span>${s.dayOffset>0?` (+${s.dayOffset})`:''}<br><small>${escapeHTML(longDate(s.departDate))} · ${stopsText(s.stops)} · ${hoursText(l.minutes)}</small>`;};
  const row=(label,cell)=>`<tr><th scope="row">${label}</th>${list.map(f=>`<td>${cell(f)}</td>`).join('')}</tr>`;
- openModal(`<span class="dialog-kicker">משווים על אותו בסיס: כל ${searchContext.travelers} הנוסעים</span><h2>השוואת טיסות</h2><div class="compare-table-wrap"><table class="flight-compare" style="--cols:${list.length}"><thead><tr><th scope="col"><span class="sr-only">נושא</span></th>${list.map(f=>`<th scope="col">${escapeHTML(f.carriers.join(' + ')||'לא נמסר')}</th>`).join('')}</tr></thead><tbody>
-  ${row('מחיר כולל',f=>(b=>`<strong dir="ltr" class="${same&&b?.value===cheapest?'best':''}">${escapeHTML(formatFare(f.price))}</strong>${originalHtml(f.price)}${same&&b&&b.value>cheapest?`<small dir="ltr" class="fare-diff">+${escapeHTML(formatFare({value:b.value-cheapest,currency:b.currency}))}</small>`:''}`)(basis.get(f)))}
-  ${searchContext?.multi?Array.from({length:Math.max(...list.map(f=>f.legs.length))},(_,i)=>row(legName(i,true),f=>leg(f,i))).join(''):`${row('הלוך',f=>leg(f,0))}${list.some(f=>f.legs.length>1)?row('חזור',f=>leg(f,1)):''}`}
-  ${row(searchContext?.multi?'זמן בדרך, כל הטיסות':list.some(f=>f.legs.length>1)?'זמן בדרך, שני הכיוונים':'זמן בדרך',f=>`<span class="${f.totalMinutes===shortest?'best':''}">${hoursText(f.totalMinutes)}</span>`)}
-  ${row('ההמתנה הארוכה',f=>f.longestLayover?hoursText(f.longestLayover)+(f.overnight?' · כולל לילה':''):'אין')}
-  ${row('מזוודה',f=>bagPill(BAG[f.checked]))}${row('טרולי',f=>bagPill(TROLLEY[f.trolley]))}
-  ${row('',f=>`<button type="button" class="button secondary" data-goto-offer="${escapeHTML(f.index)}">לכרטיס הטיסה</button>`)}
- </tbody></table></div>${same?'':'<p class="notice">ההצעות במטבעות שונים, ולכן לא מחושב הפרש מחיר.</p>'}${getFx()?`<p class="micro-copy">המחירים בשקלים ${escapeHTML(fxNote())}.</p>`:''}<p class="micro-copy">המחירים לקוחים מהחיפוש ועשויים להשתנות. בדקו מחיר וזמינות לפני החלטה; לא נוצרה הזמנה.</p>`);
+ openModal(`<span class="dialog-kicker">${tr('app.compare.kicker', { count: searchContext.travelers })}</span>${tr('app.compare.title')}<div class="compare-table-wrap"><table class="flight-compare" style="--cols:${list.length}"><thead><tr><th scope="col">${tr('app.compare.topic')}</th>${list.map(f=>`<th scope="col">${escapeHTML(f.carriers.join(' + ')||tr('app.notGiven'))}</th>`).join('')}</tr></thead><tbody>
+  ${row(tr('app.compare.total'),f=>(b=>`<strong dir="ltr" class="${same&&b?.value===cheapest?'best':''}">${escapeHTML(formatFare(f.price))}</strong>${originalHtml(f.price)}${same&&b&&b.value>cheapest?`<small dir="ltr" class="fare-diff">+${escapeHTML(formatFare({value:b.value-cheapest,currency:b.currency}))}</small>`:''}`)(basis.get(f)))}
+  ${searchContext?.multi?Array.from({length:Math.max(...list.map(f=>f.legs.length))},(_,i)=>row(legName(i,true),f=>leg(f,i))).join(''):`${row(tr('app.leg.out'),f=>leg(f,0))}${list.some(f=>f.legs.length>1)?row(tr('app.leg.back'),f=>leg(f,1)):''}`}
+  ${row(searchContext?.multi?tr('app.compare.timeAll'):list.some(f=>f.legs.length>1)?tr('app.compare.timeBoth'):tr('app.compare.time'),f=>`<span class="${f.totalMinutes===shortest?'best':''}">${hoursText(f.totalMinutes)}</span>`)}
+  ${row(tr('app.compare.longest'),f=>f.longestLayover?hoursText(f.longestLayover)+(f.overnight?tr('app.layover.overnight'):''):tr('app.compare.none'))}
+  ${row(tr('app.compare.bag'),f=>bagPill(BAG[f.checked]))}${row(tr('app.compare.trolley'),f=>bagPill(TROLLEY[f.trolley]))}
+  ${row('',f=>`<button type="button" class="button secondary" data-goto-offer="${escapeHTML(f.index)}">${tr('app.compare.goto')}</button>`)}
+ </tbody></table></div>${same?'':tr('app.compare.currencies')}${getFx()?`<p class="micro-copy">${tr('app.compare.fx', { note: escapeHTML(fxNote()) })}</p>`:''}<p class="micro-copy">${tr('app.compare.note')}</p>`);
 }
 function renderVoleroOffers(payload){
  state.voleroResults=payload;
@@ -231,12 +232,12 @@ function renderVoleroOffers(payload){
  const order=flightSort==='recommended'?[...leaders,...ranked.filter(x=>!leaders.includes(x))]:sortFacts(filtered,flightSort).map(f=>byFacts.get(f));decision.order=order;
  const visible=order.map(x=>x.facts);
  const why=new Map(leaders.map(x=>[x.facts,explain(x,scored,value=>formatFare({value,currency:x.facts.price?.currency||'USD'})).concat(x.partner&&decision.reason?[decision.reason]:[]).filter((r,i,a)=>a.indexOf(r)===i).slice(0,3)]));
- host.innerHTML=`<div class="live-heading"><div><span class="eyebrow">תוצאות עדכניות מהספקים שלנו</span><h2 tabindex="-1">${escapeHTML(searchContext?.destination||'תוצאות הטיסות')}</h2><p>${escapeHTML(searchContext?.dates||'')} · ${searchContext?.travelers||2} נוסעים · ${searchContext?.multi?`כמה יעדים · ${searchContext.search.legs.length} טיסות`:searchContext?.oneWay?'כיוון אחד':'הלוך וחזור'}</p>${searchContext?.multi?groundGaps(searchContext.search.legs).map(g=>`<p class="micro-copy leg-gap">${escapeHTML(gapText(g))}</p>`).join(''):''}${(place=>place?.airports?`<p class="micro-copy">חיפוש בכל שדות התעופה של ${escapeHTML(place.names[0])}: <span dir="ltr">${place.airports.join(', ')}</span>. השדה מופיע בכל כרטיס, ואפשר לסנן לפיו.</p>`:'')(places.find(p=>p.code===searchContext?.destinationCode))}</div><div class="live-actions"><button type="button" class="button secondary" id="edit-flight-search">שינוי החיפוש</button><button type="button" class="button secondary" id="share-flight-search">שיתוף החיפוש</button></div><label>מיון תוצאות<select id="flight-sort"><option value="recommended" ${flightSort==='recommended'?'selected':''}>המומלצות (לפי הבקשה)</option><option value="supplier" ${flightSort==='supplier'?'selected':''}>סדר הספק</option><option value="price" ${mixed?'disabled':''} ${flightSort==='price'?'selected':''}>הזולה ביותר (לכל הנוסעים)</option><option value="duration" ${flightSort==='duration'?'selected':''}>הקצרה ביותר (${searchContext?.multi?'כל הטיסות':'שני הכיוונים'})</option></select></label></div>
+ host.innerHTML=`<div class="live-heading"><div><span class="eyebrow">${tr('app.live.eyebrow')}</span><h2 tabindex="-1">${escapeHTML(searchContext?.destination||tr('app.live.title'))}</h2><p>${escapeHTML(searchContext?.dates||'')} · ${tr('app.live.travelers', { count: searchContext?.travelers||2 })} · ${searchContext?.multi?tr('app.live.multi', { count: searchContext.search.legs.length }):searchContext?.oneWay?tr('app.live.oneWay'):tr('app.live.round')}</p>${searchContext?.multi?groundGaps(searchContext.search.legs).map(g=>`<p class="micro-copy leg-gap">${escapeHTML(gapText(g))}</p>`).join(''):''}${(place=>place?.airports?`<p class="micro-copy">${tr('app.live.allAirports', { city: escapeHTML(lang==='en'?place.name:place.names[0]), airports: place.airports.join(', ') })}</p>`:'')(places.find(p=>p.code===searchContext?.destinationCode))}</div><div class="live-actions"><button type="button" class="button secondary" id="edit-flight-search">${tr('app.live.editShare')}</button></div><label>${tr('app.sort.label')}<select id="flight-sort"><option value="recommended" ${flightSort==='recommended'?'selected':''}>${tr('app.sort.recommended')}</option><option value="supplier" ${flightSort==='supplier'?'selected':''}${tr('app.sort.supplier')}/option><option value="price" ${mixed?'disabled':''} ${flightSort==='price'?'selected':''}>${tr('app.sort.price')}</option><option value="duration" ${flightSort==='duration'?'selected':''}>${tr('app.sort.duration', { scope: searchContext?.multi?tr('app.sort.allFlights'):tr('app.sort.bothWays') })}</option></select></label></div>
  ${all.length?filterPanel(all):''}
- ${chips.length?`<div class="filter-chips">${chipMarkup(chips)}<button type="button" class="link-button" data-clear-filters>איפוס המסננים</button></div>`:''}
- <p class="micro-copy" role="status">${chips.length?`${visible.length} מתוך ${all.length} הצעות`:`${all.length} הצעות בחיפוש`} · מוצגות ${Math.min(visible.length,visibleOfferCount)}. המחיר לכל הנוסעים, ${getFx()?'בשקלים':'במטבע הספק'}. ${mixed?'התוצאות במטבעות שונים ולכן אינן ממוינות לפי מחיר.':''}</p><p class="fx-line micro-copy">${getFx()?escapeHTML(fxNote())+'. ':''}<button type="button" class="link-button" data-open-converter>מחשבון המרת מטבע</button></p>
- ${flightSort==='recommended'&&leaders.length>1?flightTakeSlot():''}<div class="flight-list">${visible.length?visible.slice(0,visibleOfferCount).map(f=>flightCard(f,payload,byFacts.get(f),tags.get(byFacts.get(f)?.key)||[],why.get(f)||[])).join(''):all.length?`<div class="empty-panel"><h3>אין הצעות שמתאימות לכל המסננים</h3><p>אפשר להסיר מסנן אחד ולראות שוב:</p><div class="filter-chips">${chipMarkup(chips)}</div></div>`:searchContext?.multi?'<div class="empty-panel"><h3>לא מצאנו מסלול שמחבר את כל הטיסות בתאריכים האלה</h3><p>נסו להזיז תאריך באחד המקטעים או לוותר על מקטע.</p><button class="button secondary" data-edit-search>שינוי החיפוש</button></div>':'<div class="empty-panel"><h3>לא מצאנו טיסה בתאריכים האלה</h3><p>אפשר לשנות יעד או תאריכים ולנסות שוב.</p><button class="button secondary" data-edit-search>שינוי החיפוש</button></div>'}</div>
- ${visible.length>visibleOfferCount?'<button class="button secondary more-flights" id="more-flights">הצגת הצעות נוספות</button>':''}${compareTray()}`;
+ ${chips.length?`<div class="filter-chips">${chipMarkup(chips)}<button type="button" class="link-button" data-clear-filters>${tr('app.filter.reset')}</button></div>`:''}
+ <p class="micro-copy" role="status">${chips.length?tr('app.live.countOf', { shown: visible.length, total: all.length }):tr('app.live.count', { count: all.length })}${tr('app.live.showing', { shown: Math.min(visible.length,visibleOfferCount), currency: getFx()?tr('app.live.inShekels'):tr('app.live.inSupplierCurrency') })}${mixed?tr('app.live.mixed'):''}</p><p class="fx-line micro-copy">${getFx()?escapeHTML(fxNote())+'. ':''}<button type="button" class="link-button" data-open-converter>${tr('app.fx.converter')}</button></p>
+ ${flightSort==='recommended'&&leaders.length>1?flightTakeSlot():''}<div class="flight-list">${visible.length?visible.slice(0,visibleOfferCount).map(f=>flightCard(f,payload,byFacts.get(f),tags.get(byFacts.get(f)?.key)||[],why.get(f)||[])).join(''):all.length?`<div class="empty-panel">${tr('app.empty.filters')}<div class="filter-chips">${chipMarkup(chips)}</div></div>`:searchContext?.multi?tr('app.empty.multi'):tr('app.empty.flights')}</div>
+ ${visible.length>visibleOfferCount?tr('app.live.more'):''}${compareTray()}`;
  if(focusKey)host.querySelector(focusKey)?.focus();
  markStaleResults();
  if(flightSort==='recommended'&&leaders.length>1)mountFlightTake(host,leaders.map(x=>x.facts),{formatPrice:formatFare,brief:{adults:state.adults,children:state.children,route:searchContext?.destination||'',prefs:chips.map(c=>c[2])}});
@@ -250,11 +251,11 @@ liveHost.addEventListener('change',e=>{
  const payload=state.voleroResults;if(!payload)return;
  if(e.target.id==='flight-sort'){flightSort=e.target.value;renderVoleroOffers(payload);}
  const id=e.target.dataset.compareOffer;
- if(id){if(!e.target.checked)compareOffers.delete(id);else if(compareOffers.size>=3){e.target.checked=false;toast('אפשר להשוות עד 3 טיסות. הסירו אחת כדי להוסיף.');return;}else{compareOffers.set(id,factsOf(payload).find(f=>f.index===id));aiEvent('compare',e.target.closest('[data-itinerary]')?.dataset.itinerary);}renderVoleroOffers(payload);}
+ if(id){if(!e.target.checked)compareOffers.delete(id);else if(compareOffers.size>=3){e.target.checked=false;toast(tr('app.compare.max'));return;}else{compareOffers.set(id,factsOf(payload).find(f=>f.index===id));aiEvent('compare',e.target.closest('[data-itinerary]')?.dataset.itinerary);}renderVoleroOffers(payload);}
 });
 liveHost.addEventListener('click',e=>{
  const payload=state.voleroResults;if(!payload)return;
- if(e.target.closest('[data-open-converter]')){openModal(`<span class="dialog-kicker">מחירים בשקלים</span><h2>מחשבון המרת מטבע</h2>${converterHtml({id:'fx-modal'})}`);wireConverter($('#modal-content [data-fx-converter]'));return;}
+ if(e.target.closest('[data-open-converter]')){openModal(`<span class="dialog-kicker">${tr('app.fx.kicker')}</span><h2>${tr('app.fx.converter')}</h2>${converterHtml({id:'fx-modal'})}`);wireConverter($('#modal-content [data-fx-converter]'));return;}
  const filter=e.target.closest('[data-filter]'),remove=e.target.closest('[data-remove-filter]');
  if(filter||remove){
   const {filter:group=remove.dataset.removeFilter,value}=(filter||remove).dataset,on=Boolean(filter)&&filter.getAttribute('aria-pressed')!=='true';
@@ -274,7 +275,7 @@ liveHost.addEventListener('click',e=>{
 $('#modal-content').addEventListener('click',e=>{
  const go=e.target.closest('[data-goto-offer]');if(!go)return;
  modal.close();const card=document.querySelector(`[data-offer-card="${CSS.escape(go.dataset.gotoOffer)}"]`);
- if(card){card.scrollIntoView({block:'center'});card.querySelector('[data-volero-offer]').focus();}else toast('הטיסה מוסתרת כרגע בגלל מסנן או מחוץ לרשימה המוצגת.');
+ if(card){card.scrollIntoView({block:'center'});card.querySelector('[data-volero-offer]').focus();}else toast(tr('app.compare.hidden'));
 });
 // The same context shape as a round trip, so every later step (cards, saving, sharing, memory) reads it alike.
 function multiContext(request){
@@ -292,47 +293,47 @@ $('#search-form').onsubmit=async e=>{
   search:{origin:request.originDestinations[0].origin.code,destination:$('#destination').value.trim(),start:state.start,end:oneWay()?'':state.end,type:oneWay()?'oneway':'round',adults:state.adults,children:state.children}};
  const controller=new AbortController();activeSearch=controller;let cancelled=false;
  const timer=setTimeout(()=>controller.abort(),45000);
- button.disabled=true;button.setAttribute('aria-busy','true');button.textContent='מחפשים לכם טיסות…';
- feedback.innerHTML='<span id="search-progress">בודקים הצעות עדכניות מול הספקים שלנו. זה יכול לקחת כמה רגעים.</span>';feedback.hidden=false;const started=Date.now(),ticker=setInterval(()=>{const seconds=Math.round((Date.now()-started)/1000),line=$('#search-progress');if(line)line.textContent=`בודקים הצעות עדכניות מול הספקים שלנו… ${seconds} שניות${seconds>15?'. חיפושים עמוסים לוקחים לפעמים עד חצי דקה.':''}`;},1000);const cancel=document.createElement('button');cancel.type='button';cancel.className='button secondary';cancel.id='cancel-flight-search';cancel.textContent='ביטול ההמתנה';cancel.onclick=()=>{cancelled=true;controller.abort();};feedback.append(' ',cancel);
+ button.disabled=true;button.setAttribute('aria-busy','true');button.textContent=tr('app.search.busy');
+ feedback.innerHTML=tr('app.search.progress');feedback.hidden=false;const started=Date.now(),ticker=setInterval(()=>{const seconds=Math.round((Date.now()-started)/1000),line=$('#search-progress');if(line)line.textContent=tr('app.search.ticker', { seconds, slow: seconds>15?tr('app.search.slow'):'' });},1000);const cancel=document.createElement('button');cancel.type='button';cancel.className='button secondary';cancel.id='cancel-flight-search';cancel.textContent=tr('app.search.cancel');cancel.onclick=()=>{cancelled=true;controller.abort();};feedback.append(' ',cancel);
  $('#live-results').hidden=true;state.voleroResults=null;
  try{
   const response=await fetch('/api/volero/flights/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
-  const data=await response.json();if(!response.ok)throw new Error(response.status===429||response.status===400?data.message:'לא הצלחנו להשלים את החיפוש מול הספק. בדקו את היעד ונסו שוב.');
+  const data=await response.json();if(!response.ok)throw new Error(response.status===429||response.status===400?errorText(data.error,data.message,'app'):tr('app.err.searchFailed'));
   context.cachedAt=data.cached?data.searchedAt:null;
   searchContext=context;flightSort='recommended';visibleOfferCount=12;flightFilters=emptyFilters();openDetails.clear();compareOffers.clear();decision.boosts={};decision.pick=null;decision.reason='';decision.order=[];
   const fromRequest=pendingFilters;pendingFilters=null;
   if(fromRequest){const names=[...new Set(factsOf(data.data).flatMap(f=>f.carriers))];flightFilters={...emptyFilters(),stops:fromRequest.stops||'any',out:fromRequest.out||[],back:fromRequest.back||[],checkedBag:fromRequest.checkedBag===true,carriers:fromRequest.carrier?names.filter(name=>name.toLowerCase().includes(fromRequest.carrier)):[]};}
   renderVoleroOffers(data.data);saveLastSearch();loadBoosts(data.data);aiEvent('impression',[...document.querySelectorAll('#live-results [data-itinerary]')].slice(0,6).map(c=>c.dataset.itinerary));history.replaceState(null,'',searchLink(context.search));
-  feedback.textContent=(context.cachedAt?`התוצאות מחיפוש זהה לפני ${Math.max(1,Math.round((Date.now()-Date.parse(context.cachedAt))/60000))} דק׳; בדיקת המחיר תמיד עדכנית. `:'')+(fromRequest&&activeChips().length?'החיפוש הושלם. ההעדפות מהבקשה שלכם הוחלו כמסננים, ואפשר להסיר כל אחד מהם.':'החיפוש הושלם. התוצאות מופיעות בהמשך.');
+  feedback.textContent=(context.cachedAt?tr('app.search.cached', { minutes: Math.max(1,Math.round((Date.now()-Date.parse(context.cachedAt))/60000)) }):'')+(fromRequest&&activeChips().length?tr('app.search.doneFilters'):tr('app.search.done'));
   if(onHome()){$('#live-results h2').focus({preventScroll:true});$('#live-results').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});}
- }catch(error){pendingFilters=null;feedback.textContent=error.name==='AbortError'?cancelled?'ההמתנה לחיפוש בוטלה. אפשר לשנות פרטים ולחפש שוב.':'החיפוש ארך יותר מהצפוי. הפרטים נשמרו בטופס ואפשר לנסות שוב.':error.message;}
- finally{clearTimeout(timer);clearInterval(ticker);if(cancelled)button.focus();activeSearch=null;button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=icons('search')+'חפשו טיסה';}
+ }catch(error){pendingFilters=null;feedback.textContent=error.name==='AbortError'?cancelled?tr('app.search.cancelled'):tr('app.search.timeout'):error.message;}
+ finally{clearTimeout(timer);clearInterval(ticker);if(cancelled)button.focus();activeSearch=null;button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=icons('search')+tr('app.tab.flights.submit');}
 };
 $('#all-deals').onclick=()=>pages.navigate('/destinations');
 document.addEventListener('click',async e=>{
- const favorite=e.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];favorite.setAttribute('aria-pressed',String(favorites.includes(id)));favorite.setAttribute('aria-label',(favorites.includes(id)?'הסרת ':'שמירת ')+trips.find(t=>t.id===id).short);try{localStorage.setItem('gerbi-favorites',JSON.stringify(favorites));toast(favorites.includes(id)?'נשמר במועדפים במכשיר הזה ♡':'הוסר מהמועדפים');}catch{toast('המועדף יישמר רק עד סגירת הדף');}}
+ const favorite=e.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];favorite.setAttribute('aria-pressed',String(favorites.includes(id)));favorite.setAttribute('aria-label',(n=>favorites.includes(id)?tr('app.card.unsave',{name:n}):tr('app.card.save',{name:n}))(trips.find(t=>t.id===id).short));try{localStorage.setItem('gerbi-favorites',JSON.stringify(favorites));toast(favorites.includes(id)?tr('app.fav.saved'):tr('app.fav.removed'));}catch{toast(tr('app.fav.session'));}}
  const trip=e.target.closest('[data-trip]');if(trip)openTrip(trip.dataset.trip);
  const offerButton=e.target.closest('[data-volero-offer]');if(offerButton){
   const result=state.voleroResults,offerIndex=offerButton.dataset.voleroOffer,offerContext=searchContext;
   const currentOffer=()=>state.voleroResults===result&&onHome()&&offerButton.isConnected;
   const selected=result?.offers?.find(item=>String(item.index)===offerIndex);
-  if(!selected||!result.srk||!result.tokens?.searchResults||$('#live-results').classList.contains('stale')){toast('החיפוש אינו תקף לפרטים הנוכחיים. חפשו שוב לקבלת הצעות עדכניות.');return;}
-  offerButton.disabled=true;offerButton.textContent='בודקים מחיר…';
+  if(!selected||!result.srk||!result.tokens?.searchResults||$('#live-results').classList.contains('stale')){toast(tr('app.offer.stale'));return;}
+  offerButton.disabled=true;offerButton.textContent=tr('app.offer.checking');
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
   try{
    const response=await fetch('/api/volero/flights/availability',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({srk:result.srk,offerIndex,searchToken:result.tokens.searchResults,input:{itineraryIndex:selected.flightsOverview?.[0]?.itineraryIndex??0}})});
-   const data=await response.json();if(!response.ok)throw new Error('לא ניתן לאמת כרגע את ההצעה. ייתכן שהמחיר או הזמינות השתנו. חפשו מחדש או בדקו הצעה אחרת.');
+   const data=await response.json();if(!response.ok)throw new Error(tr('app.offer.unverified'));
    if(!currentOffer())return;
    const priced=data.data?.pricedOffer,price=offerPrice(priced),old=offerPrice(selected);
-   if(!price)throw new Error('הספק לא החזיר מחיר מלא. לא ניתן לאשר את ההצעה כרגע.');
+   if(!price)throw new Error(tr('app.offer.noPrice'));
    const changed=old && (old.value!==price.value || old.currency!==price.currency);
    const verified={price,at:new Date(),changed};aiEvent('verify',offerButton.closest('[data-itinerary]')?.dataset.itinerary);verifiedPrices.set(result.srk+':'+offerIndex,verified);
    const priceBox=offerButton.closest('.flight-price');priceBox.querySelector('.verified-stamp')?.remove();priceBox.insertAdjacentHTML('beforeend',verifiedStamp(verified));
-   openModal(`<span class="dialog-kicker">תשובה עדכנית מהספק</span><h2>${changed?'המחיר עודכן':'בדיקת המחיר הושלמה'}</h2><p>${escapeHTML(offerContext.destination)} · ${escapeHTML(offerContext.dates)}</p><p class="micro-copy">נבדק כעת: ${escapeHTML(new Date().toLocaleString('he-IL'))}. המחיר עשוי להשתנות; לא נוצרה הזמנה.</p><div class="verified-price"><small>מחיר ההצעה לכל ${offerContext.travelers} הנוסעים</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${originalHtml(price)}${changed?`<span>בחיפוש הוצג: ${escapeHTML(formatFare(old))}</span>`:''}</div>${legMarkup(priced,data.data)}<p class="notice">לא נוצרה הזמנה. כבודה, שירותים נוספים ותנאי ביטול דורשים עיון לפני רכישה. עדיין אי אפשר להשלים הזמנה ותשלום באתר.</p><div class="dialog-actions"><button class="button yellow" data-save-flight>שמירת הטיסה בטיולים שלי</button><button class="button secondary" data-close-availability>חזרה להשוואת הטיסות</button></div><p class="micro-copy" id="save-flight-status" role="status">השמירה כוללת את המחיר ושעת הבדיקה. היא אינה שריון מקום.</p>`);
+   openModal(`<span class="dialog-kicker">${tr('app.offer.kicker')}</span><h2>${changed?tr('app.offer.changed'):tr('app.offer.checked')}</h2><p>${escapeHTML(offerContext.destination)} · ${escapeHTML(offerContext.dates)}</p><p class="micro-copy">${tr('app.offer.checkedNow', { time: escapeHTML(new Date().toLocaleString(locale())) })}</p><div class="verified-price"><small>${tr('app.offer.priceFor', { count: offerContext.travelers })}</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${originalHtml(price)}${changed?`<span>${tr('app.offer.was', { price: escapeHTML(formatFare(old)) })}</span>`:''}</div>${legMarkup(priced,data.data)}<p class="notice">${tr('app.offer.notice')}</p><div class="dialog-actions"><button class="button yellow" data-save-flight>${tr('app.offer.save')}</button><button class="button secondary" data-close-availability>${tr('app.offer.backToCompare')}</button></div><p class="micro-copy" id="save-flight-status" role="status">${tr('app.offer.saveNote')}</p>`);
    $('[data-close-availability]').onclick=()=>modal.close();
-   $('[data-save-flight]').onclick=e=>{const facts=factsOf(result).find(f=>f.index===offerIndex);if(!facts)return;if(storeSavedFlights(addSavedFlight(savedFlights,flightSnapshot(facts,offerContext.search,verified)))){aiEvent('save',itineraryKey(facts));e.currentTarget.disabled=true;e.currentTarget.textContent='נשמר ✓';$('#save-flight-status').innerHTML='הטיסה נשמרה במכשיר הזה. <a href="#/account">לטיולים שלי ←</a> לא הוזמן; נדרשת בדיקת זמינות לפני המשך.';}};
-  }catch(error){if(!currentOffer())return;openModal(`<span class="dialog-kicker">בודקים שוב לפני שממשיכים</span><h2>ההצעה לא אומתה</h2><p>${escapeHTML(error.name==='AbortError'?'בדיקת הספק ארכה יותר מהצפוי. נסו שוב בעוד רגע.':error.message)}</p><button class="button secondary full-width" data-close-availability>חזרה לתוצאות</button>`);$('[data-close-availability]').onclick=()=>modal.close();}
-  finally{clearTimeout(timer);offerButton.disabled=false;offerButton.textContent='בדיקת מחיר וזמינות ←';markStaleResults();}
+   $('[data-save-flight]').onclick=e=>{const facts=factsOf(result).find(f=>f.index===offerIndex);if(!facts)return;if(storeSavedFlights(addSavedFlight(savedFlights,flightSnapshot(facts,offerContext.search,verified)))){aiEvent('save',itineraryKey(facts));e.currentTarget.disabled=true;e.currentTarget.textContent=tr('app.offer.saved');$('#save-flight-status').innerHTML=tr('app.offer.savedNote');}};
+  }catch(error){if(!currentOffer())return;openModal(`<span class="dialog-kicker">${tr('app.offer.failKicker')}</span>${tr('app.offer.failTitle')}<p>${escapeHTML(error.name==='AbortError'?tr('app.offer.timeout'):error.message)}</p><button class="button secondary full-width" data-close-availability>${tr('app.offer.backToResults')}</button>`);$('[data-close-availability]').onclick=()=>modal.close();}
+  finally{clearTimeout(timer);offerButton.disabled=false;offerButton.textContent=tr('app.offer.checkButton');markStaleResults();}
  }
  const info=e.target.closest('[data-info]');if(info)showInfo(info.dataset.info);
 });
@@ -343,16 +344,16 @@ function showInfo(type){pages.navigate(({recommendations:'/inspiration',support:
 $('#prompt-form').onsubmit=e=>{e.preventDefault();openChat($('#trip-prompt').value);};
 async function shareSearch(){
  const url=location.origin+location.pathname+searchLink(searchContext.search);
- try{if(navigator.share){await navigator.share({title:'חיפוש טיסות בג׳רבי טורס',text:`${searchContext.destination} · ${searchContext.dates}`,url});return;}await navigator.clipboard.writeText(url);toast('הקישור לחיפוש הועתק. הוא כולל רק את תנאי החיפוש, בלי מחירים.');}
- catch(error){if(error?.name!=='AbortError')toast('לא הצלחנו להעתיק. אפשר להעתיק את הכתובת משורת הדפדפן.');}
+ try{if(navigator.share){await navigator.share({title:tr('app.share.title'),text:`${searchContext.destination} · ${searchContext.dates}`,url});return;}await navigator.clipboard.writeText(url);toast(tr('app.share.copied'));}
+ catch(error){if(error?.name!=='AbortError')toast(tr('app.share.failed'));}
 }
 // A shared link fills the form; the search runs only when the visitor asks, so links never trigger supplier calls.
 function restoreSharedSearch(){
  const shared=parseSearchLink(location.hash);if(!shared)return false;
- if(shared.type==='multi'){setTripType('multi');multiCity.setLegs(shared.legs);state.adults=shared.adults;state.children=shared.children;$('#travelers-value').textContent=travelersText(state.adults,state.children);$('#search-feedback').textContent='פתחתם קישור למסלול של כמה יעדים. בדקו את הפרטים ולחצו „חפשו טיסה” כדי לקבל מחירים עדכניים.';$('#search-feedback').hidden=false;return true;}
+ if(shared.type==='multi'){setTripType('multi');multiCity.setLegs(shared.legs);state.adults=shared.adults;state.children=shared.children;$('#travelers-value').textContent=travelersText(state.adults,state.children);$('#search-feedback').textContent=tr('app.shared.multi');$('#search-feedback').hidden=false;return true;}
  setTripType(shared.type);const from=resolvePlace(shared.origin);if(from)$('#origin').value=placeText(from);
  $('#destination').value=placeText(resolvePlace(shared.destination))||shared.destination;state.start=shared.start;state.end=shared.end;state.adults=shared.adults;state.children=shared.children;
- $('#search-feedback').textContent='פתחתם קישור לחיפוש טיסות. בדקו את הפרטים ולחצו „חפשו טיסה” כדי לקבל מחירים עדכניים.';$('#search-feedback').hidden=false;
+ $('#search-feedback').textContent=tr('app.shared.search');$('#search-feedback').hidden=false;
  return true;
 }
 const sharedSearch=restoreSharedSearch();if(!sharedSearch)restoreLastSearch();
@@ -362,7 +363,7 @@ initDealsStrip({after:$('.search-panel'),today:()=>localDate(),onPick(deal){
  if(activeSearch||!deal)return;selectTab('flights');setTripType('round');
  $('#origin').value=placeText(placeByCode('TLV'));$('#destination').value=placeText(placeByCode(deal.destination))||deal.destination;
  state.start=deal.depart;state.end=deal.back;showDates();document.dispatchEvent(new Event('brief-changed'));$('#search-form').requestSubmit();}});
-if(!contactActions(contact,'x').length)document.querySelectorAll('.support, nav a[href="#/support"]').forEach(el=>{const icon=el.querySelector('svg');el.textContent='עזרה ושאלות';if(icon)el.prepend(icon);});
+if(!contactActions(contact,'x').length)document.querySelectorAll('.support, nav a[href="#/support"]').forEach(el=>{const icon=el.querySelector('svg');el.textContent=tr('app.help');if(icon)el.prepend(icon);});
 window.addEventListener('hashchange',()=>{if(!activeSearch&&restoreSharedSearch())document.dispatchEvent(new Event('brief-changed'));});
 // Owner-edited texts and contact details (spec 18): cached copy now, fresh copy when /api/content/site answers.
 initSiteContent({contact,rerender:()=>pages.navigate(location.hash.slice(1)||'/')});
@@ -370,12 +371,12 @@ const pages=initPages({routes:{...leadRoutes({contact}),...converterRoutes(),...
  getFavorites:()=>favorites,
  getSavedFlights:()=>savedFlights,
  removeSavedFlight(id){return storeSavedFlights(savedFlights.filter(item=>item.id!==id));},
- flightFollowUp:flight=>({text:followUpText(flight,fareText),actions:contactActions(contact,followUpText(flight,fareText),'טיסה לבדיקה – ג׳רבי טורס')}),
+ flightFollowUp:flight=>({text:followUpText(flight,fareText),actions:contactActions(contact,followUpText(flight,fareText),tr('app.followUp.subject'))}),
  formatFare,fareOriginal:originalHtml,longDate,searchLinkOf:flight=>flight.route?multiLink({legs:flight.route,adults:flight.adults,children:flight.children}):searchLink({origin:flight.from,destination:flight.to,start:flight.start,end:flight.end,type:flight.end?'round':'oneway',adults:flight.adults,children:flight.children}),
  contactActions:message=>contactActions(contact,message),
  partnerAvailable:()=>partnerAvailable,
  today:()=>localDate(),
- placeLabel:code=>places.find(p=>p.code===code)?.names[0]||code,
+ placeLabel:code=>(p=>lang==='en'?p?.name:p?.names[0])(places.find(p=>p.code===code))||code,
  // A search the planner understood: same form, same supplier call, preferences arrive as removable filters.
  runFlightSearch(fs){
   setTripType(fs.type);$('#origin').value=placeText(resolvePlace(fs.origin))||fs.origin;$('#destination').value=placeText(resolvePlace(fs.destination))||fs.destination;
@@ -393,12 +394,12 @@ function refreshPersonalization(){
  document.querySelectorAll('[data-preference]').forEach(b=>b.setAttribute('aria-pressed',String(state.preferences[b.dataset.preference]===true)));
  const selected=styles.filter(style=>state.preferences[style.id]===true);
  const ranked=rankInspirations(trips,{...state.preferences,budget:undefined,nights:undefined},4);
- renderCards(ranked.map(({trip,reasons})=>({...trip,matchReason:reasons.length?'לפי הבחירה שלכם: '+reasons.join(' · '):''})));
- $('#preference-status').textContent=selected.length?`ההשראה מסודרת לפי ${selected.map(x=>x.label).join(' · ')}. נשמר במכשיר הזה.`:'בחרו סגנון כדי לדייק את סדר ההמלצות. נשמר במכשיר הזה בלבד.';
+ renderCards(ranked.map(({trip,reasons})=>({...trip,matchReason:reasons.length?tr('app.match.prefix')+reasons.join(' · '):''})));
+ $('#preference-status').textContent=selected.length?tr('app.prefs.sorted', { styles: selected.map(x=>x.label).join(' · ') }):tr('app.prefs.hint');
 }
 $('.preference-chips').innerHTML=styles.map(style=>`<button type="button" data-preference="${style.id}" aria-pressed="false">${icons(style.icon)}${style.label}</button>`).join('');
 function saveStyles(){
- try{localStorage.setItem('gerbi-preferences',JSON.stringify(Object.fromEntries(styles.map(style=>[style.id,state.preferences[style.id]===true]))));}catch{toast('ההעדפות יישמרו רק עד סגירת הדף; לא ניתן לשמור אותן במכשיר.');}
+ try{localStorage.setItem('gerbi-preferences',JSON.stringify(Object.fromEntries(styles.map(style=>[style.id,state.preferences[style.id]===true]))));}catch{toast(tr('app.prefs.session'));}
  refreshPersonalization();
 }
 document.querySelectorAll('[data-preference]').forEach(button=>button.onclick=()=>{const key=button.dataset.preference;state.preferences[key]=!state.preferences[key];saveStyles();});
@@ -408,7 +409,7 @@ window.addEventListener('hashchange',()=>{if(onHome())refreshPersonalization();}
 refreshPersonalization();
 if(document.modelContext?.registerTool){
  const controller=new AbortController();
- try{Promise.resolve(document.modelContext.registerTool({name:'start_trip_planning',title:'תכנון חופשה עם ג׳רבי טורס',description:'Open the local demo trip planner with a Hebrew request. Does not search live inventory or book anything.',inputSchema:{type:'object',properties:{request:{type:'string',minLength:1,maxLength:1500}},required:['request'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute(input){if(!input||typeof input.request!=='string'||!input.request.trim()||input.request.length>1500)throw new Error('A non-empty request of at most 1500 characters is required');openChat(input.request);return{mode:'demo',opened:true,missing:getMissing(state.preferences),liveAvailability:false};}},{signal:controller.signal})).catch(error=>console.warn('Optional browser planner registration unavailable:',error.message));}catch(error){console.warn('Optional browser planner registration unavailable:',error.message);}
+ try{Promise.resolve(document.modelContext.registerTool({name:'start_trip_planning',title:tr('app.webmcp.title'),description:'Open the local demo trip planner with a Hebrew request. Does not search live inventory or book anything.',inputSchema:{type:'object',properties:{request:{type:'string',minLength:1,maxLength:1500}},required:['request'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute(input){if(!input||typeof input.request!=='string'||!input.request.trim()||input.request.length>1500)throw new Error('A non-empty request of at most 1500 characters is required');openChat(input.request);return{mode:'demo',opened:true,missing:getMissing(state.preferences),liveAvailability:false};}},{signal:controller.signal})).catch(error=>console.warn('Optional browser planner registration unavailable:',error.message));}catch(error){console.warn('Optional browser planner registration unavailable:',error.message);}
  window.addEventListener('pagehide',()=>controller.abort(),{once:true});
 }
 // Focus ring only for keyboard users: a mouse/touch press hides it, Tab brings it back (styles in experience.css).

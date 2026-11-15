@@ -2,6 +2,7 @@
 // Stored on this device only; no passenger names or contact details.
 import { places, resolvePlace } from './places.mjs';
 import { cleanRoute, multiLink, parseMultiLink, legName } from './multi-city-core.mjs';
+import { t, locale } from './i18n.mjs';
 
 export const SAVED_FLIGHTS_KEY = 'gerbi-saved-flights-v1';
 const MAX_SAVED = 10;
@@ -75,15 +76,15 @@ export function parseSearchLink(hash) {
 }
 
 export function followUpText(flight, formatPrice) {
-  const line = (leg, label) => `${label}: ${leg.from}→${leg.to} ${leg.departDate} ${leg.departTime}–${leg.arriveTime}${leg.dayOffset ? ` (+${leg.dayOffset})` : ''}, ${leg.stops ? (leg.stops === 1 ? 'החלפה אחת' : `${leg.stops} החלפות`) : 'ישירה'}`;
-  return [`שלום ג׳רבי טורס, אשמח שתבדקו עבורי את הטיסה הזו:`, `${flight.destination} · ${flight.adults + flight.children} נוסעים (${flight.adults} מבוגרים${flight.children ? `, ${flight.children} ילדים` : ''})`,
-    ...flight.legs.map((leg, i) => line(leg, legName(i, Boolean(flight.route)))), `חברת תעופה: ${flight.carriers.join(' + ') || 'לא נמסר'}`,
-    `מחיר שנבדק: ${formatPrice({ value: flight.price, currency: flight.currency })} ב־${new Date(flight.checkedAt).toLocaleString('he-IL')} (לא הוזמן)`].join('\n');
+  const line = (leg, label) => `${label}: ${leg.from}→${leg.to} ${leg.departDate} ${leg.departTime}–${leg.arriveTime}${leg.dayOffset ? ` (+${leg.dayOffset})` : ''}, ${leg.stops ? (leg.stops === 1 ? t('app.stops.one') : t('app.stops.many', { count: leg.stops })) : t('app.direct')}`;
+  return [t('app.followUp.hello'), t('app.followUp.who', { destination: flight.destination, count: flight.adults + flight.children, adults: flight.adults, kids: flight.children ? t('app.followUp.kids', { count: flight.children }) : '' }),
+    ...flight.legs.map((leg, i) => line(leg, legName(i, Boolean(flight.route)))), t('app.followUp.airline', { airline: flight.carriers.join(' + ') || t('app.notGiven') }),
+    t('app.followUp.price', { price: formatPrice({ value: flight.price, currency: flight.currency }), time: new Date(flight.checkedAt).toLocaleString(locale()) })].join('\n');
 }
 
-export function contactActions(contact, message, subject = 'פנייה מאתר ג׳רבי טורס') {
+export function contactActions(contact, message, subject = t('app.contact.subject')) {
   const actions = [];
-  if (/^\d{8,15}$/.test(contact?.whatsapp || '')) actions.push({ label: 'שליחה בוואטסאפ', href: `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(message)}` });
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact?.email || '')) actions.push({ label: 'שליחה במייל', href: `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}` });
+  if (/^\d{8,15}$/.test(contact?.whatsapp || '')) actions.push({ label: t('app.contact.whatsapp'), href: `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(message)}` });
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact?.email || '')) actions.push({ label: t('app.contact.email'), href: `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}` });
   return actions;
 }

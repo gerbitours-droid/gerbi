@@ -1,4 +1,5 @@
 import { toIls, formatIls, priceBasis } from './fx.mjs';
+import { t, locale } from './i18n.mjs';
 export function offerPrice(offer) {
   const price = offer?.fareDetails?.totalPrice?.selling;
   return price && typeof price.value === 'number' && Number.isFinite(price.value) && price.value >= 0 &&
@@ -6,10 +7,10 @@ export function offerPrice(offer) {
 }
 // Shekels first when a rate is loaded (dist/fx.mjs); the supplier's currency otherwise.
 export function formatFare(price) {
-  if (!price) return 'מחיר אינו זמין';
+  if (!price) return t('app.price.unavailable');
   const ils = toIls(price);
   if (ils !== null) return formatIls(ils);
-  try {return new Intl.NumberFormat('he-IL',{style:'currency',currency:price.currency,maximumFractionDigits:2}).format(price.value);}
+  try {return new Intl.NumberFormat(locale(),{style:'currency',currency:price.currency,maximumFractionDigits:2}).format(price.value);}
   catch {return `${price.value.toFixed(2)} ${price.currency}`;}
 }
 // Volero segments: marketingCarrier/operatingCarrier = {airline:{code,name}, flightNumber}; times are local per airport.
@@ -36,9 +37,9 @@ export function legSummary(segments = []) {
   return { departDate: first?.departure?.date || '', arriveDate: last?.arrival?.date || '', dayOffset: Number.isFinite(dayOffset) ? dayOffset : 0, stops: Math.max(0, segments.length - 1), layovers };
 }
 export function hoursText(minutes) {
-  if (!Number.isFinite(minutes) || minutes < 0) return 'משך לא נמסר';
+  if (!Number.isFinite(minutes) || minutes < 0) return t('app.duration.unknown');
   const h = Math.floor(minutes / 60), m = minutes % 60;
-  return h ? `${h} שע׳${m ? ` ו־${m} דק׳` : ''}` : `${m} דק׳`;
+  return h ? (m ? t('app.dur.hm', { h, m }) : t('app.dur.h', { h })) : t('app.dur.m', { m });
 }
 export const LONG_LAYOVER_MINUTES = 6 * 60;
 
@@ -99,7 +100,7 @@ export function offerFacts(offer, payload) {
     })
   };
 }
-export const TIME_BUCKETS = [['night', 'לילה', 0, 5], ['morning', 'בוקר', 5, 12], ['afternoon', 'צהריים', 12, 18], ['evening', 'ערב', 18, 24]];
+export const TIME_BUCKETS = [['night', t('app.bucket.night'), 0, 5], ['morning', t('app.bucket.morning'), 5, 12], ['afternoon', t('app.bucket.afternoon'), 12, 18], ['evening', t('app.bucket.evening'), 18, 24]];
 export function timeBucket(time) {
   const hour = Number(String(time || '').split(':')[0]);
   return Number.isFinite(hour) ? TIME_BUCKETS.find(([, , from, to]) => hour >= from && hour < to)?.[0] || null : null;

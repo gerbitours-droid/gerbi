@@ -1,3 +1,4 @@
+import { t as tr } from './i18n.mjs';
 export const STORAGE_KEY = 'gerbi-journey-v1';
 export function restoreComparison(raw, ids) {
   try {
@@ -31,7 +32,7 @@ export function filterTrips(trips, {query='',style='all',maxPrice=Infinity,sort=
   return [...items].sort((a,b)=>sort==='price'?a.price-b.price:sort==='nights'?a.nights-b.nights:0);
 }
 export function itineraryDays(trip,nights,saved) {
-  return Array.from({length:nights+1},(_,i)=>saved?.[i] || (i===nights?'ארוחת בוקר וחזרה הביתה':i<trip.days.length-1?trip.days[i]:'יום חופשי בקצב שלכם'));
+  return Array.from({length:nights+1},(_,i)=>saved?.[i] || (i===nights?tr('app.day.last'):i<trip.days.length-1?trip.days[i]:tr('app.day.free')));
 }
 
 export function planDestination(key, ids) {
@@ -41,8 +42,8 @@ export function planDestination(key, ids) {
 export function applyBriefToDraft(trip, draft, brief) {
   const nights = brief.nights;
   const days = Array.from({length:nights+1},(_,i) => i===nights
-    ? draft.days[draft.nights] || 'ארוחת בוקר וחזרה הביתה'
-    : i<draft.nights ? draft.days[i] || 'יום חופשי בקצב שלכם'
-    : 'יום חופשי בקצב שלכם');
+    ? draft.days[draft.nights] || tr('app.day.last')
+    : i<draft.nights ? draft.days[i] || tr('app.day.free')
+    : tr('app.day.free'));
   return {...draft,nights,adults:brief.adults,children:brief.children,days};
 }

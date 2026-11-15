@@ -1,11 +1,12 @@
 import { places } from './places.mjs';
+import { t, lang } from './i18n.mjs';
 // Curated destination metadata describes inspiration, never verified inventory.
 export const styles = [
-  {id:'beach', label:'ים ובריכה', icon:'sun', destinations:['santorini','maldives','dubai']},
-  {id:'city', label:'אוכל ותרבות', icon:'globe', destinations:['rome','dubai']},
-  {id:'family', label:'זמן משפחתי', icon:'user', destinations:['dubai']},
-  {id:'relaxation', label:'להוריד הילוך', icon:'heart', destinations:['santorini','maldives']},
-  {id:'couple', label:'רק שנינו', icon:'spark', destinations:['santorini','rome','maldives']}
+  {id:'beach', label:t('app.style.beach'), icon:'sun', destinations:['santorini','maldives','dubai']},
+  {id:'city', label:t('app.style.city'), icon:'globe', destinations:['rome','dubai']},
+  {id:'family', label:t('app.style.family'), icon:'user', destinations:['dubai']},
+  {id:'relaxation', label:t('app.style.relaxation'), icon:'heart', destinations:['santorini','maldives']},
+  {id:'couple', label:t('app.style.couple'), icon:'spark', destinations:['santorini','rome','maldives']}
 ];
 export function selectedStyles(preferences = {}) {
   return styles.filter(style => preferences[style.id] === true ||
@@ -19,7 +20,9 @@ export const SEASONS = {
   dubai: { best: [11, 12, 1, 2, 3], poor: [6, 7, 8, 9], penalty: 4 }
 };
 const MONTH_NAMES = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-const monthOf = p => (p.start ? Number(p.start.slice(5, 7)) : 0) || MONTH_NAMES.indexOf(p.month) + 1;
+// English requests may name the month in English (spec 21); Hebrew names are matched first, as before.
+const MONTH_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthOf = p => (p.start ? Number(p.start.slice(5, 7)) : 0) || MONTH_NAMES.indexOf(p.month) + 1 || MONTH_EN.findIndex(m => m.toLowerCase() === String(p.month || '').toLowerCase()) + 1;
 export function seasonFit(tripId, preferences = {}) {
   const month = monthOf(preferences), season = SEASONS[tripId];
   if (!month || !season) return 0;
@@ -39,7 +42,7 @@ export function rankInspirations(trips, preferences = {}, limit = 3) {
     const requested = wanted.includes(trip.id);
     const season = seasonFit(trip.id, preferences), month = MONTH_NAMES[monthOf(preferences) - 1];
     return {trip,total,score:matches.length*5 + (family ? 2 : 0) + (requested ? 10 : 0) + season,
-      reasons:[...(requested?['היעד שביקשתם']:[]),...(season>0&&month?[`עונה טובה ב${month}`]:[]),...matches.map(style=>style.label),...(family && !matches.some(s=>s.id==='family')?['כיוון למשפחה']:[])]};
+      reasons:[...(requested?[t('app.reason.requested')]:[]),...(season>0&&month?[t('app.reason.season', { month: lang === 'en' ? MONTH_EN[MONTH_NAMES.indexOf(month)] : month })]:[]),...matches.map(style=>style.label),...(family && !matches.some(s=>s.id==='family')?[t('app.reason.family')]:[])]};
   }).filter(item=>!excluded.has(item.trip.id) && (!wanted.length || wanted.includes(item.trip.id)))
     .filter(item=>!preferences.budget || item.total<=preferences.budget)
     .sort((a,b)=>preferences.cheaper ? a.total-b.total || b.score-a.score :
@@ -51,5 +54,6 @@ export function constraintSummary(preferences = {}) {
   const byCode = code => places.find(place => place.code === code);
   const missing = (preferences.want || []).map(byCode).filter(place => place && !place.trip);
   const excluded = (preferences.exclude || []).map(byCode).filter(Boolean);
-  return { missing: missing.map(place => place.names[0]), excluded: excluded.map(place => place.names[0]) };
+  const shown = place => (lang === 'en' ? place.name : place.names[0]);
+  return { missing: missing.map(shown), excluded: excluded.map(shown) };
 }

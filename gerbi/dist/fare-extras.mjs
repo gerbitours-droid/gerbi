@@ -1,6 +1,8 @@
 // Spec 10 §7 (item 12): what the big flight sites show that our search response already carries — no extra supplier calls.
 // Price per passenger type, what the fare includes, seats left, and the layover airports to avoid.
 
+import { t } from './i18n.mjs';
+
 // Per-person price by passenger type (fullFare + serviceFee). Shown only when it adds up to the offer's total.
 export function perPassenger(offer, total) {
   const items = (offer?.offerItems || []).filter(i => ['ADT', 'CHD', 'INF'].includes(i?.ptc) && Number.isInteger(i.count) && i.count > 0
@@ -9,7 +11,7 @@ export function perPassenger(offer, total) {
   const list = items.map(i => ({ ptc: i.ptc, count: i.count, value: Math.round((i.price.fullFare + (i.price.serviceFee || 0)) * 100) / 100, currency: i.price.currency }));
   return Math.abs(list.reduce((sum, i) => sum + i.value * i.count, 0) - total.value) <= 1 ? list : null;
 }
-export const PTC_LABEL = { ADT: 'למבוגר', CHD: 'לילד', INF: 'לתינוק' };
+export const PTC_LABEL = { ADT: t('app.ptc.adult'), CHD: t('app.ptc.child'), INF: t('app.ptc.infant') };
 
 // The fewest seats the supplier reports at this fare (it reports up to 9; "few" means 4 or fewer).
 export const FEW_SEATS = 4;
@@ -22,10 +24,10 @@ export function seatsLeft(offer) {
 const RANK = { included: 3, chargeable: 2, notOffered: 1 };
 const STATE = { included: 'included', chargeable: 'paid', notOffered: 'no' };
 export const INCLUSION_TEXT = {
-  change: { included: 'שינוי ללא תוספת', paid: 'שינוי בתשלום', no: 'ללא שינויים' },
-  refund: { included: 'החזר כספי כלול', paid: 'ביטול בתשלום', no: 'ללא החזר' },
-  seat: { included: 'בחירת מושב כלולה', paid: 'בחירת מושב בתשלום', no: 'ללא בחירת מושב' },
-  meal: { included: 'ארוחה או כיבוד כלולים', paid: 'ארוחה בתשלום', no: 'ללא ארוחה' }
+  change: { included: t('app.inc.change.included'), paid: t('app.inc.change.paid'), no: t('app.inc.change.no') },
+  refund: { included: t('app.inc.refund.included'), paid: t('app.inc.refund.paid'), no: t('app.inc.refund.no') },
+  seat: { included: t('app.inc.seat.included'), paid: t('app.inc.seat.paid'), no: t('app.inc.seat.no') },
+  meal: { included: t('app.inc.meal.included'), paid: t('app.inc.meal.paid'), no: t('app.inc.meal.no') }
 };
 const CATEGORY = { VC: 'change', VR: 'refund', SE: 'seat', ML: 'meal' };
 export function fareInclusions(offer, leg) {
