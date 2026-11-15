@@ -21,6 +21,17 @@ async function notify(url, lead) {
   } catch (error) { console.log(JSON.stringify({ evt: 'lead_webhook', ok: false, error: error.name })); }
 }
 
+// Stores an already-validated lead built elsewhere (customer-service bot, spec 16) and notifies the owner webhook.
+// Returns { stored, notified }; never throws.
+export async function recordLead(store, record, env = process.env) {
+  const webhook = env.LEADS_WEBHOOK_URL ? notify(env.LEADS_WEBHOOK_URL, record) : null;
+  let stored = true;
+  try { await store.push(LIST_KEY, record, MAX_STORED); } catch (error) { stored = false; console.log(JSON.stringify({ evt: 'lead_store', ok: false, error: error.message })); }
+  if (webhook) await webhook;
+  console.log(JSON.stringify({ evt: 'lead', type: record.type, source: record.source }));
+  return { stored, notified: Boolean(webhook) };
+}
+
 // Returns true when the request was a leads route (and has been answered).
 // hooks (optional, customer accounts): userOf(req) → user id of a signed-in customer; created(record) after storing.
 export async function handleLeads(req, url, { send, body, store, env = process.env, hooks }) {

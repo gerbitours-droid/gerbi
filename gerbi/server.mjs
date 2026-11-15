@@ -21,6 +21,7 @@ import { learnFromChoice } from './dist/scoring.mjs';
 import { handleLeads } from './backend/leads.mjs';
 import { createAccounts } from './backend/accounts.mjs';
 import { createFx, handleFx } from './backend/fx-rates.mjs';
+import { createSupport } from './backend/support.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
@@ -32,6 +33,8 @@ const leadStore = createStore('leads', dataDirectory);
 const accounts = createAccounts({ store: createStore('accounts', dataDirectory) });
 // Shekel rates (transfers & cheques, sale) for showing supplier prices in ILS: docs/specs/13-pricing-ils-he.md.
 const fx = createFx({ store: createStore('fx', dataDirectory), log: entry => console.log(JSON.stringify(entry)) });
+// Customer-service bot on the site and WhatsApp (spec 16); escalations become support leads.
+const support = createSupport({ dataDirectory, leadStore, llmCache });
 const featureVector = (value) => Object.fromEntries(['hour', 'stop', 'longWait', 'overnight', 'offHours', 'nightDeparture'].map((key) => [key, Number.isFinite(value?.[key]) ? Math.max(0, Math.min(100, value[key])) : 0]));
 const placeCodes = new Set(places.map((place) => place.code));
 // The canonical brief the decision endpoints accept: every field re-validated, nothing free-text.
@@ -204,6 +207,7 @@ export function createServer() {
    if (await accounts.handle(req, res, url, { send, body })) return;
    if (await handleLeads(req, url, { send, body, store:leadStore, hooks:accounts.leadHooks })) return;
    if (await handleFx(req, url, { send, body, fx, background, res })) return;
+   if (await support.handle(req, res, url, { send, body })) return;
    if (url.pathname.startsWith('/api/')) return send(404,{error:'not_found'});
    if (!['GET','HEAD'].includes(req.method)) return send(405,{error:'method_not_allowed'});
    let decoded;

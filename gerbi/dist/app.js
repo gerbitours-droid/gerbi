@@ -11,6 +11,7 @@ import { initPages } from './pages.mjs';
 import { leadRoutes, installResultsCta } from './leads.mjs';
 import { loadFx, onFx, getFx, fxNote, originalHtml, priceBasis, fareText } from './fx.mjs';
 import { converterRoutes, converterHtml, wireConverter } from './converter.mjs';
+import './support-bot.mjs';
 const icons=name=>`<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const money=n=>new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:0}).format(n);
 const $=s=>document.querySelector(s);
