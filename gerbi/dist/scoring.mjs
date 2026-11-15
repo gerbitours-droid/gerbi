@@ -123,10 +123,10 @@ export function explain(item, scored, format = price => `${Math.round(price)}`) 
     reasons.push(`עוד ${format(f.price.value - cheapest.facts.price.value)} וחוסכת ${clock(cheapest.facts.totalMinutes - f.totalMinutes)} שע׳ לעומת הזולה`);
   else if (sameCurrency && Number.isFinite(f.price?.value) && f.price.value < typicalPrice * 0.9) reasons.push(`זולה ב־${Math.round((1 - f.price.value / typicalPrice) * 100)}% מהמחיר הטיפוסי בחיפוש`);
   if (f.stops === 0) reasons.push('ישירה');
-  else if (item.gc.features.longWait === 0 && !f.overnight) reasons.push('קונקשן קצר');
+  else if (item.gc.features.longWait === 0 && !f.overnight) reasons.push('המתנה קצרה בין הטיסות');
   if (f.checked === 'included') reasons.push('מזוודה כלולה');
-  if (item.memory > 0.2) reasons.push('נבחרה הרבה בחיפושים דומים');
-  if (item.partner) reasons.push('ג׳רבי AI המליץ בתיקו');
+  if (item.memory > 0.2) reasons.push('נבחרה לעיתים קרובות בחיפושים דומים');
+  if (item.partner) reasons.push('ג׳רבי AI הכריע בין אפשרויות שקולות');
   return reasons.slice(0, 3);
 }
 

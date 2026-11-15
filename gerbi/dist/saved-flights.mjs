@@ -69,13 +69,13 @@ export function parseSearchLink(hash) {
 }
 
 export function followUpText(flight, formatPrice) {
-  const line = (leg, label) => `${label}: ${leg.from}→${leg.to} ${leg.departDate} ${leg.departTime}–${leg.arriveTime}${leg.dayOffset ? ` (+${leg.dayOffset})` : ''}, ${leg.stops ? `${leg.stops} החלפות` : 'ישירה'}`;
-  return [`שלום, אשמח לבדוק את הטיסה הזו לג׳רבי:`, `${flight.destination} · ${flight.adults + flight.children} נוסעים (${flight.adults} מבוגרים${flight.children ? `, ${flight.children} ילדים` : ''})`,
-    ...flight.legs.map((leg, i) => line(leg, i ? 'חזור' : 'הלוך')), `חברה: ${flight.carriers.join(' + ') || 'לא נמסר'}`,
+  const line = (leg, label) => `${label}: ${leg.from}→${leg.to} ${leg.departDate} ${leg.departTime}–${leg.arriveTime}${leg.dayOffset ? ` (+${leg.dayOffset})` : ''}, ${leg.stops ? (leg.stops === 1 ? 'החלפה אחת' : `${leg.stops} החלפות`) : 'ישירה'}`;
+  return [`שלום ג׳רבי טורס, אשמח שתבדקו עבורי את הטיסה הזו:`, `${flight.destination} · ${flight.adults + flight.children} נוסעים (${flight.adults} מבוגרים${flight.children ? `, ${flight.children} ילדים` : ''})`,
+    ...flight.legs.map((leg, i) => line(leg, i ? 'חזור' : 'הלוך')), `חברת תעופה: ${flight.carriers.join(' + ') || 'לא נמסר'}`,
     `מחיר שנבדק: ${formatPrice({ value: flight.price, currency: flight.currency })} ב־${new Date(flight.checkedAt).toLocaleString('he-IL')} (לא הוזמן)`].join('\n');
 }
 
-export function contactActions(contact, message, subject = 'פנייה מג׳רבי') {
+export function contactActions(contact, message, subject = 'פנייה מאתר ג׳רבי טורס') {
   const actions = [];
   if (/^\d{8,15}$/.test(contact?.whatsapp || '')) actions.push({ label: 'שליחה בוואטסאפ', href: `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(message)}` });
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact?.email || '')) actions.push({ label: 'שליחה במייל', href: `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}` });
