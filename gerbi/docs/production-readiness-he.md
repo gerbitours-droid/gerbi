@@ -9,8 +9,10 @@
 | משתנה | מה | חובה? | איפה משיגים |
 |---|---|---|---|
 | `VOLERO_CLIENT_ID`, `VOLERO_CLIENT_SECRET` | חיפוש ובדיקת מחיר | כן | Volero (חשבון ה־reseller) |
-| `OPENROUTER_API_KEY` | שותף AI ראשי (Qwen3.8 Max) | מומלץ | openrouter.ai → Keys |
-| `DEEPSEEK_API_KEY` | שותף AI גיבוי | מומלץ | platform.deepseek.com → API keys |
+| `ANTHROPIC_API_KEY` | ג׳רבי AI — ספק ראשי (Haiku 5.5 / Sonnet 5.5 / Opus 5.5 לפי משימה; אפיון 22) | מומלץ | console.anthropic.com → API Keys (+ מגבלת הוצאה חודשית) |
+| `OPENROUTER_API_KEY` | ג׳רבי AI — גיבוי (Qwen3.8 Max) | לא | openrouter.ai → Keys |
+| `DEEPSEEK_API_KEY` | ג׳רבי AI — גיבוי זול | לא | platform.deepseek.com → API keys |
+| `GERBI_AI_DAILY_USD`, `GERBI_AI_DISABLED`, `GERBI_AI_PROVIDERS` | תקרה יומית בדולרים (ברירת מחדל 3), כיבוי פיצ׳רים, סדר ספקים | לא | — |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | זיכרון שאילתות, מטמון AI ולמידה שנשמרים בין הפעלות | כן לפרודקשן | upstash.com → Redis → REST API (יש שכבה חינמית) |
 | `GERBI_LLM_MODEL` | החלפת מודל (למשל `qwen/qwen3.8-flash`, זול פי 13) | לא | — |
 | `GERBI_LLM_DAILY_TOKENS` | תקרת טוקנים ליום (ברירת מחדל 200,000) | לא | — |

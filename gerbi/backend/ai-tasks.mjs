@@ -74,6 +74,7 @@ Fill only what the text states or clearly implies; leave "" / 0 / [] otherwise. 
 - "summary": 2-3 short sentences comparing the offers on what matters for this traveler (price difference, total time, stops and waits, departure/arrival hours, baggage). Copy prices exactly as written in the offers.
 - "pick": the label that fits this traveler best, or "" when it is a matter of taste.
 - "tradeoffs": up to 3 very short bullets ("A: ..."), facts only.
+Refer to the offers by their place in the list ("הטיסה הראשונה", "השנייה", "השלישית"), not by letter.
 Do not mention anything that is not in the data (no seats, meals, refunds, airline quality or reputation).`,
     schema: obj({ summary: str(500), pick: { type: 'string', enum: ['', 'A', 'B', 'C'] }, tradeoffs: list(str(140), 3) })
   },

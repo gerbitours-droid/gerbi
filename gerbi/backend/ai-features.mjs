@@ -48,7 +48,9 @@ export async function flightExplain(offers, brief, { store = null, gw = gateway 
   if (!Array.isArray(offers) || offers.length < 2) return null;
   const labels = offers.map((o) => o.label);
   const validate = (v) => {
-    const summary = stripLinks(v.summary), tradeoffs = (v.tradeoffs || []).map(stripLinks).filter(Boolean).slice(0, 3);
+    // Travelers see a list, not letters: "A" becomes "הטיסה הראשונה" and so on.
+    const ord = (t) => stripLinks(t).replace(/(^|[^A-Za-z])(?:הטיסה |טיסה )?([ABC])(?![A-Za-z])/g, (m, pre, l) => pre + 'הטיסה ' + ({ A: 'הראשונה', B: 'השנייה', C: 'השלישית' })[l]);
+    const summary = ord(v.summary), tradeoffs = (v.tradeoffs || []).map(ord).filter(Boolean).slice(0, 3);
     if (summary.length < 10 || !numbersGrounded([summary, ...tradeoffs].join(' '), [JSON.stringify(offers), JSON.stringify(brief)])) return null;
     return { summary, tradeoffs, pick: labels.includes(v.pick) ? v.pick : '' };
   };

@@ -133,7 +133,7 @@ test('features with the mock provider: grounded support answer, tailor fill, fli
     assert.ok(fill.fields.styles.includes('culinary') && fill.fields.styles.includes('romantic'));
     const offers = [{ label: 'A', price: '₪ 2,431', duration: '9 ש׳', stops: 1 }, { label: 'B', price: '₪ 2,690', duration: '4 ש׳', stops: 0 }];
     const take = await flightExplain(offers, { adults: 2, children: 0 }, { gw });
-    assert.match(take.summary, /2,431/); assert.equal(take.pick, 'A');
+    assert.match(take.summary, /2,431/); assert.equal(take.pick, 'A'); assert.match(take.summary, /^הטיסה הראשונה/); assert.equal(/\bA\b/.test(take.summary + take.tradeoffs.join(' ')), false);
     const ok = await gw.status();
     assert.ok(ok.tasks.find((t) => t.id === 'support_answer').usage.ok === 1);
   } finally { await mock.close(); }
