@@ -26,7 +26,7 @@ import { createSupport } from './backend/support.mjs';
 import { handleAi } from './backend/ai-routes.mjs';
 import { gateway } from './backend/ai-features.mjs';
 import { createSearchStats } from './backend/search-stats.mjs';
-import { localizeHtml } from './dist/i18n.mjs';
+import { localizeHtml, normLang } from './dist/i18n.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
@@ -125,16 +125,16 @@ export function createServer() {
     const text = string(input.text);
     if (!text.trim()) return send(400, { error:'text_required', message:'צריך לתאר בקצרה את החופשה.' });
     const previous = input.previous && typeof input.previous === 'object' ? input.previous : {};
-    const signals = extractSignals(text, previous);
-    const understanding = understandRequest(text, previous);
+    const signals = extractSignals(text, previous), l = normLang(input.lang);
+    const understanding = understandRequest(text, previous, { lang: l });
     // The LLM is consulted only when the rules understood too little of the text (spec §4.1).
-    const partner = understanding.coverage.needsPartner ? await partnerUnderstand(llmCache, text, understanding.brief) : null;
+    const partner = understanding.coverage.needsPartner ? await partnerUnderstand(llmCache, text, understanding.brief, { lang: l }) : null;
     const weights = await learning.weightsFor(text);
     const recommendations = scoreDestinations(trips, signals, weights).map(({ destination, score, estimate, matchedTags }) => ({
       id: destination.id, score: Math.round(score * 100) / 100, estimate, matchedTags
     }));
     const summary = await learning.learnQuery({ text, tags: signals.tags, consent: input.learningConsent === true });
-    return send(200, { mode:'rules_and_local_learning', signals, missing:missingFields(signals), understood:understanding.understood, assumed:understanding.assumed, questions:understanding.questions, flightSearch:understanding.flightSearch, coverage:understanding.coverage, partner: partner ? { used:true, ...partner } : { used:false }, recommendations, learning: { recorded: input.learningConsent === true, totals:summary.totals } });
+    return send(200, { mode:'rules_and_local_learning', signals, missing:missingFields(signals, l), understood:understanding.understood, assumed:understanding.assumed, questions:understanding.questions, flightSearch:understanding.flightSearch, coverage:understanding.coverage, partner: partner ? { used:true, ...partner } : { used:false }, recommendations, learning: { recorded: input.learningConsent === true, totals:summary.totals } });
    }
    if (url.pathname === '/api/ai/feedback') {
     if (req.method !== 'POST') return send(405,{error:'method_not_allowed'});
@@ -175,7 +175,7 @@ export function createServer() {
       price: number(row?.price, 1e6), currency: typeof row?.currency === 'string' && /^[A-Z]{3}$/.test(row.currency) ? row.currency : '', minutes: number(row?.minutes, 1e4),
       stops: number(row?.stops, 6), longestWait: number(row?.longestWait, 1e4), departs: Array.isArray(row?.departs) ? row.departs.filter((t) => /^\d{2}:\d{2}$/.test(t)).slice(0, 2) : [],
       bag: ['included', 'paid', 'none', 'mixed', 'unknown'].includes(row?.bag) ? row.bag : 'unknown', carrier: string(row?.carrier, 40) })).filter((row) => row.key);
-    const result = await partnerTieBreak(llmCache, safeBrief(input.brief), candidates);
+    const result = await partnerTieBreak(llmCache, safeBrief(input.brief), candidates, { lang: normLang(input.lang) });
     return send(200, result || { pick:null });
    }
    if (url.pathname === '/api/volero/flights/search') {

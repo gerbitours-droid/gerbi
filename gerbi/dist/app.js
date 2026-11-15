@@ -107,7 +107,7 @@ async function askTieBreak(payload,ranked){
  const top=ranked.slice(0,3),signature=payload.srk+'|'+top.map(x=>x.key).join(',');
  if(!partnerAvailable||decision.asked.has(signature))return;decision.asked.add(signature);
  const candidates=top.map(x=>({key:x.key,price:x.facts.price?.value,currency:x.facts.price?.currency,minutes:x.facts.totalMinutes,stops:x.facts.stops,longestWait:x.facts.longestLayover,departs:x.facts.legs.map(l=>l.segments[0]?.departure?.time).filter(Boolean),bag:x.facts.checked,carrier:x.facts.carriers.join(' + ')}));
- try{const data=await(await fetch('/api/ai/tiebreak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brief:decisionBrief(),candidates})})).json();
+ try{const data=await(await fetch('/api/ai/tiebreak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brief:decisionBrief(),candidates,lang})})).json();
   if(data.pick&&state.voleroResults===payload){decision.pick=data.pick;decision.reason=data.reason||'';renderVoleroOffers(payload);}}catch{ /* The computed order stands. */ }
 }
 const searchParams=()=>isMulti()?JSON.stringify(['multi',multiCity.signature(),state.adults,state.children]):JSON.stringify([originPlace()?.code||$('#origin').value.trim(),resolvePlace($('#destination').value)?.code||$('#destination').value.trim(),oneWay()?'oneway':'round',state.start,oneWay()?'':state.end,state.adults,state.children]);

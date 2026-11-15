@@ -163,7 +163,7 @@ export function initPages(ctx) {
   // The local answer is shown at once. The server is asked only to record consented learning, or – when the rules
   // understood too little – to consult the LLM partner, whose addition arrives as a second, clearly marked message.
   const previous=state.preferences,askPartner=result.coverage.needsPartner&&ctx.partnerAvailable();
-  if(askPartner||result.brief.learningConsent===true)fetch('/api/ai/understand',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:!askPartner,body:JSON.stringify({text,previous,learningConsent:result.brief.learningConsent===true})})
+  if(askPartner||result.brief.learningConsent===true)fetch('/api/ai/understand',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:!askPartner,body:JSON.stringify({text,lang,previous,learningConsent:result.brief.learningConsent===true})})
    .then(r=>r.ok?r.json():null).then(data=>{if(askPartner&&data?.partner?.used&&version===routeVersion)applyPartner(data.partner);}).catch(()=>{});
   if(version!==routeVersion)return;
   const preferences=result.brief;
