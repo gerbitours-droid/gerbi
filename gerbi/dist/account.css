@@ -1,8 +1,8 @@
 /* Customer area (spec 17): header user menu, sign-in card, account sections. Reuses the .lead-* form styles. */
 .header-actions{position:relative}
 .login .account-name{max-width:120px;overflow:hidden;text-overflow:ellipsis;font-weight:700}
-.login .account-caret{font-size:11px;margin-right:-4px}
-.account-menu{position:absolute;top:calc(100% + 10px);right:0;z-index:30;min-width:230px;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 14px 40px #0b2a6526;padding:8px;display:flex;flex-direction:column;white-space:normal}
+.login .account-caret{font-size:11px;margin-inline-start:-4px}
+.account-menu{position:absolute;top:calc(100% + 10px);inset-inline-start:0;z-index:30;min-width:230px;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 14px 40px #0b2a6526;padding:8px;display:flex;flex-direction:column;white-space:normal}
 .account-menu a,.account-menu button{display:block;width:100%;text-align:right;padding:11px 12px;border-radius:10px;font-size:14px;min-height:44px}
 .account-menu a:hover,.account-menu button:hover{background:#f1f7ff}
 .account-menu button{color:#9b1c1c}
@@ -52,7 +52,7 @@
 
 @media(max-width:900px){.account-auth{grid-template-columns:1fr}.account-auth>.account-auth-intro{grid-row:auto}}
 @media(max-width:700px){
- .account-menu{position:fixed;top:66px;right:12px;left:12px;min-width:0}
+ .account-menu{position:fixed;top:66px;inset-inline-start:12px;inset-inline-end:12px;min-width:0}
  .account-card{padding:18px 16px}
  .account-card-head h2{font-size:21px}
  .account-sync{margin:4px 0 0;width:100%;text-align:center}

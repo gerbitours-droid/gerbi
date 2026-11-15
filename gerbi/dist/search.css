@@ -10,7 +10,7 @@
 .place-empty{font-size:14px;color:#566682;padding:12px 10px;line-height:1.6}
 .place-option{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;cursor:pointer;min-height:48px}
 .place-option svg{width:20px;height:20px;flex:none;color:var(--blue)}
-.place-option.is-airport{padding-right:30px}
+.place-option.is-airport{padding-inline-start:30px}
 .place-option.is-airport svg{width:17px;height:17px;color:var(--muted)}
 .place-text{display:flex;flex-direction:column;min-width:0;flex:1}
 .place-text strong{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -25,7 +25,7 @@ button.swap.is-flipped svg{transform:rotate(180deg)}
 
 /* Range date picker */
 dialog.date-picker{width:min(760px,calc(100% - 24px));padding:24px 24px 20px}
-.dp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-left:40px}
+.dp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-inline-end:40px}
 .dp-head h2{margin:0;font-size:24px}
 .dp-mode{display:flex;background:var(--pale);border-radius:100px;padding:3px;gap:2px}
 .dp-mode button{border-radius:100px;padding:6px 14px;font-size:14px;min-height:36px}
@@ -87,11 +87,11 @@ dialog.date-picker{width:min(760px,calc(100% - 24px));padding:24px 24px 20px}
 @media (max-width:700px){
  .search-fields{grid-template-columns:1fr 1fr;grid-template-areas:"origin origin" "dest dest" "dates travelers" "submit submit";position:relative}
  .search-fields .origin-field{grid-area:origin}.search-fields .destination-field{grid-area:dest}.search-fields .date-field{grid-area:dates}.search-fields .travelers-field{grid-area:travelers}.search-fields .search-submit{grid-area:submit}
- .dp-head{padding-left:36px}.dp-clear{margin-inline-start:0}
+ .dp-head{padding-inline-end:36px}.dp-clear{margin-inline-start:0}
  .search-fields.hotel-mode{grid-template-areas:"dest dest" "dates travelers" "submit submit"}
- button.swap{position:absolute;left:14px;top:41px;z-index:3;margin:0;background:#fff;border:1.5px solid var(--border);box-shadow:0 2px 8px #0a2a5a1a;width:40px;height:40px;min-width:40px;transform:rotate(90deg)}
- .origin-field,.destination-field{padding-left:60px}
- .place-list{width:auto;left:0!important}
+ button.swap{position:absolute;inset-inline-end:14px;top:41px;z-index:3;margin:0;background:#fff;border:1.5px solid var(--border);box-shadow:0 2px 8px #0a2a5a1a;width:40px;height:40px;min-width:40px;transform:rotate(90deg)}
+ .origin-field,.destination-field{padding-inline-end:60px}
+ .place-list{width:auto;inset-inline-end:0!important}
  .field{gap:10px}
  .date-field .field-value,.travelers-field .field-value{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  dialog.date-picker{width:100%;max-width:100%;max-height:100dvh;height:100dvh;margin:0;border-radius:0;padding:18px 14px}

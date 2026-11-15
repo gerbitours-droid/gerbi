@@ -6,8 +6,9 @@ import { DICTS, AREAS, LANGS, t, tIn, setLang, fmtMoney, fmtDate, langFromPath, 
 
 const HEBREW = /[֐-׿]/;
 // English values that are Hebrew on purpose (the switch back to Hebrew is written in Hebrew).
-const HEBREW_OK = new Set(['core.lang.he', 'core.lang.toHe']);
-const placeholders = (v) => [...new Set(JSON.stringify(v).match(/\{\w+\}/g) || [])].sort();
+const HEBREW_OK = new Set(['core.lang.he', 'core.lang.toHe', 'home.lang.aria', 'home.lang.label', 'home.lang.menuLabel']);
+// {count} may appear on one side only (a plural form can spell the number out: „נוסע אחד”).
+const placeholders = (v) => [...new Set(JSON.stringify(v).match(/\{\w+\}/g) || [])].filter((p) => p !== '{count}').sort();
 
 test('every key exists in both dictionaries with the same placeholders', () => {
   for (const [name, area] of Object.entries(AREAS)) {
@@ -46,7 +47,7 @@ test('every literal key used in code and markup exists', async () => {
   const missing = [];
   for (const [file, text] of await sources()) {
     for (const m of text.matchAll(/\b(?:t|tr|T)\(\s*['"`]([a-z][\w-]*\.[\w.-]+)['"`]/g)) if (!(m[1] in DICTS.he)) missing.push(`${file}: ${m[1]}`);
-    for (const m of text.matchAll(/data-i18n="([\w.-]+)"/g)) if (!(m[1] in DICTS.he)) missing.push(`${file}: ${m[1]}`);
+    for (const m of text.matchAll(/data-i18n(?:-html)?="([\w.-]+)"/g)) if (!(m[1] in DICTS.he)) missing.push(`${file}: ${m[1]}`);
     for (const m of text.matchAll(/data-i18n-attr="([^"]+)"/g)) for (const pair of m[1].split(';')) { const key = pair.split(':')[1]?.trim(); if (key && !(key in DICTS.he)) missing.push(`${file}: ${key}`); }
   }
   assert.deepEqual(missing, []);

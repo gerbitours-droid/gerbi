@@ -26,6 +26,7 @@ import { createSupport } from './backend/support.mjs';
 import { handleAi } from './backend/ai-routes.mjs';
 import { gateway } from './backend/ai-features.mjs';
 import { createSearchStats } from './backend/search-stats.mjs';
+import { localizeHtml } from './dist/i18n.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
@@ -229,6 +230,12 @@ export function createServer() {
    try { decoded = decodeURIComponent(url.pathname); } catch { return send(400,{error:'invalid_path'}); }
    if (decoded === '/leads-admin' || decoded === '/leads-admin.html') { res.writeHead(301, { Location:'/admin', 'Cache-Control':'no-store' }); return res.end(); }
    if (decoded === '/admin' || decoded === '/admin.html') { decoded = '/admin.html'; res.setHeader('X-Robots-Tag','noindex, nofollow'); res.setHeader('Referrer-Policy','no-referrer'); }
+   // English site (spec 21): /en/ is index.html rendered in English (lang/dir, title, static text); hash routes are shared.
+   if (decoded === '/en' || decoded === '/en/' || decoded === '/en/index.html') {
+    const page = localizeHtml(await readFile(path.join(root, 'index.html'), 'utf8'), 'en');
+    res.writeHead(200, { 'Content-Type':types['.html'], 'Cache-Control':'no-cache', 'Content-Language':'en' });
+    return res.end(req.method === 'HEAD' ? undefined : page);
+   }
    const file = path.resolve(root, '.' + (decoded === '/' ? '/index.html' : decoded));
    if (!file.startsWith(root + path.sep) || decoded.split('/').some(x=>x.startsWith('.'))) return send(404,{error:'not_found'});
    const fileBody = await readFile(file);

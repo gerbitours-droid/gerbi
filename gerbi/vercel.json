@@ -12,6 +12,14 @@
     {
       "source": "/admin",
       "destination": "/admin.html"
+    },
+    {
+      "source": "/en",
+      "destination": "/en/index.html"
+    },
+    {
+      "source": "/en/",
+      "destination": "/en/index.html"
     }
   ],
   "headers": [
@@ -29,6 +37,15 @@
         {
           "key": "Referrer-Policy",
           "value": "no-referrer"
+        }
+      ]
+    },
+    {
+      "source": "/en(/.*)?",
+      "headers": [
+        {
+          "key": "Content-Language",
+          "value": "en"
         }
       ]
     }

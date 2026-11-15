@@ -28,8 +28,8 @@
 .lead-consent{display:flex;flex-direction:column;gap:12px;background:#f5f9fe;border:1px solid var(--border);border-radius:14px;padding:14px}
 .lead-check{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.6;cursor:pointer}
 .lead-check input{width:20px;height:20px;flex-shrink:0;margin-top:2px;accent-color:var(--blue)}
-.lead-consent .lead-hint{padding-right:30px}
-.lead-consent .lead-error{padding-right:30px}
+.lead-consent .lead-hint{padding-inline-start:30px}
+.lead-consent .lead-error{padding-inline-start:30px}
 .lead-field.invalid .lead-check span{color:#b71c1c}
 .lead-trap{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;opacity:0;pointer-events:none}
 .lead-form-error{margin:0;background:#fff1f1;border:1px solid #f2c4c4;color:#9b1c1c;border-radius:10px;padding:11px 14px;font-weight:700}
@@ -43,14 +43,14 @@
 .lead-quick.whatsapp{background:#e9f9ef;border-color:#bfe8cd}
 .lead-quick:hover{border-color:var(--blue)}
 .lead-link{display:inline-block;margin-top:12px;font-weight:700;color:var(--blue)}
-.lead-how{margin:0;padding-right:20px;line-height:1.9}
+.lead-how{margin:0;padding-inline-start:20px;line-height:1.9}
 .lead-context{margin:0 0 20px}
 .lead-context p{margin:0}
 .lead-success{text-align:center;padding:10px 0;outline:0}
 .lead-success-icon{display:inline-grid;place-items:center;width:58px;height:58px;border-radius:50%;background:#e3f7ea;color:#1b7a3d;font-size:30px;font-weight:900}
 .lead-success h2{margin:12px 0 6px}
 .lead-success h3{margin:22px 0 8px;font-size:16px}
-.lead-success ol{text-align:right;display:inline-block;margin:0 auto;padding-right:20px;line-height:1.9;max-width:460px}
+.lead-success ol{text-align:right;display:inline-block;margin:0 auto;padding-inline-start:20px;line-height:1.9;max-width:460px}
 .lead-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px}
 /* Home section */
 .tailor-banner{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:16px;padding:24px 28px;border-radius:25px;background:linear-gradient(120deg,#fff7c9,#fffbe6);border:2px solid #fff;box-shadow:var(--shadow)}

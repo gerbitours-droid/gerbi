@@ -79,12 +79,15 @@ export function shouldRedirectToEnglish(pathname, hash, remembered) {
 // ---- Static HTML (index.html) ----
 const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const escText = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-// Elements marked data-i18n="key" hold plain text only; data-i18n-attr="aria-label:key;placeholder:key" sets attributes.
+// data-i18n="key": the element's first text run (after an optional leading <svg> icon or <input>) is the string.
+// data-i18n-html="key": the element's whole content (no nested element of the same tag) is the HTML value.
+// data-i18n-attr="aria-label:key;placeholder:key" sets attributes.
 // Used by the server for /en/ and by the Vercel build, so English is in the first HTML (no Hebrew flash, indexable).
 export function localizeHtml(html, l = 'en') {
   const tr = tIn(l);
   let out = html.replace(/<html lang="[^"]*" dir="[^"]*">/, `<html lang="${l}" dir="${dir(l)}">`);
-  out = out.replace(/(<([a-z0-9]+)\b[^>]*\sdata-i18n="([\w.-]+)"[^>]*>)([^<]*)(<\/\2>)/g, (m, open, tag, key, text, close) => open + escText(tr(key)) + close);
+  out = out.replace(/(<([a-z0-9]+)\b[^>]*\sdata-i18n="([\w.-]+)"[^>]*>)((?:<svg\b[^>]*>[\s\S]*?<\/svg>|<input\b[^>]*>)?)([^<]*)/g, (m, open, tag, key, lead, text) => open + lead + escText(tr(key)));
+  out = out.replace(/(<([a-z0-9]+)\b[^>]*\sdata-i18n-html="([\w.-]+)"[^>]*>)([\s\S]*?)(<\/\2>)/g, (m, open, tag, key, inner, close) => open + tr(key) + close);
   out = out.replace(/<([a-z0-9]+)\b[^>]*\sdata-i18n-attr="([^"]+)"[^>]*>/g, (tag) => {
     const spec = /\sdata-i18n-attr="([^"]+)"/.exec(tag)[1];
     let next = tag;
@@ -101,7 +104,11 @@ export function localizeHtml(html, l = 'en') {
 // Browser: apply the same markup rules to a subtree (used for markup added after load).
 export function localizeDom(root = typeof document !== 'undefined' ? document : null) {
   if (!root || lang === 'he') return;
-  root.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  root.querySelectorAll('[data-i18n]').forEach((el) => {
+    const node = [...el.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim());
+    if (node) node.textContent = t(el.dataset.i18n); else el.append(t(el.dataset.i18n));
+  });
+  root.querySelectorAll('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
   root.querySelectorAll('[data-i18n-attr]').forEach((el) => {
     for (const pair of el.dataset.i18nAttr.split(';')) { const [attr, key] = pair.split(':').map((s) => s.trim()); if (attr && key) el.setAttribute(attr, t(key)); }
   });

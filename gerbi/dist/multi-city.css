@@ -28,7 +28,7 @@ dialog.date-picker.single-only .dp-mode{display:none}
 .leg-gap{background:#fff8d7;border-radius:8px;padding:6px 10px}
 @media (max-width:700px){
  .leg-row{grid-template-columns:1fr 1fr 40px;grid-template-areas:"from from from" "to to to" "date date remove";gap:6px;padding:10px 10px 10px;border:1px solid var(--border,#dce7f3);border-radius:12px;background:#fff}
- .leg-number{position:absolute;top:-8px;right:-6px;width:24px;height:24px;font-size:12px;z-index:2}
+ .leg-number{position:absolute;top:-8px;inset-inline-start:-6px;width:24px;height:24px;font-size:12px;z-index:2}
  .leg-row .leg-from{grid-area:from}.leg-row .leg-to{grid-area:to}.leg-row .leg-date{grid-area:date}.leg-row .leg-remove,.leg-row .leg-remove-spacer{grid-area:remove;justify-self:center}
  .leg-remove{width:44px;height:44px}
  .leg-row .field{height:54px}
