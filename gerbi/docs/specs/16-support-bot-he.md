@@ -133,7 +133,7 @@
 { "sessionId": "uuid", "messages": [{ "text": "…", "link": { "href": "#/tailor-made", "label": "…" } }],
   "chips": [{ "id": "baggage", "label": "כבודה" }], "input": "text|name|tel",
   "escalation": { "ref": "1a2b3c4d", "status": "open" } | null, "intent": "baggage|null",
-  "hours": { "open": false, "text": "…" } }
+  "hours": { "open": false, "text": "…", "next": "סגורים כרגע. נפתחים מחר ב־09:00" } }
 ```
 שגיאות: 400 `text_required`, 413, 429 `rate_limited`.
 
@@ -220,3 +220,19 @@ GET מחזיר את התוכן האפקטיבי (`{ intents:[{id,title,answer,de
 | `WHATSAPP_PHONE_NUMBER_ID` | לוואטסאפ | מזהה מספר הטלפון העסקי |
 | `WHATSAPP_GRAPH_URL` | לא | ברירת מחדל `https://graph.facebook.com/v21.0` (הסימולטור מחליף לשרת מקומי) |
 | `PUBLIC_SITE_URL` | לא | להפיכת קישורים יחסיים לקישורים מלאים בוואטסאפ |
+
+## 14. סטטוס מימוש (15.11.2026)
+
+| רכיב | קובץ |
+|---|---|
+| תוכן ברירת מחדל, שעות, מיזוג עריכות הבעלים | `backend/support-content.mjs` |
+| מנוע כוונות + מכונת מצבים (טהור) | `backend/support-brain.mjs` |
+| נתיבי API, אחסון, הסלמה, וואטסאפ webhook | `backend/support.mjs` |
+| מתאם WhatsApp Cloud API (חתימה, פענוח, בניית הודעות) | `backend/whatsapp.mjs` |
+| וידג׳ט באתר | `dist/support-bot.mjs`, `dist/support-bot.css` (נטען מ־`app.js`; כפתור בעמוד `#/support`) |
+| ווים בקבצים משותפים | `server.mjs` (3 שורות), `backend/leads.mjs` (`recordLead`), `backend/llm-partner.mjs` (`partnerClassify`), `dist/app.js` (import), `dist/pages.mjs` (כפתור + תשובת FAQ) |
+| בדיקות | `tests/support-bot.test.mjs`; סטים מסומנים `tests/fixtures/support-intents*.json`; `node scripts/eval-support-intents.mjs [holdout]` |
+| סימולטור | `node scripts/simulate-whatsapp.mjs` |
+| דפדפן | `tests/e2e/support-bot.e2e.mjs` → `verification/16-support-bot/` |
+
+דיוק כוונות: סט כוונון 99 משפטים — 100%. סט מוחזק 47 משפטים, שנכתב אחרי הכוונון — 93.6% בהרצה הראשונה (3 החטאות: „לעלות למטוס”, „מזמין”, „קונה”), 100% אחרי תיקון מילים. מגבלת יצירת פניות מהצ׳אט חולקת את הדלי של טופס צור קשר (5 ל־10 דקות לכתובת).

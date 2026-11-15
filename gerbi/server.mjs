@@ -19,6 +19,7 @@ import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm
 import { places } from './dist/places.mjs';
 import { learnFromChoice } from './dist/scoring.mjs';
 import { handleLeads } from './backend/leads.mjs';
+import { createSupport } from './backend/support.mjs';
 const root = path.resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const dataDirectory = path.resolve(fileURLToPath(new URL('./data/', import.meta.url)));
 const learning = new LearningStore(dataDirectory);
@@ -27,6 +28,8 @@ const llmCache = createStore('llm-cache', dataDirectory);
 // Learned multipliers on the prices of time and inconvenience (spec §2.6), shared by all travelers.
 const learnedStore = createStore('learned-costs', dataDirectory);
 const leadStore = createStore('leads', dataDirectory);
+// Customer-service bot on the site and WhatsApp (spec 16); escalations become support leads.
+const support = createSupport({ dataDirectory, leadStore, llmCache });
 const featureVector = (value) => Object.fromEntries(['hour', 'stop', 'longWait', 'overnight', 'offHours', 'nightDeparture'].map((key) => [key, Number.isFinite(value?.[key]) ? Math.max(0, Math.min(100, value[key])) : 0]));
 const placeCodes = new Set(places.map((place) => place.code));
 // The canonical brief the decision endpoints accept: every field re-validated, nothing free-text.
@@ -197,6 +200,7 @@ export function createServer() {
     return send(503,{error:'provider_not_connected',message:'אין כרגע חיבור מאומת לספק. לא ניתן לאשר מחיר או זמינות, ולא בוצעה הזמנה.'});
    }
    if (await handleLeads(req, url, { send, body, store:leadStore })) return;
+   if (await support.handle(req, res, url, { send, body })) return;
    if (url.pathname.startsWith('/api/')) return send(404,{error:'not_found'});
    if (!['GET','HEAD'].includes(req.method)) return send(405,{error:'method_not_allowed'});
    let decoded;
