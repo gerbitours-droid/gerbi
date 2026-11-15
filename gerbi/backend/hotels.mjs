@@ -78,7 +78,8 @@ export function rankHotels(list, spec) {
   const value = scored[0], budget = [...scored].sort((a, b) => a.price.value - b.price.value)[0];
   const upgrade = scored.filter((h) => h.stars > value.stars && h !== budget).sort((a, b) => a.price.value - b.price.value)[0]
     || scored.find((h) => h !== value && h !== budget && h.price.value > value.price.value);
-  const roles = new Map([[value, 'value'], ...(upgrade ? [[upgrade, 'upgrade']] : []), ...(budget !== value ? [[budget, 'budget']] : [])]);
+  // 'upgrade' only when it really has more stars; otherwise the second choice is an 'alternative'.
+  const roles = new Map([[value, 'value'], ...(upgrade ? [[upgrade, upgrade.stars > value.stars ? 'upgrade' : 'alternative']] : []), ...(budget !== value ? [[budget, 'budget']] : [])]);
   const ordered = [...roles.keys(), ...scored.filter((h) => !roles.has(h))].slice(0, 8);
   return { picks: ordered.map(({ score, lat, lon, ...h }) => ({ ...h, role: roles.get(scored.find((x) => x.id === h.id)) || '' })), relaxedStars };
 }
@@ -87,10 +88,11 @@ export function rankHotels(list, spec) {
 // receives, so another area or family preference re-ranks the same list without a new supplier call.
 const HOTEL_TTL = 30 * 60;
 const inFlight = new Map();
-export function createHotelSearch({ store, search, log = () => {}, now = () => Date.now() }) {
+// keyPrefix keeps recorded (fixture) answers apart from live ones when both share a store.
+export function createHotelSearch({ store, search, log = () => {}, now = () => Date.now(), keyPrefix = 'h:' }) {
   async function list(spec) {
     const supplierSpec = { city: spec.city, checkIn: spec.checkIn, checkOut: spec.checkOut, rooms: spec.rooms, board: spec.board, minStars: spec.minStars };
-    const key = 'h:' + createHash('sha1').update(JSON.stringify(supplierSpec)).digest('hex');
+    const key = keyPrefix + createHash('sha1').update(JSON.stringify(supplierSpec)).digest('hex');
     const hit = await store?.get(key).catch(() => null);
     if (hit) return { ...hit, cached: true };
     if (inFlight.has(key)) return inFlight.get(key);

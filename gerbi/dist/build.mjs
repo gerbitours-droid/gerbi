@@ -370,7 +370,7 @@ function page({ view: host, footer, bread }) {
   if (shared && /^[a-f0-9]{16}$/.test(shared)) openShared(shared);
   else if (q || dest) build({ text: q, dest });
   else {
-    try { const saved = JSON.parse(sessionStorage.getItem(CURRENT_KEY) || 'null'); if (saved?.pkg?.destination) { pkg = saved.pkg; lastInput = saved.input; $('#build-text').value = saved.input?.text || ''; render(); } } catch { /* fresh start */ }
+    try { const saved = JSON.parse(sessionStorage.getItem(CURRENT_KEY) || 'null'); if (saved?.pkg?.destination) { pkg = saved.pkg; lastInput = saved.input; for (const g of [pkg.flights, ...hotelGroups()]) if (g.status === 'pending') g.status = 'quote'; $('#build-text').value = saved.input?.text || ''; render(); } } catch { /* fresh start */ }
   }
 }
 
