@@ -1,6 +1,7 @@
 // Owner-editable content (spec 18 §4): one validator shared by the admin page (inline errors) and the server (the gate).
 // Site content is stored as overrides only; an empty field means "use the built-in default".
-import { trips, contact } from './data.mjs';
+import { contact } from './data.mjs';
+import { destinations } from './catalog.mjs';
 import { safeLink } from './markdown.mjs';
 import { tIn } from './i18n.mjs';
 
@@ -13,7 +14,7 @@ export const SITE_DEFAULTS = {
   guides: {}
 };
 export const GUIDE_FIELDS = [['fit', 'למי זה מתאים'], ['less', 'פחות מתאים ל'], ['stay', 'איפה לישון'], ['move', 'להתנייד'], ['season', 'מתי לנסוע'], ['budget', 'מה מייקר את החופשה']];
-export const GUIDE_IDS = trips.map((t) => t.id);
+export const GUIDE_IDS = destinations.map((d) => d.id); // spec 23: every catalog destination has an editable guide
 export const LIMITS = { siteJson: 60_000, title: 120, category: 40, excerpt: 300, body: 40_000, tag: 30, tags: 8, seoTitle: 70, seoDescription: 160, cover: 500, coverData: 350_000, faqs: 30, faqQ: 200, faqA: 1500, guide: 600, banner: 200, hero: 160, footer: 200 };
 export const POST_STATUSES = ['draft', 'published'];
 export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,58}[a-z0-9])?$/;

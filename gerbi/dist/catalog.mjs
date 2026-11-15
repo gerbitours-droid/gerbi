@@ -105,7 +105,10 @@ export function search(query, lang = 'he') {
     return best;
   };
   const langName = (d) => (lang === 'en' ? d.name.en : d.name.he);
-  return destinations.map((d) => ({ d, s: scoreOf(d) })).filter((x) => x.s > 0)
+  const scored = destinations.map((d) => ({ d, s: scoreOf(d) })).filter((x) => x.s > 0);
+  // A name/country hit ("רומא", "יוון") means the visitor named a place: drop destinations that merely mention it.
+  const floor = scored.some((x) => x.s >= 70) ? 50 : 1;
+  return scored.filter((x) => x.s >= floor)
     .sort((a, b) => b.s - a.s || order(a.d) - order(b.d) || langName(a.d).localeCompare(langName(b.d))).map((x) => x.d);
 }
 
@@ -153,14 +156,24 @@ export function rank(preferences = {}, { limit = Infinity } = {}) {
 // Home showcase: varied across regions (and countries), in season, never a destination under a travel advisory.
 // A destination the visitor asked for leads; it never hides the others.
 export function curatedPicks({ month, preferences = {}, limit = 8, perRegion = 2 } = {}) {
-  const ranked = rank({ ...preferences, month: month || preferences.month, start: preferences.start, region: undefined, direct: undefined, maxBudgetLevel: undefined, maxFlightHours: undefined });
-  const out = [], perR = {}, countries = new Set();
-  for (const item of ranked) {
+  const m = monthOf({ month: month || preferences.month, start: preferences.start });
+  const ranked = rank({ ...preferences, month: m || undefined, start: undefined, region: undefined, direct: undefined, maxBudgetLevel: undefined, maxFlightHours: undefined });
+  const want = new Set((preferences.want || []).map((c) => String(c).toUpperCase()));
+  const requested = (d) => want.has(d.code) || (d.airports || []).some((a) => want.has(a));
+  const out = [], perR = {}, countries = {};
+  const take = (item, countryCap, regionCap = perRegion) => {
     const d = item.destination;
-    if (d.advisory || out.length >= limit) continue;
-    if ((perR[d.region] || 0) >= perRegion || countries.has(d.country.en)) continue;
-    out.push(item); perR[d.region] = (perR[d.region] || 0) + 1; countries.add(d.country.en);
-  }
+    if (out.includes(item) || out.length >= limit || (perR[d.region] || 0) >= regionCap || (countries[d.country.en] || 0) >= countryCap) return;
+    out.push(item); perR[d.region] = (perR[d.region] || 0) + 1; countries[d.country.en] = (countries[d.country.en] || 0) + 1;
+  };
+  const usable = ranked.filter((x) => !x.destination.advisory || requested(x.destination));
+  // 1) what the visitor asked for (up to two of the same country), 2) in season across regions, 3) in season with a
+  // looser region cap, 4) anything else that fits.
+  for (const item of usable) if (requested(item.destination)) take(item, 2);
+  const inSeason = usable.filter((x) => !m || x.destination.bestMonths.includes(m));
+  for (const item of inSeason) take(item, 1);
+  for (const item of inSeason) take(item, 1, perRegion * 2);
+  for (const item of usable) take(item, 1);
   return out;
 }
 

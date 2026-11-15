@@ -1,4 +1,4 @@
-import { styles, rankInspirations } from './personalization.mjs';
+import { styles } from './personalization.mjs';
 import { offerPrice, formatFare, carrierOf, hoursText, LONG_LAYOVER_MINUTES, offerFacts, emptyFilters, matchesFilters, sortFacts, TIME_BUCKETS } from './flight-view.mjs';
 import { parsePreferences, rankDemoTrips, estimateDemoTotal, validFlightDates } from './planner.mjs';
 import { trips, contact } from './data.mjs';
@@ -20,12 +20,16 @@ import { initMultiCity } from './multi-city.mjs';
 import { legName, routeText, groundGaps, gapText, multiLink, cleanRoute } from './multi-city-core.mjs';
 import { perPassenger, PTC_LABEL, seatsLeft, FEW_SEATS, fareInclusions, layoverAirports } from './fare-extras.mjs';
 import { t as tr, lang, locale, fmtMoney, errorText } from './i18n.mjs';
+import { byId } from './catalog.mjs';
+import { homePicks, homeCard, L } from './destinations-ui.mjs';
 const icons=name=>`<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const money=n=>fmtMoney(n);
 const $=s=>document.querySelector(s);
-let favorites=[];try{favorites=JSON.parse(localStorage.getItem('gerbi-favorites')||'[]');if(!Array.isArray(favorites))favorites=[];favorites=[...new Set(favorites.filter(id=>trips.some(t=>t.id===id)))];}catch{}
-function renderCards(items=trips){$('#cards').innerHTML=items.map(t=>`<article class="card"><div class="card-image"><img src="/assets/${t.image}" alt="${t.name}" loading="lazy" width="560" height="400"><button class="favorite" data-favorite="${t.id}" aria-pressed="${favorites.includes(t.id)}" aria-label="${favorites.includes(t.id)?tr('app.card.unsave',{name:t.short}):tr('app.card.save',{name:t.short})}">${icons('heart')}</button><span class="card-badge">${icons(t.id==='rome'?'hotel':t.id==='dubai'?'globe':'sun')}${t.badge}</span></div><div class="card-body"><h3>${t.name}</h3><p class="card-description">${t.description}</p>${t.matchReason?`<p class="match-reason">${escapeHTML(t.matchReason)}</p>`:''}<div class="card-bottom"><button class="yellow card-cta" data-trip="${t.id}">${tr('app.card.cta')}</button><div class="card-price"><small>${tr('app.card.priceFrom')}</small><strong>${money(t.price)}</strong></div></div></div></article>`).join('');}
-renderCards();
+let favorites=[];try{favorites=JSON.parse(localStorage.getItem('gerbi-favorites')||'[]');if(!Array.isArray(favorites))favorites=[];favorites=[...new Set(favorites.filter(id=>byId(id)))];}catch{}
+// Home showcase (spec 23): varied catalog picks for the season and the chosen styles; a destination asked for in the
+// planner leads but never hides the rest (it used to filter the showcase down to that one trip — the "only Greece" bug).
+function renderCards(){const p=currentShowcasePreferences();$('#cards').innerHTML=homePicks(p).map(({destination,reason})=>homeCard(destination,{favorites,reason:reason?tr('catalog.home.reason')+reason:''})).join('');}
+function currentShowcasePreferences(){const p=state.preferences||{};return {beach:p.beach,city:p.city,family:p.family,relaxation:p.relaxation,couple:p.couple,children:state.children,month:p.month,start:state.start,want:p.want,exclude:p.exclude};}
 for(const image of document.querySelectorAll('img[src="/assets/mascot.webp"]')){image.onload=()=>image.hidden=false;if(image.complete&&image.naturalWidth)image.hidden=false;}
 const state={tab:'flights',adults:2,children:0,start:'',end:'',preferences:{},activeTrip:null,edits:{},requests:{},voleroResults:null};
 try {
@@ -312,7 +316,7 @@ $('#search-form').onsubmit=async e=>{
 };
 $('#all-deals').onclick=()=>pages.navigate('/destinations');
 document.addEventListener('click',async e=>{
- const favorite=e.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];favorite.setAttribute('aria-pressed',String(favorites.includes(id)));favorite.setAttribute('aria-label',(n=>favorites.includes(id)?tr('app.card.unsave',{name:n}):tr('app.card.save',{name:n}))(trips.find(t=>t.id===id).short));try{localStorage.setItem('gerbi-favorites',JSON.stringify(favorites));toast(favorites.includes(id)?tr('app.fav.saved'):tr('app.fav.removed'));}catch{toast(tr('app.fav.session'));}}
+ const favorite=e.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];favorite.setAttribute('aria-pressed',String(favorites.includes(id)));favorite.setAttribute('aria-label',(n=>favorites.includes(id)?tr('app.card.unsave',{name:n}):tr('app.card.save',{name:n}))(L(byId(id)?.name)||id));try{localStorage.setItem('gerbi-favorites',JSON.stringify(favorites));toast(favorites.includes(id)?tr('app.fav.saved'):tr('app.fav.removed'));}catch{toast(tr('app.fav.session'));}}
  const trip=e.target.closest('[data-trip]');if(trip)openTrip(trip.dataset.trip);
  const offerButton=e.target.closest('[data-volero-offer]');if(offerButton){
   const result=state.voleroResults,offerIndex=offerButton.dataset.voleroOffer,offerContext=searchContext;
@@ -360,6 +364,8 @@ function restoreSharedSearch(){
  return true;
 }
 const sharedSearch=restoreSharedSearch();if(!sharedSearch)restoreLastSearch();
+function applyDestinationLink(){const m=/^#\/\?to=([A-Z]{3})$/.exec(location.hash);const place=m&&placeByCode(m[1]);if(!place)return false;selectTab('flights');if(document.querySelector('[name=trip-type]:checked')?.value==='multi')setTripType('round');$('#destination').value=placeText(place);history.replaceState(null,'','#/');document.dispatchEvent(new Event('brief-changed'));requestAnimationFrame(()=>{$('.search-panel')?.scrollIntoView({block:'center'});$('#dates-button').focus({preventScroll:true});});return true;}
+applyDestinationLink();window.addEventListener('hashchange',applyDestinationLink);
 {const home=resolvePlace($('#origin').value);if(home?.names)$('#origin').value=placeText(home);}
 // Cheapest fares from the server's long cache; a click runs that search live with the traveler's own passengers.
 initDealsStrip({after:$('.search-panel'),today:()=>localDate(),onPick(deal){
@@ -398,8 +404,7 @@ installResultsCta();
 function refreshPersonalization(){
  document.querySelectorAll('[data-preference]').forEach(b=>b.setAttribute('aria-pressed',String(state.preferences[b.dataset.preference]===true)));
  const selected=styles.filter(style=>state.preferences[style.id]===true);
- const ranked=rankInspirations(trips,{...state.preferences,budget:undefined,nights:undefined},4);
- renderCards(ranked.map(({trip,reasons})=>({...trip,matchReason:reasons.length?tr('app.match.prefix')+reasons.join(' · '):''})));
+ renderCards();
  $('#preference-status').textContent=selected.length?tr('app.prefs.sorted', { styles: selected.map(x=>x.label).join(' · ') }):tr('app.prefs.hint');
 }
 $('.preference-chips').innerHTML=styles.map(style=>`<button type="button" data-preference="${style.id}" aria-pressed="false">${icons(style.icon)}${style.label}</button>`).join('');

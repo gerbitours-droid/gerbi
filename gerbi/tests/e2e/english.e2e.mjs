@@ -13,7 +13,7 @@ const ROUTES = process.env.ROUTES ? process.env.ROUTES.split(',') : ['/', '/dest
 await mkdir(OUT, { recursive: true });
 
 const scan = () => {
-  const HE = /[֐-׿]/, KEY = /\b(core|home|app|search|pages|content|account|leads|support|ai|cms|planner)\.[a-z][\w-]*(\.[\w-]+)*\b/;
+  const HE = /[֐-׿]/, KEY = /\b(core|home|app|search|pages|content|account|leads|support|ai|cms|planner|catalog)\.[a-z][\w-]*(\.[\w-]+)*\b/;
   const shown = (el) => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none' && !el.closest('[hidden]'); };
   const allowed = (el) => !!el.closest('[lang="he"], [data-allow-hebrew]');
   const hebrew = [], keys = [];
