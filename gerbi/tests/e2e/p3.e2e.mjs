@@ -17,7 +17,7 @@ const shared = await page.evaluate(() => navigator.clipboard.readText()); log('s
 await page.locator('.flight-card').first().locator('[data-volero-offer]').click();
 await page.waitForSelector('[data-save-flight]', { timeout: 60000 }); await page.locator('[data-save-flight]').click();
 log('save status:', await page.locator('#save-flight-status').innerText());
-await page.locator('#save-flight-status a').click(); await page.waitForSelector('.saved-flight');
+await page.locator('#save-flight-status a[href="#/account"]').click(); await page.waitForSelector('.saved-flight');
 log('account flight:', (await page.locator('.saved-flight').first().innerText()).replace(/\n+/g, ' / '));
 await page.screenshot({ path: `${OUT}/account-${W}.png`, fullPage: false });
 await page.locator('[data-copy-flight]').first().click(); await page.waitForTimeout(200);

@@ -88,8 +88,15 @@ export function offerFacts(offer, payload) {
     overnight: layovers.some(item => item.overnight),
     checked: combine(legs.map(leg => leg.baggage.checked)), trolley: combine(legs.map(leg => leg.baggage.trolley)),
     refundable: offer.fareDetails?.nonRefundable === true ? 'no' : offer.fareDetails?.nonRefundable === false ? 'yes' : 'unknown',
-    airports: [...new Set([legs[0]?.segments.at(-1)?.arrival?.airport?.code, legs[1]?.segments[0]?.departure?.airport?.code].filter(Boolean))],
-    airportChange: Boolean(legs[1] && legs[0]?.segments.at(-1)?.arrival?.airport?.code && legs[1].segments[0]?.departure?.airport?.code && legs[0].segments.at(-1).arrival.airport.code !== legs[1].segments[0].departure.airport.code)
+    // Airports on the way: where each leg but the last lands and each leg but the first leaves (one way: where it lands).
+    airports: [...new Set([...(legs.length > 1 ? legs.slice(0, -1) : legs).map(leg => leg.segments.at(-1)?.arrival?.airport?.code), ...legs.slice(1).map(leg => leg.segments[0]?.departure?.airport?.code)].filter(Boolean))],
+    // Landing at one airport and the next leg leaving another airport of the same city. An open jaw (land in Rome,
+    // leave from Paris) is the traveler's plan, not an airport change.
+    airportChange: legs.slice(1).some((leg, i) => {
+      const landed = legs[i].segments.at(-1)?.arrival, leaves = leg.segments[0]?.departure;
+      if (!landed?.airport?.code || !leaves?.airport?.code || landed.airport.code === leaves.airport.code) return false;
+      return !(landed.city?.code && leaves.city?.code && landed.city.code !== leaves.city.code);
+    })
   };
 }
 export const TIME_BUCKETS = [['night', 'לילה', 0, 5], ['morning', 'בוקר', 5, 12], ['afternoon', 'צהריים', 12, 18], ['evening', 'ערב', 18, 24]];
@@ -97,15 +104,17 @@ export function timeBucket(time) {
   const hour = Number(String(time || '').split(':')[0]);
   return Number.isFinite(hour) ? TIME_BUCKETS.find(([, , from, to]) => hour >= from && hour < to)?.[0] || null : null;
 }
-export const emptyFilters = () => ({ stops: 'any', out: [], back: [], carriers: [], airports: [], checkedBag: false });
+export const emptyFilters = () => ({ stops: 'any', out: [], back: [], carriers: [], airports: [], checkedBag: false, avoid: [] });
 export function matchesFilters(facts, filters) {
   const leg = i => facts.legs[i]?.segments[0]?.departure?.time;
   if (filters.stops !== 'any' && !(facts.stops !== null && facts.stops <= Number(filters.stops))) return false;
   if (filters.out.length && !filters.out.includes(timeBucket(leg(0)))) return false;
-  if (filters.back.length && !filters.back.includes(timeBucket(leg(1)))) return false;
+  // "Back" is the last flight: the return of a round trip, the last leg of a multi-city route.
+  if (filters.back.length && !filters.back.includes(timeBucket(leg(Math.max(1, facts.legs.length - 1))))) return false;
   if (filters.carriers.length && !facts.carriers.some(name => filters.carriers.includes(name))) return false;
   if (filters.checkedBag && facts.checked !== 'included') return false;
   if (filters.airports?.length && !facts.airports.some(code => filters.airports.includes(code))) return false;
+  if (filters.avoid?.length && facts.legs.some(l => l.summary.layovers.some(x => filters.avoid.includes(x.airport)))) return false;
   return true;
 }
 export function sortFacts(list, sort = 'supplier') {
