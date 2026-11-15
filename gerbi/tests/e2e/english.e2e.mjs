@@ -70,7 +70,7 @@ for (const width of WIDTHS) for (const lang of LANGS) {
     ['contact-invalid', '/contact', async () => { await page.click('form.lead-form [type=submit]'); }],
     ['tailor-invalid', '/tailor-made', async () => { await page.click('form.lead-form [type=submit]'); }],
     ['signup-invalid', '/account', async () => { await page.click('#signup-form [type=submit], #login-form [type=submit]'); }],
-    ['multi-city', '/', async () => { await page.check('[name=trip-type][value=multi]', { force: true }); }],
+    ['multi-city', '/', async () => { await page.click('label:has([name=trip-type][value=multi])'); }],
     ...(width < 700 ? [['mobile-menu', '/', async () => { await page.click('#mobile-menu-button'); }]] : [])
   ];
   if (process.env.LIVE) states.push(['live-results', '/', async () => {
@@ -88,6 +88,7 @@ for (const width of WIDTHS) for (const lang of LANGS) {
     await page.waitForSelector('#modal[open]', { timeout: 60000 }); await page.waitForTimeout(2500);
   }]);
   for (const [state, path, act] of states) {
+    await page.goto('about:blank'); // a same-URL goto would keep the previous state's dialog open
     await page.goto(`${BASE}${root}#${path}`, { waitUntil: 'networkidle' }).catch(() => {});
     await page.waitForTimeout(400);
     try { await act(); } catch (e) { results.push({ lang, width, route: `state:${state}`, failed: String(e.message).slice(0, 120) }); continue; }
