@@ -11,7 +11,7 @@ import { normLang } from '../dist/i18n.mjs';
 
 // The process-wide gateway (server.mjs attaches the KV stores with gateway.configure).
 export const gateway = createGateway({ tasks: TASKS });
-export const CUSTOMER_FEATURES = ['understand', 'support_answer', 'tailor_fill', 'flight_explain'];
+export const CUSTOMER_FEATURES = ['understand', 'support_answer', 'tailor_fill', 'flight_explain', 'trip_polish'];
 
 export async function featureStatus(gw = gateway) {
   return Object.fromEntries(await Promise.all(CUSTOMER_FEATURES.map(async (id) => [id, await gw.enabled(id)])));
@@ -62,6 +62,23 @@ export async function flightExplain(offers, brief, { store = null, gw = gateway,
     return { summary, tradeoffs, pick: labels.includes(v.pick) ? v.pick : '' };
   };
   const result = await gw.run('flight_explain', { brief, offers }, { cache: store, validate, lang: normLang(lang) });
+  return result ? { ...result.value, cached: result.cached } : null;
+}
+
+// ---------- magic trip builder (spec 24 §7): wording only, never new places or numbers ----------
+// days: [{ kind, items:[names] }] from the deterministic plan. Returns { intro, dayTitles } or null (keep the rules' text).
+export async function tripPolish(destination, travellers, days, { store = null, gw = gateway, lang = 'he' } = {}) {
+  if (!Array.isArray(days) || !days.length || days.length > 40) return null;
+  const input = { destination: String(destination || '').slice(0, 80), travellers: String(travellers || '').slice(0, 120),
+    days: days.map((d, i) => ({ day: i + 1, kind: String(d?.kind || 'full').slice(0, 12), items: (Array.isArray(d?.items) ? d.items : []).map((x) => String(x).slice(0, 120)).slice(0, 6) })) };
+  const validate = (v) => {
+    const titles = (v.dayTitles || []).map((x) => stripLinks(x).slice(0, 80));
+    if (titles.length !== input.days.length || titles.some((x) => x.length < 2)) return null;
+    const intro = stripLinks(v.intro).slice(0, 400);
+    if (!numbersGrounded([intro, ...titles].join(' '), [JSON.stringify(input)])) return null;
+    return { intro, dayTitles: titles };
+  };
+  const result = await gw.run('trip_polish', input, { cache: store, validate, lang: normLang(lang) });
   return result ? { ...result.value, cached: result.cached } : null;
 }
 

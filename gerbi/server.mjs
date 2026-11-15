@@ -10,7 +10,8 @@ import { trips } from './dist/data.mjs';
 import { LearningStore } from './backend/learning-store.mjs';
 import { destinationTags, publicTagCatalog } from './backend/tag-catalog.mjs';
 import { extractSignals, missingFields, scoreDestinations, understandRequest } from './backend/understanding.mjs';
-import { voleroFlightAvailability, voleroFlightBook, voleroFlightSearch } from './backend/volero-client.mjs';
+import { voleroFlightAvailability, voleroFlightBook, voleroFlightSearch, voleroHotelSearch, voleroHotelImage } from './backend/volero-client.mjs';
+import { createBuilder } from './backend/build.mjs';
 import { createStore } from './backend/kv-store.mjs';
 import { validSearch, isMultiCity, validAvailability, slimSearch, slimAvailability, cachedSearch, withRetry, allow, clientOf, configureLimits } from './backend/volero-guard.mjs';
 import { createDeals, searchForDeals } from './backend/deals.mjs';
@@ -24,7 +25,7 @@ import { createAccounts } from './backend/accounts.mjs';
 import { createFx, handleFx } from './backend/fx-rates.mjs';
 import { createSupport } from './backend/support.mjs';
 import { handleAi } from './backend/ai-routes.mjs';
-import { gateway } from './backend/ai-features.mjs';
+import { gateway, tripPolish } from './backend/ai-features.mjs';
 import { createSearchStats } from './backend/search-stats.mjs';
 import { localizeHtml, normLang } from './dist/i18n.mjs';
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
@@ -100,6 +101,10 @@ function logSupplier(entry) { supplier.calls++; if (entry.cached) supplier.cache
 const deals = createDeals({ search: searchForDeals(voleroFlightSearch, withRetry), store: createStore('deals', dataDirectory), log: entry => logSupplier({ ...entry, cached: false, ...(entry.ok ? {} : { error: 'deals_refresh_empty' }) }) });
 // On Vercel the function freezes after the response; waitUntil keeps the background refresh alive.
 const background = promise => { const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.(); if (ctx?.waitUntil) ctx.waitUntil(promise.catch(() => {})); else promise.catch(() => {}); };
+// Magic trip builder (spec 24): plans from the catalog, then live flights + hotels through its own caches.
+const builder = createBuilder({ store: createStore('build', dataDirectory), llmCache, flightSearch: voleroFlightSearch, hotelSearch: voleroHotelSearch, hotelImage: voleroHotelImage,
+  partner: (text, request, l) => partnerUnderstand(llmCache, text, { adults: request.adults, children: request.children, nights: request.nights, month: '', want: [], exclude: [] }, { lang: l }),
+  polish: (destination, travellers, days, l) => tripPolish(destination, travellers, days, { store: llmCache, lang: l }), log: entry => logSupplier({ cached: false, ...entry }) });
 const tooMany = (send) => send(429, { error:'rate_limited', message:'יותר מדי בקשות בזמן קצר. נסו שוב בעוד דקה.' });
 
 async function body(req, limit = 32_000) {
@@ -246,6 +251,7 @@ export function createServer() {
     if(req.method !== 'POST') return send(405,{error:'method_not_allowed'});
     return send(503,{error:'provider_not_connected',message:'אין כרגע חיבור מאומת לספק. לא ניתן לאשר מחיר או זמינות, ולא בוצעה הזמנה.'});
    }
+   if (await builder.handle(req, res, url, { send, body })) return;
    if (await accounts.handle(req, res, url, { send, body })) return;
    if (await handleLeads(req, url, { send, body, store:leadStore, hooks:accounts.leadHooks })) return;
    if (await handleFx(req, url, { send, body, fx, background, res })) return;
