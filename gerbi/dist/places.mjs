@@ -8,7 +8,7 @@
 import { lang } from './i18n.mjs';
 const P = (code, name, sub, en, names, extra = {}) => ({ label: extra.label || `${name}, ${sub}`, code, name, sub, en, names, ...extra });
 const A = (code, city, name, en, names, extra = {}) => ({ label: `${city.he} – ${name} (${code})`, code, name, sub: city.he, en, city: city.code, names, ...extra });
-const LON = { code: 'LON', he: 'לונדון' }, PAR = { code: 'PAR', he: 'פריז' }, MIL = { code: 'MIL', he: 'מילאנו' }, NYC = { code: 'NYC', he: 'ניו יורק' }, ISTC = { code: 'IST', he: 'איסטנבול' };
+const LON = { code: 'LON', he: 'לונדון' }, PAR = { code: 'PAR', he: 'פריז' }, MIL = { code: 'MIL', he: 'מילאנו' }, NYC = { code: 'NYC', he: 'ניו יורק' }, ISTC = { code: 'IST', he: 'איסטנבול' }, TYO = { code: 'TYO', he: 'טוקיו' }, BUE = { code: 'BUE', he: 'בואנוס איירס' }, RIO = { code: 'RIO', he: 'ריו דה ז׳ניירו' };
 export const places = [
   // Home airports: valid as origin or destination, never read as a holiday wish by the planner.
   P('TLV', 'תל אביב', 'נתב״ג', 'Tel Aviv', ['תל אביב', 'נתבג', 'בן גוריון', 'tel aviv', 'ben gurion'], { home: true, label: 'תל אביב (נתב״ג)' }),
@@ -83,7 +83,57 @@ export const places = [
   P('GYD', 'באקו', 'אזרבייג׳ן', 'Baku', ['באקו', 'baku']),
   P('RIX', 'ריגה', 'לטביה', 'Riga', ['ריגה', 'riga']),
   P('LAX', 'לוס אנג׳לס', 'ארצות הברית', 'Los Angeles', ['לוס אנג\'לס', 'לוס אנגלס', 'los angeles']),
-  P('MIA', 'מיאמי', 'ארצות הברית', 'Miami', ['מיאמי', 'miami'])
+  P('MIA', 'מיאמי', 'ארצות הברית', 'Miami', ['מיאמי', 'miami']),
+  // Added 2026-11-15 (spec 23): every code and airport of the destinations catalog (dist/catalog.mjs) resolves here.
+  P('JMK', 'מיקונוס', 'יוון', 'Mykonos', ['מיקונוס', 'mykonos']),
+  P('CHQ', 'חאניה', 'כרתים, יוון', 'Chania', ['חאניה', 'חניה', 'chania'], { label: 'חאניה (כרתים), יוון' }),
+  P('FLR', 'פירנצה', 'איטליה', 'Florence', ['פירנצה', 'florence', 'firenze', 'טוסקנה', 'tuscany']),
+  P('PSA', 'פיזה', 'איטליה', 'Pisa', ['פיזה', 'pisa']),
+  P('CTA', 'קטניה', 'סיציליה, איטליה', 'Catania', ['קטניה', 'catania', 'סיציליה', 'sicily'], { label: 'קטניה (סיציליה), איטליה' }),
+  P('PMO', 'פלרמו', 'סיציליה, איטליה', 'Palermo', ['פלרמו', 'פאלרמו', 'palermo'], { label: 'פלרמו (סיציליה), איטליה' }),
+  P('TFS', 'טנריף', 'האיים הקנריים, ספרד', 'Tenerife', ['טנריף', 'טנריפה', 'tenerife', 'האיים הקנריים', 'canary islands'], { label: 'טנריף (דרום), ספרד' }),
+  P('FNC', 'מדיירה', 'פורטוגל', 'Madeira', ['מדיירה', 'מדירה', 'פונשל', 'madeira', 'funchal']),
+  P('SPU', 'ספליט', 'קרואטיה', 'Split', ['ספליט', 'split']),
+  P('TGD', 'פודגוריצה', 'מונטנגרו', 'Podgorica', ['פודגוריצה', 'podgorica']),
+  P('LJU', 'לובליאנה', 'סלובניה', 'Ljubljana', ['לובליאנה', 'ljubljana', 'בלד', 'bled']),
+  P('EDI', 'אדינבורו', 'סקוטלנד', 'Edinburgh', ['אדינבורו', 'אדינבורג', 'edinburgh']),
+  P('INN', 'אינסברוק', 'אוסטריה', 'Innsbruck', ['אינסברוק', 'innsbruck', 'טירול', 'tyrol']),
+  P('SZG', 'זלצבורג', 'אוסטריה', 'Salzburg', ['זלצבורג', 'salzburg']),
+  P('KEF', 'רייקיאוויק', 'איסלנד', 'Reykjavik', ['רייקיאוויק', 'רייקיאוויק קפלוויק', 'reykjavik', 'keflavik']),
+  P('BGO', 'ברגן', 'נורבגיה', 'Bergen', ['ברגן', 'bergen', 'פיורדים', 'fjords']),
+  P('OSL', 'אוסלו', 'נורבגיה', 'Oslo', ['אוסלו', 'oslo']),
+  P('KUT', 'קוטאיסי', 'גאורגיה', 'Kutaisi', ['קוטאיסי', 'kutaisi']),
+  P('RAK', 'מרקש', 'מרוקו', 'Marrakech', ['מרקש', 'מרקאש', 'marrakech', 'marrakesh']),
+  P('ZNZ', 'זנזיבר', 'טנזניה', 'Zanzibar', ['זנזיבר', 'zanzibar']),
+  P('SEZ', 'סיישל', 'מאהה', 'Seychelles', ['סיישל', 'איי סיישל', 'seychelles', 'mahe'], { label: 'איי סיישל' }),
+  P('MRU', 'מאוריציוס', 'האי מאוריציוס', 'Mauritius', ['מאוריציוס', 'mauritius'], { label: 'מאוריציוס' }),
+  P('CPT', 'קייפטאון', 'דרום אפריקה', 'Cape Town', ['קייפטאון', 'קייפ טאון', 'cape town']),
+  P('NBO', 'ניירובי', 'קניה', 'Nairobi', ['ניירובי', 'nairobi', 'ספארי', 'safari']),
+  P('HAN', 'האנוי', 'וייטנאם', 'Hanoi', ['האנוי', 'hanoi']),
+  P('SGN', 'הו צ׳י מין', 'וייטנאם', 'Ho Chi Minh City', ['הו צי מין', 'הו צ׳י מין', 'סייגון', 'ho chi minh', 'saigon']),
+  P('DAD', 'דה נאנג', 'וייטנאם', 'Da Nang', ['דה נאנג', 'דנאנג', 'da nang', 'הוי אן', 'hoi an']),
+  P('TYO', 'טוקיו', 'כל שדות התעופה', 'Tokyo', ['טוקיו', 'tokyo'], { type: 'c', airports: ['NRT', 'HND'], label: 'טוקיו – כל שדות התעופה' }),
+  A('NRT', TYO, 'נריטה', 'Narita', ['נריטה', 'narita']),
+  A('HND', TYO, 'הנדה', 'Haneda', ['הנדה', 'haneda']),
+  P('KIX', 'אוסקה', 'יפן', 'Osaka (Kansai)', ['אוסקה', 'osaka', 'kansai', 'קיוטו', 'kyoto'], { label: 'אוסקה (קנסאי), יפן' }),
+  P('DPS', 'באלי', 'אינדונזיה', 'Bali', ['באלי', 'bali', 'דנפסר', 'denpasar']),
+  P('CMB', 'קולומבו', 'סרי לנקה', 'Colombo', ['קולומבו', 'colombo']),
+  P('GOI', 'גואה', 'הודו', 'Goa', ['גואה', 'goa']),
+  P('LAS', 'לאס וגאס', 'ארצות הברית', 'Las Vegas', ['לאס וגאס', 'las vegas', 'vegas']),
+  P('MCO', 'אורלנדו', 'ארצות הברית', 'Orlando', ['אורלנדו', 'orlando']),
+  P('CUN', 'קנקון', 'מקסיקו', 'Cancún', ['קנקון', 'קאנקון', 'cancun', 'טולום', 'tulum']),
+  P('SJO', 'סן חוסה', 'קוסטה ריקה', 'San José (Costa Rica)', ['סן חוסה', 'סן חוזה', 'san jose', 'costa rica'], { label: 'סן חוסה, קוסטה ריקה' }),
+  P('LIR', 'ליבריה', 'קוסטה ריקה', 'Liberia (Costa Rica)', ['ליבריה', 'liberia', 'גואנקסטה', 'guanacaste'], { label: 'ליבריה (גואנקסטה), קוסטה ריקה' }),
+  P('LIM', 'לימה', 'פרו', 'Lima', ['לימה', 'lima']),
+  P('CUZ', 'קוסקו', 'פרו', 'Cusco', ['קוסקו', 'cusco', 'cuzco', 'מאצ׳ו פיצ׳ו', 'machu picchu']),
+  P('BUE', 'בואנוס איירס', 'כל שדות התעופה', 'Buenos Aires', ['בואנוס איירס', 'buenos aires'], { type: 'c', airports: ['EZE', 'AEP'], label: 'בואנוס איירס – כל שדות התעופה' }),
+  A('EZE', BUE, 'אסייסה', 'Ezeiza', ['אסייסה', 'ezeiza']),
+  A('AEP', BUE, 'חורחה ניוברי', 'Aeroparque', ['אירופארקה', 'aeroparque']),
+  P('RIO', 'ריו דה ז׳ניירו', 'כל שדות התעופה', 'Rio de Janeiro', ['ריו', 'ריו דה זניירו', 'ריו דה ז׳ניירו', 'rio', 'rio de janeiro'], { type: 'c', airports: ['GIG'], label: 'ריו דה ז׳ניירו' }),
+  A('GIG', RIO, 'גלאו', 'Galeão', ['גלאו', 'galeao']),
+  P('SYD', 'סידני', 'אוסטרליה', 'Sydney', ['סידני', 'sydney']),
+  P('AKL', 'אוקלנד', 'ניו זילנד', 'Auckland', ['אוקלנד', 'auckland']),
+  P('ZQN', 'קווינסטאון', 'ניו זילנד', 'Queenstown', ['קווינסטאון', 'queenstown'])
 ];
 
 export const countries = [
@@ -108,7 +158,26 @@ export const countries = [
   { names: ['מונטנגרו', 'montenegro'], codes: ['TIV'] },
   { names: ['ארמניה', 'armenia'], codes: ['EVN'] },
   { names: ['אזרבייג\'ן', 'azerbaijan'], codes: ['GYD'] },
-  { names: ['לטביה', 'latvia'], codes: ['RIX'] }
+  { names: ['לטביה', 'latvia'], codes: ['RIX'] },
+  { names: ['יפן', 'japan'], codes: ['TYO', 'KIX'] },
+  { names: ['וייטנאם', 'ויטנאם', 'vietnam'], codes: ['HAN', 'SGN', 'DAD'] },
+  { names: ['אינדונזיה', 'indonesia'], codes: ['DPS'] },
+  { names: ['סרי לנקה', 'sri lanka'], codes: ['CMB'] },
+  { names: ['מרוקו', 'morocco'], codes: ['RAK'] },
+  { names: ['איסלנד', 'iceland'], codes: ['KEF'] },
+  { names: ['נורבגיה', 'norway'], codes: ['BGO', 'OSL'] },
+  { names: ['סלובניה', 'slovenia'], codes: ['LJU'] },
+  { names: ['סקוטלנד', 'scotland'], codes: ['EDI'] },
+  { names: ['מקסיקו', 'mexico'], codes: ['CUN'] },
+  { names: ['קוסטה ריקה', 'costa rica'], codes: ['SJO', 'LIR'] },
+  { names: ['פרו', 'peru'], codes: ['LIM', 'CUZ'] },
+  { names: ['ארגנטינה', 'argentina'], codes: ['BUE'] },
+  { names: ['ברזיל', 'brazil'], codes: ['RIO'] },
+  { names: ['אוסטרליה', 'australia'], codes: ['SYD'] },
+  { names: ['ניו זילנד', 'new zealand'], codes: ['AKL', 'ZQN'] },
+  { names: ['קניה', 'kenya'], codes: ['NBO'] },
+  { names: ['טנזניה', 'tanzania'], codes: ['ZNZ'] },
+  { names: ['דרום אפריקה', 'south africa'], codes: ['CPT'] }
 ];
 
 const byCode = new Map(places.map(place => [place.code, place]));
@@ -179,8 +248,12 @@ const SUB_EN = { 'נתב״ג': 'Ben Gurion', 'שדה רמון': 'Ramon Airport',
   'הרקליון, יוון': 'Heraklion, Greece', 'צרפת': 'France', 'פורטוגל': 'Portugal', 'שווייץ': 'Switzerland', 'קפריסין': 'Cyprus', 'גאורגיה': 'Georgia', 'טורקיה': 'Turkey',
   'רומניה': 'Romania', 'בולגריה': 'Bulgaria', 'פולין': 'Poland', 'סרביה': 'Serbia', 'תאילנד': 'Thailand', 'בלגיה': 'Belgium', 'דנמרק': 'Denmark', 'אירלנד': 'Ireland',
   'קרואטיה': 'Croatia', 'מונטנגרו': 'Montenegro', 'ארמניה': 'Armenia', 'אזרבייג׳ן': 'Azerbaijan', 'לטביה': 'Latvia', 'ארצות הברית': 'USA', 'בריטניה': 'UK', 'אנגליה': 'England',
-  'המלדיביים': 'The Maldives', 'האיים המלדיביים': 'The Maldives' };
-const LABEL_EN = { TLV: 'Tel Aviv (Ben Gurion)', ETM: 'Ramon, Eilat', HFA: 'Haifa', MLE: 'The Maldives', HER: 'Crete (Heraklion), Greece' };
+  'המלדיביים': 'The Maldives', 'האיים המלדיביים': 'The Maldives',
+  'כרתים, יוון': 'Crete, Greece', 'סיציליה, איטליה': 'Sicily, Italy', 'האיים הקנריים, ספרד': 'Canary Islands, Spain', 'סלובניה': 'Slovenia', 'סקוטלנד': 'Scotland', 'איסלנד': 'Iceland',
+  'נורבגיה': 'Norway', 'מרוקו': 'Morocco', 'טנזניה': 'Tanzania', 'מאהה': 'Mahé', 'האי מאוריציוס': 'Mauritius', 'דרום אפריקה': 'South Africa', 'קניה': 'Kenya', 'וייטנאם': 'Vietnam',
+  'יפן': 'Japan', 'אינדונזיה': 'Indonesia', 'סרי לנקה': 'Sri Lanka', 'הודו': 'India', 'מקסיקו': 'Mexico', 'קוסטה ריקה': 'Costa Rica', 'פרו': 'Peru', 'אוסטרליה': 'Australia', 'ניו זילנד': 'New Zealand' };
+const LABEL_EN = { TLV: 'Tel Aviv (Ben Gurion)', ETM: 'Ramon, Eilat', HFA: 'Haifa', MLE: 'The Maldives', HER: 'Crete (Heraklion), Greece', CHQ: 'Chania (Crete), Greece', CTA: 'Catania (Sicily), Italy',
+  PMO: 'Palermo (Sicily), Italy', TFS: 'Tenerife South, Spain', SEZ: 'The Seychelles', MRU: 'Mauritius', KIX: 'Osaka (Kansai), Japan', SJO: 'San José, Costa Rica', LIR: 'Liberia (Guanacaste), Costa Rica', RIO: 'Rio de Janeiro' };
 const FAR_EN = { BVA: '~85 km from the city', BGY: '~50 km from the city' };
 export const countryNameEn = (name) => SUB_EN[name] || name;
 export function englishPlace(place) {

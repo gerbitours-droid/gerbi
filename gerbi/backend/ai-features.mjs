@@ -36,7 +36,7 @@ export async function supportAnswer(text, sources, { store = null, gw = gateway,
 
 // ---------- tailor-made form ----------
 export async function tailorFill(text, { today = new Date().toISOString().slice(0, 10), store = null, gw = gateway, lang = 'he' } = {}) {
-  const rules = tailorFromText(text, today).fields;
+  const rules = tailorFromText(text, today, normLang(lang)).fields; // the rules part answers in the request language too
   const result = await gw.run('tailor_fill', { customer_text: String(text).slice(0, 1500), today }, { cache: store, validate: (v) => cleanTailor(v, today), lang: normLang(lang) });
   const ai = result?.value || {};
   const fields = mergeTailor(rules, ai);

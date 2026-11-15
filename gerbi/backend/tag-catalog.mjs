@@ -1,3 +1,5 @@
+import { destinations } from '../dist/catalog.mjs';
+
 /**
  * Canonical tag vocabulary. The ids are deliberately stable: they are the
  * values stored by the learning layer, while Hebrew labels can evolve freely.
@@ -38,6 +40,18 @@ export const tagCatalog = [
     ]
   },
   {
+    // Spec 23: what a destination is like, used by the destinations catalog (dist/catalog.mjs) and its filters.
+    id: 'destination_traits', label: 'אופי היעד', type: 'facet', children: [
+      { id: 'nature', label: 'טבע ונופים', aliases: ['טבע', 'נופים', 'הרים', 'nature', 'mountains', 'scenery'] },
+      { id: 'culture', label: 'תרבות והיסטוריה', aliases: ['היסטוריה', 'היסטורי', 'culture', 'history'] },
+      { id: 'food', label: 'אוכל', aliases: ['אוכל', 'קולינריה', 'יין', 'food', 'foodie', 'wine'] },
+      { id: 'nightlife', label: 'חיי לילה', aliases: ['חיי לילה', 'מסיבות', 'nightlife', 'party', 'clubs'] },
+      { id: 'shopping', label: 'קניות', aliases: ['קניות', 'שופינג', 'shopping'] },
+      { id: 'ski', label: 'סקי', aliases: ['סקי', 'סנובורד', 'שלג', 'ski', 'skiing', 'snowboard', 'snow'] },
+      { id: 'luxury', label: 'יוקרה', aliases: ['יוקרה', 'יוקרתי', 'פינוק', 'luxury', 'luxurious'] }
+    ]
+  },
+  {
     id: 'traveler_context', label: 'הרכב הנוסעים', type: 'facet', children: [
       { id: 'solo', label: 'מטיילים לבד', aliases: ['לבד', 'סולו', 'solo', 'alone'] },
       { id: 'with_children', label: 'עם ילדים', aliases: ['עם ילדים', 'ילדים', 'ילד', 'with kids', 'with children'] },
@@ -46,12 +60,8 @@ export const tagCatalog = [
   }
 ];
 
-export const destinationTags = {
-  santorini: ['beach', 'couple', 'relaxation', 'short_break'],
-  rome: ['city', 'couple', 'short_break'],
-  maldives: ['beach', 'couple', 'relaxation', 'all_inclusive'],
-  dubai: ['city', 'beach', 'family', 'with_children', 'water_slides']
-};
+// Tags per destination come from the destinations catalog (spec 23), so the planner, learning and ranking know all of them.
+export const destinationTags = Object.fromEntries(destinations.map((d) => [d.id, d.tags]));
 
 export function flatTags() {
   return tagCatalog.flatMap((facet) => facet.children.map((tag) => ({ ...tag, facetId: facet.id, facetLabel: facet.label })));
