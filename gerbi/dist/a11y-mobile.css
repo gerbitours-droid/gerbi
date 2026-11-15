@@ -65,6 +65,38 @@ html.a11y-still *,html.a11y-still *::before,html.a11y-still *::after{animation:n
 /* ---- 19: safe areas (index.html declares viewport-fit=cover) ---- */
 body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
 
+/* ---- 19: any touch screen (tablets included): 44px targets and 16px fields ---- */
+@media (pointer:coarse){
+ input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}
+ .header-actions .support,.header-actions .login,.search-tabs button,.trip-type label,.dp-mode button,.chip-toggle,.lead-chip,.card-cta,.chat-button,.link-button,
+ #all-deals,.section-heading button,.back-link,.lead-link,#flight-sort,.filter-option,.leg-add,.text-button,summary,.preference-chips button,.sb-chip,.lead-filters button,.admin-top-actions .button,.header nav a{min-height:44px}
+ .header nav a{display:inline-flex;align-items:center}
+ details>summary{min-height:44px!important}
+ .back-link,.lead-link,.link-button{display:inline-flex;align-items:center}
+ .swap,#swap-route,.favorite,.heart-button,.modal-close,#close-mobile-menu,.dp-nav,.travelers-pop .counter-controls button,.leg-remove{min-width:44px;min-height:44px}
+ .site-footer a{display:flex;align-items:center;min-height:44px;padding:0}
+ #page-view a[href^="#/destination/"]:not(.button),.breadcrumbs a,.legal-toc a{min-height:44px;min-width:44px;display:inline-flex;align-items:center}
+ #home>footer>a,#home>footer>button{display:inline-flex;align-items:center;min-height:44px;padding-inline:6px}
+ .header nav a,.header nav button{padding-inline:4px}
+ .link-button,.lead-check,.compare-check{min-height:44px!important;display:inline-flex;align-items:center}
+ .prompt-input button{min-width:44px;min-height:44px;justify-content:center;align-items:center}
+ .dp-clear{min-width:44px;min-height:44px}
+}
+/* Tablets: the small labels that the phone block lifts to 12px. */
+@media (min-width:761px) and (max-width:1000px){
+ .brand span,.tab-note,#search-mode-note,.home-search-note,.fare-deal b,.fare-deal small,.fare-original,.fare-original span,.demo-chip,.eyebrow,.destination-price small,.card-body small,#home>footer span,#home>footer small,.demo-label,.trust-bar small,.site-footer small,.journey-progress b,.chat-panel-head span,.chat-disclosure,.learning-consent,.header-actions .support{font-size:12px!important}
+ #home>footer a,#home>footer button{font-size:13px!important}
+}
+/* Results: AA contrast for small price notes (#657986 on #fcfdfa was 4.4:1). */
+.flight-price small,.flight-price .fare-original,.filter-option small{color:#4f6271}
+.filter-option[aria-pressed=true] small{color:#fff}
+/* Owner admin on a phone/tablet */
+@media (pointer:coarse),(max-width:760px){
+ .admin-tabs a,.admin-panel select,.admin-panel button{min-height:44px}
+ .admin-tabs a{display:inline-flex;align-items:center}
+ .admin-panel a[href^="tel:"],.admin-panel a[href^="mailto:"]{display:inline-flex;align-items:center;min-height:44px}
+}
+
 /* ---- 19: phones and small tablets ---- */
 @media (max-width:760px){
  /* iOS zooms into any field under 16px. */
@@ -73,7 +105,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 
  /* Tap targets ≥ 44×44 */
  .header-actions .support,.header-actions .login,.search-tabs button,.trip-type label,.dp-mode button,.chip-toggle,.lead-chip,.card-cta,.chat-button,
- #all-deals,.section-heading button,.back-link,.lead-link,#flight-sort,.filter-option,.leg-add,.text-button,summary,.account-more summary,.preference-chips button,.sb-chip{min-height:44px}
+ #all-deals,.section-heading button,.back-link,.lead-link,#flight-sort,.filter-option,.leg-add,.text-button,summary,.account-more summary,.preference-chips button,.sb-chip,.lead-filters button,.admin-top-actions .button,.link-button{min-height:44px}
  #swap-route{width:44px;height:44px;min-width:44px}
  .dp-clear{min-width:44px;min-height:44px}
  .legal-toc a{min-height:44px}

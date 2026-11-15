@@ -1,0 +1,2339 @@
+{
+ "label": "after",
+ "base": "http://127.0.0.1:4187",
+ "at": "2026-11-15T15:34:27.994Z",
+ "rows": [
+  {
+   "width": 360,
+   "route": "/",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/destinations",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/destination/rome",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/inspiration",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/planner",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px",
+    "#clear-chat \"ניקוי השיחה\" 11px",
+    "#new-holiday \"חופשה חדשה\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/blog",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/blog/family",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/favorites",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/account",
+   "overflow": 0,
+   "wide": [
+    "img \"\" [-2..108]"
+   ],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/contact",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/tailor-made",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/support",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/converter",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/privacy",
+   "overflow": 0,
+   "wide": [
+    "table.legal-table \"סוגי המידע, מטרתם ומשך ה\" [-301..319]",
+    "thead \"סוג המידע\tדוגמאות\tמטרה\tמ\" [-301..319]",
+    "tr \"סוג המידע\tדוגמאות\tמטרה\tמ\" [-301..319]",
+    "th \"דוגמאות\" [-43..222]",
+    "th \"מטרה\" [-158..-43]",
+    "th \"משך שמירה\" [-301..-158]",
+    "tbody \"חשבון לקוח (רשות)\tשם, מי\" [-301..319]",
+    "tr \"חשבון לקוח (רשות)\tשם, מי\" [-301..319]"
+   ],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/terms",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "/accessibility",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "admin",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a.active \"לידים\" 65×42",
+    "a \"בלוג\" 55×42",
+    "a \"תוכן האתר\" 98×42",
+    "a \"שער מטבע\" 101×42",
+    "a \"שיחות שירות\" 117×42",
+    "select \"חדש\nבטיפול\nנסגר\" 290×40",
+    "a \"0507654321\" 79×21",
+    "select \"חדש\nבטיפול\nנסגר\" 290×40",
+    "a \"0507654321\" 79×21",
+    "select \"חדש\nבטיפול\nנסגר\" 290×40",
+    "a \"0501234567\" 79×21",
+    "a \"e2e-1794756872021@exampl\" 226×21"
+   ],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "dialog:date-picker",
+   "dialog": {
+    "w": 360,
+    "h": 800,
+    "vw": 360,
+    "vh": 800,
+    "day": "47×47"
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "dialog:travelers",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 360,
+   "route": "dialog:support-bot",
+   "dialog": {
+    "w": 360,
+    "h": 800,
+    "vw": 360,
+    "vh": 800
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "form:multi-city",
+   "addButton": "clear (open lists: 0, focus: button secondary leg-add)",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 360,
+   "route": "menu:mobile",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 375,
+   "route": "/",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/destinations",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/destination/rome",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/inspiration",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/planner",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "#clear-chat \"ניקוי השיחה\" 11px",
+    "#new-holiday \"חופשה חדשה\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/blog",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/blog/family",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/favorites",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/account",
+   "overflow": 0,
+   "wide": [
+    "img \"\" [-1..109]"
+   ],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/contact",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/tailor-made",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/support",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/converter",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/privacy",
+   "overflow": 0,
+   "wide": [
+    "table.legal-table \"סוגי המידע, מטרתם ומשך ה\" [-287..333]",
+    "thead \"סוג המידע\tדוגמאות\tמטרה\tמ\" [-287..333]",
+    "tr \"סוג המידע\tדוגמאות\tמטרה\tמ\" [-287..333]",
+    "th \"דוגמאות\" [-29..236]",
+    "th \"מטרה\" [-144..-29]",
+    "th \"משך שמירה\" [-287..-144]",
+    "tbody \"חשבון לקוח (רשות)\tשם, מי\" [-287..333]",
+    "tr \"חשבון לקוח (רשות)\tשם, מי\" [-287..333]"
+   ],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/terms",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "/accessibility",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "admin",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a.active \"לידים\" 65×42",
+    "a \"בלוג\" 55×42",
+    "a \"תוכן האתר\" 98×42",
+    "a \"שער מטבע\" 101×42",
+    "a \"שיחות שירות\" 117×42",
+    "select \"חדש\nבטיפול\nנסגר\" 305×40",
+    "a \"0507654321\" 79×21",
+    "select \"חדש\nבטיפול\nנסגר\" 305×40",
+    "a \"0507654321\" 79×21",
+    "select \"חדש\nבטיפול\nנסגר\" 305×40",
+    "a \"0501234567\" 79×21",
+    "a \"e2e-1794756872021@exampl\" 226×21"
+   ],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "dialog:date-picker",
+   "dialog": {
+    "w": 375,
+    "h": 800,
+    "vw": 375,
+    "vh": 800,
+    "day": "50×50"
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "dialog:travelers",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 375,
+   "route": "dialog:support-bot",
+   "dialog": {
+    "w": 375,
+    "h": 800,
+    "vw": 375,
+    "vh": 800
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "form:multi-city",
+   "addButton": "clear (open lists: 0, focus: button secondary leg-add)",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 375,
+   "route": "menu:mobile",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 390,
+   "route": "/",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/destinations",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/destination/rome",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/inspiration",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/planner",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "#clear-chat \"ניקוי השיחה\" 11px",
+    "#new-holiday \"חופשה חדשה\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/blog",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/blog/family",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/favorites",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/account",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/contact",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/tailor-made",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/support",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/converter",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/privacy",
+   "overflow": 0,
+   "wide": [
+    "table.legal-table \"סוגי המידע, מטרתם ומשך ה\" [-273..347]",
+    "thead \"סוג המידע\tדוגמאות\tמטרה\tמ\" [-273..347]",
+    "tr \"סוג המידע\tדוגמאות\tמטרה\tמ\" [-273..347]",
+    "th \"דוגמאות\" [-14..251]",
+    "th \"מטרה\" [-129..-14]",
+    "th \"משך שמירה\" [-273..-129]",
+    "tbody \"חשבון לקוח (רשות)\tשם, מי\" [-273..347]",
+    "tr \"חשבון לקוח (רשות)\tשם, מי\" [-273..347]"
+   ],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/terms",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "/accessibility",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "admin",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "dialog:date-picker",
+   "dialog": {
+    "w": 390,
+    "h": 800,
+    "vw": 390,
+    "vh": 800,
+    "day": "52×52"
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "dialog:travelers",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 390,
+   "route": "dialog:support-bot",
+   "dialog": {
+    "w": 390,
+    "h": 800,
+    "vw": 390,
+    "vh": 800
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "form:multi-city",
+   "addButton": "clear (open lists: 0, focus: button secondary leg-add)",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 390,
+   "route": "menu:mobile",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 390,
+   "route": "results",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px",
+    "small \"\" 10.8333px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 414,
+   "route": "/",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/destinations",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/destination/rome",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/inspiration",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/planner",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "#clear-chat \"ניקוי השיחה\" 11px",
+    "#new-holiday \"חופשה חדשה\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/blog",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/blog/family",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/favorites",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/account",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/contact",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/tailor-made",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/support",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/converter",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/privacy",
+   "overflow": 0,
+   "wide": [
+    "table.legal-table \"סוגי המידע, מטרתם ומשך ה\" [-250..370]",
+    "thead \"סוג המידע\tדוגמאות\tמטרה\tמ\" [-250..370]",
+    "tr \"סוג המידע\tדוגמאות\tמטרה\tמ\" [-250..370]",
+    "th \"מטרה\" [-107..9]",
+    "th \"משך שמירה\" [-250..-107]",
+    "tbody \"חשבון לקוח (רשות)\tשם, מי\" [-250..370]",
+    "tr \"חשבון לקוח (רשות)\tשם, מי\" [-250..370]",
+    "td \"מתן השירות בחשבון והמשך \" [-107..9]"
+   ],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/terms",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "/accessibility",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "admin",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a.active \"לידים\" 65×42",
+    "a \"בלוג\" 55×42",
+    "a \"תוכן האתר\" 98×42",
+    "a \"שער מטבע\" 101×42",
+    "a \"שיחות שירות\" 117×42",
+    "select \"חדש\nבטיפול\nנסגר\" 344×40",
+    "a \"0507654321\" 79×21",
+    "select \"חדש\nבטיפול\nנסגר\" 344×40",
+    "a \"0507654321\" 79×21",
+    "select \"חדש\nבטיפול\nנסגר\" 344×40",
+    "a \"0501234567\" 79×21",
+    "a \"e2e-1794756872021@exampl\" 226×21"
+   ],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "dialog:date-picker",
+   "dialog": {
+    "w": 414,
+    "h": 800,
+    "vw": 414,
+    "vh": 800,
+    "day": "55×55"
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "dialog:travelers",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 414,
+   "route": "dialog:support-bot",
+   "dialog": {
+    "w": 414,
+    "h": 800,
+    "vw": 414,
+    "vh": 800
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "form:multi-city",
+   "addButton": "clear (open lists: 0, focus: button secondary leg-add)",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 414,
+   "route": "menu:mobile",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 768,
+   "route": "/",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/destinations",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/destination/rome",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "small \"לאדם · מחיר הדגמה, לא הצ\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/inspiration",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/planner",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/blog",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/blog/family",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/favorites",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/account",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/contact",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/tailor-made",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/support",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/converter",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/privacy",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/terms",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "/accessibility",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "admin",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "dialog:date-picker",
+   "dialog": {
+    "w": 730,
+    "h": 577,
+    "vw": 768,
+    "vh": 1024,
+    "day": "40×40"
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "dialog:travelers",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 768,
+   "route": "dialog:support-bot",
+   "dialog": {
+    "w": 400,
+    "h": 640,
+    "vw": 768,
+    "vh": 1024
+   },
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "button.sb-chip \"כבודה\" 66×40",
+    "button.sb-chip \"ביטולים ושינויים\" 129×40",
+    "button.sb-chip \"איך מזמינים\" 102×40",
+    "button.sb-chip \"תשלום\" 72×40",
+    "button.sb-chip \"דרכון וויזה\" 91×40",
+    "button.sb-chip \"לדבר עם נציג\" 108×40"
+   ],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 768,
+   "route": "form:multi-city",
+   "addButton": "clear (open lists: 1, focus: leg-2-to)",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": null
+  },
+  {
+   "width": 1440,
+   "route": "/",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "label \"הלוך־חזור\" 109×36",
+    "label \"כיוון אחד\" 103×36",
+    "label \"כמה יעדים\" 112×36",
+    "#swap-route \"החלפת מוצא ויעד\" 40×64",
+    "button \"שלחו בקשה לג׳רבי\" 39×39",
+    "#all-deals \"לכל היעדים ‹\" 82×42",
+    "button.favorite \"שמירת רומא\" 29×29",
+    "button.yellow.card-cta \"לפרטים ותכנון\" 144×32",
+    "button.favorite \"שמירת דובאי\" 29×29",
+    "button.yellow.card-cta \"לפרטים ותכנון\" 144×32",
+    "button.favorite \"שמירת סנטוריני\" 29×29",
+    "button.yellow.card-cta \"לפרטים ותכנון\" 144×32",
+    "button.favorite \"שמירת המלדיביים\" 29×29",
+    "button.yellow.card-cta \"לפרטים ותכנון\" 144×32",
+    "a \"צור קשר\" 35×14",
+    "a \"מחשבון המרת מטבע\" 83×14",
+    "a \"תנאי שימוש\" 50×14",
+    "a \"פרטיות\" 30×14",
+    "a \"הצהרת נגישות\" 59×14"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "small.tab-note \"השראה\" 10px",
+    "small.tab-note \"השראה\" 10px",
+    "#search-mode-note \"חיפוש טיסות בזמן אמת · מ\" 11px",
+    "b \"TLV ⇄ LON\" 11px",
+    "small \"החל מ־\" 11px",
+    "small.fare-original \"במקור ‏404.69 ‏$\" 11px",
+    "span \"‏404.69 ‏$\" 11px",
+    "small \"לנוסע, הלוך־חזור\" 11px",
+    "b \"TLV ⇄ PAR\" 11px",
+    "small \"החל מ־\" 11px",
+    "small.fare-original \"במקור ‏307.24 ‏$\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/destinations",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a.active \"יעדים\" 39×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "input \"חיפוש יעד\" 816×41",
+    "button.heart-button \"שמירת סנטוריני\" 42×42",
+    "a \"סנטוריני, יוון\" 129×35",
+    "label.compare-check \"הוספה להשוואה\" 339×38",
+    "button.heart-button \"שמירת רומא\" 42×42",
+    "a \"רומא, איטליה\" 139×35",
+    "label.compare-check \"הוספה להשוואה\" 339×38",
+    "button.heart-button \"שמירת המלדיביים\" 42×42",
+    "a \"האיים המלדיביים\" 179×35",
+    "label.compare-check \"הוספה להשוואה\" 339×38",
+    "button.heart-button \"שמירת דובאי\" 42×42",
+    "a \"דובאי, איחוד האמירויות\" 243×35",
+    "label.compare-check \"הוספה להשוואה\" 339×38",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span.demo-chip \"מצב הדגמה · ללא הזמנה בפ\" 11px",
+    "span.eyebrow \"כחול, לבן וכל מה שביניהם\" 11px",
+    "small \"מחיר הדגמה לאדם\" 10px",
+    "span.eyebrow \"כל פנייה היא סיפור חדש\" 11px",
+    "small \"מחיר הדגמה לאדם\" 10px",
+    "span.eyebrow \"לפעמים, התוכנית היא לא ל\" 11px",
+    "small \"מחיר הדגמה לאדם\" 10px",
+    "span.eyebrow \"בין קו הרקיע לקו המים\" 11px",
+    "small \"מחיר הדגמה לאדם\" 10px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [
+    "input \"חיפוש יעד\" 14px",
+    "select \"סדר היעדים\nמחיר הדגמה: מ\" 13px"
+   ],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/destination/rome",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "small \"לאדם · מחיר הדגמה, לא הצ\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/inspiration",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/planner",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "b \"1\" 11px",
+    "b \"2\" 11px",
+    "b \"3\" 11px",
+    "span.demo-chip \"מצב הדגמה · ללא הזמנה בפ\" 11px",
+    "span \"מתכנן אישי · אפשר לערוך \" 11px",
+    "small.chat-disclosure \"ההמלצות מתוך קטלוג השראה\" 10px",
+    "label.learning-consent \"אפשרו לג׳רבי ללמוד מתגיו\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [
+    "#page-chat-input \"\" 14px",
+    "input \"2\" 12px",
+    "input \"0\" 12px",
+    "input \"5\" 12px",
+    "input \"18000\" 12px",
+    "select \"גמישים בתאריכים\nינואר\nפב\" 12px"
+   ],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/blog",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a.active \"בלוג\" 28×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/blog/family",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a.back-link \"→ לכל המדריכים\" 780×19",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/favorites",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "input \"חיפוש יעד\" 816×41",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span.demo-chip \"מצב הדגמה · ללא הזמנה בפ\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [
+    "input \"חיפוש יעד\" 14px",
+    "select \"סדר היעדים\nמחיר הדגמה: מ\" 13px"
+   ],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/account",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "summary \"שכחתם סיסמה?\" 613×32",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span.demo-chip \"מצב הדגמה · ללא הזמנה בפ\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [
+    "#login-email \"\" 14px",
+    "#login-password \"\" 14px"
+   ],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/contact",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "label.lead-chip \"וואטסאפ\" 98×42",
+    "label.lead-chip \"שיחת טלפון\" 105×42",
+    "label.lead-chip \"מייל\" 58×42",
+    "label.lead-check \"אני מאשר/ת לג׳רבי טורס ל\" 748×25",
+    "label.lead-check.lead-marketing \"אשמח לקבל מג׳רבי טורס גם\" 748×25",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [
+    "#lead-name \"\" 14px",
+    "#lead-phone \"\" 14px",
+    "#lead-email \"\" 14px",
+    "#lead-message \"\" 14px"
+   ],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/tailor-made",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "label.lead-chip \"ים וחופים\" 90×42",
+    "label.lead-chip \"עיר ותרבות\" 97×42",
+    "label.lead-chip \"טבע וטיולים\" 105×42",
+    "label.lead-chip \"משפחות וילדים\" 127×42",
+    "label.lead-chip \"זוגי ורומנטי\" 101×42",
+    "label.lead-chip \"אקסטרים והרפתקאות\" 163×42",
+    "label.lead-chip \"אוכל ויין\" 83×42",
+    "label.lead-chip \"יוקרה ופינוק\" 107×42",
+    "label.lead-chip \"סקי\" 55×42",
+    "label.lead-chip \"טיול מאורגן\" 102×42",
+    "label.lead-chip \"וואטסאפ\" 98×42",
+    "label.lead-chip \"שיחת טלפון\" 105×42",
+    "label.lead-chip \"מייל\" 58×42",
+    "label.lead-check \"אני מאשר/ת לג׳רבי טורס ל\" 748×25",
+    "label.lead-check.lead-marketing \"אשמח לקבל מג׳רבי טורס גם\" 748×25",
+    "a.lead-link \"לטופס יצירת קשר כללי ←\" 179×24",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [
+    "#lead-destinations \"\" 14px",
+    "#lead-start \"\" 14px",
+    "#lead-end \"\" 14px",
+    "#lead-flexibility \"תאריכים מדויקים\nגמישים ב\" 14px",
+    "#lead-adults \"2\" 14px",
+    "#lead-children \"0\" 14px",
+    "#lead-budget \"עד 5,000 ₪\n5,000–10,000 \" 14px",
+    "#lead-notes \"\" 14px",
+    "#lead-name \"\" 14px",
+    "#lead-phone \"\" 14px",
+    "#lead-email \"\" 14px"
+   ],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/support",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "#faq-search \"חיפוש בשאלות נפוצות\" 741×41",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [
+    "#faq-search \"חיפוש בשאלות נפוצות\" 14px",
+    "select \"שאלה על תכנון חופשה\nבקשו\" 13px",
+    "textarea \"\" 13px"
+   ],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/converter",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/privacy",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a \"מי אחראי למידע\" 111×32",
+    "a \"איזה מידע אנו אוספים\" 151×32",
+    "a \"למה אנו משתמשים במידע\" 179×32",
+    "a \"האם חובה למסור מידע\" 152×32",
+    "a \"למי המידע מועבר\" 118×32",
+    "a \"העברה לחו״ל\" 88×32",
+    "a \"כמה זמן שומרים\" 111×32",
+    "a \"עוגיות ואחסון במכשיר\" 150×32",
+    "a \"הזכויות שלכם\" 95×32",
+    "a \"אבטחת מידע\" 88×32",
+    "a \"דיוור\" 32×32",
+    "a \"קטינים\" 47×32",
+    "a \"שינויים ויצירת קשר\" 133×32",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/terms",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a \"מי אנחנו ומה תפקידנו\" 147×32",
+    "a \"השימוש באתר\" 98×32",
+    "a \"מחירים, זמינות ובדיקת מח\" 189×32",
+    "a \"הצעה, הזמנה ותשלום\" 145×32",
+    "a \"ביטולים ושינויים\" 113×32",
+    "a \"ביטול עסקה לפי חוק הגנת \" 220×32",
+    "a \"דרכונים, אשרות ובריאות\" 163×32",
+    "a \"אחריות חברות התעופה והספ\" 219×32",
+    "a \"הגבלת אחריות\" 97×32",
+    "a \"תוכן, השראה ובוט שירות\" 166×32",
+    "a \"חשבון לקוח\" 80×32",
+    "a \"פרטיות\" 49×32",
+    "a \"קניין רוחני\" 70×32",
+    "a \"דין ושיפוט\" 72×32",
+    "a \"יצירת קשר\" 73×32",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "/accessibility",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "a \"דף הבית\" 41×18",
+    "a \"כל היעדים\" 242×19",
+    "a \"השראה לחופשה\" 242×19",
+    "a \"המדריכים שלנו\" 242×19",
+    "a \"טיולים בהתאמה אישית\" 242×19",
+    "a \"תכנון עם ג׳רבי\" 242×19",
+    "a \"מועדפים\" 242×19",
+    "a \"הטיולים שלי\" 242×19",
+    "a \"צור קשר\" 242×19",
+    "a \"עזרה ושאלות\" 242×19",
+    "a \"מחשבון המרת מטבע\" 242×19",
+    "a \"תנאי שימוש\" 242×19",
+    "a \"מדיניות פרטיות\" 242×19",
+    "a \"הצהרת נגישות\" 242×19"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "span \"כל חופשה מתחילה בחיוך.\" 11px",
+    "small \"© 2026 ג׳רבי טורס · גרסת\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "admin",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a.button.secondary \"לאתר\" 63×40",
+    "#logout \"יציאה\" 66×40",
+    "button \"הכול 3\" 80×42",
+    "button \"חדש 3\" 80×42",
+    "button \"בטיפול 0\" 96×42",
+    "button \"נסגר 0\" 79×42",
+    "select \"חדש\nבטיפול\nנסגר\" 95×40",
+    "a \"0507654321\" 79×21",
+    "select \"חדש\nבטיפול\nנסגר\" 95×40",
+    "a \"0507654321\" 79×21",
+    "select \"חדש\nבטיפול\nנסגר\" 95×40",
+    "a \"0501234567\" 79×21",
+    "a \"e2e-1794756872021@exampl\" 226×21"
+   ],
+   "tinyText": [],
+   "smallInputs": [
+    "#lead-q \"\" 14px",
+    "#lead-type \"הכול\nצור קשר\nטיול בהתאמה\" 14px",
+    "#note-90de9f40-ea70-4ccb-8bb0-113111cf1ed4 \"\" 14px",
+    "#note-5588206a-c663-4b7a-b0c4-fb31154cc370 \"\" 14px",
+    "#note-028c20a1-41a2-4475-94a4-e28510a8ea36 \"\" 14px"
+   ],
+   "overlaps": [],
+   "axe": []
+  },
+  {
+   "width": 1440,
+   "route": "results",
+   "overflow": 0,
+   "wide": [],
+   "small": [
+    "a \"יעדים\" 36×44",
+    "a \"בלוג\" 26×44",
+    "button.login \"התחברות\" 100×27",
+    "button.yellow.support \"שירות לקוחות\" 171×43",
+    "label \"הלוך־חזור\" 109×36",
+    "label \"כיוון אחד\" 103×36",
+    "label \"כמה יעדים\" 112×36",
+    "#swap-route \"החלפת מוצא ויעד\" 40×64",
+    "#flight-sort \"המומלצות (לפי הבקשה)\nסדר\" 178×42",
+    "button.filter-option \"הכול 304\" 76×36",
+    "button.filter-option \"ישירה בלבד 16\" 107×36",
+    "button.filter-option \"עד החלפה אחת 303\" 134×36",
+    "button.filter-option \"לילה (00–05) 50\" 119×36",
+    "button.filter-option \"בוקר (05–12) 169\" 126×36",
+    "button.filter-option \"צהריים (12–18) 50\" 132×36",
+    "button.filter-option \"ערב (18–00) 35\" 115×36",
+    "button.filter-option \"לילה (00–05) 0\" 113×36",
+    "button.filter-option \"בוקר (05–12) 158\" 126×36",
+    "button.filter-option \"צהריים (12–18) 103\" 138×36",
+    "button.filter-option \"ערב (18–00) 43\" 115×36",
+    "button.filter-option \"Lufthansa 90\" 102×36",
+    "button.filter-option \"Condor 78\" 87×36",
+    "button.filter-option \"Alitalia 59\" 84×36",
+    "button.filter-option \"Swiss 57\" 79×36",
+    "button.filter-option \"Sky Express 26\" 114×36",
+    "button.filter-option \"Austrian 25\" 93×36",
+    "button.filter-option \"Brussels Airlines 25\" 141×36",
+    "button.filter-option \"Aegean Airlines 18\" 135×36",
+    "button.filter-option \"LOT Polish Airlines 14\" 152×36",
+    "button.filter-option \"Air France 9\" 97×36",
+    "button.filter-option \"FRA 159\" 74×36",
+    "button.filter-option \"ZRH 247\" 76×36",
+    "button.filter-option \"ATH 260\" 75×36",
+    "button.filter-option \"MUC 272\" 79×36",
+    "button.filter-option \"BRU 279\" 75×36",
+    "button.filter-option \"VIE 279\" 70×36",
+    "button.filter-option \"WAW 290\" 82×36",
+    "button.filter-option \"CDG 294\" 76×36",
+    "button.filter-option \"AMS 299\" 78×36",
+    "button.filter-option \"KRK 300\" 75×36"
+   ],
+   "tinyText": [
+    "span \"סוכן הנסיעות החדש שלכם\" 11px",
+    "small.tab-note \"השראה\" 10px",
+    "small.tab-note \"השראה\" 10px",
+    "#search-mode-note \"חיפוש טיסות בזמן אמת · מ\" 11px",
+    "b \"TLV ⇄ LON\" 11px",
+    "small \"החל מ־\" 11px",
+    "small.fare-original \"במקור ‏404.69 ‏$\" 11px",
+    "span \"‏404.69 ‏$\" 11px",
+    "small \"לנוסע, הלוך־חזור\" 11px",
+    "b \"TLV ⇄ PAR\" 11px",
+    "small \"החל מ־\" 11px",
+    "small.fare-original \"במקור ‏307.24 ‏$\" 11px"
+   ],
+   "smallInputs": [
+    "#flight-sort \"המומלצות (לפי הבקשה)\nסדר\" 12px"
+   ],
+   "overlaps": [],
+   "axe": [
+    {
+     "id": "color-contrast",
+     "impact": "serious",
+     "count": 1,
+     "help": "Elements must meet minimum color contrast ratio thresholds",
+     "targets": [
+      "button[data-value=\"any\"] > small"
+     ]
+    }
+   ]
+  },
+  {
+   "width": 844,
+   "route": "landscape:/",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 844,
+   "route": "landscape:/contact",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 844,
+   "route": "landscape:/accessibility",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "span \"כל חופשה מתחילה בחיוך.\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 844,
+   "route": "landscape:date-picker",
+   "dialog": {
+    "h": 390,
+    "vh": 390,
+    "scrolls": true,
+    "applyReachable": true
+   }
+  },
+  {
+   "width": 320,
+   "route": "reflow320:/",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 320,
+   "route": "reflow320:/contact",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 320,
+   "route": "reflow320:/accessibility",
+   "overflow": 0,
+   "wide": [],
+   "small": [],
+   "tinyText": [
+    "button.yellow.support \"שירות לקוחות\" 11px"
+   ],
+   "smallInputs": [],
+   "overlaps": []
+  },
+  {
+   "width": 320,
+   "route": "reflow320:date-picker",
+   "dialog": {
+    "h": 640,
+    "vh": 642,
+    "scrolls": false,
+    "applyReachable": true
+   }
+  }
+ ]
+}
