@@ -15,6 +15,7 @@ class UpstashStore {
   async set(key, value, ttlSeconds) { await this.command(ttlSeconds ? ['SET', key, JSON.stringify(value), 'EX', String(ttlSeconds)] : ['SET', key, JSON.stringify(value)]); }
   async push(key, value, max) { await this.command(['LPUSH', key, JSON.stringify(value)]); await this.command(['LTRIM', key, '0', String(max - 1)]); }
   async list(key, count) { return ((await this.command(['LRANGE', key, '0', String(count - 1)])) || []).map((item) => JSON.parse(item)); }
+  async del(key) { await this.command(['DEL', key]); }
 }
 
 class FileStore {
@@ -43,6 +44,7 @@ class FileStore {
     await this.persist(data);
   }
   async list(key, count) { return ((await this.get(key)) || []).slice(0, count); }
+  async del(key) { const data = await this.load(); if (key in data) { delete data[key]; await this.persist(data); } }
 }
 
 export function createStore(namespace, directory) {
@@ -50,9 +52,9 @@ export function createStore(namespace, directory) {
   if (url && token) {
     const remote = new UpstashStore(url, token);
     return { get: key => remote.get(`gerbi:${namespace}:${key}`), set: (key, value, ttl) => remote.set(`gerbi:${namespace}:${key}`, value, ttl),
-      push: (key, value, max = 5000) => remote.push(`gerbi:${namespace}:${key}`, value, max), list: (key, count = 200) => remote.list(`gerbi:${namespace}:${key}`, count), kind: 'upstash' };
+      push: (key, value, max = 5000) => remote.push(`gerbi:${namespace}:${key}`, value, max), list: (key, count = 200) => remote.list(`gerbi:${namespace}:${key}`, count), del: key => remote.del(`gerbi:${namespace}:${key}`), kind: 'upstash' };
   }
   const local = new FileStore(directory, namespace);
   return { get: key => local.get(key), set: (key, value, ttl) => local.set(key, value, ttl),
-    push: (key, value, max = 5000) => local.push(key, value, max), list: (key, count = 200) => local.list(key, count), kind: 'file' };
+    push: (key, value, max = 5000) => local.push(key, value, max), list: (key, count = 200) => local.list(key, count), del: key => local.del(key), kind: 'file' };
 }
