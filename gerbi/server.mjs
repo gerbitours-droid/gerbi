@@ -43,7 +43,7 @@ const leadStore = createStore('leads', dataDirectory);
 // Locally only the running server persists them (data/ratelimit.json); a module imported by tests keeps memory counters.
 const limitStore = createStore('ratelimit', dataDirectory);
 if (limitStore.kind === 'upstash' || isMain) configureLimits(limitStore);
-const accounts = createAccounts({ store: createStore('accounts', dataDirectory) });
+const accounts = createAccounts({ store: createStore('accounts', dataDirectory), leadStore });
 // Shekel rates (transfers & cheques, sale) for showing supplier prices in ILS: docs/specs/13-pricing-ils-he.md.
 const fx = createFx({ store: createStore('fx', dataDirectory), log: entry => console.log(JSON.stringify(entry)) });
 // Owner admin (spec 18): editable content and owner sessions.

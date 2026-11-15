@@ -294,7 +294,7 @@ async function fillLeads(view) {
     box.removeAttribute('aria-busy');
     if (!ok) { box.innerHTML = `<p class="micro-copy">${t('account.leads.failed')}</p>`; return; }
     box.innerHTML = data.leads.length
-      ? `<ul class="account-list">${data.leads.map((lead) => `<li><div><strong>${esc(lead.generic && lang !== 'he' ? TYPE[lead.type] || lead.title : lead.title)}</strong><span class="micro-copy">${t('account.leads.item', { type: esc(TYPE[lead.type] || t('account.type.other')), date: esc(heDate(lead.createdAt)), ref: `<bdi dir="ltr">${esc(lead.ref)}</bdi>` })}</span></div><span class="account-badge">${t('account.leads.received')}</span></li>`).join('')}</ul>${account.user.emailVerified ? '' : `<p class="micro-copy">${t('account.leads.unverified')}</p>`}`
+      ? `<ul class="account-list">${data.leads.map((lead) => `<li><div><strong>${esc(lead.generic && lang !== 'he' ? TYPE[lead.type] || lead.title : lead.title)}</strong><span class="micro-copy">${t('account.leads.item', { type: esc(TYPE[lead.type] || t('account.type.other')), date: esc(heDate(lead.createdAt)), ref: `<bdi dir="ltr">${esc(lead.ref)}</bdi>` })}</span></div><span class="account-badge" data-status="${esc(lead.status || 'new')}">${t(`account.leads.status.${['progress', 'closed'].includes(lead.status) ? lead.status : 'new'}`)}</span></li>`).join('')}</ul>${account.user.emailVerified ? '' : `<p class="micro-copy">${t('account.leads.unverified')}</p>`}`
       : `<p>${t('account.leads.none')}</p>`;
   } catch { if (box.isConnected) { box.removeAttribute('aria-busy'); box.innerHTML = `<p class="micro-copy">${OFFLINE}</p>`; } }
 }

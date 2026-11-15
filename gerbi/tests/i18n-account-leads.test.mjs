@@ -69,7 +69,7 @@ let ip = 0;
 async function withServer(env, run) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'gerbi-i18n-acc-'));
   const store = createStore('accounts', directory), leadStore = createStore('leads', directory);
-  const accounts = createAccounts({ store, env });
+  const accounts = createAccounts({ store, leadStore, env });
   const body = async (req) => { let raw = ''; for await (const chunk of req) raw += chunk; return raw ? JSON.parse(raw) : {}; };
   const server = http.createServer(async (req, res) => {
     const send = (code, data) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)); };
@@ -115,7 +115,7 @@ test('server: account field errors, success messages and emails follow the reque
   const hook = http.createServer(async (req, res) => { let raw = ''; for await (const chunk of req) raw += chunk; sent.push(JSON.parse(raw)); res.end('ok'); });
   await new Promise((resolve) => hook.listen(0, '127.0.0.1', resolve));
   try {
-    await withServer({ EMAIL_PROVIDER: 'webhook', EMAIL_WEBHOOK_URL: `http://127.0.0.1:${hook.address().port}/mail`, SITE_URL: 'https://gerbi.example' }, async ({ client, store }) => {
+    await withServer({ EMAIL_PROVIDER: 'webhook', EMAIL_WEBHOOK_URL: `http://127.0.0.1:${hook.address().port}/mail`, SITE_URL: 'https://gerbi.example' }, async ({ client, store, leadStore }) => {
       const me = client();
       const bad = await me('POST', '/api/account/signup', { name: 'x', email: 'nope', password: '1', lang: 'en' });
       assert.equal(bad.data.error, 'signup_invalid');
@@ -134,6 +134,11 @@ test('server: account field errors, success messages and emails follow the reque
       assert.equal((await me('POST', '/api/leads', contact({ lang: 'en' }))).status, 201);
       const leads = (await me('GET', '/api/account/leads')).data.leads;
       assert.equal(leads[0].generic, true);
+      // The owner's handling status (admin) shows in the customer's list.
+      assert.equal(leads[0].status, 'new');
+      const [record] = await leadStore.list('all', 1);
+      await leadStore.setListStatus('all', record.id, 'progress');
+      assert.equal((await me('GET', '/api/account/leads')).data.leads[0].status, 'progress');
     });
   } finally { hook.closeAllConnections(); await new Promise((resolve) => hook.close(resolve)); }
 });

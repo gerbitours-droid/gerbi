@@ -83,7 +83,7 @@ const publicUser = (user) => ({ name: user.name, email: user.email, phone: user.
 const leadSummary = (record) => ({ ref: String(record.id).slice(0, 8), createdAt: record.createdAt, type: record.type, source: String(record.source || '').slice(0, 60),
   title: record.type === 'tailor' ? String(record.destinations || '').slice(0, 120) || 'טיול בהתאמה אישית' : 'פנייה כללית' });
 
-export function createAccounts({ store, env = process.env, now = () => Date.now() }) {
+export function createAccounts({ store, leadStore = null, env = process.env, now = () => Date.now() }) {
   const send = emailSender(env);
   const siteUrl = /^https?:\/\//i.test(env.SITE_URL || '') ? env.SITE_URL.replace(/\/+$/, '') : '';
   const iso = () => new Date(now()).toISOString();
@@ -248,8 +248,17 @@ export function createAccounts({ store, env = process.env, now = () => Date.now(
   async function leadsOf(user) {
     const own = Array.isArray(user.leads) ? user.leads : [];
     const byEmail = user.emailVerified ? (await store.get(`leadsByEmail:${sha(user.email)}`)) || [] : [];
+    // The owner's handling status (new / progress / closed) lives on the lead record (and the admin meta); the
+    // customer's copy is a summary, so the current status is looked up by the reference (the id's first 8 chars).
+    const status = new Map();
+    if (leadStore) {
+      try {
+        const meta = (await leadStore.get('meta')) || {};
+        for (const lead of await leadStore.list('all', 5000)) status.set(String(lead.id).slice(0, 8), meta[lead.id]?.status || lead.status || 'new');
+      } catch { /* status is a nicety: the list still shows */ }
+    }
     return [...own, ...byEmail].filter((lead, i, all) => all.findIndex((x) => x.ref === lead.ref) === i).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, MAX_LEADS)
-      .map((lead) => (GENERIC_TITLES.includes(lead.title) ? { ...lead, generic: true } : lead));
+      .map((lead) => ({ ...lead, status: ['new', 'progress', 'closed'].includes(status.get(lead.ref)) ? status.get(lead.ref) : 'new', ...(GENERIC_TITLES.includes(lead.title) ? { generic: true } : {}) }));
   }
 
   return {

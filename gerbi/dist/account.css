@@ -64,3 +64,4 @@
  .account-actions .button{width:100%}
  .account-auth-intro h2{font-size:22px}
 }
+.account-badge[data-status=progress]{background:#fff6d6;color:#7a5a00}.account-badge[data-status=closed]{background:#e3f6e8;color:#1d6b35}
