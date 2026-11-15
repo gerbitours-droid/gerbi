@@ -49,7 +49,9 @@ export function pickDeals(found) {
 
 // search(request) → slimmed supplier data. store: kv-store ({get,set}). Returns {get(), refresh()}.
 export function createDeals({ search, store, now = Date.now, today = () => new Date().toISOString().slice(0, 10), concurrency = 2, log = () => {} }) {
-  let memo = null, inFlight = null;
+  // lastTry: an in-memory cool-down, so a refresh that found nothing (or a store that is down and holds no lock)
+  // is not repeated by every visitor.
+  let memo = null, inFlight = null, lastTry = -Infinity;
   async function load() {
     if (memo) return memo;
     try { memo = await store.get('latest'); } catch { memo = null; }
@@ -82,7 +84,7 @@ export function createDeals({ search, store, now = Date.now, today = () => new D
   async function get({ background = promise => promise.catch(() => {}) } = {}) {
     const cached = await load(), age = cached ? now() - cached.at : Infinity;
     let refreshing = Boolean(inFlight);
-    if (age > DEALS_FRESH_MS && !inFlight) { background(refresh()); refreshing = true; }
+    if (age > DEALS_FRESH_MS && !inFlight && now() - lastTry > LOCK_SECONDS * 1000) { lastTry = now(); background(refresh()); refreshing = true; }
     if (!cached || age > DEALS_MAX_AGE_MS) return { deals: [], updatedAt: null, stale: false, refreshing };
     return { deals: cached.deals, updatedAt: cached.updatedAt, stale: age > DEALS_FRESH_MS, refreshing };
   }

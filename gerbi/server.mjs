@@ -60,7 +60,7 @@ function safeBrief(input = {}) {
   for (const key of ['beach', 'city', 'relaxation', 'family', 'couple']) if (typeof input[key] === 'boolean') brief[key] = input[key];
   return brief;
 }
-const itemKey = (value) => (typeof value === 'string' && /^[A-Za-z0-9@:+|?._-]{1,240}$/.test(value) ? value : '');
+const itemKey = (value) => (typeof value === 'string' && /^[A-Za-z0-9@:+|?._-]{1,240}$/.test(value) && !['__proto__', 'constructor', 'prototype'].includes(value) ? value : '');
 const types = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.mjs':'text/javascript; charset=utf-8', '.png':'image/png', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml', '.woff2':'font/woff2' };
 
 function json(res, code, data) {

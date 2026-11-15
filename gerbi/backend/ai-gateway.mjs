@@ -36,14 +36,16 @@ Security rules (always apply):
 // ---------- PII redaction ----------
 const RE = {
   email: /[^\s@<>"',;]+@[^\s@<>"',;]+\.[A-Za-z]{2,}/g,
-  card: /\b(?:\d[ -]?){12,18}\d\b/g,
+  card: /\b(?:\d[ .-]?){12,18}\d\b/g,
   ilPhone: /(?:\+?972[-\s]?|\b0)(?:5\d|7\d|[2-489])[-\s]?\d{3}[-\s]?\d{4}\b/g,
   intlPhone: /\+\d[\d\s-]{8,}\d/g,
-  id9: /\b\d{9}\b/g,
+  id9: /\b\d{9}\b|\b\d{8}-\d\b/g,
+  // Phones written with brackets, dots or odd grouping: (054) 123-4567, 054.123.4567, +972(0)54-1234567.
+  loosePhone: /(?:\+\(?972\)?|\(?\b0)(?:[\s().-]*\d){8,10}(?!\d)/g,
   iban: /\bIL\d{2}[\d\s]{15,25}\b/gi
 };
 export function redactPII(text) {
-  return String(text ?? '').replace(RE.email, '[מייל]').replace(RE.iban, '[חשבון]').replace(RE.card, '[מספר הוסר]').replace(RE.ilPhone, '[טלפון]').replace(RE.intlPhone, '[טלפון]').replace(RE.id9, '[מספר הוסר]');
+  return String(text ?? '').replace(RE.email, '[מייל]').replace(RE.iban, '[חשבון]').replace(RE.card, '[מספר הוסר]').replace(RE.ilPhone, '[טלפון]').replace(RE.intlPhone, '[טלפון]').replace(RE.loosePhone, '[טלפון]').replace(RE.id9, '[מספר הוסר]');
 }
 export const deepRedact = (value) => typeof value === 'string' ? redactPII(value) : Array.isArray(value) ? value.map(deepRedact)
   : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([k, v]) => [k, deepRedact(v)])) : value;

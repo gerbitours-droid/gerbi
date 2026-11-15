@@ -32,6 +32,8 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
   const contentStore = stores.content || createStore('support-content', dataDirectory);
   const waStore = stores.whatsapp || createStore('support-whatsapp', dataDirectory);
   let contentCache = { at: 0, value: null };
+  // Contact details the owner edited in /admin (spec 18) win over the built-in placeholders.
+  const liveContact = async () => ({ ...contact, ...((siteStore ? await siteStore.get('site').catch(() => null) : null)?.contact || {}) });
 
   async function content() {
     if (contentCache.value && Date.now() - contentCache.at < 60_000) return contentCache.value;
@@ -65,7 +67,7 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
   // Sources for grounded answers: the bot's answers (as edited by the owner, placeholders filled) and the site FAQs.
   async function groundedAnswer(text, c) {
     if (!(await gw.enabled('support_answer'))) return null;
-    const ctx = contactContext(c, contact), fillCtx = (t) => String(t || '').replace(/\{(hours|phone|whatsapp|email)\}/g, (_, k) => ctx[k] || '').replace(/[\u2066\u2069]/g, '');
+    const ctx = contactContext(c, await liveContact()), fillCtx = (t) => String(t || '').replace(/\{(hours|phone|whatsapp|email)\}/g, (_, k) => ctx[k] || '').replace(/[\u2066\u2069]/g, '');
     const sources = Object.entries(INTENTS).filter(([id]) => !['greeting', 'thanks', 'menu'].includes(id)).map(([id, i]) => ({ id, title: i.title, text: fillCtx(c.answers[id]) }));
     const site = siteStore ? await siteStore.get('site').catch(() => null) : null;
     const faqList = Array.isArray(site?.faqs) && site.faqs.length ? site.faqs.map((f) => [f.q, f.a]) : builtinFaqs;
@@ -101,11 +103,12 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
         if (pick) routed = { chip: pick.topic };
       }
     }
-    const reply = respond(conv, routed, { content: c, contact, now: at });
+    const who = await liveContact();
+    const reply = respond(conv, routed, { content: c, contact: who, now: at });
     if (reply.intent && conv.transcript.length && conv.transcript.at(-1).from === 'user') conv.transcript.at(-1).intent = reply.intent;
     if (reply.escalate) {
       const result = await createEscalation(conv, reply.escalate.reason, conv.transcript.findLast((m) => m.intent)?.intent, clientKey);
-      const ctx = contactContext(c, contact);
+      const ctx = contactContext(c, who);
       if (result.record) { reply.messages.push(...confirmation(conv, result.record.ref, c, at)); reply.chips = conv.channel === 'whatsapp' ? [] : [{ id: 'menu', label: CHIP_LABELS.menu }]; }
       else if (result.error === 'rate_limited') reply.messages.push({ text: `נשלחו כמה פניות בזמן קצר, ולכן לא שמרנו את זו. נסו שוב בעוד כמה דקות, או פנו אלינו ישירות: טלפון ${ctx.phone}, וואטסאפ ${ctx.whatsapp}.` });
       else reply.messages.push({ text: `לא הצלחנו לשמור את הפנייה כרגע. אפשר לפנות אלינו ישירות: טלפון ${ctx.phone}, וואטסאפ ${ctx.whatsapp}.`, link: { href: '#/contact', label: 'טופס צור קשר' } });
@@ -118,7 +121,7 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     if (!allow(clientOf(req), 'support')) return send(429, { error: 'rate_limited', message: 'יותר מדי הודעות בזמן קצר. נסו שוב בעוד דקה.' });
     const input = await body(req, 8_000);
     const text = typeof input?.text === 'string' ? input.text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, 600) : '';
-    const chip = typeof input?.chip === 'string' && /^[a-z_]{2,20}$/.test(input.chip) && (INTENTS[input.chip] || CHIP_LABELS[input.chip]) ? input.chip : '';
+    const chip = typeof input?.chip === 'string' && /^[a-z_]{2,20}$/.test(input.chip) && (Object.hasOwn(INTENTS, input.chip) || Object.hasOwn(CHIP_LABELS, input.chip)) ? input.chip : '';
     if (!text && !chip) return send(400, { error: 'text_required', message: 'כתבו שאלה או בחרו נושא.' });
     const sessionId = typeof input.sessionId === 'string' && UUID.test(input.sessionId) ? input.sessionId : randomUUID();
     const key = `web:${sessionId}`;
@@ -222,7 +225,7 @@ export function createSupport({ dataDirectory, leadStore, llmCache = null, env =
     let reply;
     if (message.kind === 'other') { conv.lastInboundAt = at.toISOString(); log(conv, 'user', '[הודעה שאינה טקסט]'); reply = { messages: [{ text: 'כרגע אני מבין רק הודעות טקסט. אפשר לכתוב את השאלה או לבחור נושא.' }], chips: INTENTS.menu.chips.slice(0, 10).map((id) => ({ id, label: CHIP_LABELS[id] })) }; log(conv, 'bot', reply.messages[0].text); }
     else {
-      const chip = message.kind === 'chip' && (INTENTS[message.chip] || CHIP_LABELS[message.chip]) ? message.chip : '';
+      const chip = message.kind === 'chip' && (Object.hasOwn(INTENTS, message.chip) || Object.hasOwn(CHIP_LABELS, message.chip)) ? message.chip : '';
       const text = chip ? '' : (message.text || '').trim();
       // A first message the bot cannot place ("היי, שאלה") gets the welcome menu instead of "did not understand".
       const first = !conv.transcript.length && !chip && !classify(text).intent && !classify(text).frustrated;

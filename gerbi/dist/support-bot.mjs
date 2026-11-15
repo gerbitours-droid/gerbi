@@ -28,7 +28,8 @@ const log = $('#sb-log'), chipsBox = $('#sb-chips'), form = $('#sb-form'), input
 let state = { sessionId: null, items: [], chips: [], input: 'text', escalation: null };
 try { state = { ...state, ...JSON.parse(sessionStorage.getItem(KEY) || '{}') }; } catch {}
 const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify({ ...state, items: state.items.slice(-60) })); } catch {} };
-let busy = false, lastPayload = null;
+// queued: Enter pressed while a reply was still loading; the text is sent as soon as that reply arrives.
+let busy = false, lastPayload = null, queued = false;
 
 function bubble(item, animate = true) {
   const el = document.createElement('div');
@@ -87,12 +88,16 @@ async function ask(payload, shown) {
   }
   renderChips(); renderInput(); renderBadge(); save(); log.scrollTop = log.scrollHeight;
   if (dialog.open && document.activeElement === document.body) input.focus();
+  if (queued) { queued = false; form.requestSubmit(); }
 }
 
+// The send button is disabled while busy, which also blocks Enter (implicit submission); remember it instead.
+input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && busy && input.value.trim()) { event.preventDefault(); queued = true; } });
 form.addEventListener('submit', (event) => {
   event.preventDefault();
   const text = input.value.trim();
-  if (!text || busy) return;
+  if (!text) return;
+  if (busy) { queued = true; return; }
   input.value = '';
   ask({ text }, text);
 });

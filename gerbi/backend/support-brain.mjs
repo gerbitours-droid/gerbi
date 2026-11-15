@@ -106,7 +106,7 @@ function nextStep(conv, lead = []) {
 // One customer turn. Mutates `conv`; returns { messages, chips, input, intent, escalate? }.
 // `escalate` = { reason } means the caller must create the escalation and then append confirmation(...) messages.
 export function respond(conv, { text = '', chip: chipId = '' } = {}, { content, contact = {}, now = new Date() } = {}) {
-  const ctx = contactContext(content, contact), norm = normalize(text), chosen = chipId && (INTENTS[chipId] || CHIP_LABELS[chipId]) ? chipId : '';
+  const ctx = contactContext(content, contact), norm = normalize(text), chosen = chipId && (Object.hasOwn(INTENTS, chipId) || Object.hasOwn(CHIP_LABELS, chipId)) ? chipId : '';
   // 1) Collecting contact details for an escalation.
   if (conv.collect) {
     const c = conv.collect;

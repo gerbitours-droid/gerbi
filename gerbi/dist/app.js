@@ -297,7 +297,7 @@ $('#search-form').onsubmit=async e=>{
  $('#live-results').hidden=true;state.voleroResults=null;
  try{
   const response=await fetch('/api/volero/flights/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
-  const data=await response.json();if(!response.ok)throw new Error(response.status===429||response.status===400?data.message:'לא הצלחנו להשלים את החיפוש מול הספק. בדקו את היעד ונסו שוב.');
+  const data=await response.json();if(!response.ok)throw new Error((response.status===429||response.status===400)&&data.message?data.message:'לא הצלחנו להשלים את החיפוש מול הספק. בדקו את היעד ונסו שוב.');
   context.cachedAt=data.cached?data.searchedAt:null;
   searchContext=context;flightSort='recommended';visibleOfferCount=12;flightFilters=emptyFilters();openDetails.clear();compareOffers.clear();decision.boosts={};decision.pick=null;decision.reason='';decision.order=[];
   const fromRequest=pendingFilters;pendingFilters=null;
@@ -388,6 +388,8 @@ const pages=initPages({routes:{...leadRoutes({contact}),...converterRoutes(),...
  currentPreferences,
  syncHome(){ saveStyles();$('#travelers-value').textContent=travelersText(state.adults,state.children);showDates(); markStaleResults(); }
 });
+// initPages restores the planner's saved passengers; a shared link opened on a fresh page load must win over them.
+if(sharedSearch){restoreSharedSearch();$('#travelers-value').textContent=travelersText(state.adults,state.children);}
 installResultsCta();
 function refreshPersonalization(){
  document.querySelectorAll('[data-preference]').forEach(b=>b.setAttribute('aria-pressed',String(state.preferences[b.dataset.preference]===true)));
