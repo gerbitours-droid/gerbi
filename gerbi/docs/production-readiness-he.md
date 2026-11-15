@@ -15,6 +15,10 @@
 | `GERBI_LLM_MODEL` | החלפת מודל (למשל `qwen/qwen3.8-flash`, זול פי 13) | לא | — |
 | `GERBI_LLM_DAILY_TOKENS` | תקרת טוקנים ליום (ברירת מחדל 200,000) | לא | — |
 | `VOLERO_BOOKING_ENABLED` | להשאיר `false` עד שיש תהליך הזמנה ותשלום | — | — |
+| `LEADS_ADMIN_TOKEN` | מפתח לצפייה בפניות (טופס צור קשר וטיולים בהתאמה אישית) בדף `/leads-admin` וב־`GET /api/leads` (Bearer). בלי המשתנה, הצפייה כבויה (404) | כן, כדי לקרוא פניות | ליצור מחרוזת אקראית ארוכה: `openssl rand -hex 32` |
+| `LEADS_WEBHOOK_URL` | התראה על כל פנייה חדשה: השרת שולח POST עם JSON (`{event:'lead.created', lead}`) לכתובת הזו, עד 3 שניות, וכישלון לא מפיל את השליחה | לא | Make / Zapier / n8n / Slack Workflow webhook |
+
+**פניות (לידים):** נשמרות ב־Upstash (המפתח `gerbi:leads:all`, עד 5,000 אחרונות). בלי Upstash ב־Vercel הן נשמרות רק בזיכרון של מופע הפונקציה ועלולות להיעלם — לכן בפרודקשן חובה Upstash, או לפחות `LEADS_WEBHOOK_URL` שמעביר כל פנייה החוצה. מקומית: `gerbi/data/leads.json` (לא ב־Git). הגבלה: 5 פניות ל־10 דקות לכל כתובת IP, ושדה מלכודת לבוטים.
 
 **כללים:**
 1. מפתחות רק ב־`gerbi/.env` (מקומי, לא נכנס ל־Git) וב־Vercel → Project → Settings → Environment Variables. לא בקוד, לא בדפדפן.

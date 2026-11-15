@@ -6,4 +6,4 @@ export const trips=[
 ];
 // Where a saved flight or a support draft goes. Empty = the site offers "copy" only and says the channel is not set.
 // whatsapp: international digits only (e.g. '972501234567'); email: a monitored address.
-export const contact = { whatsapp: '', email: '' };
+export const contact = { whatsapp: '', email: '', phone: '' };
