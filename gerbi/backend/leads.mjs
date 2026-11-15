@@ -1,7 +1,8 @@
 // Leads from the contact and tailor-made forms: validated server-side, stored newest-first in the KV store,
 // optionally forwarded to an owner webhook, and readable only with LEADS_ADMIN_TOKEN.
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
-import { validateLead, CONSENT_TEXT } from '../dist/leads-validate.mjs';
+import { validateLead, consentText } from '../dist/leads-validate.mjs';
+import { normLang } from '../dist/i18n.mjs';
 import { allow, clientOf } from './volero-guard.mjs';
 
 const LIST_KEY = 'all', MAX_STORED = 5000;
@@ -41,10 +42,11 @@ export async function handleLeads(req, url, { send, body, store, env = process.e
     const input = await body(req, 16_000);
     // Honeypot: a hidden field people never see. Bots that fill it get a normal-looking success and nothing is stored.
     if (typeof input?.website === 'string' && input.website.trim()) { send(201, { ok: true, id: randomUUID().slice(0, 8) }); return true; }
-    const { lead, errors } = validateLead(input);
+    // Spec 21: field messages in the visitor's language; the lead keeps `lang` so the team replies in it.
+    const { lead, errors } = validateLead(input, { lang: normLang(input?.lang) });
     if (!lead) { send(400, { error: 'lead_invalid', fields: errors, message: 'חלק מהפרטים חסרים או לא תקינים.' }); return true; }
     const userId = await hooks?.userOf?.(req);
-    const record = { id: randomUUID(), createdAt: new Date().toISOString(), status: 'new', ...lead, consent: { given: true, text: CONSENT_TEXT, at: new Date().toISOString() }, ...(userId ? { userId } : {}) };
+    const record = { id: randomUUID(), createdAt: new Date().toISOString(), status: 'new', ...lead, consent: { given: true, text: consentText(lead.lang), at: new Date().toISOString() }, ...(userId ? { userId } : {}) };
     const webhook = env.LEADS_WEBHOOK_URL ? notify(env.LEADS_WEBHOOK_URL, record) : null;
     try { await store.push(LIST_KEY, record, MAX_STORED); }
     catch (error) {

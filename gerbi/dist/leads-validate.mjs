@@ -1,11 +1,16 @@
 // Lead forms (contact + tailor-made trips): one validator shared by the browser (inline errors) and the server
-// (the authority). Returns { lead, errors } where errors maps field name -> Hebrew message.
+// (the authority). Returns { lead, errors } where errors maps field name -> message in `lang` (spec 21; the page language
+// in the browser, Hebrew on the server unless the request says otherwise). The option maps below stay Hebrew for the owner.
+import { t, lang as pageLang, normLang } from './i18n.mjs';
 export const CHANNELS = { whatsapp: 'וואטסאפ', phone: 'שיחת טלפון', email: 'מייל' };
 export const FLEXIBILITY = { exact: 'תאריכים מדויקים', days: 'גמישים בכמה ימים', month: 'גמישים בחודש', open: 'עוד לא יודעים' };
 export const BUDGETS = { up5: 'עד 5,000 ₪', '5to10': '5,000–10,000 ₪', '10to20': '10,000–20,000 ₪', '20to40': '20,000–40,000 ₪', over40: 'מעל 40,000 ₪', open: 'עוד לא החלטנו' };
 export const STYLES = { beach: 'ים וחופים', city: 'עיר ותרבות', nature: 'טבע וטיולים', family: 'משפחות וילדים', romantic: 'זוגי ורומנטי', adventure: 'אקסטרים והרפתקאות', culinary: 'אוכל ויין', luxury: 'יוקרה ופינוק', ski: 'סקי', tour: 'טיול מאורגן' };
 export const LIMITS = { name: 80, email: 120, message: 2000, destinations: 200, notes: 2000, source: 60 };
 export const CONSENT_TEXT = 'אני מאשר/ת לג׳רבי טורס לשמור את הפרטים שמסרתי וליצור איתי קשר בנוגע לפנייה זו, בערוץ שבחרתי.';
+export const consentText = (l = pageLang) => t('leads.consent', {}, l);
+// A visitor-facing label of one of the option maps above: optionLabel('channel', 'phone').
+export const optionLabel = (group, key, l = pageLang) => t(`leads.${group}.${key}`, {}, l);
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/, CODE = /^[A-Z]{3}$/;
 const text = (value, max) => (typeof value === 'string' ? value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim() : '').slice(0, max + 1);
@@ -21,16 +26,16 @@ export function normalizeIsraeliPhone(value) {
 export const isEmail = (value) => value.length <= LIMITS.email && /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']{2,}$/.test(value);
 const addDays = (day, n) => new Date(Date.parse(day) + n * 86400000).toISOString().slice(0, 10);
 
-function contactPart(input, errors) {
+function contactPart(input, errors, l) {
   const name = text(input.name, LIMITS.name), email = text(input.email, LIMITS.email), phone = normalizeIsraeliPhone(input.phone);
   const channel = Object.hasOwn(CHANNELS, input.channel) ? input.channel : '';
-  if (name.length < 2) errors.name = 'כתבו שם (לפחות 2 תווים).';
-  else if (name.length > LIMITS.name) errors.name = `השם ארוך מדי (עד ${LIMITS.name} תווים).`;
-  if (!phone) errors.phone = String(input.phone ?? '').trim() ? 'מספר הטלפון לא נראה ישראלי תקין. לדוגמה: \u2066050-1234567\u2069.' : 'כתבו מספר טלפון כדי שנוכל לחזור אליכם.';
-  if (email && !isEmail(email)) errors.email = 'כתובת המייל לא תקינה. לדוגמה: \u2066name@example.com\u2069.';
-  if (!channel) errors.channel = 'בחרו איך נוח לכם שנחזור אליכם.';
-  else if (channel === 'email' && !email) errors.email = 'בחרתם מייל כערוץ חזרה. כתבו כתובת מייל, או בחרו ערוץ אחר.';
-  if (input.consent !== true) errors.consent = 'כדי שנוכל לחזור אליכם צריך לאשר את יצירת הקשר.';
+  if (name.length < 2) errors.name = t('leads.v.nameShort', {}, l);
+  else if (name.length > LIMITS.name) errors.name = t('leads.v.nameLong', { max: LIMITS.name }, l);
+  if (!phone) errors.phone = String(input.phone ?? '').trim() ? t('leads.v.phoneInvalid', {}, l) : t('leads.v.phoneMissing', {}, l);
+  if (email && !isEmail(email)) errors.email = t('leads.v.email', {}, l);
+  if (!channel) errors.channel = t('leads.v.channel', {}, l);
+  else if (channel === 'email' && !email) errors.email = t('leads.v.emailChannel', {}, l);
+  if (input.consent !== true) errors.consent = t('leads.v.consent', {}, l);
   return { name, phone, email, channel, marketing: input.marketing === true };
 }
 
@@ -43,32 +48,32 @@ function searchContext(input) {
   return context.to || context.depart ? context : null;
 }
 
-export function validateLead(input, { today = new Date().toISOString().slice(0, 10) } = {}) {
+export function validateLead(input, { today = new Date().toISOString().slice(0, 10), lang: l = pageLang } = {}) {
   const errors = {};
   if (!input || typeof input !== 'object') return { lead: null, errors: { form: 'invalid' } };
   const type = input.type === 'tailor' ? 'tailor' : input.type === 'contact' ? 'contact' : '';
   if (!type) return { lead: null, errors: { type: 'invalid' } };
-  const contact = contactPart(input, errors);
+  const contact = contactPart(input, errors, l);
   const source = typeof input.source === 'string' && /^\/[a-z0-9/_-]{0,59}$/i.test(input.source) ? input.source : '';
-  const lead = { type, ...contact, source, context: searchContext(input.context) };
+  const lead = { type, ...contact, source, context: searchContext(input.context), lang: normLang(input.lang) };
   if (type === 'contact') {
     lead.message = text(input.message, LIMITS.message);
-    if (lead.message.length > LIMITS.message) errors.message = `ההודעה ארוכה מדי (עד ${LIMITS.message} תווים).`;
+    if (lead.message.length > LIMITS.message) errors.message = t('leads.v.messageLong', { max: LIMITS.message }, l);
   } else {
     const destinations = text(input.destinations, LIMITS.destinations), notes = text(input.notes, LIMITS.notes);
-    if (destinations.length < 2) errors.destinations = 'לאן תרצו לטוס? אפשר לכתוב גם "עוד לא יודעים" או אזור כללי.';
-    else if (destinations.length > LIMITS.destinations) errors.destinations = `עד ${LIMITS.destinations} תווים.`;
-    if (notes.length > LIMITS.notes) errors.notes = `הטקסט ארוך מדי (עד ${LIMITS.notes} תווים).`;
+    if (destinations.length < 2) errors.destinations = t('leads.v.destinations', {}, l);
+    else if (destinations.length > LIMITS.destinations) errors.destinations = t('leads.v.destinationsLong', { max: LIMITS.destinations }, l);
+    if (notes.length > LIMITS.notes) errors.notes = t('leads.v.notesLong', { max: LIMITS.notes }, l);
     const start = typeof input.start === 'string' ? input.start : '', end = typeof input.end === 'string' ? input.end : '';
     const latest = addDays(today, 2 * 366);
-    if (start && (!DATE.test(start) || start < today || start > latest)) errors.start = 'בחרו תאריך יציאה עתידי (עד שנתיים קדימה).';
-    if (end && (!DATE.test(end) || end > latest)) errors.end = 'תאריך החזרה לא תקין.';
-    else if (end && !start) errors.start = 'בחרו גם תאריך יציאה, או השאירו את שני התאריכים ריקים.';
-    else if (end && start && end < start) errors.end = 'תאריך החזרה צריך להיות אחרי תאריך היציאה.';
+    if (start && (!DATE.test(start) || start < today || start > latest)) errors.start = t('leads.v.start', {}, l);
+    if (end && (!DATE.test(end) || end > latest)) errors.end = t('leads.v.end', {}, l);
+    else if (end && !start) errors.start = t('leads.v.startMissing', {}, l);
+    else if (end && start && end < start) errors.end = t('leads.v.endBefore', {}, l);
     const flexibility = Object.hasOwn(FLEXIBILITY, input.flexibility) ? input.flexibility : 'open';
     const adults = int(input.adults), children = int(input.children ?? 0);
-    if (!Number.isInteger(adults) || adults < 1 || adults > 30) errors.adults = 'מספר המבוגרים בין 1 ל־30.';
-    if (!Number.isInteger(children) || children < 0 || children > 20) errors.children = 'מספר הילדים בין 0 ל־20.';
+    if (!Number.isInteger(adults) || adults < 1 || adults > 30) errors.adults = t('leads.v.adults', {}, l);
+    if (!Number.isInteger(children) || children < 0 || children > 20) errors.children = t('leads.v.children', {}, l);
     const budget = Object.hasOwn(BUDGETS, input.budget) ? input.budget : 'open';
     const styles = [...new Set(Array.isArray(input.styles) ? input.styles.filter((s) => Object.hasOwn(STYLES, s)) : [])].slice(0, Object.keys(STYLES).length);
     Object.assign(lead, { destinations, start: start || '', end: end || '', flexibility, adults, children, budget, styles, notes });

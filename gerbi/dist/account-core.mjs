@@ -3,43 +3,47 @@ import { restoreSavedFlights } from './saved-flights.mjs';
 import { restoreJourney } from './journey.mjs';
 import { normalizeIsraeliPhone, isEmail } from './leads-validate.mjs';
 import { trips } from './data.mjs';
+import { t, lang } from './i18n.mjs';
 
 export const PASSWORD_MIN = 8, PASSWORD_MAX = 128, NAME_MAX = 80, MAX_SEARCHES = 20;
 export const MARKETING_TEXT = 'אשמח לקבל מג׳רבי טורס רעיונות לחופשה ומבצעים במייל ובוואטסאפ (אפשר להסיר בכל עת).';
 export const PRIVACY_TEXT = 'קראתי את ההסבר על הפרטיות, ואני מאשר/ת לג׳רבי טורס לשמור את פרטי החשבון והשמירות שלי כדי לספק לי את השירות.';
+// The consent texts in a given language (the server stores the one the visitor saw).
+export const marketingText = (l = lang) => t('account.marketingText', {}, l);
+export const privacyText = (l = lang) => t('account.privacyText', {}, l);
 const COMMON = new Set(['12345678', '123456789', '1234567890', 'password', 'password1', 'qwertyui', 'qwerty123', '11111111', '00000000', 'abcd1234', 'iloveyou', '87654321', 'aa123456', 'gerbitours']);
 const tripIds = trips.map((trip) => trip.id);
 const clean = (value, max) => (typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f]/g, '').trim() : '').slice(0, max + 1);
 
 export const normalizeEmail = (value) => (typeof value === 'string' ? value.trim().toLowerCase() : '');
 
-export function passwordProblem(password) {
-  if (typeof password !== 'string' || password.length < PASSWORD_MIN) return `הסיסמה צריכה לכלול לפחות ${PASSWORD_MIN} תווים.`;
-  if (password.length > PASSWORD_MAX) return `הסיסמה ארוכה מדי (עד ${PASSWORD_MAX} תווים).`;
-  if (COMMON.has(password.toLowerCase()) || /^(.)\1+$/.test(password)) return 'הסיסמה נפוצה מדי וקלה לניחוש. בחרו סיסמה אחרת.';
+export function passwordProblem(password, l = lang) {
+  if (typeof password !== 'string' || password.length < PASSWORD_MIN) return t('account.v.passwordShort', { min: PASSWORD_MIN }, l);
+  if (password.length > PASSWORD_MAX) return t('account.v.passwordLong', { max: PASSWORD_MAX }, l);
+  if (COMMON.has(password.toLowerCase()) || /^(.)\1+$/.test(password)) return t('account.v.passwordCommon', {}, l);
   return '';
 }
 
-function profilePart(input, errors) {
+function profilePart(input, errors, l = lang) {
   const name = clean(input?.name, NAME_MAX), rawPhone = clean(input?.phone, 30), phone = rawPhone ? normalizeIsraeliPhone(rawPhone) : '';
-  if (name.length < 2) errors.name = 'כתבו שם (לפחות 2 תווים).';
-  else if (name.length > NAME_MAX) errors.name = `השם ארוך מדי (עד ${NAME_MAX} תווים).`;
-  if (rawPhone && !phone) errors.phone = 'מספר הטלפון לא נראה ישראלי תקין. לדוגמה: ⁦050-1234567⁩.';
+  if (name.length < 2) errors.name = t('account.v.nameShort', {}, l);
+  else if (name.length > NAME_MAX) errors.name = t('account.v.nameLong', { max: NAME_MAX }, l);
+  if (rawPhone && !phone) errors.phone = t('account.v.phone', {}, l);
   return { name: name.slice(0, NAME_MAX), phone, marketing: input?.marketing === true };
 }
 
-export function validateSignup(input) {
-  const errors = {}, profile = profilePart(input, errors), email = normalizeEmail(input?.email);
-  if (!email) errors.email = 'כתבו כתובת מייל.';
-  else if (!isEmail(email)) errors.email = 'כתובת המייל לא תקינה. לדוגמה: ⁦name@example.com⁩.';
-  const problem = passwordProblem(input?.password);
+export function validateSignup(input, l = lang) {
+  const errors = {}, profile = profilePart(input, errors, l), email = normalizeEmail(input?.email);
+  if (!email) errors.email = t('account.v.emailRequired', {}, l);
+  else if (!isEmail(email)) errors.email = t('account.v.email', {}, l);
+  const problem = passwordProblem(input?.password, l);
   if (problem) errors.password = problem;
-  if (input?.privacy !== true) errors.privacy = 'כדי לפתוח חשבון צריך לאשר את שמירת הפרטים.';
+  if (input?.privacy !== true) errors.privacy = t('account.v.privacy', {}, l);
   return { value: Object.keys(errors).length ? null : { ...profile, email }, errors };
 }
 
-export function validateProfile(input) {
-  const errors = {}, value = profilePart(input, errors);
+export function validateProfile(input, l = lang) {
+  const errors = {}, value = profilePart(input, errors, l);
   return { value: Object.keys(errors).length ? null : value, errors };
 }
 

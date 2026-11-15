@@ -2,7 +2,8 @@
 // saved items synced across devices, linked enquiries, export and deletion. Storage is the KV store only.
 import { createHash, randomBytes, randomInt, randomUUID, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
-import { validateSignup, validateProfile, passwordProblem, normalizeEmail, cleanSaved, addSearch, MARKETING_TEXT, PRIVACY_TEXT } from '../dist/account-core.mjs';
+import { validateSignup, validateProfile, passwordProblem, normalizeEmail, cleanSaved, addSearch, marketingText, privacyText } from '../dist/account-core.mjs';
+import { tIn, normLang, homePath } from '../dist/i18n.mjs';
 import { clientOf } from './volero-guard.mjs';
 
 const scryptAsync = promisify(scrypt);
@@ -13,6 +14,8 @@ const sha = (value) => createHash('sha256').update(String(value)).digest('hex');
 const GENERIC_LOGIN = 'המייל או הסיסמה שגויים.';
 const TOO_MANY = 'יותר מדי ניסיונות. נסו שוב בעוד כמה דקות.';
 const UNAVAILABLE = 'החשבון אינו זמין כרגע. נסו שוב בעוד רגע — השמירות במכשיר לא נפגעו.';
+// Lead titles the server fills in itself (the English page shows its own wording for them).
+const GENERIC_TITLES = ['טיול בהתאמה אישית', 'פנייה כללית'];
 
 export async function hashPassword(password, salt = randomBytes(16)) {
   const key = await scryptAsync(password.normalize('NFC'), salt, 64, KDF);
@@ -112,14 +115,17 @@ export function createAccounts({ store, env = process.env, now = () => Date.now(
     const authRoute = ['/signup', '/login', '/code/request', '/code/verify', '/password/forgot', '/password/reset'].includes(path);
     if (authRoute && method === 'POST' && limited(`auth:${ip}`, 10, 600_000)) return reply(429, { error: 'rate_limited', message: TOO_MANY });
     const input = method === 'POST' ? await body(req, 64_000) : {};
+    // Spec 21: the page language comes with every POST; field messages, success messages and emails follow it.
+    // Error `message`s stay Hebrew for compatibility; the English page maps the `error` code.
+    const l = normLang(input?.lang), tr = tIn(l);
 
     if (method === 'POST' && path === '/signup') {
-      const { value, errors } = validateSignup(input);
+      const { value, errors } = validateSignup(input, l);
       if (!value) return reply(400, { error: 'signup_invalid', fields: errors, message: 'חלק מהפרטים חסרים או לא תקינים.' });
       if (await store.get(`email:${sha(value.email)}`)) return reply(409, { error: 'signup_failed', message: 'לא ניתן לפתוח חשבון עם המייל הזה. אם כבר יש לכם חשבון, התחברו.' });
       const at = iso();
       const user = { id: randomUUID(), email: value.email, name: value.name, phone: value.phone, password: await hashPassword(input.password), emailVerified: false, sessionVersion: 0, createdAt: at,
-        marketing: { given: value.marketing, at, text: MARKETING_TEXT }, privacy: { at, text: PRIVACY_TEXT }, saved: { flights: [], trips: {}, favorites: [], updatedAt: null }, searches: [], leads: [] };
+        marketing: { given: value.marketing, at, text: marketingText(l) }, privacy: { at, text: privacyText(l) }, saved: { flights: [], trips: {}, favorites: [], updatedAt: null }, searches: [], leads: [] };
       await saveUser(user);
       await store.set(`email:${sha(user.email)}`, user.id);
       await startSession(res, req, user);
@@ -143,10 +149,10 @@ export function createAccounts({ store, env = process.env, now = () => Date.now(
       if (user) {
         const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
         await store.set(`code:${sha(email)}`, { hash: sha(email + ':' + code), attempts: 0 }, CODE_TTL);
-        try { await send({ to: user.email, subject: 'קוד הכניסה שלכם לג׳רבי טורס', text: `שלום ${user.name},\n\nקוד הכניסה שלכם: ${code}\nהקוד תקף ל־10 דקות. אם לא ביקשתם קוד, אפשר להתעלם מההודעה.\n\nג׳רבי טורס` }); }
+        try { await send({ to: user.email, subject: tr('account.mail.codeSubject'), text: tr('account.mail.codeText', { name: user.name, code }) }); }
         catch (error) { console.log(JSON.stringify({ evt: 'account_email', ok: false, error: error.message })); }
       }
-      return reply(200, { ok: true, message: 'אם יש חשבון עם המייל הזה, שלחנו אליו קוד כניסה.' });
+      return reply(200, { ok: true, message: tr('account.ok.codeSent') });
     }
     if (method === 'POST' && path === '/code/verify') {
       if (!send) return reply(404, { error: 'not_available' });
@@ -170,22 +176,22 @@ export function createAccounts({ store, env = process.env, now = () => Date.now(
       if (user) {
         const token = randomBytes(32).toString('base64url');
         await store.set(`reset:${sha(token)}`, { userId: user.id }, RESET_TTL);
-        try { await send({ to: user.email, subject: 'איפוס הסיסמה בג׳רבי טורס', text: `שלום ${user.name},\n\nלבחירת סיסמה חדשה: ${siteUrl}/#/account?reset=${token}\nהקישור תקף ל־30 דקות ולשימוש אחד. אם לא ביקשתם איפוס, אפשר להתעלם מההודעה.\n\nג׳רבי טורס` }); }
+        try { await send({ to: user.email, subject: tr('account.mail.resetSubject'), text: tr('account.mail.resetText', { name: user.name, link: `${siteUrl}${homePath(l)}#/account?reset=${token}` }) }); }
         catch (error) { console.log(JSON.stringify({ evt: 'account_email', ok: false, error: error.message })); }
       }
-      return reply(200, { ok: true, message: 'אם יש חשבון עם המייל הזה, שלחנו אליו קישור לאיפוס הסיסמה.' });
+      return reply(200, { ok: true, message: tr('account.ok.resetSent') });
     }
     if (method === 'POST' && path === '/password/reset') {
       const token = typeof input.token === 'string' && /^[A-Za-z0-9_-]{20,100}$/.test(input.token) ? input.token : '';
       const entry = token ? await store.get(`reset:${sha(token)}`) : null, user = entry ? await store.get(`user:${entry.userId}`) : null;
       if (!user) return reply(400, { error: 'invalid_token', message: 'הקישור אינו תקף או שפג תוקפו. בקשו קישור חדש.' });
-      const problem = passwordProblem(input.password);
+      const problem = passwordProblem(input.password, l);
       if (problem) return reply(400, { error: 'password_invalid', fields: { password: problem }, message: problem });
       await store.del(`reset:${sha(token)}`);
       Object.assign(user, { password: await hashPassword(input.password), emailVerified: true, sessionVersion: (user.sessionVersion || 0) + 1 });
       await saveUser(user);
       await store.del(`fail:${sha(user.email)}`);
-      return reply(200, { ok: true, message: 'הסיסמה עודכנה. אפשר להתחבר עם הסיסמה החדשה.' });
+      return reply(200, { ok: true, message: tr('account.ok.passwordReset') });
     }
 
     const session = await current(req);
@@ -195,21 +201,21 @@ export function createAccounts({ store, env = process.env, now = () => Date.now(
     const { user } = session;
 
     if (method === 'POST' && path === '/profile') {
-      const { value, errors } = validateProfile(input);
+      const { value, errors } = validateProfile(input, l);
       if (!value) return reply(400, { error: 'profile_invalid', fields: errors, message: 'חלק מהפרטים לא תקינים.' });
-      if (value.marketing !== (user.marketing?.given === true)) user.marketing = { given: value.marketing, at: iso(), text: MARKETING_TEXT };
+      if (value.marketing !== (user.marketing?.given === true)) user.marketing = { given: value.marketing, at: iso(), text: marketingText(l) };
       Object.assign(user, { name: value.name, phone: value.phone });
       await saveUser(user);
       return reply(200, { user: publicUser(user) });
     }
     if (method === 'POST' && path === '/password/change') {
-      if (!(await verifyPassword(String(input.current ?? '').slice(0, 200), user.password))) return reply(401, { error: 'invalid_credentials', fields: { current: 'הסיסמה הנוכחית שגויה.' }, message: 'הסיסמה הנוכחית שגויה.' });
-      const problem = passwordProblem(input.password);
+      if (!(await verifyPassword(String(input.current ?? '').slice(0, 200), user.password))) return reply(401, { error: 'invalid_credentials', fields: { current: tr('account.v.currentWrong') }, message: 'הסיסמה הנוכחית שגויה.' });
+      const problem = passwordProblem(input.password, l);
       if (problem) return reply(400, { error: 'password_invalid', fields: { password: problem }, message: problem });
       Object.assign(user, { password: await hashPassword(input.password), sessionVersion: (user.sessionVersion || 0) + 1 });
       await saveUser(user);
       await startSession(res, req, user); // other devices are signed out, this one stays in
-      return reply(200, { ok: true, message: 'הסיסמה עודכנה. חיבורים במכשירים אחרים נותקו.' });
+      return reply(200, { ok: true, message: tr('account.ok.passwordChanged') });
     }
     if (path === '/saved') {
       if (method === 'GET') return reply(200, { ...cleanSaved(user.saved), updatedAt: user.saved?.updatedAt || null });
@@ -228,7 +234,7 @@ export function createAccounts({ store, env = process.env, now = () => Date.now(
       return reply(200, { exportedAt: iso(), service: 'ג׳רבי טורס', account: { ...data, saved: cleanSaved(user.saved) }, leads: await leadsOf(user) });
     }
     if (method === 'POST' && path === '/delete') {
-      if (!(await verifyPassword(String(input.password ?? '').slice(0, 200), user.password))) return reply(401, { error: 'invalid_credentials', fields: { password: 'הסיסמה שגויה.' }, message: 'הסיסמה שגויה.' });
+      if (!(await verifyPassword(String(input.password ?? '').slice(0, 200), user.password))) return reply(401, { error: 'invalid_credentials', fields: { password: tr('account.v.passwordWrong') }, message: 'הסיסמה שגויה.' });
       await store.del(`user:${user.id}`); await store.del(`email:${sha(user.email)}`); await store.del(`leadsByEmail:${sha(user.email)}`); await store.del(session.key);
       setCookie(res, req, env, '', 0);
       console.log(JSON.stringify({ evt: 'account_deleted' }));
@@ -240,7 +246,8 @@ export function createAccounts({ store, env = process.env, now = () => Date.now(
   async function leadsOf(user) {
     const own = Array.isArray(user.leads) ? user.leads : [];
     const byEmail = user.emailVerified ? (await store.get(`leadsByEmail:${sha(user.email)}`)) || [] : [];
-    return [...own, ...byEmail].filter((lead, i, all) => all.findIndex((x) => x.ref === lead.ref) === i).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, MAX_LEADS);
+    return [...own, ...byEmail].filter((lead, i, all) => all.findIndex((x) => x.ref === lead.ref) === i).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, MAX_LEADS)
+      .map((lead) => (GENERIC_TITLES.includes(lead.title) ? { ...lead, generic: true } : lead));
   }
 
   return {
