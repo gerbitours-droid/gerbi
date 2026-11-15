@@ -144,7 +144,7 @@ function nextStep(conv, lead = []) {
 export function respond(conv, { text = '', chip: chipId = '' } = {}, { content, contact = {}, now = new Date() } = {}) {
   if (!conv.lang && content?.lang) conv.lang = content.lang;
   const lang = langOf(conv, content), T = tIn(lang), chip = chipIn(lang);
-  const ctx = contactContext(content, contact), norm = normalize(text), chosen = chipId && (INTENTS[chipId] || CHIP_LABELS[chipId]) ? chipId : '';
+  const ctx = contactContext(content, contact), norm = normalize(text), chosen = chipId && (Object.hasOwn(INTENTS, chipId) || Object.hasOwn(CHIP_LABELS, chipId)) ? chipId : '';
   // 1) Collecting contact details for an escalation.
   if (conv.collect) {
     const c = conv.collect;

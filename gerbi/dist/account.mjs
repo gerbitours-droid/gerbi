@@ -183,7 +183,7 @@ function showErrors(form, errors) {
     const message = errors[box.dataset.field], slot = box.querySelector('.lead-error');
     if (slot) { slot.textContent = message || ''; slot.hidden = !message; }
     box.classList.toggle('invalid', Boolean(message));
-    box.querySelectorAll('input').forEach((input) => input.toggleAttribute('aria-invalid', Boolean(message)));
+    box.querySelectorAll('input').forEach((input) => (message ? input.setAttribute('aria-invalid', 'true') : input.removeAttribute('aria-invalid')));
   }
   const first = form.querySelector('[data-field].invalid input');
   if (first) first.focus();

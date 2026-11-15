@@ -1,7 +1,10 @@
 import crypto from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { safeTokens } from './understanding.mjs';
+import { safeTokens as tokenize } from './understanding.mjs';
+// Keys that would reach Object.prototype through plain-object maps (prototype pollution) are never used as keys.
+const ownKey = (key) => !['__proto__', 'constructor', 'prototype'].includes(key);
+const safeTokens = (text) => tokenize(text).filter(ownKey);
 
 const empty = () => ({ version: 1, updatedAt: null, totals: { understood: 0, feedback: 0 }, tagWeights: {}, destinationWeights: {}, keywordTagCounts: {}, events: [] });
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -20,12 +23,12 @@ export class LearningStore {
     await rename(temporary, this.file);
   }
   async mutate(operation) {
-    this.pending = this.pending.then(async () => { await this.load(); operation(this.data); this.data.updatedAt = new Date().toISOString(); await this.persist(); });
+    this.pending = this.pending.catch(() => {}).then(async () => { await this.load(); operation(this.data); this.data.updatedAt = new Date().toISOString(); await this.persist(); });
     await this.pending; return this.data;
   }
   async learnQuery({ text, tags, consent }) {
     if (!consent) return this.summary();
-    const safeTagIds = [...new Set((tags || []).filter((tag) => /^[a-z_]{2,50}$/.test(tag)))].slice(0, 20);
+    const safeTagIds = [...new Set((tags || []).filter((tag) => /^[a-z_]{2,50}$/.test(tag) && ownKey(tag)))].slice(0, 20);
     const tokens = safeTokens(text);
     await this.mutate((data) => {
       data.totals.understood += 1;
@@ -45,7 +48,7 @@ export class LearningStore {
     await this.mutate((data) => {
       data.totals.feedback += 1;
       if (destinationId) data.destinationWeights[destinationId] = clamp((data.destinationWeights[destinationId] || 0) + delta, -20, 20);
-      for (const tag of [...new Set(tags)].filter((tag) => /^[a-z_]{2,50}$/.test(tag))) data.tagWeights[tag] = clamp((data.tagWeights[tag] || 0) + delta, -10, 10);
+      for (const tag of [...new Set(tags)].filter((tag) => /^[a-z_]{2,50}$/.test(tag) && ownKey(tag))) data.tagWeights[tag] = clamp((data.tagWeights[tag] || 0) + delta, -10, 10);
       data.events.push({ type: event, at: new Date().toISOString(), destinationId: destinationId || null, tagCount: tags.length });
       data.events = data.events.slice(-1000);
     });

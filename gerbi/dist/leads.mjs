@@ -52,7 +52,7 @@ function showErrors(form, errors) {
     const name = box.dataset.field, message = errors[name], slot = box.querySelector('.lead-error');
     if (slot) { slot.textContent = message || ''; slot.hidden = !message; }
     box.classList.toggle('invalid', Boolean(message));
-    for (const control of box.querySelectorAll('input,select,textarea')) if (control.type !== 'radio' && control.type !== 'checkbox' || control.name === 'consent') control.toggleAttribute('aria-invalid', Boolean(message));
+    for (const control of box.querySelectorAll('input,select,textarea')) if (control.type !== 'radio' && control.type !== 'checkbox' || control.name === 'consent') (message ? control.setAttribute('aria-invalid', 'true') : control.removeAttribute('aria-invalid')); // an empty aria-invalid means "false" to screen readers
   }
 }
 const firstInvalid = (form) => form.querySelector('[data-field].invalid input:not([type=radio]), [data-field].invalid select, [data-field].invalid textarea, [data-field].invalid input[type=radio]:checked, [data-field].invalid input[type=radio]');

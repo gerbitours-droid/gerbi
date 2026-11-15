@@ -3,7 +3,7 @@
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 // Works on already-escaped text: quotes and angle brackets cannot appear, so the value is attribute-safe.
-const LINK_OK = /^(https?:\/\/[^\s]+|mailto:[^\s]+|tel:\+?[\d-]+|#\/[^\s]*|\/(?!\/)[^\s]*)$/i;
+const LINK_OK = /^(https?:\/\/[^\s]+|mailto:[^\s]+|tel:\+?[\d-]+|#\/[^\s]*|\/(?![\/\\])[^\s\\]*)$/i;
 const IMAGE_OK = /^(https:\/\/[^\s]+|\/assets\/[\w./-]+|\/api\/content\/cover\/[\w-]+(\?v=[\w]+)?)$/i;
 export const safeLink = (url) => (LINK_OK.test(url) ? url : '');
 export const safeImage = (url) => (IMAGE_OK.test(url) ? url : '');
