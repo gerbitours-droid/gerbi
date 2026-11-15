@@ -98,6 +98,16 @@ class FileStore {
   }
 }
 
+// Vercel's Upstash integration names its vars <PREFIX>_KV_REST_API_URL/_TOKEN (or KV_REST_API_*); alias them once.
+// ponytail: first match wins; set UPSTASH_REDIS_REST_* explicitly if a project ever has two databases.
+export function aliasKvEnv(env = process.env) {
+  if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) return env;
+  const key = Object.keys(env).find(k => /(^|_)KV_REST_API_URL$/.test(k) && env[k] && env[k.replace(/URL$/, 'TOKEN')]);
+  if (key) { env.UPSTASH_REDIS_REST_URL = env[key]; env.UPSTASH_REDIS_REST_TOKEN = env[key.replace(/URL$/, 'TOKEN')]; }
+  return env;
+}
+aliasKvEnv();
+
 export function createStore(namespace, directory) {
   const { UPSTASH_REDIS_REST_URL: url, UPSTASH_REDIS_REST_TOKEN: token } = process.env;
   if (url && token) {
