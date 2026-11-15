@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">
+<title>פניות | ג׳רבי טורס</title>
+<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/pages.css"><link rel="stylesheet" href="/leads.css">
+<script type="module" src="/leads-admin.mjs"></script>
+</head>
+<body class="inner-page">
+<main class="leads-admin">
+ <span class="eyebrow">ג׳רבי טורס · לבעלי האתר בלבד</span>
+ <h1>פניות מהאתר</h1>
+ <p class="micro-copy">הדביקו את מפתח הגישה (LEADS_ADMIN_TOKEN). המפתח נשמר רק בלשונית הזו ונמחק כשסוגרים אותה.</p>
+ <form id="token-form">
+  <div class="lead-field"><label for="token">מפתח גישה</label><input id="token" type="password" autocomplete="off" dir="ltr" required aria-describedby="admin-status"></div>
+  <button class="button yellow" type="submit">הצגת הפניות</button>
+  <button class="button secondary" type="button" id="forget">שכחו את המפתח</button>
+ </form>
+ <p id="admin-status" role="status" class="micro-copy"></p>
+ <section id="leads" aria-label="רשימת פניות"></section>
+</main>
+</body>
+</html>

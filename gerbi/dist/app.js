@@ -6,6 +6,7 @@ import { places, resolvePlace, placeSuggestions, placeType } from './places.mjs'
 import { scoreOffers, rankScored, needsTieBreak, badges, diverseTop, explain, itineraryKey, features } from './scoring.mjs';
 import { SAVED_FLIGHTS_KEY, flightSnapshot, restoreSavedFlights, addSavedFlight, searchLink, parseSearchLink, followUpText, contactActions } from './saved-flights.mjs';
 import { initPages } from './pages.mjs';
+import { leadRoutes, installResultsCta } from './leads.mjs';
 const icons=name=>`<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const money=n=>new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:0}).format(n);
 const $=s=>document.querySelector(s);
@@ -325,7 +326,7 @@ function restoreSharedSearch(){
 const sharedSearch=restoreSharedSearch();if(!sharedSearch)restoreLastSearch();
 if(!contactActions(contact,'x').length)document.querySelectorAll('.support, nav a[href="#/support"]').forEach(el=>{const icon=el.querySelector('svg');el.textContent='עזרה ושאלות';if(icon)el.prepend(icon);});
 window.addEventListener('hashchange',()=>{if(!activeSearch&&restoreSharedSearch())document.dispatchEvent(new Event('brief-changed'));});
-const pages=initPages({state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
+const pages=initPages({routes:leadRoutes({contact}),state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
  getFavorites:()=>favorites,
  getSavedFlights:()=>savedFlights,
  removeSavedFlight(id){return storeSavedFlights(savedFlights.filter(item=>item.id!==id));},
@@ -347,6 +348,7 @@ const pages=initPages({state,trips,money,icons,escapeHTML,toast,openModal,openDa
  currentPreferences,
  syncHome(){ saveStyles();$('#travelers-value').textContent=`${state.adults+state.children} נוסעים`;showDates(); markStaleResults(); }
 });
+installResultsCta();
 function refreshPersonalization(){
  document.querySelectorAll('[data-preference]').forEach(b=>b.setAttribute('aria-pressed',String(state.preferences[b.dataset.preference]===true)));
  const selected=styles.filter(style=>state.preferences[style.id]===true);
