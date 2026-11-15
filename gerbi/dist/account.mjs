@@ -263,7 +263,7 @@ function wireGuest(view, resetToken) {
 }
 
 // ——— #/account for a signed-in customer ———
-const TYPE = { contact: t('account.type.contact'), tailor: t('account.type.tailor') };
+const TYPE = { contact: t('account.type.contact'), tailor: t('account.type.tailor'), package: t('account.type.package') };
 const heDate = (value) => (Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 const placeName = (code) => resolvePlace(code)?.label || code;
 function userPanel() {

@@ -80,14 +80,14 @@ document.addEventListener('click', (e) => { const a = e.target.closest('a[href^=
 
 // ---------- Leads ----------
 const LEAD_STATUS = { new: 'חדש', progress: 'בטיפול', closed: 'נסגר' };
-const LEAD_TYPE = { contact: 'צור קשר', tailor: 'טיול בהתאמה אישית', support: 'שירות לקוחות' };
+const LEAD_TYPE = { contact: 'צור קשר', tailor: 'טיול בהתאמה אישית', package: 'חבילה מבונה החופשות', support: 'שירות לקוחות' };
 const leadFilters = { status: '', type: '', q: '' };
 let leadSort = 'new', leadById = new Map();
 const intl = (phone) => (/^0\d{8,9}$/.test(phone || '') ? '972' + phone.slice(1) : '');
 
 function leadCard(lead) {
   const rows = [['טלפון', `<a href="tel:${esc(lead.phone)}" dir="ltr">${esc(lead.phone)}</a>`], ['מייל', lead.email ? `<a href="mailto:${esc(lead.email)}" dir="ltr">${esc(lead.email)}</a>` : '—'], ['לחזור דרך', esc(CHANNELS[lead.channel] || lead.channel || '—')]];
-  if (lead.type === 'tailor') {
+  if (lead.type === 'tailor' || lead.type === 'package') {
     rows.push(['יעד', esc(lead.destinations)], ['תאריכים', esc([lead.start, lead.end].filter(Boolean).join(' עד ') || 'לא צוין') + ' · ' + esc(FLEXIBILITY[lead.flexibility] || '')],
       ['נוסעים', `${Number(lead.adults) === 1 ? 'מבוגר אחד' : `${esc(lead.adults)} מבוגרים`}${lead.children ? ` · ${Number(lead.children) === 1 ? 'ילד אחד' : `${esc(lead.children)} ילדים`}` : ''}`], ['תקציב', esc(BUDGETS[lead.budget] || '')]);
     if (lead.styles?.length) rows.push(['סגנון', esc(lead.styles.map((s) => STYLES[s] || s).join(' · '))]);
@@ -97,13 +97,32 @@ function leadCard(lead) {
   rows.push(['דיוור', lead.marketing ? 'מסכים/ה לקבל עדכונים' : 'לא']);
   const wa = intl(lead.phone), id = esc(lead.id);
   const notes = (lead.adminNotes || []).map((n) => `<li><small>${esc(when(n.at))}</small> ${esc(n.text)}</li>`).join('');
-  return `<article class="lead-card admin-lead" data-lead="${id}"><header><h2>${esc(lead.name)}</h2><span class="lead-tag ${lead.type === 'tailor' ? 'tailor' : ''}">${esc(LEAD_TYPE[lead.type] || lead.type)}</span>${priorityChip(lead)}<small>${esc(when(lead.createdAt))} · ${esc(lead.source || '')}</small>
+  return `<article class="lead-card admin-lead" data-lead="${id}"><header><h2>${esc(lead.name)}</h2><span class="lead-tag ${['tailor', 'package'].includes(lead.type) ? 'tailor' : ''}">${esc(LEAD_TYPE[lead.type] || lead.type)}</span>${priorityChip(lead)}<small>${esc(when(lead.createdAt))} · ${esc(lead.source || '')}</small>
     <label class="status-pick status-${esc(lead.status)}"><span class="sr-only">סטטוס</span><select data-status aria-label="סטטוס הפנייה של ${esc(lead.name)}">${Object.entries(LEAD_STATUS).map(([k, v]) => `<option value="${k}"${lead.status === k ? ' selected' : ''}>${v}</option>`).join('')}</select></label></header>
-    <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+    <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>${lead.package ? packageHtml(lead.package) : ''}
     <div class="admin-notes"><strong>הערות פנימיות</strong>${notes ? `<ul>${notes}</ul>` : '<p class="micro-copy">אין עדיין הערות.</p>'}
      <form data-note class="note-form"><label class="sr-only" for="note-${id}">הערה חדשה</label><input id="note-${id}" maxlength="1000" placeholder="הוספת הערה (נראית רק לכם)"><button class="button secondary" type="submit">הוספה</button></form></div>
     ${leadAiHtml(lead)}
     <div class="lead-actions">${wa ? `<a class="button secondary" href="https://wa.me/${wa}" target="_blank" rel="noopener noreferrer">וואטסאפ</a>` : ''}<a class="button secondary" href="tel:${esc(lead.phone)}">חיוג</a></div><p class="admin-status" role="status"></p></article>`;
+}
+
+// A package lead (spec 24): the trip the customer built, readable at a glance. Prices are the supplier's at the time shown.
+const BOARD = { RO: 'לינה בלבד', SC: 'עצמאי', BB: 'ארוחת בוקר', HB: 'חצי פנסיון', FB: 'פנסיון מלא', AI: 'הכול כלול', RD: 'לפי החדר' };
+const money = (p) => (p ? `${Number(p.value).toLocaleString('he-IL', { maximumFractionDigits: 0 })} ${p.currency}` : '');
+const nm = (v) => (v && typeof v === 'object' ? v.he || v.en || '' : v || '');
+function packageHtml(p) {
+  const r = p.request || {}, f = p.flights?.picks?.[0], groups = p.hotels?.stops || (p.hotels ? [p.hotels] : []), stops = p.stops?.length ? p.stops : [p.destination].filter(Boolean);
+  const rows = [
+    ['מסלול', esc(stops.map((s) => `${nm(s.name)} (${s.nights} לילות)`).join(' ← '))],
+    ['תאריכים', esc(`${r.start || ''} – ${r.end || ''}${r.datesAssumed ? ' (משוער – לבדוק עם הלקוח)' : ''}`)],
+    ['טיסה', f ? esc(`${f.carriers.join(' + ')} · ${f.stops ? f.stops + ' עצירות' : 'ישירה'} · ${f.legs.map((l) => `${l.from} ${l.depart} → ${l.to} ${l.arrive} (${l.date})`).join(' | ')} · ${money(f.price)} (נבדק ${when(p.flights.searchedAt)})`) : 'לפי הצעה (לא נבחרה טיסה חיה)'],
+    ...groups.map((g, i) => [groups.length > 1 ? `מלון ${i + 1}` : 'מלון', g.picks?.[0] ? esc(`${g.picks[0].name} · ${'★'.repeat(g.picks[0].stars || 0)} · ${BOARD[g.picks[0].board] || ''} · ${money(g.picks[0].price)} לשהות (נבדק ${when(g.searchedAt)})${g.area ? ' · אזור: ' + nm(g.area.name) : ''}`) : esc(`לפי הצעה${g.area ? ' · אזור מומלץ: ' + nm(g.area.name) : ''}`)]),
+    ['רכב', p.car?.include ? 'כן – להציע השכרת רכב' : 'לא'],
+    ['צרכים', esc([r.needs?.allInclusive && 'הכול כלול', r.needs?.kosher && 'כשר', r.needs?.shabbat && 'שומרי שבת', r.needs?.accessible && 'נגישות', r.needs?.minStars && `${r.needs.minStars}★ ומעלה`, r.childAges?.length && `גילי ילדים ${r.childAges.join(', ')}`].filter(Boolean).join(' · ') || '—')],
+    ['הבקשה המקורית', esc(r.text || '—')]
+  ];
+  const days = (p.itinerary || []).map((d) => `<li><strong>יום ${d.day}${d.date ? ' · ' + esc(d.date) : ''}:</strong> ${esc(d.title)}${d.items?.length ? ' — ' + esc(d.items.map((x) => x.name).join(', ')) : ''}</li>`).join('');
+  return `<section class="admin-package" aria-label="פרטי החבילה"><h3>החבילה שהלקוח בנה</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>${days ? `<details><summary>תוכנית יום־יום (${p.itinerary.length} ימים)</summary><ol class="admin-days">${days}</ol></details>` : ''}<p class="micro-copy">מחירי ספק בזמן הבנייה – לאמת לפני הצעה. רכב, העברות וביטוח – להציע בנפרד.</p></section>`;
 }
 
 async function leadsTab() {

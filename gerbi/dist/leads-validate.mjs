@@ -2,6 +2,7 @@
 // (the authority). Returns { lead, errors } where errors maps field name -> message in `lang` (spec 21; the page language
 // in the browser, Hebrew on the server unless the request says otherwise). The option maps below stay Hebrew for the owner.
 import { t, lang as pageLang, normLang } from './i18n.mjs';
+import { sanitizePackage } from './trip-package.mjs';
 export const CHANNELS = { whatsapp: 'וואטסאפ', phone: 'שיחת טלפון', email: 'מייל' };
 export const FLEXIBILITY = { exact: 'תאריכים מדויקים', days: 'גמישים בכמה ימים', month: 'גמישים בחודש', open: 'עוד לא יודעים' };
 export const BUDGETS = { up5: 'עד 5,000 ₪', '5to10': '5,000–10,000 ₪', '10to20': '10,000–20,000 ₪', '20to40': '20,000–40,000 ₪', over40: 'מעל 40,000 ₪', open: 'עוד לא החלטנו' };
@@ -51,7 +52,8 @@ function searchContext(input) {
 export function validateLead(input, { today = new Date().toISOString().slice(0, 10), lang: l = pageLang } = {}) {
   const errors = {};
   if (!input || typeof input !== 'object') return { lead: null, errors: { form: 'invalid' } };
-  const type = input.type === 'tailor' ? 'tailor' : input.type === 'contact' ? 'contact' : '';
+  // 'package' (spec 24): a whole trip from the magic builder – the tailor-made fields plus the structured package.
+  const type = ['tailor', 'contact', 'package'].includes(input.type) ? input.type : '';
   if (!type) return { lead: null, errors: { type: 'invalid' } };
   const contact = contactPart(input, errors, l);
   const source = typeof input.source === 'string' && /^\/[a-z0-9/_-]{0,59}$/i.test(input.source) ? input.source : '';
@@ -77,6 +79,17 @@ export function validateLead(input, { today = new Date().toISOString().slice(0, 
     const budget = Object.hasOwn(BUDGETS, input.budget) ? input.budget : 'open';
     const styles = [...new Set(Array.isArray(input.styles) ? input.styles.filter((s) => Object.hasOwn(STYLES, s)) : [])].slice(0, Object.keys(STYLES).length);
     Object.assign(lead, { destinations, start: start || '', end: end || '', flexibility, adults, children, budget, styles, notes });
+    if (type === 'package') { lead.package = leadPackage(input.package); if (!lead.package) errors.package = 'invalid'; }
   }
   return Object.keys(errors).length ? { lead: null, errors } : { lead, errors };
+}
+
+// The package kept with a lead: the sanitised snapshot with only the chosen flight and hotel(s) (what the owner quotes).
+export function leadPackage(input) {
+  const pkg = sanitizePackage(input);
+  if (!pkg?.destination) return null;
+  const keep = (g) => ({ ...g, picks: g.picks.filter((h) => h.id === g.selected).concat(g.selected ? [] : g.picks.slice(0, 1)).slice(0, 1) });
+  pkg.flights.picks = pkg.flights.picks.filter((p) => p.key === pkg.flights.selected).concat(pkg.flights.selected ? [] : pkg.flights.picks.slice(0, 1)).slice(0, 1);
+  pkg.hotels = pkg.hotels.stops ? { stops: pkg.hotels.stops.map(keep) } : keep(pkg.hotels);
+  return pkg;
 }

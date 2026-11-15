@@ -15,9 +15,10 @@ import support from './locales/support.mjs';
 import ai from './locales/ai.mjs';
 import cms from './locales/cms.mjs';
 import planner from './locales/planner.mjs';
+import build from './locales/build.mjs';
 
 export const LANGS = ['he', 'en'];
-export const AREAS = { core, home, app, search, pages, content, account, leads, support, ai, cms, planner };
+export const AREAS = { core, home, app, search, pages, content, account, leads, support, ai, cms, planner, build };
 export const DICTS = { he: {}, en: {} };
 for (const area of Object.values(AREAS)) for (const l of LANGS) Object.assign(DICTS[l], area[l]);
 

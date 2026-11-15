@@ -116,13 +116,16 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   for (const s of request.styles) prefs[s] = true;
   if (request.occasion === 'honeymoon') prefs.couple = true;
   if (request.needs.allInclusive) prefs.tags = ['all_inclusive'];
-  let ranked = rank(prefs).filter((x) => !x.destination.advisory);
+  // Destinations under a travel advisory stay in the list (shown with their note) but never lead it.
+  let ranked = rank(prefs).sort((a, b) => Boolean(a.destination.advisory) - Boolean(b.destination.advisory));
   const pool = request.shortlist.length ? request.shortlist : null;
   if (pool) ranked = ranked.filter((x) => pool.includes(x.destination.id));
   else if (request.countries.length) { const inCountry = ranked.filter((x) => request.countries.includes(x.destination.country.en)); if (inCountry.length) ranked = inCountry; }
   if (request.children > 0) ranked = ranked.filter((x) => x.destination.flightHours <= 6 || ranked.length <= limit);
+  // The AI partner's ideas (when the rules understood little) lead the list; they never hide the catalog's ranking.
+  if (request.boost?.length) ranked = [...ranked.filter((x) => request.boost.includes(x.destination.id)), ...ranked.filter((x) => !request.boost.includes(x.destination.id))];
   return ranked.slice(0, limit).map(({ destination: d, score, reasons }) => ({ id: d.id, name: d.name, country: d.country, image: imageOf(d), score,
-    reasons: reasons.slice(0, 3).map((r) => L(r, request.lang)), flightHours: d.flightHours, direct: d.direct, budgetLevel: d.budgetLevel }));
+    reasons: reasons.slice(0, 3).map((r) => L(r, request.lang)), flightHours: d.flightHours, direct: d.direct, budgetLevel: d.budgetLevel, advisory: L(d.advisory, request.lang) }));
 }
 export const imageOf = (d) => (d?.image?.thumb ? d.image.thumb : d?.trip ? `/assets/${d.trip}.jpg` : '');
 
@@ -293,7 +296,7 @@ export function planPackage(request, { today = new Date().toISOString().slice(0,
   const assumed = dates.assumed.map((a) => t(`build.assumed.${a.key}`, { nights: a.nights, month: monthName(a.month, l) }, l));
   if (!request.understood.some((x) => x.field === 'adults')) assumed.unshift(t('build.assumed.adults', {}, l));
   if (request.children > request.childAges.length) assumed.push(t('build.assumed.ages', {}, l));
-  const stopView = (s) => ({ id: s.dest.id, code: s.dest.code, name: s.dest.name, country: s.dest.country, nights: s.nights, start: s.start, end: s.end, dailyBudgetIls: s.dest.dailyBudgetIls, image: imageOf(s.dest), summary: s.dest.summary });
+  const stopView = (s) => ({ id: s.dest.id, code: s.dest.code, name: s.dest.name, country: s.dest.country, nights: s.nights, start: s.start, end: s.end, dailyBudgetIls: s.dest.dailyBudgetIls, image: imageOf(s.dest), summary: s.dest.summary, advisory: s.dest.advisory || null });
   const areas = stops.map((s) => areaFor(s.dest, r));
   return {
     request: r, suggestions, assumed,

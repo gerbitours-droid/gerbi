@@ -29,7 +29,7 @@ export function supplierHotelInput(s) {
 }
 // Query pairs for the results call; list filters are PHP-style arrays (hotelClassifications[]=4) – a comma string is refused.
 export function hotelQueries(s) {
-  const base = [['perPage', '60'], ['sortField', 'price'], ['sortOrder', 'ASC'], ['includeHotelDetails', '1']];
+  const base = [['perPage', '100'], ['sortField', 'price'], ['sortOrder', 'ASC'], ['includeHotelDetails', '1']];
   const from = Math.max(1, s.minStars - 1), stars = s.minStars >= 2 ? Array.from({ length: 6 - from }, (_, i) => ['hotelClassifications[]', String(from + i)]) : [];
   const query = [...base, ...stars, ...(s.board ? [['boardBasis[]', s.board]] : [])];
   return { query, fallbackQuery: s.board ? [...base, ...stars] : null };
@@ -52,7 +52,7 @@ export function slimHotel(h, board = '') {
   const nonRef = (Array.isArray(h?.nonRefundable) ? h.nonRefundable : []).some((x) => priceOf(x?.price) && price && x.price.value <= price.value + 0.01);
   return { id: String(h?.index ?? d.id ?? '').slice(0, 20), name: String(h?.name || d.name || '').slice(0, 120), stars: Number.isInteger(h?.stars) ? h.stars : Number(d.stars) || 0,
     price, board: wanted ? board : cheapest?.code || '', boards: [...new Set(boards.map((b) => b.code))],
-    address: String(d.address || '').slice(0, 160), image: imageSrc(d.mainImage?.url || ''), refundable: !nonRef,
+    address: String(d.address || '').slice(0, 160), lat: Number(d.geolocation?.latitude) || null, lon: Number(d.geolocation?.longitude) || null, image: imageSrc(d.mainImage?.url || ''), refundable: !nonRef,
     family: (Array.isArray(d.categories) ? d.categories : []).some((c) => /family/i.test(c?.name || '')) };
 }
 
@@ -64,10 +64,15 @@ export function rankHotels(list, spec) {
   if (pool.length < 3 && spec.minStars > 0) { pool = priced.filter((h) => h.stars >= spec.minStars - 1); relaxedStars = true; }
   if (!pool.length) return { picks: [], relaxedStars };
   const words = String(spec.area || '').toLowerCase().split(/[^a-zÀ-ɏ]+/).filter((w) => w.length >= 4);
-  const prices = pool.map((h) => h.price.value).sort((a, b) => a - b), pct = (v) => prices.findIndex((p) => p >= v) / Math.max(1, prices.length - 1);
+  // Price counts relative to the cheapest fitting hotel (20% more = 0.6), capped, so a good area or more stars can win.
+  const cheapest = Math.min(...pool.map((h) => h.price.value)), pct = (v) => Math.min(1.5, v / cheapest - 1);
+  // Where most of the city's hotels are (median position) stands in for the centre: far-out hotels pay a distance penalty.
+  const med = (k) => { const v = pool.map((h) => h[k]).filter(Number.isFinite).sort((a, b) => a - b); return v.length >= 5 ? v[Math.floor(v.length / 2)] : null; };
+  const centre = { lat: med('lat'), lon: med('lon') };
+  const km = (h) => (centre.lat === null || !Number.isFinite(h.lat) ? 0 : Math.hypot((h.lat - centre.lat) * 111, (h.lon - centre.lon) * 111 * Math.cos(centre.lat * Math.PI / 180)));
   const scored = pool.map((h) => {
     const areaMatch = words.length > 0 && words.some((w) => h.address.toLowerCase().includes(w) || h.name.toLowerCase().includes(w));
-    const score = pct(h.price.value) * 3 - h.stars * 0.45 - (areaMatch ? 0.8 : 0) - (spec.family && h.family ? 0.5 : 0) - (spec.board && h.board === spec.board ? 0.6 : 0);
+    const score = pct(h.price.value) * 3 - h.stars * 0.45 - (areaMatch ? 0.8 : 0) - (spec.family && h.family ? 0.5 : 0) - (spec.board && h.board === spec.board ? 0.6 : 0) + Math.min(2, Math.max(0, km(h) - 3) / 4);
     return { ...h, areaMatch, score };
   }).sort((a, b) => a.score - b.score);
   const value = scored[0], budget = [...scored].sort((a, b) => a.price.value - b.price.value)[0];
@@ -75,31 +80,35 @@ export function rankHotels(list, spec) {
     || scored.find((h) => h !== value && h !== budget && h.price.value > value.price.value);
   const roles = new Map([[value, 'value'], ...(upgrade ? [[upgrade, 'upgrade']] : []), ...(budget !== value ? [[budget, 'budget']] : [])]);
   const ordered = [...roles.keys(), ...scored.filter((h) => !roles.has(h))].slice(0, 8);
-  return { picks: ordered.map(({ score, ...h }) => ({ ...h, role: roles.get(scored.find((x) => x.id === h.id)) || '' })), relaxedStars };
+  return { picks: ordered.map(({ score, lat, lon, ...h }) => ({ ...h, role: roles.get(scored.find((x) => x.id === h.id)) || '' })), relaxedStars };
 }
 
-// Search → slim → rank, through a KV cache (30 min) with in-flight de-duplication.
+// Search → slim (KV cache 30 min, in-flight de-dup) → rank per request. The cache key holds only what the supplier
+// receives, so another area or family preference re-ranks the same list without a new supplier call.
 const HOTEL_TTL = 30 * 60;
 const inFlight = new Map();
 export function createHotelSearch({ store, search, log = () => {}, now = () => Date.now() }) {
-  return async function hotels(spec) {
-    const key = 'h:' + createHash('sha1').update(JSON.stringify(spec)).digest('hex');
+  async function list(spec) {
+    const supplierSpec = { city: spec.city, checkIn: spec.checkIn, checkOut: spec.checkOut, rooms: spec.rooms, board: spec.board, minStars: spec.minStars };
+    const key = 'h:' + createHash('sha1').update(JSON.stringify(supplierSpec)).digest('hex');
     const hit = await store?.get(key).catch(() => null);
     if (hit) return { ...hit, cached: true };
     if (inFlight.has(key)) return inFlight.get(key);
     const run = (async () => {
       const started = now(), { query, fallbackQuery } = hotelQueries(spec);
       const raw = await search(supplierHotelInput(spec), { query, fallbackQuery });
-      const list = raw.hotels.map((h) => slimHotel(h, raw.filtered ? spec.board : ''));
-      const ranked = rankHotels(list, spec), nights = nightsOf(spec);
-      const result = { status: ranked.picks.length ? 'live' : 'none', searchedAt: new Date(now()).toISOString(), total: raw.totalItems, nights,
-        board: spec.board, boardFallback: Boolean(spec.board) && !raw.filtered, relaxedStars: ranked.relaxedStars,
-        picks: ranked.picks.map((h) => ({ ...h, nights, image: h.image ? `/api/build/hotel-image?src=${encodeURIComponent(h.image)}` : '' })) };
+      const entry = { list: raw.hotels.map((h) => slimHotel(h, raw.filtered ? spec.board : '')), total: raw.totalItems, filtered: raw.filtered, searchedAt: new Date(now()).toISOString() };
       log({ route: 'hotels', ok: true, ms: now() - started, hotels: raw.hotels.length, complete: raw.complete });
-      await store?.set(key, result, HOTEL_TTL).catch(() => {});
-      return { ...result, cached: false };
+      await store?.set(key, entry, HOTEL_TTL).catch(() => {});
+      return { ...entry, cached: false };
     })().finally(() => inFlight.delete(key));
     inFlight.set(key, run);
     return run;
+  }
+  return async function hotels(spec) {
+    const found = await list(spec), ranked = rankHotels(found.list, spec), nights = nightsOf(spec);
+    return { status: ranked.picks.length ? 'live' : 'none', searchedAt: found.searchedAt, total: found.total, nights, cached: found.cached,
+      board: spec.board, boardFallback: Boolean(spec.board) && !found.filtered, relaxedStars: ranked.relaxedStars,
+      picks: ranked.picks.map((h) => ({ ...h, nights, image: h.image ? `/api/build/hotel-image?src=${encodeURIComponent(h.image)}` : '' })) };
   };
 }

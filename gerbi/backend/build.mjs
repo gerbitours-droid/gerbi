@@ -65,7 +65,7 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
       if (extra) {
         const ids = (codes) => (codes || []).map((c) => byCode(c)?.id).filter(Boolean);
         if (ids(extra.patch?.want).length) request = { ...request, destinations: ids(extra.patch.want).slice(0, 3), suggest: false };
-        else if (ids(extra.suggest).length) request = { ...request, shortlist: ids(extra.suggest) };
+        else if (ids(extra.suggest).length) request = { ...request, boost: ids(extra.suggest) };
         if (!request.nights && extra.patch?.nights) request.nights = extra.patch.nights;
       }
     }

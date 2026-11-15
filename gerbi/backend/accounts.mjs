@@ -81,7 +81,7 @@ export function sameOrigin(req, env = process.env) {
 
 const publicUser = (user) => ({ name: user.name, email: user.email, phone: user.phone || '', marketing: user.marketing?.given === true, emailVerified: user.emailVerified === true, createdAt: user.createdAt });
 const leadSummary = (record) => ({ ref: String(record.id).slice(0, 8), createdAt: record.createdAt, type: record.type, source: String(record.source || '').slice(0, 60),
-  title: record.type === 'tailor' ? String(record.destinations || '').slice(0, 120) || 'טיול בהתאמה אישית' : 'פנייה כללית' });
+  title: record.type === 'package' ? `חבילה: ${String(record.destinations || '').slice(0, 110)}` : record.type === 'tailor' ? String(record.destinations || '').slice(0, 120) || 'טיול בהתאמה אישית' : 'פנייה כללית' });
 
 export function createAccounts({ store, leadStore = null, env = process.env, now = () => Date.now() }) {
   const send = emailSender(env);
@@ -228,6 +228,18 @@ export function createAccounts({ store, leadStore = null, env = process.env, now
     if (path === '/searches') {
       if (method === 'POST') { user.searches = input.clear === true ? [] : addSearch(Array.isArray(user.searches) ? user.searches : [], input.search, iso()); await saveUser(user); }
       return reply(200, { searches: user.searches || [] });
+    }
+    // Packages from the magic trip builder (spec 24): references to shared snapshots (/api/build/share/<id>), newest first.
+    if (path === '/packages') {
+      const list = Array.isArray(user.packages) ? user.packages : [];
+      if (method === 'POST') {
+        const id = typeof input.id === 'string' && /^[a-f0-9]{16}$/.test(input.id) ? input.id : '';
+        if (!id) return reply(400, { error: 'package_invalid' });
+        user.packages = input.remove === true ? list.filter((p) => p.id !== id)
+          : [{ id, title: String(input.title || '').replace(/[<>\u0000-\u001f]/g, ' ').trim().slice(0, 120), savedAt: iso() }, ...list.filter((p) => p.id !== id)].slice(0, 20);
+        await saveUser(user);
+      }
+      return reply(200, { packages: user.packages || [] });
     }
     if (method === 'GET' && path === '/leads') return reply(200, { leads: await leadsOf(user) });
     if (method === 'GET' && path === '/export') {
