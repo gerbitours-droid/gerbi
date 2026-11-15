@@ -14,6 +14,8 @@ import { loadFx, onFx, getFx, fxNote, originalHtml, priceBasis, fareText } from 
 import { converterRoutes, converterHtml, wireConverter } from './converter.mjs';
 import { legalRoutes } from './legal.mjs';
 import { buildRoutes } from './build.mjs';
+import { bookingRoutes } from './booking.mjs';
+import { bookingConfig, startBooking } from './booking-client.mjs';
 import './support-bot.mjs';
 import { flightTakeSlot, mountFlightTake } from './ai-client.mjs';
 import { initMultiCity } from './multi-city.mjs';
@@ -328,14 +330,17 @@ document.addEventListener('click',async e=>{
   try{
    const response=await fetch('/api/volero/flights/availability',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({srk:result.srk,offerIndex,searchToken:result.tokens.searchResults,input:{itineraryIndex:selected.flightsOverview?.[0]?.itineraryIndex??0}})});
    const data=await response.json();if(!response.ok)throw new Error(tr('app.offer.unverified'));
+   const booking=await bookingConfig();
    if(!currentOffer())return;
    const priced=data.data?.pricedOffer,price=offerPrice(priced),old=offerPrice(selected);
    if(!price)throw new Error(tr('app.offer.noPrice'));
    const changed=old && (old.value!==price.value || old.currency!==price.currency);
    const verified={price,at:new Date(),changed};aiEvent('verify',offerButton.closest('[data-itinerary]')?.dataset.itinerary);verifiedPrices.set(result.srk+':'+offerIndex,verified);
    const priceBox=offerButton.closest('.flight-price');priceBox.querySelector('.verified-stamp')?.remove();priceBox.insertAdjacentHTML('beforeend',verifiedStamp(verified));
-   openModal(`<span class="dialog-kicker">${tr('app.offer.kicker')}</span><h2>${changed?tr('app.offer.changed'):tr('app.offer.checked')}</h2><p>${escapeHTML(offerContext.destination)} · ${escapeHTML(offerContext.dates)}</p><p class="micro-copy">${tr('app.offer.checkedNow', { time: escapeHTML(new Date().toLocaleString(locale())) })}</p><div class="verified-price"><small>${tr('app.offer.priceFor', { count: offerContext.travelers })}</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${originalHtml(price)}${changed?`<span>${tr('app.offer.was', { price: escapeHTML(formatFare(old)) })}</span>`:''}</div>${legMarkup(priced,data.data)}<p class="notice">${tr('app.offer.notice')}</p><div class="dialog-actions"><button class="button yellow" data-save-flight>${tr('app.offer.save')}</button><button class="button secondary" data-close-availability>${tr('app.offer.backToCompare')}</button></div><p class="micro-copy" id="save-flight-status" role="status">${tr('app.offer.saveNote')}</p>`);
+   openModal(`<span class="dialog-kicker">${tr('app.offer.kicker')}</span><h2>${changed?tr('app.offer.changed'):tr('app.offer.checked')}</h2><p>${escapeHTML(offerContext.destination)} · ${escapeHTML(offerContext.dates)}</p><p class="micro-copy">${tr('app.offer.checkedNow', { time: escapeHTML(new Date().toLocaleString(locale())) })}</p><div class="verified-price"><small>${tr('app.offer.priceFor', { count: offerContext.travelers })}</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${originalHtml(price)}${changed?`<span>${tr('app.offer.was', { price: escapeHTML(formatFare(old)) })}</span>`:''}</div>${legMarkup(priced,data.data)}<p class="notice">${tr('app.offer.notice')}</p><div class="dialog-actions">${booking.enabled?`<button class="button yellow" data-book-flight>${tr('booking.offer.book')}</button>`:''}<button class="button ${booking.enabled?'secondary':'yellow'}" data-save-flight>${tr('app.offer.save')}</button><button class="button secondary" data-close-availability>${tr('app.offer.backToCompare')}</button></div><p class="micro-copy" id="save-flight-status" role="status">${tr('app.offer.saveNote')}</p>`);
    $('[data-close-availability]').onclick=()=>modal.close();
+   // Spec 25: book this exact offer (the server re-prices it; nothing is charged before the summary step).
+   const bookButton=$('[data-book-flight]');if(bookButton)bookButton.onclick=async()=>{bookButton.disabled=true;bookButton.setAttribute('aria-busy','true');try{await startBooking({offer:{srk:result.srk,offerIndex,searchToken:result.tokens.searchResults,itineraryIndex:selected.flightsOverview?.[0]?.itineraryIndex??0},source:offerContext.multi?'multi':'flights'});modal.close();}catch(error){bookButton.disabled=false;bookButton.removeAttribute('aria-busy');$('#save-flight-status').textContent=tr(error.code==='offer_unavailable'?'booking.offer.gone':error.status===429?'booking.offer.busy':'booking.offer.failed');}};
    $('[data-save-flight]').onclick=e=>{const facts=factsOf(result).find(f=>f.index===offerIndex);if(!facts)return;if(storeSavedFlights(addSavedFlight(savedFlights,flightSnapshot(facts,offerContext.search,verified)))){aiEvent('save',itineraryKey(facts));e.currentTarget.disabled=true;e.currentTarget.textContent=tr('app.offer.saved');$('#save-flight-status').innerHTML=tr('app.offer.savedNote');}};
   }catch(error){if(!currentOffer())return;openModal(`<span class="dialog-kicker">${tr('app.offer.failKicker')}</span>${tr('app.offer.failTitle')}<p>${escapeHTML(error.name==='AbortError'?tr('app.offer.timeout'):error.message)}</p><button class="button secondary full-width" data-close-availability>${tr('app.offer.backToResults')}</button>`);$('[data-close-availability]').onclick=()=>modal.close();}
   finally{clearTimeout(timer);offerButton.disabled=false;offerButton.textContent=tr('app.offer.checkButton');markStaleResults();}
@@ -376,7 +381,7 @@ if(!contactActions(contact,'x').length)document.querySelectorAll('.support, nav 
 window.addEventListener('hashchange',()=>{if(!activeSearch&&restoreSharedSearch())document.dispatchEvent(new Event('brief-changed'));});
 // Owner-edited texts and contact details (spec 18): cached copy now, fresh copy when /api/content/site answers.
 initSiteContent({contact,rerender:()=>pages.navigate(location.hash.slice(1)||'/')});
-const pages=initPages({routes:{...leadRoutes({contact}),...converterRoutes(),...cmsRoutes(),...legalRoutes(),...buildRoutes()},state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
+const pages=initPages({routes:{...leadRoutes({contact}),...converterRoutes(),...cmsRoutes(),...legalRoutes(),...buildRoutes(),...bookingRoutes()},state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
  getFavorites:()=>favorites,
  getSavedFlights:()=>savedFlights,
  removeSavedFlight(id){return storeSavedFlights(savedFlights.filter(item=>item.id!==id));},

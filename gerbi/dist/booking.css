@@ -1,0 +1,59 @@
+/* Booking wizard, my orders (spec 25). Builds on leads.css form fields and pages.css panels. */
+.bo-page .surface-panel{margin-bottom:18px}
+.bo-steps{list-style:none;display:flex;gap:8px;padding:0;margin:0 0 18px;flex-wrap:wrap}
+.bo-steps li{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:#eef4fb;color:#4a5a78;font-size:14px;font-weight:600}
+.bo-steps li span{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;font-size:13px}
+.bo-steps li[aria-current=step]{background:var(--navy);color:#fff}
+.bo-steps li[aria-current=step] span{color:var(--navy)}
+.bo-steps li.done{background:#e3f5e8;color:#1d6b35}
+.bo-steps li.done span::before{content:"✓"}.bo-steps li.done span{font-size:0}.bo-steps li.done span::before{font-size:13px}
+.bo-trip h2,.bo-form h2,.bo-summary h2{margin:0 0 6px;font-size:21px}
+.bo-legs{list-style:none;padding:0;margin:8px 0;display:grid;gap:8px}
+.bo-legs li{display:flex;flex-direction:column;gap:2px;border-inline-start:3px solid var(--yellow);padding-inline-start:12px}
+.bo-legs strong{font-size:17px}.bo-legs span{font-size:14px;color:#4a5a78}
+.bo-ref{margin:6px 0 0;font-size:14px}
+.bo-person{border:1px solid var(--border);border-radius:14px;padding:14px;margin:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.bo-person legend{font-weight:800;padding:0 6px;color:var(--navy)}
+.bo-label{font-weight:700;color:var(--navy);width:100%;font-size:14px}
+.bo-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.bo-actions .button{min-height:48px;padding:10px 22px}
+.bo-form .lead-error[hidden],.bo-summary .lead-error[hidden]{display:none}
+.bo-warning{color:#8a5a00!important}
+.bo-insurance{background:#f5f9fe;border:1px solid var(--border);border-radius:14px;padding:14px}
+.bo-sum-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
+.bo-sum-grid h3{font-size:16px;margin:14px 0 6px}
+.bo-plain{list-style:none;padding:0;margin:0;display:grid;gap:6px;font-size:15px}
+.bo-breakdown .bo-plain li{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.bo-price{background:#f5f9fe;border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.bo-price strong{font-size:34px;font-weight:900;color:var(--blue);line-height:1.1}
+.bo-price small{font-size:14px;color:#4a5a78}
+.bo-breakdown{margin-top:10px}.bo-breakdown summary{cursor:pointer;font-weight:700;padding:6px 0}
+.bo-alert{background:#fff4e5;border:1px solid #f3c58b;border-radius:14px;padding:14px;margin:0 0 14px;color:#6b3d00}
+.bo-alert p{margin:6px 0}
+.bo-policy{border-top:1px solid var(--border);margin-top:16px;padding-top:6px}
+.bo-policy h3{font-size:16px;margin:10px 0 6px}.bo-policy ul{margin:0;padding-inline-start:20px;line-height:1.8;font-size:14px}
+.bo-pay{min-height:54px;font-size:18px;width:100%;max-width:440px}
+#bo-commit{margin-top:16px}
+.bo-done h2{font-size:24px;margin:0 0 6px}
+.bo-done.bo-ok{border-color:#a8dcb5;background:#f2fbf4}.bo-done.bo-fail{border-color:#f2c4c4;background:#fff7f7}.bo-done.bo-wait{border-color:#f6e7a0;background:#fffcef}
+.bo-pnr strong{font-size:26px;letter-spacing:2px}
+.bo-next{line-height:1.9;padding-inline-start:20px}
+.bo-spinner{width:34px;height:34px;border-radius:50%;border:4px solid #dce7f3;border-top-color:var(--blue);animation:bo-spin 1s linear infinite}
+@keyframes bo-spin{to{transform:rotate(360deg)}}
+.bo-cancel,.bo-timeline{margin:12px 0;border:1px solid var(--border);border-radius:14px;padding:10px 14px;background:#fff}
+.bo-cancel summary,.bo-timeline summary{cursor:pointer;font-weight:700}
+.bo-timeline ol{margin:8px 0 0;padding-inline-start:20px;line-height:1.9;font-size:14px}
+.bo-badge[data-group=confirmed]{background:#e3f5e8;color:#1d6b35}.bo-badge[data-group=failed],.bo-badge[data-group=closed]{background:#f1f3f6;color:#4a5a78}.bo-badge[data-group=action],.bo-badge[data-group=agent]{background:#fff4e5;color:#6b3d00}
+.bo-loading{color:#4a5a78}
+@media(max-width:760px){
+  .bo-sum-grid{grid-template-columns:1fr}
+  .bo-steps li{padding:6px 10px;font-size:12px}
+  .bo-price strong{font-size:28px}
+  .bo-person{padding:12px 10px}
+  .bo-actions .button{flex:1 1 100%}
+}
+@media print{
+  .header,.site-footer,.bo-steps,.bo-actions,.bo-cancel,.mobile-nav,#support-bot,.breadcrumbs{display:none!important}
+  .bo-timeline{border:0}.bo-timeline[open] summary{display:none}
+}
+.bo-person input[autocapitalize=characters]{text-transform:uppercase}

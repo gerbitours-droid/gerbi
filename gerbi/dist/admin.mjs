@@ -12,6 +12,7 @@ import { guideDefaults } from './destinations-ui.mjs';
 const guideDefault = (d, k) => destinationInfo[d.trip || d.id]?.guide?.[k] || guideDefaults(d, 'he')[k] || '';
 const guideTitle = (d) => `${d.name.he}, ${d.country.he}`;
 import { setupAdminAi, aiTab, priorityChip, leadAiHtml, wireLeadAi, sortByPriority, mountBlogAssistant } from './admin-ai.mjs';
+import { setupAdminOrders, ordersTab } from './admin-orders.mjs';
 
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -31,6 +32,7 @@ async function api(method, path, body) {
 }
 const failText = (error) => error.status === 429 ? 'יותר מדי בקשות. נסו שוב בעוד דקה.' : error.status === 503 ? 'האחסון לא זמין כרגע. נסו שוב בעוד רגע.' : error.status === 413 ? 'התוכן גדול מדי.' : error.data?.message || 'משהו השתבש. נסו שוב.';
 setupAdminAi({ api, failText });
+setupAdminOrders({ api, failText });
 function status(el, text, kind = '') { if (!el) return; el.textContent = text; el.dataset.kind = kind; }
 function showErrors(form, fields = {}) {
   $$('.field-error', form).forEach((el) => el.remove());
@@ -70,7 +72,7 @@ $('#login-form').addEventListener('submit', async (event) => {
 });
 $('#logout').onclick = async () => { if (dirty && !confirm('יש שינויים שלא נשמרו. לצאת בכל זאת?')) return; try { await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' }); } catch {} showLogin('יצאתם מהמערכת.'); };
 
-const TABS = { leads: leadsTab, blog: blogTab, site: siteTab, fx: fxTab, support: supportTab, ai: aiTab };
+const TABS = { leads: leadsTab, orders: ordersTab, blog: blogTab, site: siteTab, fx: fxTab, support: supportTab, ai: aiTab };
 let currentTab = '';
 function route() {
   const [tab, ...rest] = (location.hash.slice(1) || 'leads').split('/');
@@ -84,7 +86,7 @@ document.addEventListener('click', (e) => { const a = e.target.closest('a[href^=
 
 // ---------- Leads ----------
 const LEAD_STATUS = { new: 'חדש', progress: 'בטיפול', closed: 'נסגר' };
-const LEAD_TYPE = { contact: 'צור קשר', tailor: 'טיול בהתאמה אישית', package: 'חבילה מבונה החופשות', support: 'שירות לקוחות' };
+const LEAD_TYPE = { contact: 'צור קשר', tailor: 'טיול בהתאמה אישית', package: 'חבילה מבונה החופשות', support: 'שירות לקוחות', booking: 'הזמנה באתר' };
 const leadFilters = { status: '', type: '', q: '' };
 let leadSort = 'new', leadById = new Map();
 const intl = (phone) => (/^0\d{8,9}$/.test(phone || '') ? '972' + phone.slice(1) : '');

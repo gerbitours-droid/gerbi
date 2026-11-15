@@ -8,6 +8,7 @@ import { searchLink } from './saved-flights.mjs';
 import { multiLink } from './multi-city-core.mjs';
 import { timeVsIsrael } from './timezone.mjs';
 import { account, ready as accountReady } from './account.mjs';
+import { bookingConfig, startBooking } from './booking-client.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const L = (v) => (v && typeof v === 'object' ? v[lang] || v.he || v.en || '' : v ?? '');
@@ -213,6 +214,7 @@ const PAINT = {
       ${p.legs.map((l) => `<span class="bk-leg" dir="ltr">${esc(l.from)} ${esc(l.depart)} → ${esc(l.to)} ${esc(l.arrive)}${l.dayOffset ? ` +${l.dayOffset}` : ''}</span><small>${esc(longDay(l.date))} · ${l.stops ? t('build.flights.stops', { count: l.stops }) : t('build.flights.direct')}</small>`).join('')}
       ${p.reasons.length ? `<small class="why">${esc(p.reasons.join(' · '))}</small>` : ''}</span>
       <span class="bk-option-price"><strong dir="ltr">${esc(fare(p.price))}</strong><small>${t('build.flights.forAll', { count: travellers(pkg.request) })}</small></span></button></li>`).join('')}</ul>
+     ${bookable(f) ? `<p class="bo-book-flight"><button type="button" class="button yellow" data-book-flight>${t('booking.builder.book')}</button> <span class="micro-copy">${t('booking.builder.bookNote')}</span></p><p class="micro-copy" id="bo-book-status" role="status"></p>` : ''}
      <p class="micro-copy">${t('build.flights.note')} <a href="${esc(link)}">${t('build.flights.full')}</a></p>`;
   },
   hotels() {
@@ -281,6 +283,10 @@ const PAINT = {
      ${getFx() ? `<p class="micro-copy">${esc(fxNote())}</p>` : ''}`;
   }
 };
+// Spec 25: the chosen flight can be booked on the site while its search is fresh (the supplier token lives an hour).
+// Flights only – hotels stay quoted by an agent while HOTELS_PUBLIC_DISPLAY is off.
+let bookingEnabled = false;
+const bookable = (f) => bookingEnabled && f?.booking?.srk && !pkg?.sharedAt && Date.now() - Date.parse(f.searchedAt || 0) < 45 * 60_000 && Boolean(selectedFlight(pkg)?.offerIndex);
 function paint(part) {
   const host = view && $(`#bc-${part}`, view);
   if (!host || !pkg?.destination) return;
@@ -394,6 +400,7 @@ function page({ view: host, footer, bread }) {
 
 let wired = false;
 function wire() {
+  bookingConfig().then((c) => { bookingEnabled = c.enabled === true; if (pkg?.flights?.status === 'live' && view?.isConnected) paint('flights'); }).catch(() => {});
   if (wired) return; wired = true;
   onFx(() => { if (pkg?.destination && view?.isConnected) { paint('flights'); paint('hotels'); paint('total'); } });
   document.addEventListener('submit', (e) => {
@@ -419,6 +426,13 @@ function wire() {
     if (el('[data-chip]')) { toggleChip(el('[data-chip]')); return; }
     if (!pkg) return;
     if (el('[data-choose]')) { build({ ...lastInput, chosen: el('[data-choose]').dataset.choose }); return; }
+    if (el('[data-book-flight]')) {
+      const button = el('[data-book-flight]'), pick = selectedFlight(pkg), f = pkg.flights;
+      button.disabled = true; button.setAttribute('aria-busy', 'true');
+      try { await startBooking({ offer: { srk: f.booking.srk, offerIndex: pick.offerIndex, searchToken: f.booking.searchToken, itineraryIndex: pick.itineraryIndex ?? 0 }, source: 'builder', insurance: pkg.insurance?.include === true }); }
+      catch (error) { button.disabled = false; button.removeAttribute('aria-busy'); const status = $('#bo-book-status', view); if (status) status.textContent = t(error.code === 'offer_unavailable' ? 'booking.offer.gone' : error.status === 429 ? 'booking.offer.busy' : 'booking.offer.failed'); }
+      return;
+    }
     if (el('[data-pick-flight]')) { pkg.flights.selected = el('[data-pick-flight]').dataset.pickFlight; paint('flights'); paint('total'); persist(); return; }
     if (el('[data-pick-hotel]')) { const [i, id] = el('[data-pick-hotel]').dataset.pickHotel.split(':'); hotelGroups()[Number(i)].selected = id; paint('hotels'); paint('total'); persist(); return; }
     if (el('[data-more-hotels]')) { const i = Number(el('[data-more-hotels]').dataset.moreHotels); showAllHotels.has(i) ? showAllHotels.delete(i) : showAllHotels.add(i); paint('hotels'); $(`[data-more-hotels="${i}"]`, view)?.focus(); return; }
