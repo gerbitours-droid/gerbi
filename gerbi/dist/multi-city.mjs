@@ -77,7 +77,12 @@ export function initMultiCity({ form, today, seed, unseed, changed = () => docum
     if (remove) { legs = read(); legs.splice(Number(remove.dataset.removeLeg), 1); render('[data-add-leg]'); changed(); return; } // focus somewhere that opens no popup
     if (e.target.closest('[data-add-leg]') && legs.length < MAX_LEGS) {
       legs = read(); const last = legs.at(-1);
-      legs.push({ from: last?.to || '', to: '', date: '' }); render(`[data-leg="${legs.length - 1}"] [data-part="${last?.to ? 'to' : 'from'}"]`); changed();
+      legs.push({ from: last?.to || '', to: '', date: '' });
+      // Phones: focusing the new field would open the place list over the add button, so keep focus on "add"
+      // and bring the new leg into view; a tap on its field opens the list (spec 19 AC5).
+      const phone = window.matchMedia('(max-width: 700px)').matches;
+      render(phone ? '[data-add-leg]' : `[data-leg="${legs.length - 1}"] [data-part="${last?.to ? 'to' : 'from'}"]`); changed();
+      if (phone) host.querySelector(`[data-leg="${legs.length - 1}"]`)?.scrollIntoView({ block: 'nearest' });
     }
   });
   host.addEventListener('input', e => { if (e.target.dataset.part) { legs = read(); gapNotes(); changed(); } });

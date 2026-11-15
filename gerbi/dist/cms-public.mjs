@@ -89,11 +89,18 @@ function setMeta(post) {
 
 export function cmsRoutes() {
   if (typeof window !== 'undefined') window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/blog/')) setDescription(''); });
+  // An async re-render replaces the h1 the router focused; keep focus on the new heading (WCAG 2.4.3, spec 20).
+  function refocus(paint) {
+    const active = document.activeElement, had = !active || active === document.body || !active.isConnected || active.matches('#page-view h1');
+    paint();
+    const h = had && document.querySelector('#page-view h1');
+    if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+  }
   function blog(args) {
     const path = (location.hash.slice(1) || '/').split('?')[0], slug = path.split('/')[2] || '';
     const still = () => (location.hash.slice(1) || '/').split('?')[0] === path;
     const view = args.view;
-    if (!remote.loaded) loadIndex().then(() => { if (still()) blog(args); });
+    if (!remote.loaded) loadIndex().then(() => { if (still()) { refocus(() => blog(args)); } });
     const posts = mergedPosts(), known = posts.find((p) => p.slug === slug);
     if (!slug) { view.innerHTML = listHtml(posts, args); setMeta(null); return; }
     if (!known) { view.innerHTML = remote.loaded ? notFoundHtml(args) : loadingHtml(args); if (remote.loaded) setMeta({ title: 'הדף לא נמצא' }); return; }
