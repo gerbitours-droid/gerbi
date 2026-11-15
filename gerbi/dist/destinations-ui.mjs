@@ -138,9 +138,12 @@ export function relatedOf(d, limit = 3) {
 export const INSPIRATION_STYLES = ['beach', 'city', 'nature', 'family', 'couple', 'ski', 'luxury', 'short'];
 export function inspirationTiles(today = new Date()) {
   const month = today.getMonth() + 1;
+  const used = new Set(); // ponytail: each tile gets its own lead photo, so 'beach' and 'city' don't both show Athens
   return INSPIRATION_STYLES.map((style) => {
     const list = style === 'short' ? destinations.filter((d) => d.flightHours > 0 && d.flightHours <= 4) : destinations.filter((d) => d.tags.includes(style));
-    const lead = rank({ month: style === 'ski' ? 1 : month }).map((x) => x.destination).find((d) => list.includes(d) && !d.advisory) || list[0];
+    const ranked = rank({ month: style === 'ski' ? 1 : month, tags: style === 'short' ? [] : [style] }).map((x) => x.destination).filter((d) => list.includes(d) && !d.advisory);
+    const lead = ranked.find((d) => !used.has(d.id) && d.tags[0] === style) || ranked.find((d) => !used.has(d.id)) || ranked[0] || list[0];
+    if (lead) used.add(lead.id);
     return { style, count: list.length, lead, label: style === 'short' ? t('catalog.insp.short') : L(TAG_LABELS[style]), sub: t(`catalog.insp.styleSub.${style}`) };
   });
 }
