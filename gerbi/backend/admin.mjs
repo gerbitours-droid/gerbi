@@ -76,7 +76,8 @@ async function allLeads(leadStore) {
     .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 }
 
-const summary = ({ body, ...post }) => post;
+// The blog index keeps no bodies; the English version (spec 21) keeps its fields minus the body.
+const summary = ({ body, ...post }) => (post.en?.body ? { ...post, en: (({ body: enBody, ...en }) => en)(post.en) } : post);
 const blogIndex = async (store) => { const index = await store.get('blog:index'); return { posts: Array.isArray(index?.posts) ? index.posts : [], hidden: Array.isArray(index?.hidden) ? index.hidden : [] }; };
 const coverResponse = (dataUrl) => { const [, type, data] = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(dataUrl) || []; return type ? { type, buffer: Buffer.from(data, 'base64') } : null; };
 
@@ -205,7 +206,7 @@ async function route(req, res, url, { send, body, store, sessions, leadStore, en
       send(200, { post }); return true;
     }
     if (!action && req.method === 'PUT') {
-      const input = await body(req, LIMITS.coverData + LIMITS.body * 4 + 20_000);
+      const input = await body(req, LIMITS.coverData + LIMITS.body * 8 + 20_000);
       const { post, errors } = normalizePost(input, slug);
       if (input.coverData !== undefined && input.coverData !== null && (typeof input.coverData !== 'string' || input.coverData.length > LIMITS.coverData || !COVER_DATA_RE.test(input.coverData)))
         Object.assign(errors, { coverData: `תמונה מסוג JPEG/PNG/WebP בלבד, עד ${Math.round(LIMITS.coverData / 1000)}KB` });
@@ -237,7 +238,7 @@ async function route(req, res, url, { send, body, store, sessions, leadStore, en
   if (path === '/api/admin/site') {
     if (req.method === 'GET') { send(200, { site: (await store.get('site')) || {} }); return true; }
     if (req.method === 'PUT') {
-      const { site, errors } = normalizeSite(await body(req, LIMITS.siteJson * 2));
+      const { site, errors } = normalizeSite(await body(req, LIMITS.siteJson * 4));
       if (!site) { send(400, { error: 'invalid', fields: errors }); return true; }
       await remember(store, 'site', await store.get('site'));
       await store.set('site', site);

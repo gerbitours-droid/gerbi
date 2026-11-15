@@ -3,7 +3,7 @@
 // Every value from the server is escaped before it reaches innerHTML.
 import { CHANNELS, FLEXIBILITY, BUDGETS, STYLES } from './leads-validate.mjs';
 import { renderMarkdown } from './markdown.mjs';
-import { SITE_DEFAULTS, GUIDE_FIELDS, LIMITS, mergeSite, normalizePost, normalizeSite, slugFromTitle, postState, israelToday } from './content-model.mjs';
+import { SITE_DEFAULTS, GUIDE_FIELDS, LIMITS, mergeSite, normalizePost, normalizeSite, slugFromTitle, postState, israelToday, siteDefaultsEn } from './content-model.mjs';
 import { builtinPosts, BUILTIN_SLUGS } from './blog-posts.mjs';
 import { destinationInfo, faqs as builtinFaqs } from './pages.mjs';
 import { trips } from './data.mjs';
@@ -158,6 +158,9 @@ function wireLeads(list) {
 
 // ---------- Blog ----------
 const STATE_LABEL = { draft: 'טיוטה', published: 'מפורסם', scheduled: 'מתוזמן' };
+// English version indicator (spec 21 §6): the admin stays Hebrew, the chip tells whether /en/ has an English text.
+const enChip = (has) => `<span class="state-chip en-chip" data-en="${has ? 'yes' : 'no'}">${has ? 'EN ✓' : 'אין אנגלית'}</span>`;
+const openEnErrors = (form, fields = {}) => { if (Object.keys(fields).some((k) => k.startsWith('en.'))) $$('details.en-box', form).forEach((d) => { if (d.querySelector('[aria-invalid]')) d.open = true; }); };
 async function blogTab(sub) {
   if (sub === 'new') return postEditor(null);
   if (sub) return postEditor(sub);
@@ -172,7 +175,7 @@ async function blogTab(sub) {
       const isHidden = hidden.includes(x.slug);
       const chips = [x.builtin ? (x.own ? 'מובנה · נערך' : 'מובנה') : '', isHidden ? 'מוסתר' : STATE_LABEL[postState(x, today)]].filter(Boolean);
       return `<article class="post-row"><div><h2>${esc(x.title)}</h2><p class="micro-copy"><span dir="ltr">/blog/${esc(x.slug)}</span>${x.publishDate ? ' · ' + esc(x.publishDate) : ''}${x.updatedAt ? ' · עודכן ' + esc(when(x.updatedAt)) : ''}</p>
-        <p class="chips">${chips.map((c) => `<span class="state-chip" data-state="${esc(c)}">${esc(c)}</span>`).join('')}</p></div>
+        <p class="chips">${chips.map((c) => `<span class="state-chip" data-state="${esc(c)}">${esc(c)}</span>`).join('')}${enChip(Boolean(x.en?.title))}</p></div>
         <div class="row-actions"><a class="button secondary" href="#blog/${esc(x.slug)}">עריכה</a>${isHidden ? `<button class="button secondary" type="button" data-unhide="${esc(x.slug)}">החזרה לאתר</button>` : ''}${!x.own || x.status === 'published' ? `<a class="button secondary" href="/#/blog/${esc(x.slug)}" target="_blank" rel="noopener">צפייה</a>` : ''}</div></article>`;
     }).join('');
     status($('#blog-status'), `${rows.length} פוסטים (${posts.length} נערכו כאן).`);
@@ -222,6 +225,19 @@ async function postEditor(slug) {
     <div class="md-split"><div class="lead-field"><label for="f-body">גוף הפוסט (Markdown) *</label><textarea id="f-body" data-key="body" rows="18" maxlength="${LIMITS.body}">${esc(base.body)}</textarea>
       <p class="lead-hint">## כותרת · **מודגש** · *נטוי* · [קישור](https://…) · - רשימה · &gt; ציטוט · ![תיאור](https://…)</p></div>
      <section class="md-preview" aria-label="תצוגה מקדימה"><span class="eyebrow">תצוגה מקדימה</span><div class="article-body cms-body" id="preview"></div></section></div>
+    <details class="seo-box en-box"><summary>אנגלית (אופציונלי) ${enChip(Boolean(base.en?.title))}</summary>
+     <p class="lead-hint">מוצג בגרסה האנגלית של האתר (/en/). בלי כותרת וגוף באנגלית הפוסט מוצג שם בעברית.</p>
+     <div class="admin-grid" dir="ltr">
+      <div class="lead-field wide"><label for="f-en-title">Title</label><input id="f-en-title" data-key="en.title" maxlength="${LIMITS.title}" value="${esc(base.en?.title || '')}"></div>
+      <div class="lead-field"><label for="f-en-category">Category</label><input id="f-en-category" data-key="en.category" maxlength="${LIMITS.category}" value="${esc(base.en?.category || '')}"></div>
+      <div class="lead-field"><label for="f-en-tags">Tags (comma separated)</label><input id="f-en-tags" data-key="en.tags" value="${esc((base.en?.tags || []).join(', '))}"></div>
+     </div>
+     <div class="lead-field" dir="ltr"><label for="f-en-excerpt">Excerpt</label><textarea id="f-en-excerpt" data-key="en.excerpt" maxlength="${LIMITS.excerpt}" rows="2">${esc(base.en?.excerpt || '')}</textarea></div>
+     <div class="lead-field" dir="ltr"><label for="f-en-body">Body (Markdown)</label><textarea id="f-en-body" data-key="en.body" rows="12" maxlength="${LIMITS.body}">${esc(base.en?.body || '')}</textarea></div>
+     <div class="admin-grid" dir="ltr">
+      <div class="lead-field"><label for="f-en-seo-title">SEO title</label><input id="f-en-seo-title" data-key="en.seoTitle" maxlength="${LIMITS.seoTitle}" value="${esc(base.en?.seoTitle || '')}"></div>
+      <div class="lead-field"><label for="f-en-seo-desc">SEO description</label><textarea id="f-en-seo-desc" data-key="en.seoDescription" maxlength="${LIMITS.seoDescription}" rows="2">${esc(base.en?.seoDescription || '')}</textarea></div>
+     </div></details>
     <details class="seo-box"${base.seoTitle || base.seoDescription ? ' open' : ''}><summary>קידום בגוגל (SEO)</summary>
      <div class="lead-field"><label for="f-seo-title">כותרת לגוגל</label><input id="f-seo-title" data-key="seoTitle" maxlength="${LIMITS.seoTitle}" value="${esc(base.seoTitle || '')}"><p class="lead-hint">עד ${LIMITS.seoTitle} תווים. ריק = כותרת הפוסט.</p></div>
      <div class="lead-field"><label for="f-seo-desc">תיאור לגוגל</label><textarea id="f-seo-desc" data-key="seoDescription" maxlength="${LIMITS.seoDescription}" rows="2">${esc(base.seoDescription || '')}</textarea><p class="lead-hint">עד ${LIMITS.seoDescription} תווים. ריק = התקציר.</p></div></details>
@@ -255,9 +271,10 @@ async function postEditor(slug) {
     const toggle = e.submitter?.dataset.save === 'toggle';
     const targetSlug = isNew ? ($('#f-slug').value.trim() || slugFromTitle($('#f-title').value)) : slug;
     const input = { title: $('#f-title').value, category: $('#f-category').value, publishDate: $('#f-date').value, tags: $('#f-tags').value, cover: coverData ? '' : $('#f-cover').value, excerpt: $('#f-excerpt').value, body: $('#f-body').value,
-      seoTitle: $('#f-seo-title').value, seoDescription: $('#f-seo-desc').value, status: toggle ? (current.status === 'published' ? 'draft' : 'published') : (edited || builtinSource ? current.status : 'draft'), builtin: Boolean(builtinSource) };
+      seoTitle: $('#f-seo-title').value, seoDescription: $('#f-seo-desc').value,
+      en: { title: $('#f-en-title').value, category: $('#f-en-category').value, tags: $('#f-en-tags').value, excerpt: $('#f-en-excerpt').value, body: $('#f-en-body').value, seoTitle: $('#f-en-seo-title').value, seoDescription: $('#f-en-seo-desc').value }, status: toggle ? (current.status === 'published' ? 'draft' : 'published') : (edited || builtinSource ? current.status : 'draft'), builtin: Boolean(builtinSource) };
     const local = normalizePost(input, targetSlug);
-    if (!local.post) { showErrors(form, local.errors); status(out, 'יש שדות לתיקון.', 'error'); return; }
+    if (!local.post) { showErrors(form, local.errors); openEnErrors(form, local.errors); status(out, 'יש שדות לתיקון.', 'error'); return; }
     showErrors(form, {});
     status(out, 'שומרים…');
     try {
@@ -305,10 +322,12 @@ async function siteTab() {
   p.innerHTML = '<p class="admin-status" role="status">טוענים…</p>';
   let stored;
   try { stored = (await api('GET', '/api/admin/site')).site; } catch (error) { if (error.status !== 401) p.innerHTML = `<p class="admin-status" data-kind="error">${esc(failText(error))}</p>`; return; }
-  const s = mergeSite(stored), d = SITE_DEFAULTS;
+  const s = mergeSite(stored), d = SITE_DEFAULTS, en = s.en, de = siteDefaultsEn();
+  // English inputs show the built-in English as a placeholder; an empty field keeps using it.
+  const enField = (key, label, value, placeholder, opts = {}) => field(key, label, value || '', opts).replace(/(data-key="[^"]*")/, `$1${placeholder ? ` placeholder="${esc(placeholder)}"` : ''}`);
   const faqRows = (s.faqs.length ? s.faqs : builtinFaqs.map(([q, a]) => ({ q, a })));
-  const faqRow = (f, i) => `<li class="faq-row"><div class="lead-field"><label for="s-faq-q-${i}">שאלה</label><input id="s-faq-q-${i}" data-faq="q" data-key="faqs.${i}.q" maxlength="${LIMITS.faqQ}" value="${esc(f.q)}"></div>
-    <div class="lead-field"><label for="s-faq-a-${i}">תשובה</label><textarea id="s-faq-a-${i}" data-faq="a" data-key="faqs.${i}.a" maxlength="${LIMITS.faqA}" rows="3">${esc(f.a)}</textarea></div>
+  const faqRow = (f, i, prefix = 'faqs') => `<li class="faq-row"><div class="lead-field"><label for="s-${prefix}-q-${i}">${prefix === 'faqs' ? 'שאלה' : 'Question'}</label><input id="s-${prefix}-q-${i}" data-faq="q" data-key="${prefix}.${i}.q" maxlength="${LIMITS.faqQ}" value="${esc(f.q)}"></div>
+    <div class="lead-field"><label for="s-${prefix}-a-${i}">${prefix === 'faqs' ? 'תשובה' : 'Answer'}</label><textarea id="s-${prefix}-a-${i}" data-faq="a" data-key="${prefix}.${i}.a" maxlength="${LIMITS.faqA}" rows="3">${esc(f.a)}</textarea></div>
     <div class="row-actions"><button type="button" class="button secondary" data-faq-move="-1" aria-label="הזזת השאלה למעלה">↑</button><button type="button" class="button secondary" data-faq-move="1" aria-label="הזזת השאלה למטה">↓</button><button type="button" class="button secondary danger" data-faq-remove>מחיקה</button></div></li>`;
   p.innerHTML = `<div class="admin-head"><h1>תוכן האתר</h1></div>
    <p class="micro-copy">משנים טקסט ולוחצים „שמירה”. השינוי מופיע באתר תוך כדקה. שדה שמוחקים לגמרי חוזר לנוסח המקורי.</p>
@@ -320,20 +339,30 @@ async function siteTab() {
     <fieldset><legend>פוטר</legend>${field('footer.tagline', 'שורת המותג', s.footer.tagline)}${field('footer.blurb', 'משפט קצר', s.footer.blurb)}${field('footer.legal', 'שורת זכויות והבהרה (דפים פנימיים)', s.footer.legal)}${field('footer.note', 'הבהרה בתחתית דף הבית', s.footer.note)}</fieldset>
     <fieldset><legend>שאלות נפוצות (דף „שירות ועזרה” באתר)</legend><p class="lead-hint">התשובות של בוט השירות נערכות בנפרד: <a href="#support/content">שיחות שירות › תשובות הבוט</a>.</p><ol id="faq-list" class="faq-list">${faqRows.map(faqRow).join('')}</ol><button type="button" class="button secondary" id="faq-add">הוספת שאלה</button></fieldset>
     <fieldset><legend>מדריכי יעדים</legend>${trips.map((t) => `<details class="guide-box"><summary>${esc(t.name)}</summary>${GUIDE_FIELDS.map(([k, label]) => field(`guides.${t.id}.${k}`, label, s.guides[t.id]?.[k] || destinationInfo[t.id]?.guide?.[k] || '', { area: true, max: LIMITS.guide, rows: 2 })).join('')}</details>`).join('')}</fieldset>
+    <fieldset class="en-site"><legend>אנגלית (אופציונלי) ${enChip(Object.keys(en).length > 0)}</legend>
+     <p class="lead-hint">הנוסח לגרסה האנגלית של האתר (/en/). שדה ריק = הנוסח האנגלי המובנה; אם ערכתם את השדה בעברית בלבד, הנוסח העברי שלכם מוצג גם באנגלית.</p>
+     <details class="en-box"><summary>דף הבית ${enChip(Boolean(en.hero))}</summary><div dir="ltr">${enField('en.hero.title', 'Headline', en.hero?.title, de.hero.title, { max: LIMITS.hero })}${enField('en.hero.subtitle', 'Subheadline', en.hero?.subtitle, de.hero.subtitle, { max: LIMITS.hero * 2 })}</div></details>
+     <details class="en-box"><summary>באנר ${enChip(Boolean(en.banner?.text))}</summary><div dir="ltr">${enField('en.banner.text', 'Banner text', en.banner?.text, '', { max: LIMITS.banner })}</div></details>
+     <details class="en-box"><summary>פוטר ${enChip(Boolean(en.footer))}</summary><div dir="ltr">${enField('en.footer.tagline', 'Brand line', en.footer?.tagline, de.footer.tagline)}${enField('en.footer.blurb', 'Short blurb', en.footer?.blurb, de.footer.blurb)}${enField('en.footer.legal', 'Rights & disclaimer line', en.footer?.legal, de.footer.legal)}${enField('en.footer.note', 'Homepage disclaimer', en.footer?.note, de.footer.note)}</div></details>
+     <details class="en-box"><summary>שאלות נפוצות ${enChip(Boolean(en.faqs?.length))}</summary><p class="lead-hint">ריק = השאלות הנפוצות המובנות באנגלית (או השאלות שלכם בעברית, אם ערכתם אותן).</p><ol id="en-faq-list" class="faq-list" dir="ltr">${(en.faqs || []).map((f, i) => faqRow(f, i, 'en.faqs')).join('')}</ol><button type="button" class="button secondary" id="en-faq-add">הוספת שאלה באנגלית</button></details>
+     <details class="en-box"><summary>מדריכי יעדים ${enChip(Boolean(en.guides))}</summary>${trips.map((t) => `<details class="guide-box"><summary>${esc(t.name)} ${enChip(Boolean(en.guides?.[t.id]))}</summary><div dir="ltr">${GUIDE_FIELDS.map(([k, label]) => enField(`en.guides.${t.id}.${k}`, label, en.guides?.[t.id]?.[k], '', { area: true, max: LIMITS.guide, rows: 2 })).join('')}</div></details>`).join('')}</details>
+    </fieldset>
     <div class="form-actions sticky-actions"><button class="button yellow" type="submit">שמירה</button><button class="button secondary" type="button" id="site-versions">גרסאות קודמות</button></div>
     <p id="site-status" class="admin-status" role="status"></p><section id="versions" hidden></section>
    </form>`;
-  const form = $('#site-form'), list = $('#faq-list');
-  const renumber = () => $$('.faq-row', list).forEach((li, i) => { $('[data-faq=q]', li).dataset.key = `faqs.${i}.q`; $('[data-faq=a]', li).dataset.key = `faqs.${i}.a`; });
+  const form = $('#site-form'), list = $('#faq-list'), enList = $('#en-faq-list');
+  const renumberList = (ol, prefix) => $$('.faq-row', ol).forEach((li, i) => { $('[data-faq=q]', li).dataset.key = `${prefix}.${i}.q`; $('[data-faq=a]', li).dataset.key = `${prefix}.${i}.a`; });
+  const renumber = () => { renumberList(list, 'faqs'); renumberList(enList, 'en.faqs'); };
+  $('#en-faq-add').onclick = () => { enList.insertAdjacentHTML('beforeend', faqRow({ q: '', a: '' }, `n${Date.now()}`, 'en.faqs')); renumber(); dirty = true; $$('.faq-row', enList).at(-1).querySelector('input').focus(); };
   form.addEventListener('input', () => { dirty = true; });
   $('#faq-add').onclick = () => { list.insertAdjacentHTML('beforeend', faqRow({ q: '', a: '' }, `n${Date.now()}`)); renumber(); dirty = true; $$('.faq-row', list).at(-1).querySelector('input').focus(); };
-  list.addEventListener('click', (e) => {
+  [list, enList].forEach((ol) => ol.addEventListener('click', (e) => {
     const li = e.target.closest('.faq-row'); if (!li) return;
     if (e.target.closest('[data-faq-remove]')) { li.remove(); dirty = true; }
     const move = e.target.closest('[data-faq-move]');
     if (move) { const sibling = move.dataset.faqMove === '-1' ? li.previousElementSibling : li.nextElementSibling; if (sibling) { if (move.dataset.faqMove === '-1') sibling.before(li); else sibling.after(li); move.focus(); dirty = true; } }
     renumber();
-  });
+  }));
   // Only what differs from the built-in text is stored, so future copy fixes in the code still reach untouched fields.
   const collect = () => {
     const value = (key) => form.querySelector(`[data-key="${key}"]`).value.trim();
@@ -345,12 +374,17 @@ async function siteTab() {
     const faqList = $$('.faq-row', list).map((li) => ({ q: $('[data-faq=q]', li).value.trim(), a: $('[data-faq=a]', li).value.trim() })).filter((f) => f.q || f.a);
     out.faqs = JSON.stringify(faqList) === JSON.stringify(builtinFaqs.map(([q, a]) => ({ q, a }))) ? [] : faqList;
     for (const t of trips) for (const [k] of GUIDE_FIELDS) { const v = diff(`guides.${t.id}.${k}`, destinationInfo[t.id]?.guide?.[k] || ''); if (v) (out.guides[t.id] ||= {})[k] = v; }
+    // English (spec 21): only what was written and differs from the built-in English.
+    out.en = { hero: { title: diff('en.hero.title', de.hero.title), subtitle: diff('en.hero.subtitle', de.hero.subtitle) },
+      footer: Object.fromEntries(['tagline', 'blurb', 'legal', 'note'].map((k) => [k, diff(`en.footer.${k}`, de.footer[k])])), banner: { text: value('en.banner.text') },
+      faqs: $$('.faq-row', enList).map((li) => ({ q: $('[data-faq=q]', li).value.trim(), a: $('[data-faq=a]', li).value.trim() })).filter((f) => f.q || f.a), guides: {} };
+    for (const t of trips) for (const [k] of GUIDE_FIELDS) { const v = value(`en.guides.${t.id}.${k}`); if (v) (out.en.guides[t.id] ||= {})[k] = v; }
     return out;
   };
   form.onsubmit = async (e) => {
     e.preventDefault();
     const out = $('#site-status'), input = collect(), local = normalizeSite(input);
-    if (!local.site) { showErrors(form, local.errors); status(out, 'יש שדות לתיקון.', 'error'); return; }
+    if (!local.site) { showErrors(form, local.errors); openEnErrors(form, local.errors); status(out, 'יש שדות לתיקון.', 'error'); return; }
     showErrors(form, {}); status(out, 'שומרים…');
     try { await api('PUT', '/api/admin/site', input); dirty = false; status(out, 'נשמר. השינויים יופיעו באתר תוך כדקה.', 'ok'); }
     catch (error) { if (error.status === 401) return; if (error.data?.fields) showErrors(form, error.data.fields); status(out, failText(error), 'error'); }

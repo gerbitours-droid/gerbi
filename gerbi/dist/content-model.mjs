@@ -2,6 +2,7 @@
 // Site content is stored as overrides only; an empty field means "use the built-in default".
 import { trips, contact } from './data.mjs';
 import { safeLink } from './markdown.mjs';
+import { tIn } from './i18n.mjs';
 
 export const SITE_DEFAULTS = {
   hero: { title: 'החופשה שלכם מתחילה כאן', subtitle: 'טיסות, מלונות וחבילות נופש – הכול במקום אחד, עם ג׳רבי טורס.' },
@@ -76,8 +77,39 @@ export function normalizeSite(input) {
     const g = guides[id] && typeof guides[id] === 'object' ? guides[id] : {};
     for (const [key] of GUIDE_FIELDS) { const value = text(errors, `guides.${id}.${key}`, g[key], LIMITS.guide, { multiline: true }); if (value) ((site.guides ||= {})[id] ||= {})[key] = value; }
   }
-  if (JSON.stringify(site).length > LIMITS.siteJson) errors.form = 'התוכן ארוך מדי';
+  if (input.en !== undefined) { const en = normalizeSiteEn(errors, input.en); if (en) site.en = en; }
+  if (JSON.stringify({ ...site, en: undefined }).length > LIMITS.siteJson || JSON.stringify(site.en || {}).length > LIMITS.siteJson) errors.form = 'התוכן ארוך מדי';
   return Object.keys(errors).length ? { site: null, errors } : { site, errors };
+}
+
+// English versions of the translatable site texts (spec 21 §6): same fields and limits as the Hebrew ones, all optional.
+// Stored as overrides.en = { hero, footer, banner: { text }, faqs, guides }; only non-empty values are kept.
+function normalizeSiteEn(errors, input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) { errors.en = 'סוג ערך לא תקין'; return null; }
+  const en = {};
+  const group = (name) => (input[name] && typeof input[name] === 'object' && !Array.isArray(input[name]) ? input[name] : {});
+  const put = (section, key, value) => { if (value) (en[section] ||= {})[key] = value; };
+  const hero = group('hero');
+  put('hero', 'title', text(errors, 'en.hero.title', hero.title, LIMITS.hero));
+  put('hero', 'subtitle', text(errors, 'en.hero.subtitle', hero.subtitle, LIMITS.hero * 2));
+  const f = group('footer');
+  for (const key of ['tagline', 'blurb', 'legal', 'note']) put('footer', key, text(errors, `en.footer.${key}`, f[key], LIMITS.footer));
+  put('banner', 'text', text(errors, 'en.banner.text', group('banner').text, LIMITS.banner));
+  if (input.faqs !== undefined) {
+    if (!Array.isArray(input.faqs) || input.faqs.length > LIMITS.faqs) errors['en.faqs'] = `עד ${LIMITS.faqs} שאלות`;
+    else {
+      const faqs = input.faqs.map((item, i) => ({ q: text(errors, `en.faqs.${i}.q`, item?.q, LIMITS.faqQ), a: text(errors, `en.faqs.${i}.a`, item?.a, LIMITS.faqA, { multiline: true }) }))
+        .filter((item, i) => { if (!item.q && !item.a) return false; if (!item.q || !item.a) errors[`en.faqs.${i}`] = 'צריך גם שאלה וגם תשובה'; return true; });
+      if (faqs.length) en.faqs = faqs;
+    }
+  }
+  const guides = group('guides');
+  for (const id of Object.keys(guides)) {
+    if (!GUIDE_IDS.includes(id)) { errors[`en.guides.${id}`] = 'יעד לא מוכר'; continue; }
+    const g = guides[id] && typeof guides[id] === 'object' ? guides[id] : {};
+    for (const [key] of GUIDE_FIELDS) { const value = text(errors, `en.guides.${id}.${key}`, g[key], LIMITS.guide, { multiline: true }); if (value) ((en.guides ||= {})[id] ||= {})[key] = value; }
+  }
+  return Object.keys(en).length ? en : null;
 }
 
 // Deep merge of defaults with stored overrides (both sides use it, so the site renders identically everywhere).
@@ -85,8 +117,46 @@ export function mergeSite(overrides) {
   const o = overrides && typeof overrides === 'object' ? overrides : {};
   return {
     hero: { ...SITE_DEFAULTS.hero, ...o.hero }, contact: { ...SITE_DEFAULTS.contact, ...o.contact }, footer: { ...SITE_DEFAULTS.footer, ...o.footer },
-    banner: { ...SITE_DEFAULTS.banner, ...o.banner }, faqs: Array.isArray(o.faqs) ? o.faqs : [], guides: o.guides && typeof o.guides === 'object' ? o.guides : {}
+    banner: { ...SITE_DEFAULTS.banner, ...o.banner }, faqs: Array.isArray(o.faqs) ? o.faqs : [], guides: o.guides && typeof o.guides === 'object' ? o.guides : {},
+    en: o.en && typeof o.en === 'object' && !Array.isArray(o.en) ? o.en : {}
   };
+}
+
+// Built-in English defaults of the translatable site texts (spec 21).
+export const siteDefaultsEn = () => { const t = tIn('en'); return {
+  hero: { title: t('cms.default.hero.title'), subtitle: t('cms.default.hero.subtitle') },
+  footer: Object.fromEntries(['tagline', 'blurb', 'legal', 'note'].map((k) => [k, t(`cms.default.footer.${k}`)])) }; };
+
+// The site texts to show in a language, in the mergeSite shape plus `he`: the field paths ("hero.title", "faqs",
+// "guides.rome.fit") whose value is the owner's Hebrew text because no English was written for it.
+// Precedence in English, per field: owner's English → owner's Hebrew override → built-in English default.
+// FAQs/guides with no owner text at all stay empty, so the page uses its own built-in (translated) ones.
+export function localizeSite(overrides, l = 'he') {
+  const merged = mergeSite(overrides);
+  if (l !== 'en') return { ...merged, he: [] };
+  const o = overrides && typeof overrides === 'object' ? overrides : {}, en = merged.en, defaults = siteDefaultsEn(), he = [];
+  const pick = (section, key) => {
+    if (en[section]?.[key]) return en[section][key];
+    if (o[section]?.[key]) { he.push(`${section}.${key}`); return o[section][key]; }
+    return defaults[section][key];
+  };
+  const hero = { title: pick('hero', 'title'), subtitle: pick('hero', 'subtitle') };
+  const footer = Object.fromEntries(['tagline', 'blurb', 'legal', 'note'].map((k) => [k, pick('footer', k)]));
+  const banner = { ...merged.banner };
+  if (en.banner?.text) banner.text = en.banner.text; else if (banner.text) he.push('banner.text');
+  let faqs = [];
+  if (Array.isArray(en.faqs) && en.faqs.length) faqs = en.faqs;
+  else if (merged.faqs.length) { faqs = merged.faqs.map((f) => ({ ...f, he: true })); he.push('faqs'); }
+  const guides = {};
+  for (const id of new Set([...Object.keys(merged.guides), ...Object.keys(en.guides || {})])) {
+    for (const [key] of GUIDE_FIELDS) {
+      const value = en.guides?.[id]?.[key] || merged.guides[id]?.[key];
+      if (!value) continue;
+      (guides[id] ||= {})[key] = value;
+      if (!en.guides?.[id]?.[key]) he.push(`guides.${id}.${key}`);
+    }
+  }
+  return { ...merged, hero, footer, banner, faqs, guides, he };
 }
 
 // Returns { post, errors }. coverData (an uploaded image) is validated separately by the server.
@@ -115,6 +185,29 @@ export function normalizePost(input, slug) {
   post.seoTitle = text(errors, 'seoTitle', input.seoTitle, LIMITS.seoTitle);
   post.seoDescription = text(errors, 'seoDescription', input.seoDescription, LIMITS.seoDescription, { multiline: true });
   post.builtin = input.builtin === true;
+  // English version (spec 21): optional; once any English field is filled, title and body are required.
+  if (input.en !== undefined && input.en !== null) {
+    const en = input.en && typeof input.en === 'object' && !Array.isArray(input.en) ? input.en : null;
+    if (!en) errors.en = 'סוג ערך לא תקין';
+    else {
+      const out = {};
+      out.title = text(errors, 'en.title', en.title, LIMITS.title);
+      out.category = text(errors, 'en.category', en.category, LIMITS.category);
+      out.excerpt = text(errors, 'en.excerpt', en.excerpt, LIMITS.excerpt, { multiline: true });
+      out.body = text(errors, 'en.body', en.body, LIMITS.body, { multiline: true });
+      const enTags = en.tags == null ? [] : Array.isArray(en.tags) ? en.tags : typeof en.tags === 'string' ? en.tags.split(',') : null;
+      if (!enTags) errors['en.tags'] = 'סוג ערך לא תקין';
+      else { out.tags = [...new Set(enTags.map((tag, i) => text(errors, `en.tags.${i}`, tag, LIMITS.tag)).filter(Boolean))]; if (out.tags.length > LIMITS.tags) errors['en.tags'] = `עד ${LIMITS.tags} תגיות`; }
+      out.seoTitle = text(errors, 'en.seoTitle', en.seoTitle, LIMITS.seoTitle);
+      out.seoDescription = text(errors, 'en.seoDescription', en.seoDescription, LIMITS.seoDescription, { multiline: true });
+      const filled = Object.entries(out).filter(([, v]) => (Array.isArray(v) ? v.length : v));
+      if (filled.length) {
+        if (!out.title && !errors['en.title']) errors['en.title'] = 'חובה כשממלאים אנגלית';
+        if (!out.body && !errors['en.body']) errors['en.body'] = 'חובה כשממלאים אנגלית';
+        post.en = Object.fromEntries(filled);
+      }
+    }
+  }
   return Object.keys(errors).length ? { post: null, errors } : { post, errors };
 }
 
@@ -122,3 +215,12 @@ export function normalizePost(input, slug) {
 export const israelToday = (now = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(now);
 export const isLive = (post, today = israelToday()) => post?.status === 'published' && (!post.publishDate || post.publishDate <= today);
 export const postState = (post, today = israelToday()) => (post.status !== 'published' ? 'draft' : isLive(post, today) ? 'published' : 'scheduled');
+
+// The post to show in a language (spec 21). English uses post.en when it has a title and a body (a blog-index summary
+// carries en without the body: its title is enough there); otherwise the Hebrew post with he: true.
+export function localizePost(post, l = 'he') {
+  if (!post || l !== 'en') return post && { ...post, he: false };
+  const en = post.en;
+  if (!en?.title || (!en.body && post.body)) return { ...post, he: true };
+  return { ...post, title: en.title, excerpt: en.excerpt || '', body: en.body || post.body, category: en.category || '', tags: en.tags || [], seoTitle: en.seoTitle || '', seoDescription: en.seoDescription || '', he: false };
+}
