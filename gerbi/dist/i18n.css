@@ -1,16 +1,25 @@
 /* Spec 21: language switch + what the English (LTR) page needs beyond the logical properties in the other sheets.
    text-align stays physical in the RTL sheets (start/end would re-resolve inside direction:ltr children), so it is mirrored here. */
-.lang-switch{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;padding:7px 12px;border:1px solid var(--border);border-radius:20px;background:#fff;white-space:nowrap;min-height:40px}
+.lang-switch{display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:600;padding:6px 4px;border-radius:8px;white-space:nowrap;min-height:40px}
+.brand strong{white-space:nowrap}@media(min-width:701px){.brand{flex-shrink:0}}
 .lang-switch svg{width:18px;height:18px}
-.lang-switch:hover{border-color:#9cc3ea}
+.lang-switch:hover{color:var(--blue)}
 .mobile-menu .menu-lang{justify-content:center;margin-top:4px;font-size:15px}
 html[lang=en] .brand strong{font-size:40px;letter-spacing:-1.4px;white-space:nowrap}html[lang=en] .brand span{white-space:nowrap}
 html[dir=ltr] .sb-send svg{transform:none}
 html[dir=ltr] svg:has(> use[href="#i-arrow"]){transform:scaleX(-1)}
 @media(max-width:1250px){html[lang=en] .brand strong{font-size:38px}html[lang=en] .header nav{gap:16px}}
 @media(max-width:1000px){html[lang=en] .brand strong{font-size:34px;letter-spacing:-1px}}
-@media(max-width:700px){.header-actions .lang-switch{font-size:12px;padding:6px 9px;gap:4px;min-height:36px}.header-actions .lang-switch svg{width:15px;height:15px}html[lang=en] .brand strong{font-size:27px;letter-spacing:-.6px}html[lang=en] .brand{min-width:0}}
+@media(max-width:700px){html[lang=he] .header-actions .lang-switch{display:none}.header-actions .lang-switch{font-size:12px;padding:6px 4px;gap:3px;min-height:40px}.header-actions .lang-switch svg{width:15px;height:15px}html[lang=en] .brand strong{font-size:27px;letter-spacing:-.6px}html[lang=en] .brand{min-width:0}html[lang=en] .header-actions .support{font-size:0;gap:0;padding:9px}html[lang=en] .header-actions .support svg{width:20px;height:20px}}
 html[dir=ltr] .account-menu a,html[dir=ltr] .account-menu button{text-align:left}html[dir=ltr] .account-menu-who span{text-align:left}html[dir=ltr] .mobile-menu-logout{text-align:left}html[dir=ltr] .account-card-head .micro-copy{text-align:left}html[dir=ltr] .ai-table th,html[dir=ltr] .ai-table td{text-align:left}html[dir=ltr] .flight-price strong{text-align:left}html[dir=ltr] .verified-price strong{text-align:left}html[dir=ltr] .lead-field input[dir=ltr]{text-align:left}html[dir=ltr] .lead-success ol{text-align:left}html[dir=ltr] .fare-deal{text-align:left}html[dir=ltr] .field{text-align:left}html[dir=ltr] .field-value,html[dir=ltr] .field input,html[dir=ltr] .field select{text-align:left}html[dir=ltr] .card-price{text-align:right}
 @media(max-width:1000px){html[dir=ltr] .demo-label{text-align:right}}
 @media(max-width:700px){html[dir=ltr] .assistant-main{text-align:left}html[dir=ltr] .demo-label{text-align:left}html[dir=ltr] .card-price{text-align:left}}
 .lang-tag{display:inline-block;font-size:12px;font-weight:600;line-height:1.5;border-radius:999px;padding:1px 8px;margin-inline:6px;background:#eef2f7;color:#4a5a78;vertical-align:middle}
+.detail-layout>*{min-width:0}
+/* The header gained the language switch: the nav link to customer service (same as the yellow button beside it) gives way first. */
+@media(max-width:1599px){.header nav a[href="#/support"]{display:none}}
+@media(max-width:1150px){.header nav a[href="#/blog"]{display:none}}
+@media(min-width:701px) and (max-width:1100px){.header-actions .login{font-size:0!important;gap:0;padding:8px}}
+@media(min-width:1251px) and (max-width:1350px){.header-inner{gap:25px}.header nav{gap:22px}.header-actions{gap:14px}}
+@media(min-width:701px) and (max-width:860px){.header-actions .lang-switch{font-size:0!important;gap:0}}
+@media(min-width:701px) and (max-width:1000px){html[lang=en] .header-actions .support{font-size:0!important;gap:0;padding:9px}html[lang=en] .header-actions .support svg{width:22px;height:22px}}
