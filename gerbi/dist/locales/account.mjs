@@ -87,6 +87,7 @@ export default {
     // Signed-in panel
     'account.type.contact': 'פנייה כללית',
     'account.type.tailor': 'טיול בהתאמה אישית',
+    'account.type.package': 'חבילה מבונה החופשות',
     'account.type.other': 'פנייה',
     'account.user.eyebrow': 'החשבון שלי',
     'account.user.hello': 'שלום, {name}',
@@ -231,6 +232,7 @@ export default {
     'account.ok.profile': 'Your details have been saved.',
     'account.type.contact': 'General enquiry',
     'account.type.tailor': 'Tailor-made trip',
+    'account.type.package': 'Package from the trip builder',
     'account.type.other': 'Request',
     'account.user.eyebrow': 'My account',
     'account.user.hello': 'Hi, {name}',

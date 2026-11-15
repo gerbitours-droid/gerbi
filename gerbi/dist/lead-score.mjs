@@ -16,7 +16,8 @@ export function scoreLead(lead, now = new Date()) {
   if (lead.status === 'closed') return { score: 0, level: 'done', reasons: ['הפנייה סגורה'] };
   let score = 0;
   const add = (points, reason) => { score += points; if (reason) reasons.push(reason); };
-  if (lead.type === 'tailor') add(25, 'טיול בהתאמה אישית');
+  if (lead.type === 'package') add(35, 'חבילה מלאה מבונה החופשות');
+  else if (lead.type === 'tailor') add(25, 'טיול בהתאמה אישית');
   else if (lead.type === 'support') {
     const reason = REASON.exec(lead.message || '')?.[1] || '';
     if (/תלונה|חיוב|בעיה בהזמנה/.test(reason)) add(40, `שירות: ${reason}`); else add(20, 'פנייה לשירות');
@@ -44,7 +45,10 @@ export function scoreLead(lead, now = new Date()) {
 // The questions a quote needs, most important first.
 export function missingDetails(lead) {
   const out = [];
-  if (lead.type === 'tailor') {
+  if (lead.type === 'package') {
+    if (lead.flexibility === 'month') out.push('התאריכים בחבילה משוערים – מתי בדיוק תרצו לטוס?');
+    if (Number(lead.children) > 0 && !/גילי ילדים/.test(lead.notes || '')) out.push('בני כמה הילדים?');
+  } else if (lead.type === 'tailor') {
     if (VAGUE.test(lead.destinations || '')) out.push('יש כיוון או סוג מקום שמושך אתכם (ים, עיר, טבע)?');
     if (!lead.start) out.push(lead.flexibility === 'month' ? 'באיזה חודש בדיוק, וכמה לילות?' : 'מתי תרצו לטוס, ועד כמה התאריכים גמישים?');
     if (!lead.budget || lead.budget === 'open') out.push('מה התקציב המשוער לכל הטיול?');
@@ -62,8 +66,8 @@ export function summaryText(lead) {
   const dates = lead.start ? `${heDate(lead.start)}${lead.end ? '–' + heDate(lead.end) : ''}` : lead.context?.depart ? heDate(lead.context.depart) : FLEXIBILITY[lead.flexibility] || '';
   const where = lead.destinations || (lead.context?.to ? `טיסה ל־${lead.context.to}` : '');
   const styles = (lead.styles || []).map((s) => STYLES[s]).filter(Boolean).slice(0, 2).join(', ');
-  const kind = lead.type === 'tailor' ? 'טיול בהתאמה' : lead.type === 'support' ? 'שירות' : 'פנייה';
-  const text = lead.type === 'tailor' ? '' : String(lead.message || '').replace(REASON, '').trim().slice(0, 80);
+  const kind = lead.type === 'package' ? 'חבילה' : lead.type === 'tailor' ? 'טיול בהתאמה' : lead.type === 'support' ? 'שירות' : 'פנייה';
+  const text = ['tailor', 'package'].includes(lead.type) ? '' : String(lead.message || '').replace(REASON, '').trim().slice(0, 80);
   return [kind, where, dates, party, lead.budget && lead.budget !== 'open' ? BUDGETS[lead.budget] : '', styles, text && `„${text}”`].filter(Boolean).join(' · ');
 }
 
@@ -72,7 +76,7 @@ export function whatsappTemplate(lead) {
   const where = !VAGUE.test(lead.destinations || '') && lead.destinations ? ` ל${lead.destinations.replace(/^ל/, '')}` : lead.context?.to ? ' שחיפשתם' : '';
   const when = lead.start ? ` ב־${heDate(lead.start)}` : '';
   const q = missingDetails(lead).slice(0, 2);
-  const opener = lead.type === 'support' ? 'קיבלנו את הפנייה שלכם לשירות הלקוחות ואנחנו על זה.' : `קיבלנו את הפנייה שלכם${lead.type === 'tailor' ? ` לטיול${where}${when}` : where ? ` לגבי הטיסה${where}` : ''} — תודה שפניתם!`;
+  const opener = lead.type === 'support' ? 'קיבלנו את הפנייה שלכם לשירות הלקוחות ואנחנו על זה.' : `קיבלנו את הפנייה שלכם${lead.type === 'package' ? ` לחבילה${where}${when}` : lead.type === 'tailor' ? ` לטיול${where}${when}` : where ? ` לגבי הטיסה${where}` : ''} — תודה שפניתם!`;
   return [`היי {שם}, כאן ג׳רבי טורס.`, opener, q.length ? `כדי להכין לכם הצעה מדויקת, נשמח לדעת: ${q.join(' ')}` : 'נשמח לתאם שיחה קצרה כדי להתקדם.', 'מתי נוח לכם לדבר?'].join('\n');
 }
 

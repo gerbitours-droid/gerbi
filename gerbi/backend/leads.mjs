@@ -60,7 +60,7 @@ export async function handleLeads(req, url, { send, body, store, env = process.e
   if (url.pathname !== '/api/leads') return false;
   if (req.method === 'POST') {
     if (!(await allowShared(clientOf(req), 'leads'))) { send(429, { error: 'rate_limited', message: 'נשלחו כמה פניות בזמן קצר. נסו שוב בעוד כמה דקות, או פנו אלינו ישירות.' }); return true; }
-    const input = await body(req, 16_000);
+    const input = await body(req, 64_000); // a package lead (spec 24) carries its structured trip
     // Honeypot: a hidden field people never see. Bots that fill it get a normal-looking success and nothing is stored.
     if (typeof input?.website === 'string' && input.website.trim()) { send(201, { ok: true, id: randomUUID().slice(0, 8) }); return true; }
     // Spec 21: field messages in the visitor's language; the lead keeps `lang` so the team replies in it.

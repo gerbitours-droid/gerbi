@@ -86,3 +86,6 @@
 /* Spec 21: optional English content boxes and the EN indicator. */
 .en-box{border:1px dashed #b9cde6;border-radius:12px;padding:10px 14px;margin:12px 0;background:#f8fbff}.en-box>summary{cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px}.en-box[open]>summary{margin-bottom:10px}
 .en-chip{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:#e3f6e8;color:#1d6b35;direction:ltr}.en-chip[data-en="no"]{background:#f1f3f6;color:#5d6b82}
+
+/* Package leads (spec 24) */
+.admin-package{border:1px solid #cfe0f2;border-radius:12px;background:#f7fbff;padding:10px 12px;margin:10px 0}.admin-package h3{margin:0 0 6px;font-size:16px}.admin-package dl{margin:0}.admin-days{padding-inline-start:20px;line-height:1.7;font-size:13px}

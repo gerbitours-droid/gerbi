@@ -91,7 +91,7 @@ function leadsCsv(leads) {
 
 function filterLeads(leads, params) {
   const status = params.get('status'), type = params.get('type'), q = (params.get('q') || '').trim().toLowerCase().slice(0, 100);
-  return leads.filter((l) => (!LEAD_STATUSES.includes(status) || l.status === status) && (!['contact', 'tailor', 'support'].includes(type) || l.type === type)
+  return leads.filter((l) => (!LEAD_STATUSES.includes(status) || l.status === status) && (!['contact', 'tailor', 'support', 'package'].includes(type) || l.type === type)
     && (!q || [l.name, l.phone, l.email, l.destinations, l.message, l.notes, ...(l.adminNotes || []).map((n) => n.text)].some((v) => String(v || '').toLowerCase().includes(q))));
 }
 

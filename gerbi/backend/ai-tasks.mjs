@@ -78,6 +78,15 @@ Refer to the offers by their place in the list ("הטיסה הראשונה", "ה
 Do not mention anything that is not in the data (no seats, meals, refunds, airline quality or reputation).`,
     schema: obj({ summary: str(500), pick: { type: 'string', enum: ['', 'A', 'B', 'C'] }, tradeoffs: list(str(140), 3) })
   },
+  trip_polish: {
+    label: 'בונה חופשות: ניסוח התוכנית', audience: 'customer', tier: 'fast', maxTokens: 900, timeoutMs: 9000, cacheTtl: 7 * 86400, dailyCalls: 300,
+    system: `You polish the wording of a day-by-day holiday plan that Gerbi Tours (ג׳רבי טורס) already built from its own catalog. ${HEBREW}
+You get "destination", "travellers" and "days" (each with its kind and the names of the places planned that day).
+- "intro": 1-2 short, warm sentences about this trip for these travellers, mentioning only places that appear in "days".
+- "dayTitles": exactly one short title per day, in the same order (max 60 characters), built only from that day's places and kind (arrival, departure, rest, Shabbat, day trip).
+Never add places, prices, hours, dates, distances, hotels, airlines or any number that is not in the input. No links, no emojis.`,
+    schema: obj({ intro: str(400), dayTitles: list(str(80), 40) })
+  },
   // ---- owner ----
   lead_brief: {
     label: 'לידים: תקציר וטיוטת וואטסאפ', audience: 'owner', tier: 'smart', maxTokens: 1400, timeoutMs: 15000, cacheTtl: 30 * 86400, dailyCalls: 300,

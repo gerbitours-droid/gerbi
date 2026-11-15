@@ -11,7 +11,7 @@ import { normLang } from '../dist/i18n.mjs';
 
 // The process-wide gateway (server.mjs attaches the KV stores with gateway.configure).
 export const gateway = createGateway({ tasks: TASKS });
-export const CUSTOMER_FEATURES = ['understand', 'support_answer', 'tailor_fill', 'flight_explain'];
+export const CUSTOMER_FEATURES = ['understand', 'support_answer', 'tailor_fill', 'flight_explain', 'trip_polish'];
 
 export async function featureStatus(gw = gateway) {
   return Object.fromEntries(await Promise.all(CUSTOMER_FEATURES.map(async (id) => [id, await gw.enabled(id)])));
@@ -65,6 +65,23 @@ export async function flightExplain(offers, brief, { store = null, gw = gateway,
   return result ? { ...result.value, cached: result.cached } : null;
 }
 
+// ---------- magic trip builder (spec 24 §7): wording only, never new places or numbers ----------
+// days: [{ kind, items:[names] }] from the deterministic plan. Returns { intro, dayTitles } or null (keep the rules' text).
+export async function tripPolish(destination, travellers, days, { store = null, gw = gateway, lang = 'he' } = {}) {
+  if (!Array.isArray(days) || !days.length || days.length > 40) return null;
+  const input = { destination: String(destination || '').slice(0, 80), travellers: String(travellers || '').slice(0, 120),
+    days: days.map((d, i) => ({ day: i + 1, kind: String(d?.kind || 'full').slice(0, 12), items: (Array.isArray(d?.items) ? d.items : []).map((x) => String(x).slice(0, 120)).slice(0, 6) })) };
+  const validate = (v) => {
+    const titles = (v.dayTitles || []).map((x) => stripLinks(x).slice(0, 80));
+    if (titles.length !== input.days.length || titles.some((x) => x.length < 2)) return null;
+    const intro = stripLinks(v.intro).slice(0, 400);
+    if (!numbersGrounded([intro, ...titles].join(' '), [JSON.stringify(input)])) return null;
+    return { intro, dayTitles: titles };
+  };
+  const result = await gw.run('trip_polish', input, { cache: store, validate, lang: normLang(lang) });
+  return result ? { ...result.value, cached: result.cached } : null;
+}
+
 // ---------- owner: lead brief ----------
 // What the model may see: trip fields and the customer's text (redacted). Never name, phone or e-mail.
 export function leadFacts(lead, now = new Date()) {
@@ -72,9 +89,17 @@ export function leadFacts(lead, now = new Date()) {
   return { type: lead.type, status: lead.status, receivedHoursAgo: ageHours, channel: CHANNELS[lead.channel] || lead.channel || '', source: lead.source || '',
     destinations: lead.destinations || '', start: lead.start || '', end: lead.end || '', flexibility: FLEXIBILITY[lead.flexibility] || '',
     adults: lead.adults ?? null, children: lead.children ?? null, budget: BUDGETS[lead.budget] || '', styles: (lead.styles || []).map((s) => STYLES[s]).filter(Boolean),
-    customer_text: String(lead.type === 'tailor' ? lead.notes || '' : lead.message || '').slice(0, 1500),
+    customer_text: String(['tailor', 'package'].includes(lead.type) ? lead.notes || '' : lead.message || '').slice(0, 1500),
     searchContext: lead.context ? { from: lead.context.from, to: lead.context.to, depart: lead.context.depart, return: lead.context.return, adults: lead.context.adults, children: lead.context.children } : null,
-    ownerNotes: (lead.adminNotes || []).slice(-3).map((n) => String(n.text || '').slice(0, 200)) };
+    ownerNotes: (lead.adminNotes || []).slice(-3).map((n) => String(n.text || '').slice(0, 200)),
+    ...(lead.package ? { package: packageFacts(lead.package) } : {}) };
+}
+// A package lead (spec 24): the chosen components, so the brief can mention them (numbers stay grounded in these facts).
+function packageFacts(p) {
+  const f = p.flights?.picks?.[0], groups = p.hotels?.stops || (p.hotels ? [p.hotels] : []);
+  return { nights: p.request?.nights, flight: f ? { carriers: f.carriers, price: f.price, stops: f.stops, checkedAt: p.flights.searchedAt } : null,
+    hotels: groups.map((g) => g.picks?.[0]).filter(Boolean).map((h) => ({ name: h.name, stars: h.stars, board: h.board, price: h.price })),
+    car: p.car?.include === true, needs: p.request?.needs || {} };
 }
 export async function leadBrief(lead, { store = null, gw = gateway, now = new Date(), useAi = true } = {}) {
   const priority = scoreLead(lead, now), missing = missingDetails(lead);

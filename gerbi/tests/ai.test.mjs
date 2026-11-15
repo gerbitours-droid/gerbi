@@ -58,7 +58,7 @@ test('gateway without a key: nothing is called, cached answers are still served,
   assert.deepEqual((await gw.run('tiebreak', {}, { cache })).value, { pick: 1, reason: 'x' });
   const s = await gw.status();
   assert.equal(s.configured, false); assert.ok(s.tasks.every((t) => t.blocked === 'no_provider'));
-  assert.deepEqual(await featureStatus(gw), { understand: false, support_answer: false, tailor_fill: false, flight_explain: false });
+  assert.deepEqual(await featureStatus(gw), { understand: false, support_answer: false, tailor_fill: false, flight_explain: false, trip_polish: false });
 });
 
 test('gateway: only DeepSeek configured works; chain falls through a failing provider; usage and cost are logged without content', async () => {
@@ -253,7 +253,7 @@ test('routes: public features/tailor/explain; owner endpoints need a session; br
     return { status: r.status, data: await r.json().catch(() => null) };
   };
   try {
-    assert.deepEqual((await call('GET', '/api/ai/features')).data.features, { understand: true, support_answer: true, tailor_fill: true, flight_explain: true });
+    assert.deepEqual((await call('GET', '/api/ai/features')).data.features, { understand: true, support_answer: true, tailor_fill: true, flight_explain: true, trip_polish: true });
     const fill = await call('POST', '/api/ai/tailor-fill', { text: 'ירח דבש ביפן, אוכל ויין' });
     assert.equal(fill.status, 200); assert.equal(fill.data.fields.destinations, 'יפן');
     assert.equal((await call('POST', '/api/ai/tailor-fill', { text: 'x' })).status, 400);

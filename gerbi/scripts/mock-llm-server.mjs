@@ -23,6 +23,8 @@ const englishAnswer = (task, input) => {
       return { summary: `Flight A costs ${a.price} and takes ${a.duration || 'an unknown time'}; flight B costs ${b.price}${b.duration ? ` and takes ${b.duration}` : ''}.`, pick: 'A',
         tradeoffs: [`A: ${a.price}${a.bag ? ' · ' + a.bag : ''}`, `B: ${b.price}${b.bag ? ' · ' + b.bag : ''}`] };
     }
+    case 'trip_polish': return { intro: `A ${input.destination} trip shaped around ${input.days.find((d) => d.items.length)?.items[0] || 'the highlights'} and a relaxed pace.`,
+      dayTitles: input.days.map((d) => (d.items[0] ? `Discover ${d.items[0]}` : { arrival: 'Arrive and settle in', departure: 'Breakfast and fly home', rest: 'A slow day to recharge', shabbat: 'A restful Shabbat' }[d.kind] || 'A free day')) };
     default: return null;
   }
 };
@@ -47,6 +49,8 @@ export function mockAnswer(task, input, system = '') {
       return { destinations: /יפן/.test(t) ? 'יפן' : '', start: '', end: '', flexibility: /אפריל|מאי|יוני|אוגוסט/.test(t) ? 'month' : 'open', adults: /ירח דבש|זוג/.test(t) ? 2 : 0, children: 0,
         budget: 'open', styles: [/אוכל|יין/.test(t) && 'culinary', /ירח דבש/.test(t) && 'romantic', /יוקרה|פינוק/.test(t) && 'luxury'].filter(Boolean), notes: /ירח דבש/.test(t) ? 'חוגגים ירח דבש — מלון רומנטי' : '' };
     }
+    case 'trip_polish': return { intro: `חופשה ב${input.destination} סביב ${input.days.find((d) => d.items.length)?.items[0] || 'המקומות היפים'}, בקצב נעים.`,
+      dayTitles: input.days.map((d) => (d.items[0] ? `מגלים את ${d.items[0]}` : { arrival: 'נוחתים ומתמקמים', departure: 'ארוחת בוקר וטסים הביתה', rest: 'יום רגוע לטעינת מצברים', shabbat: 'שבת של מנוחה' }[d.kind] || 'יום חופשי')) };
     case 'flight_explain': {
       const [a, b] = input.offers;
       return { summary: `הטיסה A עולה ${a.price} ונמשכת ${a.duration || 'זמן לא ידוע'}; הטיסה B עולה ${b.price}${b.duration ? ` ונמשכת ${b.duration}` : ''}.${a.stops !== b.stops ? ` ב־A ${a.stops ? 'יש החלפה' : 'טיסה ישירה'}, וב־B ${b.stops ? 'יש החלפה' : 'טיסה ישירה'}.` : ''}`,

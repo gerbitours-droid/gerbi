@@ -320,7 +320,9 @@ function extractTravelersEn(text) {
   if (counted || single) { found.children = counted ? Math.min(8, +counted[1]) : 1; found.childrenSource = (counted || single)[0].trim(); }
   const infants = text.match(/(?:(\d+)\s*(?:infants|babies|toddlers)|(?:an?|our|my|1)\s+(?:infant|baby|toddler))\b/);
   if (infants) { found.infants = infants[1] ? +infants[1] : 1; found.children = (found.children || 0) + found.infants; }
-  const ages = [...text.matchAll(/\b(?:aged?|ages)\s+(\d{1,2})(?:\s*(?:,|and|&)\s*(\d{1,2}))?(?:\s*(?:,|and|&)\s*(\d{1,2}))?(?:\s*(?:,|and|&)\s*(\d{1,2}))?/g)]
+  // An age is never a count of nights/days/stars that follows it ("a child aged 8, 4 nights"); "kids 5 and 8" lists ages too.
+  const AGE = '(\\d{1,2})(?!\\d)(?!\\s*(?:nights?|days?|weeks?|months?|stars?|hours?|adults?|people)\\b)';
+  const ages = [...text.matchAll(new RegExp(`\\b(?:aged?|ages|(?:kids|children|boys|girls|sons|daughters)(?=\\s*\\(?\\s*\\d{1,2}\\s*(?:,|and|&)\\s*\\d))\\s*\\(?\\s*${AGE}(?:\\s*(?:,|and|&)\\s*${AGE})?(?:\\s*(?:,|and|&)\\s*${AGE})?(?:\\s*(?:,|and|&)\\s*${AGE})?`, 'g'))]
     .flatMap(m => m.slice(1).filter(Boolean).map(Number));
   for (const m of text.matchAll(/(\d{1,2})(?:\s*(?:,|and|&)\s*(\d{1,2}))?[\s-]*(?:years?|yrs?)[\s-]*olds?\b/g)) ages.push(...m.slice(1).filter(Boolean).map(Number));
   const kidAges = ages.filter(age => age < 18);
