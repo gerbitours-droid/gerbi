@@ -46,6 +46,7 @@ Input has one of: `impression`, `open_destination`, `compare`, `save`, `edit_pla
 
 - `GET /api/tags` — public taxonomy and destination mappings.
 - `GET /api/learning/summary` — aggregate development view; it does not contain raw queries.
+- `GET /api/deals` — cheapest round-trip fare per popular route from TLV (6 routes × 2 probes, 1 adult), from `backend/deals.mjs`. Never waits for the supplier: serves the cached strip (fresh 8 h, shown up to 72 h) and starts at most one background refresh (≈12 supplier searches) per window, with a 3-minute lock in the kv store against parallel instances. Empty until the first refresh finishes; the homepage hides the strip then.
 - `GET /api/status` — confirms that Volero remains disconnected until the official authentication flow is configured.
 
 ## Privacy and safety

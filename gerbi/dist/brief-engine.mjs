@@ -149,7 +149,10 @@ function extractBudget(text) {
 }
 
 // Destinations, countries and origin with Hebrew prefixes: ב/ל (to), מ (from), and negation within two words.
-function extractPlaces(text, previous) {
+function extractPlaces(text, previous, raw = '') {
+  // IATA codes count only when typed in capitals ("TLV", "LHR"), so English words like "bus" or "nap" stay words.
+  const codes = new Set((raw.match(/(?<![A-Za-z])[A-Z]{3}(?![A-Za-z])/g) || []).map(code => code.toLowerCase()));
+  const namesOf = place => (codes.has(place.code.toLowerCase()) ? [...place.names, place.code.toLowerCase()] : place.names);
   const tagged = clauseWords(text), list = tagged.map(t => t.word), want = new Set(previous.want || []), exclude = new Set(previous.exclude || []);
   const found = [], countryHits = [];
   let only = false, origin = null;
@@ -165,9 +168,9 @@ function extractPlaces(text, previous) {
   };
   list.forEach((word, i) => {
     const negated = NEGATIONS.has(list[i - 1]) || (NEGATIONS.has(list[i - 2]) && tagged[i - 2].c === tagged[i].c && NEGATION_BRIDGE.has(list[i - 1]));
-    const fromWord = prefix => /^ו?מ$/.test(prefix) && list[i - 1] !== 'חוץ';
+    const fromWord = prefix => (/^ו?מ$/.test(prefix) && list[i - 1] !== 'חוץ') || (!prefix && list[i - 1] === 'from');
     for (const place of places) {
-      const prefix = matchAt(i, place.names);
+      const prefix = matchAt(i, namesOf(place));
       if (prefix === null) continue;
       if (list[i - 1] === 'רק' || list[i - 2] === 'רק') only = true;
       if (fromWord(prefix)) origin = { code: place.code, source: word };
@@ -265,7 +268,7 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
   }
   if (/זול|משתלם|תוריד|מחיר נמוך|הכי זול|לא יקר|במחיר נוח/.test(base)) { brief.cheaper = true; say('cheaper', 'מחיר חשוב'); }
 
-  const where = extractPlaces(base, previous);
+  const where = extractPlaces(base, previous, raw);
   brief.want = where.want; brief.exclude = where.exclude;
   if (where.origin) { brief.origin = where.origin.code; say('origin', `יציאה מ${places.find(p => p.code === where.origin.code).names[0]}`, where.origin.source); }
   for (const hit of where.sources) {

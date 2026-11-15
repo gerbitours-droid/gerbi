@@ -2,7 +2,9 @@ import { styles, rankInspirations } from './personalization.mjs';
 import { offerPrice, formatFare, carrierOf, hoursText, LONG_LAYOVER_MINUTES, offerFacts, emptyFilters, matchesFilters, sortFacts, TIME_BUCKETS } from './flight-view.mjs';
 import { parsePreferences, rankDemoTrips, estimateDemoTotal, validFlightDates } from './planner.mjs';
 import { trips, contact } from './data.mjs';
-import { places, resolvePlace, placeSuggestions, placeType } from './places.mjs';
+import { places, resolvePlace, placeSuggestions, placeType, placeText, placeByCode } from './places.mjs';
+import { initDealsStrip } from './deals-strip.mjs';
+import { placeCombobox, openRangePicker, travelersPopover, travelersText } from './search-form.mjs';
 import { scoreOffers, rankScored, needsTieBreak, badges, diverseTop, explain, itineraryKey, features } from './scoring.mjs';
 import { SAVED_FLIGHTS_KEY, flightSnapshot, restoreSavedFlights, addSavedFlight, searchLink, parseSearchLink, followUpText, contactActions } from './saved-flights.mjs';
 import { initPages } from './pages.mjs';
@@ -19,7 +21,6 @@ try {
  const saved=JSON.parse(localStorage.getItem('gerbi-preferences')||'{}');
  for(const style of styles) if(typeof saved?.[style.id]==='boolean')state.preferences[style.id]=saved[style.id];
 } catch {}
-document.querySelector('#destinations').innerHTML=places.map(place=>`<option value="${place.label}">`).join('');
 $('.skip-link').onclick=e=>{e.preventDefault();$('#main-content').focus();$('#main-content').scrollIntoView({block:'start'});};
 const modal=$('#modal');
 let toastTimer;
@@ -37,24 +38,18 @@ const originPlace=()=>resolvePlace($('#origin').value);
 function showDates(){const has=oneWay()?Boolean(state.start):Boolean(state.start&&state.end);$('#dates-value').textContent=has?(oneWay()?shortDate(state.start):`${shortDate(state.start)} – ${shortDate(state.end)}`):'בחרו תאריכים';$('#dates-value').classList.toggle('muted',!has);}
 function longDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value||'')?new Date(value+'T12:00:00').toLocaleDateString('he-IL',{weekday:'short',day:'numeric',month:'numeric',year:'numeric'}):'';}
 function openDates(){
- const single=oneWay();
- openModal(`<span class="dialog-kicker">בוחרים מתי לצאת לחופש</span><h2>מתי בא לכם לטוס?</h2><p>${single?'בחרו תאריך יציאה. זו טיסה בכיוון אחד.':'בחרו תאריכי יציאה וחזרה. אפשר לחזור גם באותו יום.'}</p><form id="date-form"><div class="form-grid"><label class="modal-field">תאריך יציאה<input id="start-date" type="date" min="${localDate()}" value="${state.start}" required></label>${single?'':`<label class="modal-field">תאריך חזרה<input id="end-date" type="date" min="${state.start||localDate()}" value="${state.end}" required></label>`}</div><p id="date-error" class="inline-error" hidden></p><button class="yellow dialog-primary">אישור תאריכים</button></form>`);
- $('#start-date').onchange=()=>{if($('#end-date'))$('#end-date').min=$('#start-date').value;};
- $('#date-form').onsubmit=e=>{e.preventDefault();const start=$('#start-date').value,end=single?state.end:$('#end-date').value;
-  if(!validFlightDates(start,end,localDate(),single)){$('#date-error').textContent=single?'תאריך היציאה לא יכול להיות בעבר.':'תאריך החזרה לא יכול להיות לפני היציאה, ותאריך היציאה לא יכול להיות בעבר.';$('#date-error').hidden=false;return;}
-  state.start=start;state.end=single&&end<start?'':end;
-  // The planner counts nights; a same-day or one-way flight leaves its night count untouched.
-  if(!single&&end>start)state.preferences.nights=Math.round((new Date(end)-new Date(start))/86400000);
-  showDates();modal.close();document.dispatchEvent(new Event('brief-changed'));};
+ openRangePicker({start:state.start,end:state.end,oneWay:oneWay(),today:localDate(),returnFocus:$('#dates-button'),validate:(start,end,single)=>validFlightDates(start,end,localDate(),single),
+  onTripType:type=>{setTripType(type);showDates();markStaleResults();},
+  onApply:({start,end,oneWay:single})=>{state.start=start;state.end=single&&end<start?'':end;
+   // The planner counts nights; a same-day or one-way flight leaves its night count untouched.
+   if(!single&&end>start)state.preferences.nights=Math.round((new Date(end)-new Date(start))/86400000);
+   showDates();document.dispatchEvent(new Event('brief-changed'));$('#travelers-button').focus();}});
 }
 $('#dates-button').onclick=openDates;
-$('#travelers-button').onclick=()=>{
- let adults=state.adults,children=state.children;
- openModal(`<span class="dialog-kicker">יש מקום לכולם</span><h2>מי יוצא לחופשה?</h2><div class="counter"><span><strong>מבוגרים</strong><small>מגיל 18 ומעלה</small></span><div class="counter-controls"><button aria-label="הוספת מבוגר" data-counter="adult-plus">+</button><strong id="adult-count">${adults}</strong><button aria-label="הסרת מבוגר" data-counter="adult-minus">−</button></div></div><div class="counter"><span><strong>ילדים</strong><small>גילי הילדים המדויקים יידרשו לתמחור סופי</small></span><div class="counter-controls"><button aria-label="הוספת ילד" data-counter="child-plus">+</button><strong id="child-count">${children}</strong><button aria-label="הסרת ילד" data-counter="child-minus">−</button></div></div><button id="save-travelers" class="yellow dialog-primary">אישור הרכב הנוסעים</button>`);
- const update=()=>{$('#adult-count').textContent=adults;$('#child-count').textContent=children;$('[data-counter="adult-minus"]').disabled=adults<=1;$('[data-counter="adult-plus"]').disabled=adults+children>=9;$('[data-counter="child-minus"]').disabled=children<=0;$('[data-counter="child-plus"]').disabled=adults+children>=9;};
- document.querySelectorAll('[data-counter]').forEach(b=>b.onclick=()=>{if(b.dataset.counter==='adult-plus')adults++;if(b.dataset.counter==='adult-minus')adults--;if(b.dataset.counter==='child-plus')children++;if(b.dataset.counter==='child-minus')children--;update();});update();
- $('#save-travelers').onclick=()=>{state.adults=adults;state.children=children;$('#travelers-value').textContent=`${adults+children} נוסעים${children?' · כולל ילדים':''}`;modal.close();document.dispatchEvent(new Event('brief-changed'));};
-};
+$('#travelers-button').setAttribute('aria-haspopup','dialog');$('#travelers-button').setAttribute('aria-expanded','false');
+$('#travelers-button').onclick=()=>travelersPopover($('#travelers-button'),{get:()=>({adults:state.adults,children:state.children}),
+ set:({adults,children})=>{state.adults=adults;state.children=children;$('#travelers-value').textContent=travelersText(adults,children);},
+ onClose:()=>document.dispatchEvent(new Event('brief-changed'))});
 function selectTab(tab){if(activeSearch)return;state.tab=tab;$('.trip-type').hidden=tab!=='flights';$('#search-mode-note').textContent=tab==='flights'?'חיפוש טיסות בזמן אמת מול הספקים שאנחנו עובדים איתם · הלוך־חזור או כיוון אחד':'מלונות וחבילות: השראה ותכנון בלבד, ללא חיפוש זמינות';document.querySelectorAll('[data-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===tab));b.tabIndex=b.dataset.tab===tab?0:-1;});$('.origin-field').style.display=tab==='hotels'?'none':'';$('.swap').style.display=tab==='hotels'?'none':'';$('.search-fields').classList.toggle('hotel-mode',tab==='hotels');$('.search-submit').innerHTML=icons('search')+({flights:'חפשו טיסה',hotels:'השראה למלונות',packages:'רעיונות לחופשה'})[tab];}
 const tabButtons=[...document.querySelectorAll('[data-tab]')];tabButtons.forEach((b,i)=>{b.tabIndex=i===0?0:-1;b.onclick=()=>selectTab(b.dataset.tab);b.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowLeft'?1:-1)+3)%3;selectTab(tabButtons[n].dataset.tab);tabButtons[n].focus();}};});
 function currentPreferences(){return{...state.preferences,adults:state.adults,children:state.children,...(state.start&&state.end?{nights:Math.round((new Date(state.end)-new Date(state.start))/86400000)}:{})};}
@@ -68,7 +63,7 @@ function voleroSearchRequest(){
  if(!validFlightDates(state.start,state.end,localDate(),single)) throw fail(single?'בחרו תאריך יציאה לפני חיפוש טיסה.':'בחרו תאריכי יציאה וחזרה לפני חיפוש טיסה.','#dates-button');
  if(!place) throw fail(unknown(destination,'CDG לפריז'),'#destination');
  if(code===from.code) throw fail('בחרו יעד שונה משדה המוצא.','#destination');
- $('#destination').value=place.label;$('#origin').value=from.label;
+ $('#destination').value=placeText(place);$('#origin').value=placeText(from);
  const leg=(a,b,date)=>({origin:{code:a,type:placeType(a)},destination:{code:b,type:placeType(b)},date});
  return {originDestinations:single?[leg(from.code,code,state.start)]:[leg(from.code,code,state.start),leg(code,from.code,state.end)],passengers:{ptcList:[{ptc:'ADT',count:state.adults},...(state.children?[{ptc:'CHD',count:state.children}]:[] )]},sellingChannel:'B2B',language:'en_GB',timeout:10};
 }
@@ -106,8 +101,8 @@ function saveLastSearch(){try{localStorage.setItem(LAST_SEARCH_KEY,JSON.stringif
 function restoreLastSearch(){
  let saved=null;try{saved=JSON.parse(localStorage.getItem(LAST_SEARCH_KEY)||'null');}catch{return;}
  const place=resolvePlace(saved?.destination);if(!place||!validFlightDates(saved.start,saved.end,localDate(),saved.type==='oneway'))return;
- setTripType(saved.type);const from=resolvePlace(saved.origin);if(from)$('#origin').value=from.label;
- $('#destination').value=place.label;state.start=saved.start;state.end=saved.end;
+ setTripType(saved.type);const from=resolvePlace(saved.origin);if(from)$('#origin').value=placeText(from);
+ $('#destination').value=placeText(place);state.start=saved.start;state.end=saved.end;
  $('#search-feedback').textContent='שחזרנו את פרטי החיפוש האחרון. לחצו „חפשו טיסה” כדי לקבל מחירים עדכניים; מחירים קודמים לא נשמרים.';$('#search-feedback').hidden=false;
 }
 // Results stay visible after the traveler edits the brief, but never look like an answer to the new details.
@@ -122,7 +117,10 @@ function markStaleResults(){
 }
 $('#destination').addEventListener('input',markStaleResults);$('#origin').addEventListener('input',markStaleResults);
 document.querySelectorAll('[name="trip-type"]').forEach(input=>input.addEventListener('change',()=>{showDates();markStaleResults();}));
-$('#swap-route').onclick=()=>{const origin=$('#origin').value;$('#origin').value=$('#destination').value;$('#destination').value=origin;markStaleResults();toast('המוצא והיעד הוחלפו.');};
+$('#swap-route').onclick=()=>{const origin=$('#origin').value;$('#origin').value=$('#destination').value;$('#destination').value=origin;$('#swap-route').classList.toggle('is-flipped');markStaleResults();toast('המוצא והיעד הוחלפו.');};
+// Autocomplete: Hebrew, English or IATA code; choosing the origin moves on to the destination, the destination to the dates.
+placeCombobox($('#origin'),{kind:'origin',exclude:()=>resolvePlace($('#destination').value)?.code||'',onCommit:()=>{if(!$('#destination').value.trim())$('#destination').focus();}});
+placeCombobox($('#destination'),{kind:'destination',exclude:()=>originPlace()?.code||'',onCommit:()=>{if(state.tab==='flights'&&!(oneWay()?state.start:state.start&&state.end))setTimeout(openDates,60);}});
 document.addEventListener('brief-changed',markStaleResults);
 // ---- Live results: facts once per search; filters, sort, open details and the comparison survive every re-render.
 let flightFilters=emptyFilters(),filtersOpen=!window.matchMedia('(max-width: 760px)').matches;
@@ -318,12 +316,18 @@ async function shareSearch(){
 // A shared link fills the form; the search runs only when the visitor asks, so links never trigger supplier calls.
 function restoreSharedSearch(){
  const shared=parseSearchLink(location.hash);if(!shared)return false;
- setTripType(shared.type);const from=resolvePlace(shared.origin);if(from)$('#origin').value=from.label;
- $('#destination').value=shared.destination;state.start=shared.start;state.end=shared.end;state.adults=shared.adults;state.children=shared.children;
+ setTripType(shared.type);const from=resolvePlace(shared.origin);if(from)$('#origin').value=placeText(from);
+ $('#destination').value=placeText(resolvePlace(shared.destination))||shared.destination;state.start=shared.start;state.end=shared.end;state.adults=shared.adults;state.children=shared.children;
  $('#search-feedback').textContent='פתחתם קישור לחיפוש טיסות. בדקו את הפרטים ולחצו „חפשו טיסה” כדי לקבל מחירים עדכניים.';$('#search-feedback').hidden=false;
  return true;
 }
 const sharedSearch=restoreSharedSearch();if(!sharedSearch)restoreLastSearch();
+{const home=resolvePlace($('#origin').value);if(home?.names)$('#origin').value=placeText(home);}
+// Cheapest fares from the server's long cache; a click runs that search live with the traveler's own passengers.
+initDealsStrip({after:$('.search-panel'),today:()=>localDate(),onPick(deal){
+ if(activeSearch||!deal)return;selectTab('flights');setTripType('round');
+ $('#origin').value=placeText(placeByCode('TLV'));$('#destination').value=placeText(placeByCode(deal.destination))||deal.destination;
+ state.start=deal.depart;state.end=deal.back;showDates();document.dispatchEvent(new Event('brief-changed'));$('#search-form').requestSubmit();}});
 if(!contactActions(contact,'x').length)document.querySelectorAll('.support, nav a[href="#/support"]').forEach(el=>{const icon=el.querySelector('svg');el.textContent='עזרה ושאלות';if(icon)el.prepend(icon);});
 window.addEventListener('hashchange',()=>{if(!activeSearch&&restoreSharedSearch())document.dispatchEvent(new Event('brief-changed'));});
 const pages=initPages({routes:leadRoutes({contact}),state,trips,money,icons,escapeHTML,toast,openModal,openDates,renderCards,selectFlights:()=>selectTab('flights'),
@@ -338,7 +342,7 @@ const pages=initPages({routes:leadRoutes({contact}),state,trips,money,icons,esca
  placeLabel:code=>places.find(p=>p.code===code)?.names[0]||code,
  // A search the planner understood: same form, same supplier call, preferences arrive as removable filters.
  runFlightSearch(fs){
-  setTripType(fs.type);$('#origin').value=resolvePlace(fs.origin)?.label||fs.origin;$('#destination').value=resolvePlace(fs.destination)?.label||fs.destination;
+  setTripType(fs.type);$('#origin').value=placeText(resolvePlace(fs.origin))||fs.origin;$('#destination').value=placeText(resolvePlace(fs.destination))||fs.destination;
   state.start=fs.start;state.end=fs.end;state.adults=fs.adults;state.children=fs.children;pendingFilters=fs.filters;
   window.addEventListener('hashchange',()=>{selectTab('flights');document.dispatchEvent(new Event('brief-changed'));$('#search-form').requestSubmit();},{once:true});
   pages.navigate('/');
@@ -346,7 +350,7 @@ const pages=initPages({routes:leadRoutes({contact}),state,trips,money,icons,esca
  toggleFavorite(id){let persisted=true;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];try{localStorage.setItem('gerbi-favorites',JSON.stringify(favorites));}catch{persisted=false;}renderCards();return persisted;},
  openTravelers:()=>$('#travelers-button').onclick(),
  currentPreferences,
- syncHome(){ saveStyles();$('#travelers-value').textContent=`${state.adults+state.children} נוסעים`;showDates(); markStaleResults(); }
+ syncHome(){ saveStyles();$('#travelers-value').textContent=travelersText(state.adults,state.children);showDates(); markStaleResults(); }
 });
 installResultsCta();
 function refreshPersonalization(){
