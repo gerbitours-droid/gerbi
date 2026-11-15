@@ -1,6 +1,7 @@
 // A flight the traveler chose after a price check: a snapshot (times, price, check time), never a booking.
 // Stored on this device only; no passenger names or contact details.
 import { places, resolvePlace } from './places.mjs';
+import { cleanRoute, multiLink, parseMultiLink, legName } from './multi-city-core.mjs';
 
 export const SAVED_FLIGHTS_KEY = 'gerbi-saved-flights-v1';
 const MAX_SAVED = 10;
@@ -17,7 +18,9 @@ export function flightSnapshot(facts, search, check) {
     savedAt: new Date().toISOString(), checkedAt: check.at.toISOString(),
     price: check.price.value, currency: check.price.currency, priceChanged: Boolean(check.changed),
     destination: place?.label || search.destination, trip: place?.trip || null,
-    from: search.origin, to: place?.code || '', start: search.start, end: search.end, adults: search.adults, children: search.children,
+    from: search.origin, to: place?.code || (search.type === 'multi' ? search.legs.at(-1).to : ''), start: search.start, end: search.end, adults: search.adults, children: search.children,
+    // Multi-city (spec 10): the searched route, so the saved flight can open the same search again.
+    ...(search.type === 'multi' ? { route: search.legs.map(({ from, to, date }) => ({ from, to, date })) } : {}),
     carriers: facts.carriers.slice(0, 3), checked: facts.checked, trolley: facts.trolley,
     legs: facts.legs.map(leg => {
       const first = leg.segments[0], last = leg.segments.at(-1);
@@ -36,7 +39,7 @@ export function restoreSavedFlights(raw) {
   return list.map(item => {
     if (!item || typeof item !== 'object' || !Array.isArray(item.legs)) return null;
     const price = typeof item.price === 'number' && Number.isFinite(item.price) && item.price >= 0 ? item.price : null;
-    const legs = item.legs.slice(0, 2).map(leg => ({ from: code(leg?.from), to: code(leg?.to), departDate: date(leg?.departDate), departTime: time(leg?.departTime),
+    const legs = item.legs.slice(0, 5).map(leg => ({ from: code(leg?.from), to: code(leg?.to), departDate: date(leg?.departDate), departTime: time(leg?.departTime),
       arriveDate: date(leg?.arriveDate), arriveTime: time(leg?.arriveTime), stops: int(leg?.stops, 0, 6) ?? 0, minutes: int(leg?.minutes, 0, 6000), dayOffset: int(leg?.dayOffset, 0, 3) ?? 0 }));
     const adults = int(item.adults, 1, 9);
     if (!text(item.id, 40) || price === null || !code(item.currency) || !legs.length || !adults) return null;
@@ -45,14 +48,16 @@ export function restoreSavedFlights(raw) {
       from: code(item.from), to: code(item.to), start: date(item.start), end: date(item.end), adults, children: int(item.children, 0, 9 - adults) ?? 0,
       carriers: Array.isArray(item.carriers) ? item.carriers.map(name => text(name, 60)).filter(Boolean).slice(0, 3) : [],
       checked: ['included', 'paid', 'none', 'mixed', 'unknown'].includes(item.checked) ? item.checked : 'unknown',
-      trolley: ['included', 'paid', 'mixed', 'unknown'].includes(item.trolley) ? item.trolley : 'unknown', legs };
+      trolley: ['included', 'paid', 'mixed', 'unknown'].includes(item.trolley) ? item.trolley : 'unknown', legs,
+      ...(cleanRoute(item.route) ? { route: cleanRoute(item.route) } : {}) };
   }).filter(Boolean).slice(0, MAX_SAVED);
 }
 
 export const addSavedFlight = (list, flight) => [flight, ...list.filter(item => item.id !== flight.id)].slice(0, MAX_SAVED);
 
 // Share link: search conditions only – never prices, supplier offer ids or passenger details.
-export function searchLink({ origin, destination, start, end, type, adults, children }) {
+export function searchLink({ origin, destination, start, end, type, adults, children, legs }) {
+  if (type === 'multi' && legs) return multiLink({ legs, adults, children });
   const to = resolvePlace(destination)?.code || '', single = type === 'oneway' || !end;
   return '#/?' + new URLSearchParams({ from: resolvePlace(origin)?.code || origin, to, depart: start, ...(single ? { type: 'oneway' } : { return: end }), adults: String(adults), children: String(children) });
 }
@@ -60,6 +65,7 @@ export function parseSearchLink(hash) {
   const [path, query = ''] = String(hash || '').replace(/^#/, '').split('?');
   if ((path || '/') !== '/' || !query) return null;
   const params = new URLSearchParams(query);
+  if (params.get('type') === 'multi') return parseMultiLink(params);
   const adults = Number(params.get('adults')), children = Number(params.get('children') || 0);
   const type = params.get('type') === 'oneway' ? 'oneway' : 'round';
   const result = { origin: code(params.get('from')), to: code(params.get('to')), start: date(params.get('depart')), end: type === 'oneway' ? '' : date(params.get('return')), type, adults, children };
@@ -71,7 +77,7 @@ export function parseSearchLink(hash) {
 export function followUpText(flight, formatPrice) {
   const line = (leg, label) => `${label}: ${leg.from}→${leg.to} ${leg.departDate} ${leg.departTime}–${leg.arriveTime}${leg.dayOffset ? ` (+${leg.dayOffset})` : ''}, ${leg.stops ? (leg.stops === 1 ? 'החלפה אחת' : `${leg.stops} החלפות`) : 'ישירה'}`;
   return [`שלום ג׳רבי טורס, אשמח שתבדקו עבורי את הטיסה הזו:`, `${flight.destination} · ${flight.adults + flight.children} נוסעים (${flight.adults} מבוגרים${flight.children ? `, ${flight.children} ילדים` : ''})`,
-    ...flight.legs.map((leg, i) => line(leg, i ? 'חזור' : 'הלוך')), `חברת תעופה: ${flight.carriers.join(' + ') || 'לא נמסר'}`,
+    ...flight.legs.map((leg, i) => line(leg, legName(i, Boolean(flight.route)))), `חברת תעופה: ${flight.carriers.join(' + ') || 'לא נמסר'}`,
     `מחיר שנבדק: ${formatPrice({ value: flight.price, currency: flight.currency })} ב־${new Date(flight.checkedAt).toLocaleString('he-IL')} (לא הוזמן)`].join('\n');
 }
 

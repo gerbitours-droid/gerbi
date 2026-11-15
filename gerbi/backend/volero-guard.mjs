@@ -2,20 +2,27 @@
 // agency's credentials), trimming (a 610-offer search is ~6.5 MB raw, over Vercel's 4.5 MB response limit),
 // a short cache with in-flight de-duplication, one retry on transient failures, and per-client rate limits.
 const CODE = /^[A-Z]{3}$/, DATE = /^\d{4}-\d{2}-\d{2}$/;
+// Multi-city: the supplier answers up to 5 legs in one request (6 returns no offers; tested 15.11.2026).
+export const MAX_LEGS = 5;
 
 export function validSearch(input, today = new Date().toISOString().slice(0, 10)) {
   const legs = input?.originDestinations;
-  if (!Array.isArray(legs) || legs.length < 1 || legs.length > 2) return null;
+  if (!Array.isArray(legs) || legs.length < 1 || legs.length > MAX_LEGS) return null;
   const limit = new Date(Date.parse(today) + 365 * 86400000).toISOString().slice(0, 10);
   const point = p => (p && CODE.test(p.code) && ['a', 'c'].includes(p.type) ? { code: p.code, type: p.type } : null);
   const clean = legs.map(leg => ({ origin: point(leg?.origin), destination: point(leg?.destination), date: leg?.date }));
   if (clean.some(leg => !leg.origin || !leg.destination || leg.origin.code === leg.destination.code || !DATE.test(leg.date) || leg.date < today || leg.date > limit)) return null;
-  if (clean[1] && clean[1].date < clean[0].date) return null;
+  if (clean.some((leg, i) => i && leg.date < clean[i - 1].date)) return null;
+  if (new Set(clean.map(leg => `${leg.origin.code}-${leg.destination.code}-${leg.date}`)).size !== clean.length) return null;
   const ptcList = (Array.isArray(input?.passengers?.ptcList) ? input.passengers.ptcList : []).filter(p => ['ADT', 'CHD', 'INF'].includes(p?.ptc) && Number.isInteger(p.count) && p.count > 0);
   const total = ptcList.reduce((sum, p) => sum + p.count, 0), adults = ptcList.find(p => p.ptc === 'ADT')?.count || 0;
   if (!adults || total > 9 || new Set(ptcList.map(p => p.ptc)).size !== ptcList.length) return null;
   return { originDestinations: clean, passengers: { ptcList: ptcList.map(({ ptc, count }) => ({ ptc, count })) }, sellingChannel: 'B2B', language: 'en_GB', timeout: 10 };
 }
+
+// More than a plain round trip (3+ legs, or an open jaw) is heavier for the supplier: it gets its own, tighter bucket.
+export const isMultiCity = request => request.originDestinations.length > 2 || (request.originDestinations.length === 2 &&
+  (request.originDestinations[0].destination.code !== request.originDestinations[1].origin.code || request.originDestinations[0].origin.code !== request.originDestinations[1].destination.code));
 
 export function validAvailability(input) {
   const id = (value, max) => (typeof value === 'string' && value.length <= max && /^[A-Za-z0-9._~:=+/-]+$/.test(value) ? value : null);
@@ -27,6 +34,23 @@ export function validAvailability(input) {
 // Keep only what the site reads: times, carriers, durations, prices, baggage-relevant services, refundability.
 const firstLine = text => String(text || '').split('\n')[0].replace(/^#\d+\.\s*/, '').slice(0, 80);
 const slimPoint = p => p && ({ airport: { code: p.airport?.code, name: p.airport?.name }, city: { code: p.city?.code, name: p.city?.name }, date: p.date, time: p.time });
+// Fare-family services beyond baggage: one entry per category and charge type (change, refund, seat, meal).
+const FARE_SERVICE = s => ['VC', 'VR', 'SE', 'ML'].includes(s.categoryCode) || (s.categoryCode === 'OTHER' && s.atpcoSubGroup === 'RF');
+function slimServices(list = []) {
+  const seen = new Set(), out = [];
+  for (const s of list) {
+    if (['BG', 'CY'].includes(s.categoryCode)) { out.push({ categoryCode: s.categoryCode, chargeType: s.chargeType, name: firstLine(s.name) }); continue; }
+    if (!FARE_SERVICE(s)) continue;
+    const category = s.categoryCode === 'OTHER' ? 'VR' : s.categoryCode, key = `${category}|${s.chargeType}`;
+    if (!seen.has(key)) { seen.add(key); out.push({ categoryCode: category, chargeType: s.chargeType, name: firstLine(s.name) }); }
+  }
+  return out;
+}
+// Per passenger type: the per-person amount and the fewest seats the supplier reports on any segment.
+const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+const slimItems = items => (Array.isArray(items) ? items.slice(0, 3).map(i => ({ ptc: i?.ptc, count: i?.count,
+  price: { currency: i?.price?.currency, fullFare: num(i?.price?.fullFare), serviceFee: num(i?.price?.serviceFee) },
+  seats: (s => (s.length ? Math.min(...s) : null))((i?.fareComponents || []).map(f => f?.numberOfSeats).filter(Number.isInteger)) })) : undefined);
 const slimCarrier = c => c && ({ airline: { code: c.airline?.code, name: c.airline?.name }, flightNumber: c.flightNumber ?? null });
 function slimOffer(offer) {
   if (!offer) return offer;
@@ -37,7 +61,8 @@ function slimOffer(offer) {
     baggageAllowanceList: offer.baggageAllowanceList,
     fareDetails: { totalPrice: fare.totalPrice, nonRefundable: fare.nonRefundable ?? null, timeLimits: fare.timeLimits,
       brandedFare: (fare.brandedFare || []).map(b => ({ code: b.code, name: b.name, departure: b.departure, arrival: b.arrival, cabin: b.cabin,
-        serviceList: (b.serviceList || []).filter(s => ['BG', 'CY'].includes(s.categoryCode)).map(s => ({ categoryCode: s.categoryCode, chargeType: s.chargeType, name: firstLine(s.name) })) })) }
+        serviceList: slimServices(b.serviceList) })) },
+    offerItems: slimItems(offer.offerItems)
   };
 }
 function slimLists(lists = {}) {
@@ -80,7 +105,7 @@ export async function withRetry(run, { retryWithinMs = 15000, delayMs = 800, sle
 
 // Token bucket per client and route. ponytail: per instance; a shared store (Upstash) if abuse spans instances.
 const buckets = new Map();
-export const LIMITS = { search: [12, 60000], availability: [30, 60000], ai: [40, 60000], book: [3, 60000], leads: [5, 600000], leadsAdmin: [10, 60000] };
+export const LIMITS = { search: [12, 60000], searchMulti: [6, 60000], availability: [30, 60000], ai: [40, 60000], book: [3, 60000], leads: [5, 600000], leadsAdmin: [10, 60000] };
 export function allow(client, route, now = Date.now()) {
   const [capacity, windowMs] = LIMITS[route] || [60, 60000], key = `${route}:${client}`;
   const bucket = buckets.get(key) || { tokens: capacity, at: now };

@@ -12,7 +12,7 @@ import { destinationTags, publicTagCatalog } from './backend/tag-catalog.mjs';
 import { extractSignals, missingFields, scoreDestinations, understandRequest } from './backend/understanding.mjs';
 import { voleroFlightAvailability, voleroFlightBook, voleroFlightSearch } from './backend/volero-client.mjs';
 import { createStore } from './backend/kv-store.mjs';
-import { validSearch, validAvailability, slimSearch, slimAvailability, cachedSearch, withRetry, allow, clientOf } from './backend/volero-guard.mjs';
+import { validSearch, isMultiCity, validAvailability, slimSearch, slimAvailability, cachedSearch, withRetry, allow, clientOf } from './backend/volero-guard.mjs';
 import { createDeals, searchForDeals } from './backend/deals.mjs';
 import { QueryMemory, EVENT_WEIGHTS } from './backend/query-memory.mjs';
 import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm-partner.mjs';
@@ -164,10 +164,12 @@ export function createServer() {
     if (!allow(clientOf(req), 'search')) return tooMany(send);
     const request = validSearch(await body(req));
     if (!request) return send(400,{error:'search_input_invalid',message:'פרטי החיפוש אינם תקינים.'});
+    const multi = isMultiCity(request);
+    if (multi && !allow(clientOf(req), 'searchMulti')) return tooMany(send);
     const started = Date.now();
     try {
       const result = await cachedSearch(request, (input) => withRetry(() => voleroFlightSearch(input)).then(slimSearch));
-      logSupplier({ route:'search', ok:true, cached:result.cached, ms:Date.now() - started, offers:result.data.offers.length, legs:request.originDestinations.length });
+      logSupplier({ route:'search', ok:true, cached:result.cached, ms:Date.now() - started, offers:result.data.offers.length, legs:request.originDestinations.length, ...(multi ? { multi:true } : {}) });
       return send(200, { provider:'volero', data:result.data, cached:result.cached, searchedAt:new Date(result.searchedAt).toISOString() });
     } catch (error) { logSupplier({ route:'search', ok:false, ms:Date.now() - started, error:error.message, status:error.status }); return supplierError(send, error); }
    }

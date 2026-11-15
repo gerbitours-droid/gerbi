@@ -17,4 +17,6 @@ for f in tests/e2e/*.e2e.mjs; do PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs
 | `p3.e2e.mjs` | package 3: saved flights, plan link, share link, destination guide, support |
 | `p4.e2e.mjs` | package 4: one-way, foreign origin, swap, same-day return |
 | `ai.e2e.mjs` | Gerbi AI reply chips and the hand-off to a live city search |
+| `multi.e2e.mjs` | spec 10: multi-city (3 legs, 2–5 cap, leg calendars), open jaw, avoid-stop filter, share/refresh/saved restore; `OUT=verification/10-multi-city` |
+| `fare-extras.e2e.mjs` | spec 10 §7: per-passenger prices, fare inclusions, seats left, avoid-stop filter (round trip + child) |
 | `decide.e2e.mjs` | decision layer: badges, reasons, memory events, partner fallback |

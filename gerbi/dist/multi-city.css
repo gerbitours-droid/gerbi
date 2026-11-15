@@ -1,0 +1,36 @@
+/* Spec 10: multi-city leg editor + fare extras (per-passenger price, fare inclusions, seats left). */
+.multi-legs{margin:0 0 10px;position:relative}
+.trip-type[hidden]~.multi-legs{display:none}
+.leg-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.leg-row{position:relative;display:grid;grid-template-columns:30px 1.2fr 1.2fr 1fr 40px;gap:10px;align-items:center}
+.leg-number{width:28px;height:28px;border-radius:50%;background:var(--pale,#eaf6ff);color:var(--blue,#096bd2);display:grid;place-items:center;font-weight:800;font-size:14px}
+.leg-row .field{height:58px}
+.leg-date{cursor:pointer}
+.leg-remove{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border,#dce7f3);background:#fff}
+.leg-remove svg{width:18px;height:18px}
+.leg-remove:hover{background:#fff1ea}
+.multi-actions{display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap}
+.multi-actions .leg-add{padding:9px 16px;border-radius:10px;font-weight:700;min-height:44px}
+.multi-actions small{color:var(--muted,#74819f);font-size:13px}
+.multi-gaps p{margin:8px 0 0;font-size:13px;background:#fff8d7;border:1px solid #f6e7a0;border-radius:10px;padding:8px 12px;color:#64521b}
+.multi-gaps:empty{display:none}
+/* In multi mode the main route and date fields step aside; passengers and the search button stay. */
+.search-fields.multi-mode:not(.hotel-mode){grid-template-columns:1fr 1fr}
+.search-fields.multi-mode:not(.hotel-mode)>.origin-field,.search-fields.multi-mode:not(.hotel-mode)>.swap,.search-fields.multi-mode:not(.hotel-mode)>.destination-field,.search-fields.multi-mode:not(.hotel-mode)>.date-field{display:none}
+.search-fields.multi-mode:not(.hotel-mode)>.travelers-field,.search-fields.multi-mode:not(.hotel-mode)>.search-submit{grid-column:auto}
+/* The calendar for one leg: a single date, no trip-type switch. */
+dialog.date-picker.single-only .dp-mode{display:none}
+/* Results extras */
+.pax-prices{display:block;font-size:12px;color:#526687;margin-top:2px}
+.seats-left{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:#a53824;background:#fff1ea;border-radius:8px;padding:3px 9px}
+.fare-inclusions{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:8px 0 0}
+.fare-inclusions small{color:#526687}
+.leg-gap{background:#fff8d7;border-radius:8px;padding:6px 10px}
+@media (max-width:700px){
+ .leg-row{grid-template-columns:1fr 1fr 40px;grid-template-areas:"from from from" "to to to" "date date remove";gap:6px;padding:10px 10px 10px;border:1px solid var(--border,#dce7f3);border-radius:12px;background:#fff}
+ .leg-number{position:absolute;top:-8px;right:-6px;width:24px;height:24px;font-size:12px;z-index:2}
+ .leg-row .leg-from{grid-area:from}.leg-row .leg-to{grid-area:to}.leg-row .leg-date{grid-area:date}.leg-row .leg-remove,.leg-row .leg-remove-spacer{grid-area:remove;justify-self:center}
+ .leg-remove{width:44px;height:44px}
+ .leg-row .field{height:54px}
+ .search-fields.multi-mode:not(.hotel-mode)>.travelers-field,.search-fields.multi-mode:not(.hotel-mode)>.search-submit{grid-column:1/-1}
+}
