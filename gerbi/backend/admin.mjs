@@ -84,14 +84,14 @@ const csvCell = (value) => {
 const STATUS_LABEL = { new: 'חדש', progress: 'בטיפול', closed: 'נסגר' };
 function leadsCsv(leads) {
   const head = ['תאריך', 'סוג', 'סטטוס', 'שם', 'טלפון', 'מייל', 'ערוץ', 'יעד', 'מתאריך', 'עד תאריך', 'מבוגרים', 'ילדים', 'תקציב', 'הודעה / הערות לקוח', 'הערות פנימיות', 'מקור', 'מזהה'];
-  const rows = leads.map((l) => [l.createdAt, ({ tailor: 'בהתאמה אישית', support: 'שירות לקוחות' })[l.type] || 'צור קשר', STATUS_LABEL[l.status] || l.status, l.name, l.phone, l.email, l.channel, l.destinations, l.start, l.end, l.adults, l.children, l.budget,
+  const rows = leads.map((l) => [l.createdAt, ({ tailor: 'בהתאמה אישית', support: 'שירות לקוחות', package: 'חבילה', booking: 'הזמנה באתר' })[l.type] || 'צור קשר', STATUS_LABEL[l.status] || l.status, l.name, l.phone, l.email, l.channel, l.destinations, l.start, l.end, l.adults, l.children, l.budget,
     l.message || l.notes, (l.adminNotes || []).map((n) => `${n.at.slice(0, 10)}: ${n.text}`), l.source, l.id]);
   return '﻿' + [head, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
 
 function filterLeads(leads, params) {
   const status = params.get('status'), type = params.get('type'), q = (params.get('q') || '').trim().toLowerCase().slice(0, 100);
-  return leads.filter((l) => (!LEAD_STATUSES.includes(status) || l.status === status) && (!['contact', 'tailor', 'support', 'package'].includes(type) || l.type === type)
+  return leads.filter((l) => (!LEAD_STATUSES.includes(status) || l.status === status) && (!['contact', 'tailor', 'support', 'package', 'booking'].includes(type) || l.type === type)
     && (!q || [l.name, l.phone, l.email, l.destinations, l.message, l.notes, ...(l.adminNotes || []).map((n) => n.text)].some((v) => String(v || '').toLowerCase().includes(q))));
 }
 

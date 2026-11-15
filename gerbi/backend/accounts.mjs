@@ -81,7 +81,7 @@ export function sameOrigin(req, env = process.env) {
 
 const publicUser = (user) => ({ name: user.name, email: user.email, phone: user.phone || '', marketing: user.marketing?.given === true, emailVerified: user.emailVerified === true, createdAt: user.createdAt });
 const leadSummary = (record) => ({ ref: String(record.id).slice(0, 8), createdAt: record.createdAt, type: record.type, source: String(record.source || '').slice(0, 60),
-  title: record.type === 'package' ? `חבילה: ${String(record.destinations || '').slice(0, 110)}` : record.type === 'tailor' ? String(record.destinations || '').slice(0, 120) || 'טיול בהתאמה אישית' : 'פנייה כללית' });
+  title: record.type === 'booking' ? `הזמנה ${String(record.orderRef || '').slice(0, 12)}` : record.type === 'package' ? `חבילה: ${String(record.destinations || '').slice(0, 110)}` : record.type === 'tailor' ? String(record.destinations || '').slice(0, 120) || 'טיול בהתאמה אישית' : 'פנייה כללית' });
 
 export function createAccounts({ store, leadStore = null, env = process.env, now = () => Date.now() }) {
   const send = emailSender(env);

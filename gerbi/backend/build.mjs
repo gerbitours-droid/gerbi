@@ -29,12 +29,15 @@ export function flightPicks(payload, request = {}, l = 'he') {
   setLang(l);
   try {
     const scored = scoreOffers(facts, brief), ranked = rankScored(scored), top = diverseTop(ranked, 3), tags = badges(scored);
-    return top.map((x) => ({ key: itineraryKey(x.facts), carriers: x.facts.carriers.slice(0, 4), price: x.facts.price, stops: x.facts.stops ?? 0, minutes: x.facts.totalMinutes, bag: x.facts.checked,
+    return top.map((x) => ({ key: itineraryKey(x.facts), offerIndex: String(x.facts.index), itineraryIndex: x.facts.offer?.flightsOverview?.[0]?.itineraryIndex ?? 0, carriers: x.facts.carriers.slice(0, 4), price: x.facts.price, stops: x.facts.stops ?? 0, minutes: x.facts.totalMinutes, bag: x.facts.checked,
       legs: x.facts.legs.map((leg) => ({ from: leg.segments[0]?.departure?.airport?.code || '', to: leg.segments.at(-1)?.arrival?.airport?.code || '', date: leg.summary.departDate,
         depart: leg.segments[0]?.departure?.time || '', arrive: leg.segments.at(-1)?.arrival?.time || '', stops: leg.summary.stops, dayOffset: leg.summary.dayOffset })),
       badges: tags.get(x.key) || [], reasons: explain(x, scored, (v) => `${Math.round(v)} ${x.facts.price.currency}`) }));
   } finally { setLang(previous); }
 }
+
+// What the booking wizard needs to price the chosen flight again (spec 25 §9). The search token lives an hour.
+const bookingRef = (data) => (data?.srk && data?.tokens?.searchResults ? { srk: data.srk, searchToken: data.tokens.searchResults } : null);
 
 export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, polish = null, log = () => {}, now = () => Date.now() }) {
   const today = () => new Date(now()).toISOString().slice(0, 10);
@@ -46,7 +49,7 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
   async function flights(search, request, l) {
     // Recorded answers never read or write the live cache (one store serves both in development), and an empty
     // supplier answer is never cached: the next build asks again instead of showing nothing for 20 minutes.
-    if (fixtures(env)) { const data = await fixture('flights'), picks = flightPicks(data, request, l); return { status: picks.length ? 'live' : 'none', searchedAt: new Date(now()).toISOString(), total: data.offers.length, picks, selected: picks[0]?.key || '', cached: false }; }
+    if (fixtures(env)) { const data = await fixture('flights'), picks = flightPicks(data, request, l); return { status: picks.length ? 'live' : 'none', searchedAt: new Date(now()).toISOString(), total: data.offers.length, picks, selected: picks[0]?.key || '', cached: false, booking: bookingRef(data) }; }
     const key = 'f:' + hash(search), cachedHit = await store?.get(key).catch(() => null), hit = cachedHit?.data?.offers?.length ? cachedHit : null;
     let data, searchedAt, cached = Boolean(hit);
     if (hit) ({ data, searchedAt } = hit);
@@ -56,7 +59,7 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
       if (data?.offers?.length) await store?.set(key, { data, searchedAt }, FLIGHT_TTL).catch(() => {});
     }
     const picks = flightPicks(data, request, l);
-    return { status: picks.length ? 'live' : 'none', searchedAt, total: data?.offers?.length || 0, picks, selected: picks[0]?.key || '', cached };
+    return { status: picks.length ? 'live' : 'none', searchedAt, total: data?.offers?.length || 0, picks, selected: picks[0]?.key || '', cached, booking: bookingRef(data) };
   }
 
   async function plan(input) {

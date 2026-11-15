@@ -22,6 +22,7 @@ import { learnFromChoice } from './dist/scoring.mjs';
 import { handleLeads, tokenMatches } from './backend/leads.mjs';
 import { handleAdmin, bridgeAdminSession, enforceAdminToken } from './backend/admin.mjs';
 import { createAccounts } from './backend/accounts.mjs';
+import { createOrders } from './backend/orders.mjs';
 import { createFx, handleFx } from './backend/fx-rates.mjs';
 import { createSupport } from './backend/support.mjs';
 import { handleAi } from './backend/ai-routes.mjs';
@@ -47,6 +48,10 @@ if (limitStore.kind === 'upstash' || isMain) configureLimits(limitStore);
 const accounts = createAccounts({ store: createStore('accounts', dataDirectory), leadStore });
 // Shekel rates (transfers & cheques, sale) for showing supplier prices in ILS: docs/specs/13-pricing-ils-he.md.
 const fx = createFx({ store: createStore('fx', dataDirectory), log: entry => console.log(JSON.stringify(entry)) });
+// Online booking (spec 25): orders, the booking wizard's API, payment notifications and the admin orders tab.
+// BOOKING_MODE=request (default) | mock | live; live falls back to request unless fully configured.
+const orders = createOrders({ store: createStore('orders', dataDirectory), leadStore, fx, dataDirectory, userOf: accounts.leadHooks.userOf, leadCreated: accounts.leadHooks.created,
+  background: promise => { const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.(); if (ctx?.waitUntil) ctx.waitUntil(promise.catch(() => {})); else promise.catch(() => {}); } });
 // Owner admin (spec 18): editable content and owner sessions.
 const contentStore = createStore('content', dataDirectory), adminSessions = createStore('admin', dataDirectory);
 // Customer-service bot on the site and WhatsApp (spec 16); escalations become support leads. Site FAQs ground AI answers (spec 22).
@@ -141,7 +146,7 @@ export function createServer() {
     const partner = partnerStatus(), available = partner.configured && !partner.circuitOpen && partner.tokensLeftToday > 2000;
     // Public: liveness, version and whether the AI helper is up (the page reads partner.available). Details need the owner (token or admin session).
     if (!tokenMatches(req.headers.authorization, process.env.LEADS_ADMIN_TOKEN)) return send(200, { ok:true, version, partner:{ available } });
-    return send(200,{ ok:true, version, mode:'demo', provider:'supplier', credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), connected:Boolean(supplier.lastOkAt && (!supplier.lastErrorAt || supplier.lastOkAt > supplier.lastErrorAt)), supplier:{ lastOkAt:supplier.lastOkAt, lastErrorAt:supplier.lastErrorAt, lastError:supplier.lastError, calls:supplier.calls, cacheHits:supplier.cacheHits }, booking:process.env.VOLERO_BOOKING_ENABLED === 'true' ? 'enabled' : 'disabled', storage:process.env.UPSTASH_REDIS_REST_URL ? 'upstash' : 'local', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available } });
+    return send(200,{ ok:true, version, mode:'demo', provider:'supplier', credentialsConfigured:!!(process.env.VOLERO_CLIENT_ID && process.env.VOLERO_CLIENT_SECRET), connected:Boolean(supplier.lastOkAt && (!supplier.lastErrorAt || supplier.lastOkAt > supplier.lastErrorAt)), supplier:{ lastOkAt:supplier.lastOkAt, lastErrorAt:supplier.lastErrorAt, lastError:supplier.lastError, calls:supplier.calls, cacheHits:supplier.cacheHits }, booking:process.env.VOLERO_BOOKING_ENABLED === 'true' ? 'enabled' : 'disabled', orders:orders.status(), storage:process.env.UPSTASH_REDIS_REST_URL ? 'upstash' : 'local', learning:'local_aggregates', partner:{ configured:partner.configured, model:partner.model, available } });
    }
    if (url.pathname === '/api/deals' && req.method === 'GET') {
     const result = process.env.VOLERO_CLIENT_ID ? await deals.get({ background }) : { deals: [], updatedAt: null, stale: false, refreshing: false };
@@ -253,6 +258,7 @@ export function createServer() {
     if(req.method !== 'POST') return send(405,{error:'method_not_allowed'});
     return send(503,{error:'provider_not_connected',message:'אין כרגע חיבור מאומת לספק. לא ניתן לאשר מחיר או זמינות, ולא בוצעה הזמנה.'});
    }
+   if (await orders.handle(req, res, url, { send, body })) return;
    if (await builder.handle(req, res, url, { send, body })) return;
    if (await accounts.handle(req, res, url, { send, body })) return;
    if (await handleLeads(req, url, { send, body, store:leadStore, hooks:{ ...accounts.leadHooks, enrich: builder.enrichLead } })) return;
