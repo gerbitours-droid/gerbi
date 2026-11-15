@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Server } from 'node:http';
 import * as entrypoint from '../server.mjs';
-import apiServer from '../api/[...path].mjs';
+import apiServer from '../api/handler.mjs';
 
 test('imported entrypoint exposes a server without opening a local port', async () => {
   const server = entrypoint.default;
