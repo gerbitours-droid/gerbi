@@ -40,8 +40,14 @@ export function t(key, vars = {}, l = lang) {
     const n = Number(vars.count);
     value = value[pluralOf(l, n)] ?? value[n === 1 ? 'one' : 'other'] ?? value.other;
   }
-  return String(value).replace(/\{(\w+)\}/g, (m, name) => (vars[name] === undefined ? m : String(vars[name])));
+  // Inline plurals for any count var: "{v, plural, one {נוסע אחד} other {# נוסעים}}" (# = the number; "=2 {…}" also works).
+  return String(value).replace(PLURAL, (m, name, body) => {
+    if (vars[name] === undefined) return m;
+    const n = Number(vars[name]), forms = Object.fromEntries([...body.matchAll(/(=?\w+) \{([^{}]*)\}/g)].map((f) => [f[1], f[2]]));
+    return (forms[`=${n}`] ?? forms[pluralOf(l, n)] ?? forms.other ?? '').replace(/#/g, String(vars[name]));
+  }).replace(/\{(\w+)\}/g, (m, name) => (vars[name] === undefined ? m : String(vars[name])));
 }
+const PLURAL = /\{(\w+), plural, ((?:=?\w+ \{[^{}]*\}\s*)+)\}/g;
 // t() for another language without changing the page language (server per-request, tests).
 export const tIn = (l) => (key, vars) => t(key, vars, normLang(l));
 // A key exists in the page language (or Hebrew).

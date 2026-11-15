@@ -108,7 +108,7 @@ export default {
     'account.searches.failed': 'לא הצלחנו לטעון כרגע.',
     'account.searches.arrow': '←',
     'account.searches.oneway': ' · כיוון אחד',
-    'account.searches.travelers': { one: '{count} נוסעים', other: '{count} נוסעים' },
+    'account.searches.travelers': { one: 'נוסע אחד', other: '{count} נוסעים' },
     'account.searches.again': 'חיפוש שוב',
     'account.searches.none': 'חיפושי טיסות שתעשו כשאתם מחוברים יופיעו כאן (רק מסלול, תאריכים ונוסעים; בלי מחירים).',
     'account.profile.emailHint': 'לשינוי כתובת המייל <a href="#/contact">פנו לנציג</a>.',

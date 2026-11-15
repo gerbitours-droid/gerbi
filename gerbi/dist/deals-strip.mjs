@@ -1,7 +1,7 @@
 // Homepage strip of the cheapest fares found from Tel Aviv (served from the server's long cache, /api/deals).
 // Renders only when there is something to show; on any failure the strip simply stays hidden.
 import { placeByCode } from './places.mjs';
-import { formatFare } from './flight-view.mjs';
+import { formatFare, carrierName } from './flight-view.mjs';
 import { fxSettled, onFx, getFx, fxNote, originalHtml } from './fx.mjs';
 import { t, locale } from './i18n.mjs';
 
@@ -17,7 +17,7 @@ export function dealCard(deal, i) {
   return `<li><button type="button" class="fare-deal" data-deal="${i}" aria-label="${t('search.deals.cardLabel', { name: esc(name), from: esc(short(deal.depart)), to: esc(short(deal.back)), price: esc(formatFare(deal.price)) })}">`
     + `<span class="fare-route"><strong>${esc(name)}</strong><b dir="ltr">TLV ⇄ ${esc(deal.destination)}</b></span>`
     + `<span class="fare-dates">${esc(short(deal.depart))}–${esc(short(deal.back))} · ${t('search.nights', { count: nights(deal.depart, deal.back) })}</span>`
-    + `<span class="fare-meta">${[stops, deal.carrier].filter(Boolean).map(esc).join(' · ')}</span>`
+    + `<span class="fare-meta">${[stops, carrierName(deal.carrier)].filter(Boolean).map(esc).join(' · ')}</span>`
     + `<span class="fare-price"><small>${t('search.deals.from')}</small><strong dir="ltr">${esc(formatFare(deal.price))}</strong>${originalHtml(deal.price)}<small>${t('search.deals.perTraveler')}</small></span></button></li>`;
 }
 

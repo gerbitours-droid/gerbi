@@ -8,7 +8,8 @@ const HEBREW = /[֐-׿]/;
 // English values that are Hebrew on purpose (the switch back to Hebrew is written in Hebrew).
 const HEBREW_OK = new Set(['core.lang.he', 'core.lang.toHe', 'home.lang.aria', 'home.lang.label', 'home.lang.menuLabel']);
 // {count} may appear on one side only (a plural form can spell the number out: „נוסע אחד”).
-const placeholders = (v) => [...new Set(JSON.stringify(v).match(/\{\w+\}/g) || [])].filter((p) => p !== '{count}').sort();
+// "{v, plural, one {…} other {…}}" counts as the placeholder {v}.
+const placeholders = (v) => [...new Set(JSON.stringify(v).replace(/\{(\w+), plural, ((?:=?\w+ \{[^{}]*\}\s*)+)\}/g, '{$1}').match(/\{\w+\}/g) || [])].filter((p) => p !== '{count}').sort();
 
 test('every key exists in both dictionaries with the same placeholders', () => {
   for (const [name, area] of Object.entries(AREAS)) {
@@ -67,6 +68,20 @@ test('t: lookup, fallback, variables and plurals', () => {
   assert.equal(t('test.plural', { count: 2 }, 'he'), 'שני נוסעים');
   assert.equal(t('test.plural', { count: 7 }, 'he'), '7 נוסעים');
   delete DICTS.en['test.plural']; delete DICTS.he['test.plural'];
+});
+
+test('inline plurals: one traveler / one night read naturally in both languages (QA 15.11)', () => {
+  assert.equal(t('pages.comparison.8', { v: 1, nights: 1 }, 'he'), 'אומדן לנוסע אחד · לילה אחד');
+  assert.equal(t('pages.comparison.8', { v: 3, nights: 5 }, 'he'), 'אומדן לכל 3 הנוסעים · 5 לילות');
+  assert.equal(t('pages.comparison.8', { v: 1, nights: 1 }, 'en'), 'Estimate for 1 traveler · 1 night');
+  assert.equal(t('app.price.allTravelers', { count: 1 }, 'he'), 'לנוסע אחד');
+  assert.equal(t('app.price.allTravelers', { count: 4 }, 'en'), 'for all 4 travelers');
+  const bad = /(^|[^\d])1 (נוסעים|לילות|מבוגרים|ילדים)|לכל 1 |\b1 (travelers|nights|adults|children)\b/;
+  for (const [key, value] of Object.entries(DICTS.he)) for (const l of LANGS) {
+    if (!/\{\w+(, plural|\})/.test(JSON.stringify(DICTS[l][key] ?? value))) continue;
+    const vars = Object.fromEntries([...JSON.stringify(DICTS[l][key]).matchAll(/\{(\w+)/g)].map((m) => [m[1], 1]));
+    assert.doesNotMatch(t(key, vars, l), bad, `${l} ${key}`);
+  }
 });
 
 test('formatting follows the language', () => {

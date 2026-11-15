@@ -58,7 +58,7 @@ export function missingDetails(lead) {
 
 // One-line summary for the card (no AI).
 export function summaryText(lead) {
-  const party = lead.adults ? `${lead.adults} מבוגרים${Number(lead.children) ? ` + ${lead.children} ילדים` : ''}` : lead.context?.adults ? `${lead.context.adults + (lead.context.children || 0)} נוסעים` : '';
+  const party = lead.adults ? `${Number(lead.adults) === 1 ? 'מבוגר אחד' : `${lead.adults} מבוגרים`}${Number(lead.children) ? ` + ${Number(lead.children) === 1 ? 'ילד אחד' : `${lead.children} ילדים`}` : ''}` : lead.context?.adults ? `${lead.context.adults + (lead.context.children || 0)} נוסעים` : '';
   const dates = lead.start ? `${heDate(lead.start)}${lead.end ? '–' + heDate(lead.end) : ''}` : lead.context?.depart ? heDate(lead.context.depart) : FLEXIBILITY[lead.flexibility] || '';
   const where = lead.destinations || (lead.context?.to ? `טיסה ל־${lead.context.to}` : '');
   const styles = (lead.styles || []).map((s) => STYLES[s]).filter(Boolean).slice(0, 2).join(', ');

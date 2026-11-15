@@ -89,7 +89,7 @@ function leadCard(lead) {
   const rows = [['טלפון', `<a href="tel:${esc(lead.phone)}" dir="ltr">${esc(lead.phone)}</a>`], ['מייל', lead.email ? `<a href="mailto:${esc(lead.email)}" dir="ltr">${esc(lead.email)}</a>` : '—'], ['לחזור דרך', esc(CHANNELS[lead.channel] || lead.channel || '—')]];
   if (lead.type === 'tailor') {
     rows.push(['יעד', esc(lead.destinations)], ['תאריכים', esc([lead.start, lead.end].filter(Boolean).join(' עד ') || 'לא צוין') + ' · ' + esc(FLEXIBILITY[lead.flexibility] || '')],
-      ['נוסעים', `${esc(lead.adults)} מבוגרים${lead.children ? ` · ${esc(lead.children)} ילדים` : ''}`], ['תקציב', esc(BUDGETS[lead.budget] || '')]);
+      ['נוסעים', `${Number(lead.adults) === 1 ? 'מבוגר אחד' : `${esc(lead.adults)} מבוגרים`}${lead.children ? ` · ${Number(lead.children) === 1 ? 'ילד אחד' : `${esc(lead.children)} ילדים`}` : ''}`], ['תקציב', esc(BUDGETS[lead.budget] || '')]);
     if (lead.styles?.length) rows.push(['סגנון', esc(lead.styles.map((s) => STYLES[s] || s).join(' · '))]);
     if (lead.notes) rows.push(['הערות הלקוח', esc(lead.notes)]);
   } else if (lead.message) rows.push(['הודעה', esc(lead.message)]);

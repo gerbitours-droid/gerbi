@@ -14,11 +14,24 @@ export function formatFare(price) {
   catch {return `${price.value.toFixed(2)} ${price.currency}`;}
 }
 // Volero segments: marketingCarrier/operatingCarrier = {airline:{code,name}, flightNumber}; times are local per airport.
+// Supplier airline names arrive in any case ("wizz", "EL AL"): known brands get their own spelling, other
+// all-lower/all-upper names are title-cased; codes (≤3 chars) and already mixed-case names stay as they are.
+const CARRIER_NAMES = { wizz: 'Wizz Air', 'wizz air': 'Wizz Air', 'wizzair': 'Wizz Air', 'wizz air malta': 'Wizz Air Malta', elal: 'El Al', 'el al': 'El Al', 'el al israel airlines': 'El Al', israir: 'Israir', arkia: 'Arkia',
+  ryanair: 'Ryanair', easyjet: 'easyJet', 'easyjet europe': 'easyJet Europe', 'aegean': 'Aegean', 'aegean airlines': 'Aegean Airlines', 'pegasus': 'Pegasus', 'flydubai': 'flydubai', 'lufthansa': 'Lufthansa',
+  'klm': 'KLM', 'ita airways': 'ITA Airways', 'tap': 'TAP Air Portugal', 'tap portugal': 'TAP Air Portugal', 'blue bird': 'Bluebird', 'bluebird airways': 'Bluebird Airways', 'smartwings': 'Smartwings', 'vueling': 'Vueling' };
+export function carrierName(name) {
+  const raw = String(name ?? '').trim();
+  if (!raw) return name ?? null;
+  const known = CARRIER_NAMES[raw.toLowerCase().replace(/\s+/g, ' ')];
+  if (known) return known;
+  if (raw.length <= 3 || (raw !== raw.toLowerCase() && raw !== raw.toUpperCase())) return raw;
+  return raw.toLowerCase().replace(/(^|[\s\-/(])(\p{L})/gu, (m, sep, ch) => sep + ch.toUpperCase());
+}
 export function carrierOf(segment) {
   const marketing = segment?.marketingCarrier, operating = segment?.operatingCarrier;
-  const name = marketing?.airline?.name || marketing?.airline?.code || null;
+  const name = carrierName(marketing?.airline?.name) || marketing?.airline?.code || null;
   const number = marketing?.flightNumber ? `${marketing.airline?.code || ''}${marketing.flightNumber}` : null;
-  const operator = operating?.airline?.code && operating.airline.code !== marketing?.airline?.code ? operating.airline.name || operating.airline.code : null;
+  const operator = operating?.airline?.code && operating.airline.code !== marketing?.airline?.code ? carrierName(operating.airline.name) || operating.airline.code : null;
   return { name, number, operator };
 }
 const stamp = point => /^\d{4}-\d{2}-\d{2}$/.test(point?.date || '') && /^\d{2}:\d{2}$/.test(point?.time || '') ? Date.parse(`${point.date}T${point.time}:00Z`) : NaN;

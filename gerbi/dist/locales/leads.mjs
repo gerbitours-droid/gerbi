@@ -145,7 +145,7 @@ export default {
     'leads.fill.shabbat': 'שומרי שבת',
     'leads.fill.accessible': 'נגישות',
     'leads.fill.month': 'ב{month}',
-    'leads.fill.monthNights': 'ב{month}, {nights} לילות',
+    'leads.fill.monthNights': "ב{month}, {nights, plural, one {לילה אחד} other {# לילות}}",
     'leads.fill.childAges': 'גילאי הילדים: {ages}'
   },
   en: {
@@ -285,7 +285,7 @@ export default {
     'leads.fill.shabbat': 'Shabbat observant',
     'leads.fill.accessible': 'Accessibility',
     'leads.fill.month': 'In {month}',
-    'leads.fill.monthNights': 'In {month}, {nights} nights',
+    'leads.fill.monthNights': 'In {month}, {nights, plural, one {# night} other {# nights}}',
     'leads.fill.childAges': 'Children’s ages: {ages}'
   }
 };
