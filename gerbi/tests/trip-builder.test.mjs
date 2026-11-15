@@ -249,3 +249,36 @@ test('suggestions follow the request: kids favour short flights, kosher and seas
   assert.equal(s.length, 3);
   assert.ok(s.every((x) => byId(x.id).flightHours <= 6));
 });
+
+test('time zones read relative to Israel on the trip date (daylight saving included)', async () => {
+  const { timeVsIsrael } = await import('../dist/timezone.mjs');
+  const jan = new Date('2027-01-10T12:00:00Z');
+  assert.equal(timeVsIsrael('Europe/Athens', jan, 'he'), 'אותה שעה כמו בישראל');
+  assert.equal(timeVsIsrael('Europe/Rome', jan, 'he'), 'שעה אחת פחות מבישראל');
+  assert.equal(timeVsIsrael('Asia/Dubai', jan, 'he'), 'שעתיים יותר מבישראל');
+  assert.equal(timeVsIsrael('Asia/Kolkata', jan, 'en'), '3.5 hours ahead of Israel');
+  assert.equal(timeVsIsrael('Nowhere/Land', jan, 'en'), 'Nowhere/Land');
+});
+
+test('an empty supplier answer is never cached; recorded answers never read a poisoned live cache', async () => {
+  const mem = new Map(), store = { get: async (k) => mem.get(k) ?? null, set: async (k, v) => { mem.set(k, v); } };
+  const p = planPackage(parseTrip('זוג, 4 לילות ברומא בינואר', { today: TODAY }), { today: TODAY });
+  let calls = 0;
+  const live = createBuilder({ store, env: { VOLERO_CLIENT_ID: 'x' }, flightSearch: async () => { calls++; return { srk: 's', tokens: {}, offers: [], dataLists: {} }; } });
+  const search = { ...p.flightSearch, originDestinations: p.flightSearch.originDestinations.map((l) => ({ ...l, date: l.date.replace('2027-01', '2027-02') })) };
+  assert.equal((await live.flights(search, p.request, 'he')).status, 'none');
+  assert.equal([...mem.keys()].filter((k) => k.startsWith('f:')).length, 0, 'nothing stored for an empty answer');
+  const { createHash } = await import('node:crypto');
+  mem.set('f:' + createHash('sha1').update(JSON.stringify(p.flightSearch)).digest('hex'), { data: { offers: [] }, searchedAt: '2026-11-15T10:00:00Z' });
+  const recorded = await createBuilder({ store, env: { GERBI_SUPPLIER_FIXTURES: '1' } }).flights(p.flightSearch, p.request, 'he');
+  assert.equal(recorded.status, 'live'); assert.ok(recorded.picks.length >= 1);
+  assert.equal(calls, 1);
+});
+
+test('guests get an empty package list (no 401 on the account page); saving still needs a session', async () => {
+  await withServer(async (call) => {
+    const r = await call('GET', '/api/account/packages');
+    assert.equal(r.status, 200); assert.deepEqual(r.data.packages, []);
+    assert.equal((await call('POST', '/api/account/packages', { id: 'a'.repeat(16) })).status, 401);
+  });
+});

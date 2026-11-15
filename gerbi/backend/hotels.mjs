@@ -94,14 +94,14 @@ export function createHotelSearch({ store, search, log = () => {}, now = () => D
     const supplierSpec = { city: spec.city, checkIn: spec.checkIn, checkOut: spec.checkOut, rooms: spec.rooms, board: spec.board, minStars: spec.minStars };
     const key = keyPrefix + createHash('sha1').update(JSON.stringify(supplierSpec)).digest('hex');
     const hit = await store?.get(key).catch(() => null);
-    if (hit) return { ...hit, cached: true };
+    if (hit?.list?.length) return { ...hit, cached: true };
     if (inFlight.has(key)) return inFlight.get(key);
     const run = (async () => {
       const started = now(), { query, fallbackQuery } = hotelQueries(spec);
       const raw = await search(supplierHotelInput(spec), { query, fallbackQuery });
       const entry = { list: raw.hotels.map((h) => slimHotel(h, raw.filtered ? spec.board : '')), total: raw.totalItems, filtered: raw.filtered, searchedAt: new Date(now()).toISOString() };
       log({ route: 'hotels', ok: true, ms: now() - started, hotels: raw.hotels.length, complete: raw.complete });
-      await store?.set(key, entry, HOTEL_TTL).catch(() => {});
+      if (entry.list.length) await store?.set(key, entry, HOTEL_TTL).catch(() => {}); // an empty answer is asked again next time
       return { ...entry, cached: false };
     })().finally(() => inFlight.delete(key));
     inFlight.set(key, run);

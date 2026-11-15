@@ -6,6 +6,8 @@ import { pricePackage, sanitizePackage, packageLeadFields, isStale, selectedFlig
 import { validateLead, CHANNELS, LIMITS, consentText, optionLabel } from './leads-validate.mjs';
 import { searchLink } from './saved-flights.mjs';
 import { multiLink } from './multi-city-core.mjs';
+import { timeVsIsrael } from './timezone.mjs';
+import { account, ready as accountReady } from './account.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const L = (v) => (v && typeof v === 'object' ? v[lang] || v.he || v.en || '' : v ?? '');
@@ -251,7 +253,7 @@ const PAINT = {
   },
   practical() {
     const p = pkg.practical || {};
-    const rows = [['visa', p.visa], ['currency', p.currency], ['language', p.language], ['timeZone', p.timeZone], ['kosher', p.kosher], ['shabbat', p.shabbat], ['season', p.season]].filter(([, v]) => v);
+    const rows = [['visa', p.visa], ['currency', p.currency], ['language', p.language], ['timeZone', p.timeZone && timeVsIsrael(p.timeZone, new Date((pkg.request.start || new Date().toISOString().slice(0, 10)) + 'T12:00:00Z'))], ['kosher', p.kosher], ['shabbat', p.shabbat], ['season', p.season]].filter(([, v]) => v);
     return `<h3 id="bh-practical">${icon('shield')}${t('build.practical.title')}</h3><dl class="bk-practical">${rows.map(([k, v]) => `<div class="${(k === 'kosher' && pkg.request.needs.kosher) || (k === 'shabbat' && pkg.request.needs.shabbat) ? 'bk-flag' : ''}"><dt>${t(`build.practical.${k}`)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl><p class="micro-copy">${esc(p.check || t('build.practical.check'))}</p>`;
   },
   total() {
@@ -321,7 +323,9 @@ function savedList() { try { const v = JSON.parse(localStorage.getItem(SAVED_KEY
 async function save(status) {
   const id = await snapshotId(), entry = { id, title: title(), savedAt: new Date().toISOString() };
   let local = true; try { localStorage.setItem(SAVED_KEY, JSON.stringify([entry, ...savedList().filter((x) => x.id !== id)].slice(0, 20))); } catch { local = false; }
-  const response = await fetch('/api/account/packages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, title: entry.title, lang }) }).catch(() => null);
+  // Only a signed-in customer has an account list; a guest keeps it on this device (no 401 noise).
+  await accountReady.catch(() => {});
+  const response = account.user ? await fetch('/api/account/packages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, title: entry.title, lang }) }).catch(() => null) : null;
   status.innerHTML = response?.ok ? t('build.save.account') : `${local ? t('build.save.device') : t('build.save.failedDevice')} <a href="#/account">${t('build.save.signIn')}</a>`;
 }
 async function share(status) {
@@ -434,6 +438,8 @@ export async function fillPackages(root) {
   const box = root.querySelector('[data-packages]');
   if (!box) return;
   try {
+    await accountReady.catch(() => {});
+    if (!account.user) return;
     const response = await fetch('/api/account/packages');
     if (!response.ok) return;
     const { packages } = await response.json(), local = savedList();

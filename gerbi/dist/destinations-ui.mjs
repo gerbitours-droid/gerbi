@@ -2,6 +2,7 @@
 // inspiration and the comparison columns. Pure HTML builders + small wiring; pages.mjs / app.js own the routes.
 import { destinations, byId, search, rank, curatedPicks, regions, REGIONS, TAG_LABELS, monthName, monthOf } from './catalog.mjs';
 import { t, lang } from './i18n.mjs';
+import { timeVsIsrael } from './timezone.mjs';
 
 export const L = (x) => (x ? x[lang] || x.he || '' : '');
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -119,7 +120,7 @@ export function destinationMain(d, { guide = '', favorites = [] } = {}) {
       + (d.dayTrips.length ? `<section class="dest-section" aria-labelledby="dest-trips"><h2 id="dest-trips">${t('catalog.dest.dayTrips')}</h2><ul class="dest-daytrips">${d.dayTrips.map((x) => `<li><strong>${esc(L(x.name))}</strong> <small>${t('catalog.dest.dayTripHours', { hours: hours(x.hours) })}</small><p>${esc(L(x.note))}</p></li>`).join('')}</ul></section>` : '')
       + `<section class="dest-section" aria-labelledby="dest-when"><h2 id="dest-when">${t('catalog.dest.when')}</h2><ol class="dest-months">${Array.from({ length: 12 }, (_, i) => `<li class="${best.has(i + 1) ? 'best' : ''}"${best.has(i + 1) ? ` title="${t('catalog.dest.bestMonth')}"` : ''}><span>${esc(shortMonth(i + 1))}</span>${best.has(i + 1) ? `<span class="sr-only"> – ${t('catalog.dest.bestMonth')}</span>` : ''}</li>`).join('')}</ol><p>${esc(L(d.seasonsNote))}</p></section>`
       + `<section class="dest-section" aria-labelledby="dest-practical"><h2 id="dest-practical">${t('catalog.dest.practical')}</h2><dl class="dest-practical">`
-      + [[t('catalog.dest.transport'), `${d.transport.carRecommended ? t('catalog.dest.car') : t('catalog.dest.noCar')}. ${L(d.transport.note)}`], [t('catalog.dest.currency'), d.practical.currency], [t('catalog.dest.language'), L(d.practical.language)], [t('catalog.dest.timeZone'), d.practical.timeZone.replace('_', ' ')],
+      + [[t('catalog.dest.transport'), `${d.transport.carRecommended ? t('catalog.dest.car') : t('catalog.dest.noCar')}. ${L(d.transport.note)}`], [t('catalog.dest.currency'), d.practical.currency], [t('catalog.dest.language'), L(d.practical.language)], [t('catalog.dest.timeZone'), timeVsIsrael(d.practical.timeZone)],
         [t('catalog.dest.visa'), L(d.practical.visaNoteForIsraelis)], [t('catalog.dest.kosher'), L(d.practical.kosher)], [t('catalog.dest.shabbat'), L(d.practical.shabbat)]].map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')
       + `</dl></section>`,
     aside: `<span class="eyebrow">${t('catalog.dest.facts')}</span><h2>${esc(name)}</h2><dl class="dest-quick"><div><dt>${t('catalog.dest.flight')}</dt><dd>${d.flightHours ? t('catalog.dest.flightValue', { hours: hours(d.flightHours), kind: flightKind(d) }) : t('catalog.card.domestic')}</dd></div><div><dt>${t('catalog.dest.bestMonths')}</dt><dd>${esc(monthsText(d.bestMonths))}</dd></div><div><dt>${t('catalog.dest.dailyBudget')}</dt><dd>${t('catalog.dest.dailyBudgetValue', { low: d.dailyBudgetIls.low, high: d.dailyBudgetIls.high })}<small>${t('catalog.dest.dailyBudgetNote')}</small></dd></div></dl>`

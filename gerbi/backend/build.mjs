@@ -40,14 +40,16 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
   } });
 
   async function flights(search, request, l) {
-    const key = 'f:' + hash(search), hit = await store?.get(key).catch(() => null);
+    // Recorded answers never read or write the live cache (one store serves both in development), and an empty
+    // supplier answer is never cached: the next build asks again instead of showing nothing for 20 minutes.
+    if (fixtures(env)) { const data = await fixture('flights'), picks = flightPicks(data, request, l); return { status: picks.length ? 'live' : 'none', searchedAt: new Date(now()).toISOString(), total: data.offers.length, picks, selected: picks[0]?.key || '', cached: false }; }
+    const key = 'f:' + hash(search), cachedHit = await store?.get(key).catch(() => null), hit = cachedHit?.data?.offers?.length ? cachedHit : null;
     let data, searchedAt, cached = Boolean(hit);
     if (hit) ({ data, searchedAt } = hit);
-    else if (fixtures(env)) { data = await fixture('flights'); searchedAt = new Date(now()).toISOString(); }
     else {
       const result = await cachedSearch(search, (input) => withRetry(() => flightSearch(input)).then(slimSearch));
       data = result.data; searchedAt = new Date(result.searchedAt).toISOString(); cached = result.cached;
-      await store?.set(key, { data, searchedAt }, FLIGHT_TTL).catch(() => {});
+      if (data?.offers?.length) await store?.set(key, { data, searchedAt }, FLIGHT_TTL).catch(() => {});
     }
     const picks = flightPicks(data, request, l);
     return { status: picks.length ? 'live' : 'none', searchedAt, total: data?.offers?.length || 0, picks, selected: picks[0]?.key || '', cached };

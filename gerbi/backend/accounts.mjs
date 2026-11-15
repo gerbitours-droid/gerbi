@@ -199,6 +199,8 @@ export function createAccounts({ store, leadStore = null, env = process.env, now
     const session = await current(req);
     if (method === 'GET' && path === '/me') return reply(200, { user: session ? publicUser(session.user) : null });
     if (method === 'POST' && path === '/logout') { if (session) await store.del(session.key); setCookie(res, req, env, '', 0); return reply(200, { ok: true }); }
+    // A guest's saved packages live on the device only: an empty list, not an error (the account page asks on every visit).
+    if (!session && method === 'GET' && path === '/packages') return reply(200, { packages: [], guest: true });
     if (!session) return reply(401, { error: 'unauthenticated', message: 'צריך להתחבר מחדש.' });
     const { user } = session;
 
