@@ -94,6 +94,8 @@ function json(res, code, data) {
   res.writeHead(code, headers); res.end(text);
 }
 // One JSON line per supplier call for the hosting logs: route, outcome, timing, size – never passenger data.
+const gzipCache = new Map();
+const gzipStatic = (file, body) => { const hit = gzipCache.get(file); if (hit && hit.body.equals(body)) return hit.gz; const gz = zlib.gzipSync(body); gzipCache.set(file, { body, gz }); return gz; };
 const supplier = { lastOkAt: null, lastErrorAt: null, lastError: null, calls: 0, cacheHits: 0 };
 function logSupplier(entry) { supplier.calls++; if (entry.cached) supplier.cacheHits++; if (entry.ok) supplier.lastOkAt = new Date().toISOString(); else { supplier.lastErrorAt = new Date().toISOString(); supplier.lastError = entry.error; } console.log(JSON.stringify({ evt:'volero', ...entry })); }
 // Homepage deals: long cache, stale-while-refresh, a handful of supplier probes per refresh window (backend/deals.mjs).
@@ -267,7 +269,13 @@ export function createServer() {
    const file = path.resolve(root, '.' + (decoded === '/' ? '/index.html' : decoded));
    if (!file.startsWith(root + path.sep) || decoded.split('/').some(x=>x.startsWith('.'))) return send(404,{error:'not_found'});
    const fileBody = await readFile(file);
-   res.writeHead(200,{'Content-Type':types[path.extname(file)] || 'application/octet-stream','Cache-Control':decoded === '/admin.html' ? 'no-store' : 'no-cache'});
+   const headers = {'Content-Type':types[path.extname(file)] || 'application/octet-stream','Cache-Control':decoded === '/admin.html' ? 'no-store' : 'no-cache'};
+   // Text assets (the destinations catalog modules are ~0.5MB) go gzipped when the browser accepts it.
+   if (/\.(m?js|css|html|svg)$/.test(file) && fileBody.length > 2048 && /\bgzip\b/.test(req.headers['accept-encoding'] || '')) {
+    res.writeHead(200,{...headers,'Content-Encoding':'gzip','Vary':'Accept-Encoding'});
+    return res.end(req.method === 'HEAD' ? undefined : gzipStatic(file, fileBody));
+   }
+   res.writeHead(200,headers);
    res.end(req.method === 'HEAD' ? undefined : fileBody);
   } catch (error) {
    if (error.message === 'payload_too_large') return send(413, { error:'payload_too_large' });
