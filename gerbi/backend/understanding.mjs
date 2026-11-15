@@ -1,6 +1,7 @@
 import { flatTags, destinationTags } from './tag-catalog.mjs';
 import { rankInspirations } from '../dist/personalization.mjs';
 import { understandRequest } from '../dist/brief-engine.mjs';
+import { tIn } from '../dist/i18n.mjs';
 export { understandRequest };
 
 const tagIndex = flatTags();
@@ -39,12 +40,13 @@ export function extractSignals(text, previous = {}) {
   return { ...brief, tags };
 }
 
-export function missingFields(signals) {
-  const missing = [];
-  if (!signals.adults) missing.push({ id: 'travelers', question: 'כמה מבוגרים וילדים נוסעים?' });
-  if (!signals.nights) missing.push({ id: 'nights', question: 'לכמה לילות תרצו לצאת?' });
-  if (!signals.month && !signals.startDate) missing.push({ id: 'dates', question: 'באיזה חודש או תאריכים נוחים לכם?' });
-  if (!signals.budget) missing.push({ id: 'budget', question: 'מה התקציב הכולל לכל הנוסעים?' });
+// lang: the visitor's language ('he' | 'en'), from the request (spec 21).
+export function missingFields(signals, lang = 'he') {
+  const missing = [], tr = tIn(lang);
+  if (!signals.adults) missing.push({ id: 'travelers', question: tr('planner.missing.travelers') });
+  if (!signals.nights) missing.push({ id: 'nights', question: tr('planner.missing.nights') });
+  if (!signals.month && !signals.startDate) missing.push({ id: 'dates', question: tr('planner.missing.dates') });
+  if (!signals.budget) missing.push({ id: 'budget', question: tr('planner.q.budget') });
   return missing;
 }
 

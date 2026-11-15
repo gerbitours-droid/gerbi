@@ -1,9 +1,11 @@
-// Field-level accuracy of the understanding engine on a labeled Hebrew corpus (tests/fixtures/requests-he.json).
-//   node scripts/eval-understanding.mjs [--failures]
+// Field-level accuracy of the understanding engine on a labeled corpus (tests/fixtures/requests-he.json).
+//   node scripts/eval-understanding.mjs [--holdout | --en] [--failures]
 import { readFile } from 'node:fs/promises';
 import { understandRequest } from '../dist/brief-engine.mjs';
 
-const corpus = JSON.parse(await readFile(new URL(process.argv.includes('--holdout') ? '../tests/fixtures/requests-he-holdout.json' : '../tests/fixtures/requests-he.json', import.meta.url), 'utf8'));
+// --en: the English corpus (spec 21); brief.month stays the canonical Hebrew month name in both languages.
+const file = process.argv.includes('--en') ? 'requests-en.json' : process.argv.includes('--holdout') ? 'requests-he-holdout.json' : 'requests-he.json';
+const corpus = JSON.parse(await readFile(new URL(`../tests/fixtures/${file}`, import.meta.url), 'utf8'));
 const same = (a, b) => JSON.stringify(Array.isArray(a) ? [...a].sort() : a) === JSON.stringify(Array.isArray(b) ? [...b].sort() : b);
 let fields = 0, correct = 0, perfect = 0;
 const failures = [], byField = {};
