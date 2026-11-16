@@ -175,13 +175,15 @@ function budgetAnalysis(p, c) {
   return { budget: r.budget, budgetLevel: r.budgetLevel, flightSource, fixturePick, hotelSource: hotels.map((h) => h.source), fixtureHotelRoles, hotelMinStars: hotels.map((h) => h.minStars),
     systemTotal: priced.total, systemVerdict: priced.budget?.verdict || (r.budget ? 'n/a' : 'no-budget'), linesNotInTotal: priced.lines.filter((l) => l.kind === 'quote').map((l) => l.id),
     fullHigh, steps: cumulative, firstOverAt: firstOver || (r.budget ? '' : null), overBy: r.budget ? fullHigh - r.budget : null,
-    hiddenOverrun: Boolean(r.budget && priced.budget && priced.budget.verdict !== 'over' && fullHigh > r.budget) };
+    hiddenOverrun: Boolean(r.budget && priced.budget && priced.budget.verdict !== 'over' && fullHigh > r.budget),
+    // Spec 28: the plan itself says it cannot fit (closest + actions) instead of presenting an over-budget package.
+    planFits: p.budgetPlan ? p.budgetPlan.fits : null, planOverBy: p.budgetPlan?.overBy ?? null, planActions: p.budgetPlan && !p.budgetPlan.fits ? { nights: p.budgetPlan.nights || null, raiseTo: p.budgetPlan.raiseTo, alternatives: (p.budgetPlan.alternatives || []).map((a) => a.id) } : null };
 }
 
 // ---------------------------------------------------------------- per-case evaluation
 function evaluate(c) {
   const t0 = performance.now();
-  const req = parseTrip(c.text, { today: TODAY, lang: c.lang });
+  const req = parseTrip(c.text, { today: TODAY, lang: c.lang, fx: FX }); // FX: "$3000" converts like the server does
   const p = planPackage(req, { today: TODAY });
   const ms = performance.now() - t0;
   if (!p.destination) return { ...c, error: 'no destination', ms };
@@ -312,7 +314,9 @@ const summary = {
   budget: (() => {
     const b = ok.filter((r) => r.budget);
     return { cases: b.length, budgetParsed: b.filter((r) => r.budget.budget).length, notParsed: b.filter((r) => !r.budget.budget).map((r) => r.id),
-      overByFullHigh: b.filter((r) => r.budget.budget && r.budget.overBy > 0).length, systemSaysWithinOrTightButOver: b.filter((r) => r.budget.hiddenOverrun).length,
+      overByFullHigh: b.filter((r) => r.budget.budget && r.budget.overBy > 0).length,
+      silentOverruns: b.filter((r) => r.budget.budget && r.budget.overBy > 0 && r.budget.planFits !== false).map((r) => r.id),
+      honestNoFit: b.filter((r) => r.budget.planFits === false).map((r) => `${r.id}: +${r.budget.planOverBy}`), systemSaysWithinOrTightButOver: b.filter((r) => r.budget.hiddenOverrun).length,
       verdicts: b.reduce((m, r) => ({ ...m, [r.budget.systemVerdict]: (m[r.budget.systemVerdict] || 0) + 1 }), {}),
       firstOverAt: b.filter((r) => r.budget.firstOverAt).reduce((m, r) => ({ ...m, [r.budget.firstOverAt]: (m[r.budget.firstOverAt] || 0) + 1 }), {}),
       budgetChangedNothing: b.filter((r) => r.budgetInfluence && r.budgetInfluence.sameDestination && r.budgetInfluence.sameNights && r.budgetInfluence.sameMinStars && r.budgetInfluence.sameCar && r.budgetInfluence.sameBoard && r.budgetInfluence.sameFlightSearch).map((r) => r.id) };
