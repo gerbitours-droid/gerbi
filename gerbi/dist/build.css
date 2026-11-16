@@ -85,7 +85,7 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
 .bk-day-head>div{flex:1;min-width:0}.bk-day-head strong{display:block}.bk-day-head small{color:#5c6c88}
 .bk-day ul{margin:6px 0 0;padding-inline-start:44px;display:grid;gap:4px}
 .bk-day li a{color:#075db4;text-decoration:underline;text-underline-offset:2px}
-.bk-day-arrival,.bk-day-departure{background:#f7fbff}.bk-day-shabbat,.bk-day-rest{background:#fffbea}
+.bk-day-arrival,.bk-day-departure{background:#f7fbff}.bk-day-shabbat,.bk-day-rest,.bk-day-free{background:#fffbea}
 .bk-day-move{display:flex;gap:4px}
 .icon-button{width:36px;height:36px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:13px}
 .icon-button:disabled{opacity:.35;cursor:default}

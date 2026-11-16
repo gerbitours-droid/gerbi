@@ -275,7 +275,7 @@ const PAINT = {
      ${url ? `<p class="micro-copy"><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${t('build.insurance.partner')}</a></p>` : ''}`;
   },
   itinerary() {
-    const days = pkg.itinerary, movable = (d) => ['full', 'daytrip', 'rest'].includes(d.kind);
+    const days = pkg.itinerary, movable = (d) => ['full', 'daytrip', 'rest', 'free'].includes(d.kind);
     return `<h3 id="bh-itinerary">${icon('calendar')}${t('build.itinerary.title')}</h3><p class="micro-copy">${t('build.itinerary.hint')}${pkg.polish ? ' ' + t('build.ai.note') : ''}</p>
      <ol class="bk-days">${days.map((d, i) => `<li class="bk-day bk-day-${esc(d.kind)}"><div class="bk-day-head"><span class="day-number">${d.day}</span><div><strong>${esc(d.title)}</strong><small>${esc(longDay(d.date))}${pkg.stops?.length ? ' · ' + esc(L(pkg.stops[d.stop]?.name)) : ''}</small></div>
        ${movable(d) ? `<span class="bk-day-move"><button type="button" class="icon-button" data-day-up="${i}" aria-label="${esc(t('build.itinerary.up', { day: d.day }))}" ${i > 0 && movable(days[i - 1]) ? '' : 'disabled'}>▲</button><button type="button" class="icon-button" data-day-down="${i}" aria-label="${esc(t('build.itinerary.down', { day: d.day }))}" ${i < days.length - 1 && movable(days[i + 1]) ? '' : 'disabled'}>▼</button></span>` : ''}</div>
@@ -490,7 +490,7 @@ function wire() {
     if (el('[data-day-up]')) { moveDay(Number(el('[data-day-up]').dataset.dayUp), -1); return; }
     if (el('[data-day-down]')) { moveDay(Number(el('[data-day-down]').dataset.dayDown), 1); return; }
     if (el('[data-remove-item]')) { const [i, j] = el('[data-remove-item]').dataset.removeItem.split(':').map(Number); const [item] = pkg.itinerary[i].items.splice(j, 1); pkg.spare = [item, ...(pkg.spare || [])]; paint('itinerary'); persist(); announce(t('build.itinerary.removed', { name: item.name })); $('#bh-itinerary', view)?.focus?.(); return; }
-    if (el('[data-add-spare]')) { const k = Number(el('[data-add-spare]').dataset.addSpare), [item] = pkg.spare.splice(k, 1); const day = pkg.itinerary.find((d) => d.kind === 'full' && d.items.length < 3) || pkg.itinerary.find((d) => d.kind === 'full') || pkg.itinerary[0]; day.items.push(item); paint('itinerary'); persist(); announce(t('build.itinerary.added', { name: item.name, day: day.day })); return; }
+    if (el('[data-add-spare]')) { const k = Number(el('[data-add-spare]').dataset.addSpare), [item] = pkg.spare.splice(k, 1); const day = pkg.itinerary.find((d) => d.kind === 'free') || pkg.itinerary.find((d) => d.kind === 'full' && d.items.length < 3) || pkg.itinerary.find((d) => d.kind === 'full') || pkg.itinerary[0]; day.items.push(item); paint('itinerary'); persist(); announce(t('build.itinerary.added', { name: item.name, day: day.day })); return; }
     const act = el('[data-act]')?.dataset.act, status = $('#build-act-status', view);
     if (!act) return;
     try {

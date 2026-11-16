@@ -80,12 +80,25 @@ export function monthOf(p = {}) {
 
 export const normalize = (value) => String(value || '').normalize('NFKC').toLowerCase().replace(/[֑-ׇ]/g, '')
   .replace(/[״"׳'`’]/g, '').replace(/[()–—־\-,.·/]/g, ' ').replace(/\s+/g, ' ').trim();
+// A destination's names as a visitor may type them: Hebrew/English, and without the leading article
+// ("The Swiss Alps" → "swiss alps", "האלפים השוויצריים" → "אלפים השוויצריים").
+export function nameVariants(d) {
+  const out = [];
+  for (const raw of [d?.name?.he, d?.name?.en]) {
+    const v = normalize(raw);
+    if (!v) continue;
+    out.push(v);
+    if (/^the /.test(v)) out.push(v.slice(4));
+    else if (/^ה[א-ת]{3,}/.test(v)) out.push(v.slice(1));
+  }
+  return [...new Set(out)];
+}
 const searchIndex = new Map();
 function indexOf(d) {
   if (searchIndex.has(d)) return searchIndex.get(d);
   const both = (x) => [x?.he, x?.en].filter(Boolean).map(normalize);
   const entry = {
-    names: [...both(d.name), d.id.replace(/-/g, ' '), d.code.toLowerCase()],
+    names: [...nameVariants(d), d.id.replace(/-/g, ' '), d.code.toLowerCase()],
     countries: both(d.country),
     region: both(regions[d.region]),
     body: [...(d.areas || []).flatMap((a) => both(a.name)), ...(d.attractions || []).flatMap((a) => both(a.name)), ...(d.dayTrips || []).flatMap((a) => both(a.name)),
@@ -120,7 +133,11 @@ export function search(query, lang = 'he') {
     .sort((a, b) => b.s - a.s || order(a.d) - order(b.d) || langName(a.d).localeCompare(langName(b.d))).map((x) => x.d);
 }
 
-const STYLE_KEYS = ['beach', 'city', 'family', 'couple', 'relaxation', 'adventure', 'nature', 'culture', 'food', 'nightlife', 'shopping', 'ski', 'luxury'];
+const STYLE_KEYS = ['beach', 'city', 'family', 'couple', 'relaxation', 'adventure', 'nature', 'culture', 'food', 'nightlife', 'shopping', 'ski', 'luxury', 'all_inclusive'];
+// Ski is a season of the activity, not of the destination: northern resorts Dec–Apr, southern ones Jun–Sep.
+const SOUTH = new Set(['New Zealand', 'Australia', 'Argentina', 'Chile', 'South Africa']);
+export const southern = (d) => d?.region === 'oceania' || SOUTH.has(d?.country?.en);
+export const skiSeason = (d, month) => !month || (southern(d) ? [6, 7, 8, 9] : [12, 1, 2, 3, 4]).includes(month);
 const R = {
   requested: { he: 'ביקשתם את היעד הזה', en: 'You asked for this destination' },
   season: (m) => ({ he: `עונה טובה ב${monthName(m, 'he')}`, en: `Good season in ${monthName(m, 'en')}` }),
@@ -150,11 +167,16 @@ export function rank(preferences = {}, { limit = Infinity } = {}) {
       let score = 0;
       if (want.size && hits(d, want)) { score += 12; reasons.push(R.requested); }
       if (month && d.bestMonths?.includes(month)) { score += 3; reasons.push(R.season(month)); } else if (month) score -= 1;
-      for (const s of styles) if (d.tags.includes(s)) { score += 5; reasons.push(R.style(s)); }
+      for (const s of styles) if (d.tags.includes(s) && (s !== 'ski' || skiSeason(d, month))) { score += 5; reasons.push(R.style(s)); }
+      // Ski is an activity: a resort whose own list has skiing beats one that only carries the tag.
+      if (styles.includes('ski') && (d.attractions || []).some((a) => (a.tags || []).includes('ski') && skiSeason(d, month))) score += 1;
       if (p.children > 0 && d.tags.includes('family') && !styles.includes('family')) { score += 2; reasons.push(R.kids); }
       if (cheap) { score += 4 - d.budgetLevel; if (d.budgetLevel <= 2) reasons.push(R.value); }
       if ((p.kosher === true || tags.includes('kosher')) && d.tags.includes('kosher')) { score += 2; reasons.push(R.kosher); }
       if (p.short === true && d.flightHours <= 4) { score += 2; reasons.push(R.close); }
+      // A short trip (≤5 nights) is not worth a 6h+ flight each way.
+      const nights = Number(p.nights) || 0;
+      if (nights > 0 && nights <= 5 && d.flightHours >= 6) score -= 3;
       return { destination: d, score, reasons };
     })
     .sort((a, b) => b.score - a.score || order(a.destination) - order(b.destination))

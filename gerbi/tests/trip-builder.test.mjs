@@ -72,7 +72,9 @@ test('itinerary: light arrival, empty departure, kids pace, day trip from 5 nigh
   const { hours, items } = pace(p.request);
   assert.deepEqual([hours, items], [5, 2], 'a child under 6 → 5 hours, 2 places');
   for (const d of days.filter((x) => x.kind === 'full')) { assert.ok(d.items.length <= 2); assert.ok(d.items.reduce((s, x) => s + x.durationH, 0) <= 5); }
-  assert.ok(days.some((d) => d.kind === 'daytrip')); assert.ok(days.some((d) => d.kind === 'rest'));
+  // Spec 28: a day trip is paced too – none of Dubai's (≥7h) fits a 4-year-old's 5-hour day; school-age kids get them.
+  assert.ok(days.filter((d) => d.kind === 'daytrip').every((d) => d.items[0].durationH <= hours)); assert.ok(days.some((d) => d.kind === 'rest'));
+  assert.ok(plan('משפחה עם ילדים בני 8 ו-10, 7 לילות בדובאי בפברואר').itinerary.some((d) => d.kind === 'daytrip'));
   assert.ok(days.flatMap((d) => d.items).every((x) => x.mapsUrl.startsWith('https://www.google.com/maps/search/?api=1&query=')));
   const names = days.flatMap((d) => d.items.map((x) => x.name)), used = new Set(names);
   assert.equal(used.size, names.length, 'no place twice');

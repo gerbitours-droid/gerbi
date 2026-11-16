@@ -3,7 +3,7 @@
 // no prices are produced here (live prices come from the supplier, estimates from trip-package.mjs).
 import { understandRequest } from './brief-engine.mjs';
 import { detectLegs } from './multi-city-brief.mjs';
-import { destinations, byId, byCode, rank, normalize, monthName } from './catalog.mjs';
+import { destinations, byId, byCode, rank, normalize, monthName, nameVariants, skiSeason } from './catalog.mjs';
 import { placeByCode, placeType } from './places.mjs';
 import { t } from './i18n.mjs';
 import { mapsUrl } from './trip-package.mjs';
@@ -42,8 +42,8 @@ function namedInText(text) {
   const n = ` ${normalize(text)} `, found = [], countries = new Set();
   const has = (name) => { const v = normalize(name); return v.length >= 3 && new RegExp(`(?:^|\\s)[בלהומש]?${v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$)`).test(n); };
   for (const d of destinations) {
-    const names = [d.name?.he, d.name?.en].filter(Boolean);
-    const at = names.map((x) => n.indexOf(normalize(x))).filter((i) => i >= 0);
+    const names = nameVariants(d); // with and without the leading article ("The Swiss Alps" ↔ "Swiss Alps")
+    const at = names.map((x) => n.indexOf(x)).filter((i) => i >= 0);
     if (names.some(has)) found.push({ d, at: Math.min(...at, 1e6) });
     if ([d.country?.he, d.country?.en].filter(Boolean).some(has)) countries.add(d.country.en);
   }
@@ -62,7 +62,8 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   const board = allInclusive ? 'AI' : has(RX.fullBoard) ? 'FB' : has(RX.halfBoard) ? 'HB' : has(RX.breakfast) ? 'BB' : '';
   const car = has(RX.carNo) ? 'no' : has(RX.carYes) ? 'yes' : 'auto';
   const luxury = styles.includes('luxury') || honeymoon && stars >= 5;
-  const named = namedInText(raw), fromCodes = (b.want || []).map((c) => byCode(c)).filter(Boolean);
+  // A country alone ("שבוע ביוון") is a choice between its destinations (ranked below), not a route through all of them.
+  const named = namedInText(raw), fromCodes = u.countryOnly ? [] : (b.want || []).map((c) => byCode(c)).filter(Boolean);
   const excluded = new Set((b.exclude || []).map((c) => byCode(c)?.id).filter(Boolean));
   let wanted = [...new Map([...named.found, ...fromCodes].map((d) => [d.id, d])).values()].filter((d) => !excluded.has(d.id));
   const forced = byId(destId);
@@ -112,7 +113,7 @@ export function applyEdits(request, e = {}, today = new Date().toISOString().sli
 // ---- 2. Destination choice: the catalog's own ranking, with the request's styles and filters.
 export function suggestDestinations(request, { limit = 3, today = new Date().toISOString().slice(0, 10) } = {}) {
   const prefs = { want: [], exclude: request.exclude.map((id) => byId(id)?.code).filter(Boolean), month: request.month || (request.start ? Number(request.start.slice(5, 7)) : 0),
-    children: request.children, kosher: request.needs.kosher, direct: request.needs.direct || undefined, cheaper: request.budgetLevel === 'low', short: request.nights > 0 && request.nights <= 3 };
+    children: request.children, kosher: request.needs.kosher, direct: request.needs.direct || undefined, cheaper: request.budgetLevel === 'low', short: request.nights > 0 && request.nights <= 3, nights: request.nights || 0 };
   for (const s of request.styles) prefs[s] = true;
   if (request.occasion === 'honeymoon') prefs.couple = true;
   if (request.needs.allInclusive) prefs.tags = ['all_inclusive'];
@@ -152,78 +153,225 @@ export function planDates(request, dest, today) {
     if (start < earliest) { start = earliest; while (weekday(start) !== 0) start = addDays(start, 1); }
   }
   if (start < today) start = earliest;
+  // Shabbat-observant travellers never fly on Saturday: dates we chose move forward a day (a Sunday start with 6 nights
+  // would land home on Shabbat). Dates the visitor typed stay as typed; the itinerary flags the Saturday flight.
+  if (request.needs?.shabbat && !request.start && (weekday(start) === 6 || weekday(addDays(start, nights)) === 6)) {
+    while (weekday(start) === 6 || weekday(addDays(start, nights)) === 6) start = addDays(start, 1);
+    assumed.push({ key: 'shabbat' });
+  }
   return { start, end: addDays(start, nights), nights, assumed, datesAssumed: !request.start };
 }
 
-// ---- 4. Itinerary: catalog attractions grouped by area/kind, paced for the travellers, Shabbat-aware.
-const PREFER = { family: ['family'], couple: ['couple', 'food'], beach: ['beach'], city: ['culture', 'food', 'shopping'], culture: ['culture'], food: ['food'], nature: ['nature', 'adventure'], nightlife: ['nightlife'], relaxation: ['beach'], ski: ['ski', 'nature', 'adventure'], shopping: ['shopping'] };
-const KIND_FOR = { beach: ['beach'], nature: ['nature', 'park', 'viewpoint'], city: ['landmark', 'museum', 'neighborhood', 'market'], culture: ['landmark', 'museum', 'religious'], food: ['market'], family: ['park', 'beach', 'experience'] };
-export function pace(request) {
-  const young = request.childAges.some((a) => a < 6) || request.infants > 0;
-  const hours = young ? 5 : request.children ? 6 : request.styles.includes('relaxation') ? 5 : 8;
-  return { hours, items: request.children || young ? 2 : 3 };
+// ---- 4. Itinerary: catalog attractions scored for the request, paced for the travellers, one area per day,
+// day trips every 3–4 nights, season-aware, Shabbat-aware; a declared free day (with ideas) when the list runs out.
+// Optional catalog fields (spec 28 §ד): attraction `mustSee`, `months`, tags teens/evening/adults; day trip `months`,
+// `mustSee`, `tags`. Everything works without them (must-sees then come from the destination's highlights).
+const TAGS_FOR = {
+  family: ['family', 'with_children', 'water_slides'], teens: ['teens', 'family', 'adventure', 'water_slides'],
+  couple: ['couple', 'food'], honeymoon: ['couple', 'luxury', 'food'], luxury: ['luxury', 'couple', 'food'],
+  friends: ['nightlife', 'evening', 'food', 'adventure'], solo: ['culture', 'food', 'adventure'],
+  beach: ['beach', 'relaxation'], relaxation: ['relaxation', 'beach'], city: ['culture', 'food', 'shopping'], culture: ['culture'], food: ['food'],
+  nature: ['nature', 'adventure'], nightlife: ['nightlife', 'evening', 'food'], ski: ['ski', 'adventure', 'nature'], shopping: ['shopping']
+};
+const KIND_FOR = { beach: ['beach'], nature: ['nature', 'park', 'viewpoint'], city: ['landmark', 'museum', 'neighborhood', 'market'], culture: ['landmark', 'museum', 'religious'], food: ['market'], family: ['park', 'beach', 'experience'], luxury: ['experience', 'viewpoint'] };
+const KIDS_TAGS = ['with_children', 'water_slides'], ADULT_TAGS = ['nightlife', 'adults', 'adults_only'], HEAVY = ['museum', 'religious'], LIGHT = ['neighborhood', 'viewpoint', 'market', 'park'];
+const LATE = (a) => (a.tags || []).some((x) => x === 'evening' || x === 'nightlife');
+const dur = (a) => a.durationH || 2;
+
+// toddlers (<4 or an infant) · kids (4–11, or ages unknown) · teens (all 12–17) · adults.
+export function travellerProfile(request) {
+  const ages = request.childAges || [];
+  if ((request.infants || 0) > 0 || ages.some((a) => a < 4)) return 'toddlers';
+  if (!request.children) return 'adults';
+  return ages.length >= request.children && ages.every((a) => a >= 12) ? 'teens' : 'kids';
 }
-function scoreAttraction(a, request) {
-  let s = 0;
-  const want = new Set([...request.styles.flatMap((x) => PREFER[x] || []), ...(request.children ? ['family'] : []), ...(request.occasion === 'honeymoon' ? ['couple'] : [])]);
-  for (const tag of a.tags || []) if (want.has(tag)) s += 2;
-  for (const st of request.styles) if ((KIND_FOR[st] || []).includes(a.kind)) s += 1;
-  if (request.children && (a.durationH || 0) > 4) s -= 1;
+export function pace(request) {
+  const profile = travellerProfile(request), young = profile === 'toddlers' || (profile === 'kids' && (request.childAges || []).some((a) => a < 6));
+  const relax = profile === 'adults' && request.styles.includes('relaxation');
+  const hours = young ? 5 : profile === 'kids' ? 7 : relax ? 5 : 8;
+  return { hours, items: young ? 2 : 3, profile, young,
+    // School-age kids may spend a whole day in a park made for them (theme/water parks); nobody else goes past the pace.
+    kidDayH: profile === 'kids' && !young ? 10 : 0,
+    dayTripH: ['adults', 'teens'].includes(profile) ? hours * 1.25 : hours };
+}
+const tagsOf = (keys, profile) => new Set(keys.flatMap((k) => (k === 'family' && profile === 'teens' ? TAGS_FOR.teens : TAGS_FOR[k] || [])));
+// What the visitor asked for: the styles they named weigh more than what the group implies (occasion, children).
+const wantTags = (request, profile) => tagsOf([...request.styles, request.occasion, ...(request.children ? ['family'] : [])], profile);
+const styleTags = (request, profile) => tagsOf(request.styles, profile);
+
+function scoreAttraction(a, request, want, asked) {
+  const tags = a.tags || [], hits = tags.filter((x) => want.has(x)).length;
+  let s = tags.some((x) => asked.has(x)) ? 3 : hits ? 2 : 0;
+  if (hits > 1) s += Math.min(hits - 1, 2);
+  if (request.styles.some((st) => (KIND_FOR[st] || []).includes(a.kind))) s += 1;
+  if (request.children && dur(a) > 4) s -= 1;
   return s;
 }
-const usable = (a, request) => !(request.children && (a.tags || []).some((x) => ['nightlife', 'adults_only'].includes(x)));
+// Who may go: no nightlife/adults-only with children, no kids' parks for adults who did not ask, no long museum for
+// young kids, nothing longer than the day's pace (the first item of a day included).
+function suitable(a, request, p, want) {
+  const tags = a.tags || [];
+  if (request.children && tags.some((x) => ADULT_TAGS.includes(x))) return false;
+  if (!request.children && tags.some((x) => KIDS_TAGS.includes(x)) && !tags.some((x) => KIDS_TAGS.includes(x) && want.has(x))) return false;
+  if (p.young && a.kind === 'museum' && dur(a) >= 3) return false;
+  return dur(a) <= p.hours || (p.kidDayH > 0 && dur(a) <= p.kidDayH && ['experience', 'park'].includes(a.kind) && tags.some((x) => ['family', ...KIDS_TAGS].includes(x)));
+}
+// The sea is cold Nov–Apr in Europe and the Middle East (unless the destination is a winter-sun one); ski has its own
+// months by hemisphere; an attraction's own `months` win. Returns the warning key, '' when in season.
+function offSeason(a, dest, month) {
+  if (Array.isArray(a.months) && a.months.length) return a.months.includes(month) ? '' : 'season';
+  const tags = a.tags || [];
+  if ((a.kind === 'beach' || tags.includes('beach')) && ['europe', 'middle-east'].includes(dest.region) && !(dest.bestMonths || []).some((m) => [12, 1, 2].includes(m)) && (month < 5 || month > 10)) return 'beach';
+  if (tags.includes('ski') && !skiSeason(dest, month)) return 'ski';
+  return '';
+}
+// Distinctive words of a name ("Phi Phi Islands & Maya Bay boat trip" → phi, maya): duplicates and must-sees.
+const GENERIC = new Set('the and of de da di del la le el los las to at in on with from a an old new town city national park museum museums beach beaches market markets island islands tower palace street square church cathedral quarter district gardens garden view viewpoint views lake river bay hill hills mount mountain mountains day trip trips tour cruise walk walking centre center historic its world great grand royal house castle bridge harbour port night evening evenings best every sunset trail valley falls waterfall coast village villages boat'.split(' '));
+const wordCache = new Map();
+const words = (s) => { const k = String(s || ''); if (!wordCache.has(k)) wordCache.set(k, normalize(k).split(' ').filter((w) => w.length >= 4 && !GENERIC.has(w))); return wordCache.get(k); };
+const overlaps = (x, y) => { const w = words(L(x, 'en')); return words(L(y, 'en')).some((v) => w.includes(v)) || (normalize(x?.he).length >= 3 && normalize(x?.he) === normalize(y?.he)); };
+function mustSeeOf(dest) {
+  const list = dest.attractions || [];
+  if (list.some((a) => 'mustSee' in a)) return (a) => a.mustSee === true;
+  const hl = (dest.highlights || []).map((h) => normalize(L(h, 'en'))).join(' | ');
+  return (a) => words(L(a.name, 'en')).some((w) => hl.includes(w));
+}
+// A destination the size of a country or a region (Japan, Vietnam, Florida, Tuscany, the Alps…): each day stays in one
+// area. The catalog may say so (`countrySized` / `bases`); otherwise: a country-named destination, a car-recommended
+// one, or a known region whose areas are separate towns.
+const REGION_SIZED = new Set(['swiss-alps', 'austrian-alps', 'amalfi-naples', 'goa', 'bali', 'zanzibar', 'kenya-safari']);
+export const countrySized = (d) => (d?.countrySized ?? null) !== null ? d.countrySized === true : Array.isArray(d?.bases) || d?.transport?.carRecommended === true
+  || REGION_SIZED.has(d?.id) || normalize(d?.name?.en).replace(/^the /, '') === normalize(d?.country?.en);
+const dayTripHours = (dt) => Math.max(4, (dt.hours || 1) * 2 + 4);
 
-function stopDays(dest, request, { start, nights, first, last, stopIndex, l }) {
-  const where = L(dest.name, l), p = pace(request), out = [];
+function freeIdeaKeys(request, dest, cold) {
+  const s = request.styles, keys = [];
+  if (request.children) keys.push('playground');
+  if (!cold && (s.includes('beach') || s.includes('relaxation') || dest.tags?.includes('beach'))) keys.push('beach');
+  if (!cold && (request.children || s.includes('relaxation'))) keys.push('pool');
+  if (s.includes('luxury') || ['honeymoon', 'couple'].includes(request.occasion)) keys.push('spa');
+  if (s.includes('shopping') || s.includes('city')) keys.push('shop');
+  return [...new Set([...keys, 'walk', 'food', 'cafe'])];
+}
+
+function stopDays(dest, request, { start, nights, first, last, stopIndex, l, others = [] }) {
+  const where = L(dest.name, l), p = pace(request), want = wantTags(request, p.profile), asked = styleTags(request, p.profile), month = Number(start.slice(5, 7));
+  const sized = countrySized(dest), isMust = mustSeeOf(dest), warnings = new Set();
   const item = (a) => ({ name: L(a.name, l), kind: a.kind, durationH: a.durationH, area: a.area || '', where, mapsUrl: mapsUrl(L(a.name, l), where) });
-  const pool = (dest.attractions || []).filter((a) => usable(a, request)).map((a, i) => ({ a, s: scoreAttraction(a, request) - i * 0.01 })).sort((x, y) => y.s - x.s).map((x) => x.a);
+  let entries = [];
+  const tooLong = []; // kid-friendly or must-see places longer than the pace: offered as free-day ideas, never planned
+  (dest.attractions || []).forEach((a, i) => {
+    if (!suitable(a, request, p, want)) {
+      if (suitable({ ...a, durationH: 1 }, request, p, want) && !offSeason(a, dest, month) && (isMust(a) || (a.tags || []).some((x) => asked.has(x) || (request.children && ['family', ...KIDS_TAGS].includes(x))))) tooLong.push(a);
+      return;
+    }
+    const off = offSeason(a, dest, month);
+    if (off) { warnings.add(off); return; }
+    const must = isMust(a);
+    entries.push({ a, must, s: scoreAttraction(a, request, want, asked) + (must ? 3 : 0) - i * 0.01, zone: a.area || (sized ? `#${i}` : '') });
+  });
+  if (request.styles.includes('ski') && !skiSeason(dest, month)) warnings.add('ski');
+  entries.sort((x, y) => y.s - x.s);
+
   const total = nights + (last ? 1 : 0);
   const kinds = Array.from({ length: total }, (_, i) => (i === 0 && first ? 'arrival' : i === 0 ? 'move' : last && i === total - 1 ? 'departure' : 'full'));
   const dates = kinds.map((_, i) => addDays(start, i));
   if (request.needs.shabbat) dates.forEach((d, i) => { if (weekday(d) === 6 && kinds[i] === 'full') kinds[i] = 'shabbat'; });
-  const full = kinds.map((k, i) => (k === 'full' ? i : -1)).filter((i) => i >= 0);
-  if (nights >= 5 && dest.dayTrips?.length && full.length >= 3) kinds[full[Math.floor(full.length / 2)]] = 'daytrip';
+  // Day trips: one per 3–4 nights (from 5 nights), never on consecutive days, most days stay in the destination; only
+  // trips that fit the travellers' pace and season, and never to another stop of the route.
+  const fullIdx = kinds.map((k, i) => (k === 'full' ? i : -1)).filter((i) => i >= 0);
+  const trips = (dest.dayTrips || []).map((dt, i) => ({ dt, h: dayTripHours(dt), s: (dt.mustSee ? 3 : 0) + (dt.tags || []).filter((x) => want.has(x)).length * 2 - (request.children ? dayTripHours(dt) * 0.1 : 0) - i * 0.01 }))
+    .filter((x) => x.h <= p.dayTripH && !(Array.isArray(x.dt.months) && x.dt.months.length && !x.dt.months.includes(month)) && !others.some((o) => overlaps(o, x.dt.name)))
+    .sort((x, y) => y.s - x.s);
+  const tripCount = nights >= 5 && fullIdx.length >= 3 ? Math.min(Math.max(1, Math.round(nights / 3.5)), Math.floor((fullIdx.length - 1) / 2), trips.length) : 0;
+  const chosen = trips.slice(0, tripCount);
+  chosen.forEach((x, k) => { kinds[fullIdx[Math.floor(((k + 1) * fullIdx.length) / (tripCount + 1))]] = 'daytrip'; });
+  // A day trip to a place replaces the same place as an attraction (no "Phi Phi" twice).
+  entries = entries.filter((e) => !chosen.some((x) => overlaps(x.dt.name, e.a.name)));
   const restWanted = nights >= 6 && (request.children || request.styles.includes('relaxation') || request.styles.includes('beach'));
   const fullLeft = kinds.map((k, i) => (k === 'full' ? i : -1)).filter((i) => i >= 0);
   if (restWanted && fullLeft.length >= 3) kinds[fullLeft.at(-1)] = 'rest';
-  const used = new Set();
-  let trip = 0;
-  kinds.forEach((kind, i) => {
-    const day = { kind, date: dates[i], stop: stopIndex, items: [], note: '' };
-    if (kind === 'arrival' || kind === 'move') {
-      const light = pool.find((a) => !used.has(a) && a.durationH <= 2 && ['neighborhood', 'viewpoint', 'market', 'park'].includes(a.kind));
-      if (light) { used.add(light); day.items.push(item(light)); }
-    } else if (kind === 'full') {
-      const seed = pool.find((a) => !used.has(a));
-      if (seed) {
-        used.add(seed); day.items.push(item(seed)); let hours = seed.durationH || 2;
-        const near = pool.filter((a) => !used.has(a)).sort((x, y) => Number(Boolean(y.area && y.area === seed.area)) * 2 + Number(y.kind === seed.kind) - (Number(Boolean(x.area && x.area === seed.area)) * 2 + Number(x.kind === seed.kind)));
-        for (const a of near) { if (day.items.length >= p.items) break; if (hours + (a.durationH || 2) > p.hours) continue; used.add(a); day.items.push(item(a)); hours += a.durationH || 2; }
-      }
-    } else if (kind === 'daytrip') {
-      const dt = dest.dayTrips[trip++ % dest.dayTrips.length];
-      day.items.push({ name: L(dt.name, l), kind: 'daytrip', durationH: Math.max(4, (dt.hours || 1) * 2 + 4), where, mapsUrl: mapsUrl(L(dt.name, l), where) });
+
+  const used = new Set(), out = kinds.map((kind, i) => ({ kind, date: dates[i], stop: stopIndex, items: [], note: '' }));
+  let zone = '', trip = 0;
+  out.forEach((day) => {
+    if (day.kind === 'arrival' && (dest.flightHours || 0) >= 6) day.note = t('build.note.longFlight', {}, l);
+    else if (day.kind === 'arrival' || day.kind === 'move') {
+      const light = entries.find((e) => !used.has(e) && dur(e.a) <= 2 && LIGHT.includes(e.a.kind));
+      if (light) { used.add(light); day.items.push(item(light.a)); zone = light.zone; }
+    } else if (day.kind === 'daytrip') {
+      const { dt, h } = chosen[trip++];
+      day.items.push({ name: L(dt.name, l), kind: 'daytrip', durationH: h, where, mapsUrl: mapsUrl(L(dt.name, l), where) });
       day.note = L(dt.note, l);
     }
-    out.push(day);
   });
-  return { days: out, spare: pool.filter((a) => !used.has(a)).map(item) };
+  // Full days: the best remaining item leads (highlights first), then by score and proximity (same area), at most two
+  // of a kind, one museum/church a day with children, off-request items only to fill a thin day. A country-sized
+  // destination keeps each day in one area and finishes an area before moving on.
+  const plans = [], fullCount = out.filter((d) => d.kind === 'full').length;
+  for (let k = 0; k < fullCount; k++) {
+    // A day is led by a must-see or by something the visitor asked for; once those run out, up to one free day in
+    // four, then the rest of the list (no long trip turns into a row of free days while places are left).
+    const strict = plans.filter((x) => !x).length < Math.floor(fullCount / 4);
+    const left = entries.filter((e) => !used.has(e) && !(strict && want.size && e.s < 1));
+    if (!left.length) { plans.push(null); continue; }
+    const seed = (sized && zone && left.find((e) => e.zone === zone)) || left[0], day = [seed];
+    used.add(seed); let hours = dur(seed.a);
+    const count = (k) => day.filter((x) => x.a.kind === k).length;
+    // An evening item (night out, sunset, evening cruise) for those who asked for it comes on top of the day's places
+    // (in a city it may be across town: it is the evening).
+    const evening = (e) => LATE(e.a) && e.s >= 2 && !day.some((x) => LATE(x.a));
+    const fits = (e, loose) => !used.has(e) && (day.length < p.items || (day.length === p.items && evening(e))) && hours + dur(e.a) <= p.hours && count(e.a.kind) < 2
+      && !(request.children && HEAVY.includes(e.a.kind) && day.some((x) => HEAVY.includes(x.a.kind)))
+      && (sized ? e.zone === seed.zone : loose || evening(e) || !(e.a.area && seed.a.area && e.a.area !== seed.a.area))
+      && !(want.size && e.s < 1 && hours >= p.hours * 0.5);
+    for (const loose of sized ? [false] : [false, true]) {
+      if (loose && hours >= p.hours * 0.5) break;
+      for (;;) {
+        const next = entries.filter((e) => fits(e, loose)).map((e) => ({ e, v: e.s + (e.a.area && e.a.area === seed.a.area ? 1.5 : 0) - count(e.a.kind) })).sort((x, y) => y.v - x.v)[0];
+        if (!next) break;
+        used.add(next.e); day.push(next.e); hours += dur(next.e.a);
+      }
+    }
+    zone = seed.zone;
+    plans.push(day.sort((x, y) => Number(LATE(x.a)) - Number(LATE(y.a))));
+  }
+  // Free days are spread between the planned ones (not all at the end) and carry 2–3 ideas.
+  const fullDays = out.filter((d) => d.kind === 'full'), free = plans.filter((x) => !x).length, content = plans.filter(Boolean);
+  const spareTrips = trips.filter((x) => !chosen.includes(x) && ![...used].some((e) => overlaps(x.dt.name, e.a.name))).map((x) => L(x.dt.name, l));
+  const ideas = [...tooLong.map((a) => t('build.idea.long', { place: L(a.name, l) }, l)), ...entries.filter((e) => !used.has(e)).slice(0, 4).map((e) => L(e.a.name, l)), ...spareTrips.map((name) => t('build.idea.daytrip', { place: name }, l)), ...freeIdeaKeys(request, dest, warnings.has('beach')).map((k) => t(`build.idea.${k}`, {}, l))];
+  let c = 0, f = 0, lastZone = '';
+  fullDays.forEach((day, k) => {
+    if (free && Math.floor(((k + 1) * free) / fullDays.length) > Math.floor((k * free) / fullDays.length)) {
+      const mine = [...new Set([0, 1, 2].map((j) => ideas[(f * 2 + j) % ideas.length]))];
+      f++; day.kind = 'free'; day.ideas = mine; day.note = t('build.note.free', { ideas: mine.join(' · ') }, l);
+      return;
+    }
+    const plan = content[c++];
+    day.items = plan.map((e) => item(e.a));
+    const area = plan[0].a.area;
+    if (sized && area && area !== lastZone) { const named = (dest.areas || []).find((x) => x.name?.en === area); day.note = t('build.note.base', { area: named ? L(named.name, l) : area }, l); }
+    if (area) lastZone = area;
+  });
+  return { days: out, spare: entries.filter((e) => !used.has(e)).map((e) => item(e.a)), warnings: [...warnings] };
 }
 
 export function dayTitle(day, l = 'he', stopName = '') {
-  if (['arrival', 'departure', 'rest', 'shabbat', 'move'].includes(day.kind)) return t(`build.day.${day.kind}`, { place: stopName }, l);
+  if (['arrival', 'departure', 'rest', 'shabbat', 'move', 'free'].includes(day.kind)) return t(`build.day.${day.kind}`, { place: stopName }, l);
   if (day.kind === 'daytrip') return t('build.day.daytrip', { place: day.items[0]?.name || '' }, l);
   return day.items.slice(0, 2).map((x) => x.name).join(' · ') || t('build.day.free', {}, l);
 }
 
 export function buildItinerary(stops, request, l = 'he') {
-  const days = [], spare = [];
+  const days = [], spare = [], warnings = [];
   stops.forEach((s, i) => {
-    const part = stopDays(s.dest, request, { start: s.start, nights: s.nights, first: i === 0, last: i === stops.length - 1, stopIndex: i, l });
+    const others = stops.filter((_, k) => k !== i).map((o) => o.dest.name);
+    const part = stopDays(s.dest, request, { start: s.start, nights: s.nights, first: i === 0, last: i === stops.length - 1, stopIndex: i, l, others });
     days.push(...part.days); spare.push(...part.spare.slice(0, 6));
+    for (const w of part.warnings) warnings.push(t(`build.warn.${w}`, { place: L(s.dest.name, l) }, l));
   });
   return { days: days.map((d, i) => ({ ...d, day: i + 1, title: dayTitle(d, l, L(stops[d.stop]?.dest.name, l)),
-    note: d.note || (d.kind === 'shabbat' ? t('build.note.shabbat', {}, l) : request.needs.shabbat && weekday(d.date) === 5 && d.kind === 'full' ? t('build.note.friday', {}, l) : request.needs.shabbat && weekday(d.date) === 6 ? t('build.note.travelShabbat', {}, l) : '') })), spare };
+    note: d.note || (d.kind === 'shabbat' ? t('build.note.shabbat', {}, l) : request.needs.shabbat && weekday(d.date) === 5 && d.kind === 'full' ? t('build.note.friday', {}, l) : request.needs.shabbat && weekday(d.date) === 6 ? t('build.note.travelShabbat', {}, l) : '') })), spare, warnings };
 }
 
 // ---- 5. Car, practical card, search specs.
@@ -290,6 +438,11 @@ export function planPackage(request, { today = new Date().toISOString().slice(0,
   else {
     let cursor = r.start;
     stops = dests.map((d, i) => { const n = Math.floor(r.nights / dests.length) + (i < r.nights % dests.length ? 1 : 0); const s = { dest: d, start: cursor, end: addDays(cursor, Math.max(1, n)), nights: Math.max(1, n) }; cursor = s.end; return s; });
+    // Shabbat-observant: no internal flight on Saturday – the boundary moves a day earlier (or later).
+    if (r.needs.shabbat) for (let i = 1; i < stops.length; i++) if (weekday(stops[i].start) === 6) {
+      const shift = stops[i - 1].nights > 1 ? -1 : stops[i].nights > 1 ? 1 : 0;
+      if (shift) { stops[i].start = addDays(stops[i].start, shift); stops[i - 1].end = stops[i].start; stops[i - 1].nights += shift; stops[i].nights -= shift; }
+    }
     r.end = stops.at(-1).end; r.nights = daysBetween(r.start, r.end);
   }
   const it = buildItinerary(stops, r, l), main = dests[0];
@@ -304,7 +457,8 @@ export function planPackage(request, { today = new Date().toISOString().slice(0,
     areas: stops.map((s) => (s.dest.areas || []).map((a) => ({ name: a.name, forWhom: a.forWhom }))),
     flightSearch: flightSearchOf(r, stops), hotelSearches: stops.map((s, i) => hotelSearchOf(r, s, areas[i])),
     hotelAreas: areas.map((a) => (a ? { name: a.name, forWhom: a.forWhom } : null)),
-    car: carAdvice(main, r, l), itinerary: it.days, spare: it.spare, practical: practicalOf(main, r, l),
+    car: carAdvice(main, r, l), itinerary: it.days, spare: it.spare, warnings: it.warnings,
+    practical: (() => { const pr = practicalOf(main, r, l); if (it.warnings.length) pr.season = [...it.warnings, pr.season].filter(Boolean).join(' '); return pr; })(),
     highlights: (main.highlights || []).slice(0, 4).map((h) => L(h, l))
   };
 }

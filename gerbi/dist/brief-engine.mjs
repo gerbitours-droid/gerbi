@@ -512,7 +512,9 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
   if (!brief.adults) { brief.adults = 2; brief.adultsAssumed = true; assumed.push(tr('planner.assumed.adults')); }
   brief.children = brief.children ?? 0;
   brief.text = raw;
-  return { brief, understood, assumed, coverage: coverage(raw, understood), questions: nextQuestions(brief, travelers, where, dates, l), flightSearch: flightSearchFrom(brief, where) };
+  // Only a country was named ("שבוע ביוון"): `want` then lists every place in it – a choice to make, not a route.
+  const countryOnly = where.countries.length > 0 && !where.sources.some(hit => !hit.country && !hit.negated);
+  return { brief, understood, assumed, countryOnly, coverage: coverage(raw, understood), questions: nextQuestions(brief, travelers, where, dates, l), flightSearch: flightSearchFrom(brief, where) };
 }
 
 // One or two questions, most decision-changing first; never a question whose answer the text already gave.
