@@ -23,6 +23,7 @@ import { legName, routeText, groundGaps, gapText, multiLink, cleanRoute } from '
 import { perPassenger, PTC_LABEL, seatsLeft, FEW_SEATS, fareInclusions, layoverAirports } from './fare-extras.mjs';
 import { t as tr, lang, locale, fmtMoney, errorText } from './i18n.mjs';
 import { byId } from './catalog.mjs';
+import { startDidYouKnow } from './did-you-know.mjs';
 import { homePicks, homeCard, L } from './destinations-ui.mjs';
 const icons=name=>`<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const money=n=>fmtMoney(n);
@@ -328,7 +329,7 @@ $('#search-form').onsubmit=async e=>{
  const controller=new AbortController();activeSearch=controller;let cancelled=false;
  const timer=setTimeout(()=>controller.abort(),45000);
  button.disabled=true;button.setAttribute('aria-busy','true');button.textContent=tr('app.search.busy');
- feedback.innerHTML=tr('app.search.progress');feedback.hidden=false;const started=Date.now(),ticker=setInterval(()=>{const seconds=Math.round((Date.now()-started)/1000),line=$('#search-progress');if(line)line.textContent=tr('app.search.ticker', { seconds, slow: seconds>15?tr('app.search.slow'):'' });},1000);const cancel=document.createElement('button');cancel.type='button';cancel.className='button secondary';cancel.id='cancel-flight-search';cancel.textContent=tr('app.search.cancel');cancel.onclick=()=>{cancelled=true;controller.abort();};feedback.append(' ',cancel);
+ feedback.innerHTML=tr('app.search.progress');feedback.hidden=false;const started=Date.now(),ticker=setInterval(()=>{const seconds=Math.round((Date.now()-started)/1000),line=$('#search-progress');if(line)line.textContent=tr('app.search.ticker', { seconds, slow: seconds>15?tr('app.search.slow'):'' });},1000);const cancel=document.createElement('button');cancel.type='button';cancel.className='button secondary';cancel.id='cancel-flight-search';cancel.textContent=tr('app.search.cancel');cancel.onclick=()=>{cancelled=true;controller.abort();};feedback.append(' ',cancel);const stopDyk=startDidYouKnow(feedback,request.originDestinations[0].destination.code);
  $('#live-results').hidden=true;state.voleroResults=null;
  try{
   const response=await fetch('/api/volero/flights/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
@@ -341,7 +342,7 @@ $('#search-form').onsubmit=async e=>{
   feedback.textContent=(context.cachedAt?tr('app.search.cached', { minutes: Math.max(1,Math.round((Date.now()-Date.parse(context.cachedAt))/60000)) }):'')+(fromRequest&&activeChips().length?tr('app.search.doneFilters'):tr('app.search.done'));
   if(onHome()){$('#live-results h2').focus({preventScroll:true});$('#live-results').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});}
  }catch(error){pendingFilters=null;feedback.textContent=error.name==='AbortError'?cancelled?tr('app.search.cancelled'):tr('app.search.timeout'):error.message;}
- finally{clearTimeout(timer);clearInterval(ticker);if(cancelled)button.focus();activeSearch=null;button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=icons('search')+tr('app.tab.flights.submit');}
+ finally{clearTimeout(timer);clearInterval(ticker);stopDyk();if(cancelled)button.focus();activeSearch=null;button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=icons('search')+tr('app.tab.flights.submit');}
 };
 $('#all-deals').onclick=()=>pages.navigate('/destinations');
 document.addEventListener('click',async e=>{

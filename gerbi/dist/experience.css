@@ -215,3 +215,11 @@ button.swap{border:0;background:none;cursor:pointer;color:var(--blue,#096bd2);mi
  .flight-list .flight-price:before{top:-11px;inset-inline-start:-11px}
  .flight-list .flight-price:after{top:-11px;bottom:auto;inset-inline-start:auto;inset-inline-end:-11px}
 }
+/* "Did you know?" while searching – spec 26 */
+.did-you-know{display:flex;align-items:center;gap:14px;margin-top:10px;padding:12px 16px;background:linear-gradient(110deg,#fff8d6,#eaf6ff);border:1px solid #f1e3a1;border-radius:16px;min-height:110px}
+.did-you-know img{width:92px;height:92px;object-fit:contain;flex-shrink:0}
+.did-you-know strong{display:block;font-size:15px;font-weight:900;color:var(--blue)}
+.did-you-know p{margin:3px 0 0;font-size:16px;line-height:1.5;color:var(--navy)}
+.did-you-know p.dyk-in{animation:dyk-in .45s ease-out}
+@keyframes dyk-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(max-width:700px){.did-you-know{gap:10px;padding:10px 12px;min-height:84px}.did-you-know img{width:52px;height:52px}.did-you-know p{font-size:14px}}
