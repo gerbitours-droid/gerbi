@@ -46,7 +46,7 @@ const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 function toast(text){$('#toast').textContent=text;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,3500);}
 function openModal(html){$('#modal-content').innerHTML=html;const title=$('#modal-content h2');if(title){title.id='dialog-title';modal.setAttribute('aria-labelledby','dialog-title');}if(!modal.open)modal.showModal();}
 $('.modal-close').addEventListener('click',()=>modal.close());
-modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
+modal.addEventListener('close',()=>modal.classList.remove('pass-modal'));modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
 const onHome=()=>(location.hash.slice(1)||'/').split('?')[0]==='/';
 function localDate(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
 function shortDate(value){return new Date(value+'T12:00:00').toLocaleDateString(locale(),{day:'numeric',month:'short'});}
@@ -196,6 +196,26 @@ function legDetailsOf(f,key){
 }
 function legMarkupOf(f,key){return legRowsOf(f)+legDetailsOf(f,key);}
 function legMarkup(offer,payload){return legMarkupOf(offerFacts(offer,payload),'check-'+offer.index);}
+
+// Spec 27: the availability check as a boarding pass – brand band, route rows, a torn perforation and a price stub.
+function openPass({ctx,legs,status,price,old,booking}){
+ const busy=status==='checking',title=busy?tr('app.pass.checking'):status==='changed'?tr('app.offer.changed'):tr('app.offer.checked');
+ const stub=busy?`<div class="bp-price bp-shimmer"><small>${tr('app.pass.searchPrice')}</small><strong dir="ltr">${escapeHTML(price?formatFare(price):'')}</strong></div><p class="bp-wait"><span class="bp-plane" aria-hidden="true">✈</span>${tr('app.pass.wait')}</p>`
+  :`<div class="bp-price"><small>${tr('app.offer.priceFor', { count: ctx.travelers })}</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${originalHtml(price)}${old?`<span class="bp-was">${tr('app.offer.was', { price: escapeHTML(formatFare(old)) })}</span>`:''}</div>
+   <p class="bp-time">${tr('app.offer.checkedNow', { time: escapeHTML(new Date().toLocaleString(locale(),{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'})) })}</p>
+   <div class="bp-actions">${booking?.enabled?`<button class="button yellow" data-book-flight>${tr('booking.offer.book')}</button>`:''}<button class="button ${booking?.enabled?'secondary':'yellow'}" data-save-flight>${tr('app.offer.save')}</button><button class="button secondary" data-close-availability>${tr('app.offer.backToCompare')}</button></div>
+   <p class="micro-copy" id="save-flight-status" role="status">${tr('app.offer.saveNote')}</p>`;
+ modal.classList.add('pass-modal');
+ openModal(`<div class="bp" data-state="${status}">
+  <header class="bp-top"><span class="bp-brand"><img src="/assets/mascot.webp" alt="" width="34" height="34">${tr('home.brand.name')}</span><span class="bp-kind">${tr('app.pass.kind')}</span></header>
+  <div class="bp-body"><p class="bp-status" role="status"><span class="bp-dot" aria-hidden="true"></span>${busy?tr('app.pass.statusChecking'):status==='changed'?tr('app.pass.statusChanged'):tr('app.pass.statusOk')}</p>
+   <h2 tabindex="-1">${title}</h2><p class="bp-sub">${escapeHTML(ctx.destination)} · ${escapeHTML(ctx.dates)} · ${tr('app.pass.travelers', { count: ctx.travelers })}</p>
+   <div class="bp-legs">${legs}</div></div>
+  <div class="bp-tear" aria-hidden="true"></div>
+  <div class="bp-stub">${stub}<div class="bp-barcode" aria-hidden="true"></div></div>
+ </div>${busy?'':`<p class="notice bp-notice">${tr('app.offer.notice')}</p>`}`);
+ if(!busy)$('#modal-content h2')?.focus();
+}
 // Spec 10 §7.1: per-person price by passenger type, only when it adds up to the total (and more than one person).
 function paxLine(f){const list=perPassenger(f.offer,f.price);if(!list||(list.length===1&&list[0].count===1))return '';return `<small class="pax-prices">${list.map(x=>`${PTC_LABEL[x.ptc]} <span dir="ltr">${escapeHTML(formatFare({value:x.value,currency:x.currency}))}</span>`).join(' · ')}</small>`;}
 // Baggage, carry-on and refund in one line: icon + words. "Not provided" is never styled as a perk.
@@ -355,6 +375,10 @@ document.addEventListener('click',async e=>{
   if(!selected||!result.srk||!result.tokens?.searchResults||$('#live-results').classList.contains('stale')){toast(tr('app.offer.stale'));return;}
   offerButton.disabled=true;offerButton.textContent=tr('app.offer.checking');
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+  // The ticket opens at once with what we already know; the supplier's answer fills the stub (it can take seconds).
+  const searchLegs=legMarkupOf(offerFacts(selected,result),'check-'+offerIndex);
+  openPass({ctx:offerContext,legs:searchLegs,status:'checking',price:offerPrice(selected)});
+  modal.addEventListener('close',()=>controller.abort(),{once:true});
   try{
    const response=await fetch('/api/volero/flights/availability',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({srk:result.srk,offerIndex,searchToken:result.tokens.searchResults,input:{itineraryIndex:selected.flightsOverview?.[0]?.itineraryIndex??0}})});
    const data=await response.json();if(!response.ok)throw new Error(tr('app.offer.unverified'));
@@ -365,12 +389,13 @@ document.addEventListener('click',async e=>{
    const changed=old && (old.value!==price.value || old.currency!==price.currency);
    const verified={price,at:new Date(),changed};aiEvent('verify',offerButton.closest('[data-itinerary]')?.dataset.itinerary);verifiedPrices.set(result.srk+':'+offerIndex,verified);
    const priceBox=offerButton.closest('.flight-price');priceBox.querySelector('.verified-stamp')?.remove();priceBox.insertAdjacentHTML('beforeend',verifiedStamp(verified));
-   openModal(`<span class="dialog-kicker">${tr('app.offer.kicker')}</span><h2>${changed?tr('app.offer.changed'):tr('app.offer.checked')}</h2><p>${escapeHTML(offerContext.destination)} · ${escapeHTML(offerContext.dates)}</p><p class="micro-copy">${tr('app.offer.checkedNow', { time: escapeHTML(new Date().toLocaleString(locale())) })}</p><div class="verified-price"><small>${tr('app.offer.priceFor', { count: offerContext.travelers })}</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${originalHtml(price)}${changed?`<span>${tr('app.offer.was', { price: escapeHTML(formatFare(old)) })}</span>`:''}</div>${legMarkup(priced,data.data)}<p class="notice">${tr('app.offer.notice')}</p><div class="dialog-actions">${booking.enabled?`<button class="button yellow" data-book-flight>${tr('booking.offer.book')}</button>`:''}<button class="button ${booking.enabled?'secondary':'yellow'}" data-save-flight>${tr('app.offer.save')}</button><button class="button secondary" data-close-availability>${tr('app.offer.backToCompare')}</button></div><p class="micro-copy" id="save-flight-status" role="status">${tr('app.offer.saveNote')}</p>`);
+   if(!modal.open)return; // closed while checking: keep the stamp on the card, don't reopen
+   openPass({ctx:offerContext,legs:legMarkup(priced,data.data),status:changed?'changed':'ok',price,old:changed?old:null,booking});
    $('[data-close-availability]').onclick=()=>modal.close();
    // Spec 25: book this exact offer (the server re-prices it; nothing is charged before the summary step).
    const bookButton=$('[data-book-flight]');if(bookButton)bookButton.onclick=async()=>{bookButton.disabled=true;bookButton.setAttribute('aria-busy','true');try{await startBooking({offer:{srk:result.srk,offerIndex,searchToken:result.tokens.searchResults,itineraryIndex:selected.flightsOverview?.[0]?.itineraryIndex??0},source:offerContext.multi?'multi':'flights'});modal.close();}catch(error){bookButton.disabled=false;bookButton.removeAttribute('aria-busy');$('#save-flight-status').textContent=tr(error.code==='offer_unavailable'?'booking.offer.gone':error.status===429?'booking.offer.busy':'booking.offer.failed');}};
    $('[data-save-flight]').onclick=e=>{const facts=factsOf(result).find(f=>f.index===offerIndex);if(!facts)return;if(storeSavedFlights(addSavedFlight(savedFlights,flightSnapshot(facts,offerContext.search,verified)))){aiEvent('save',itineraryKey(facts));e.currentTarget.disabled=true;e.currentTarget.textContent=tr('app.offer.saved');$('#save-flight-status').innerHTML=tr('app.offer.savedNote');}};
-  }catch(error){if(!currentOffer())return;openModal(`<span class="dialog-kicker">${tr('app.offer.failKicker')}</span>${tr('app.offer.failTitle')}<p>${escapeHTML(error.name==='AbortError'?tr('app.offer.timeout'):error.message)}</p><button class="button secondary full-width" data-close-availability>${tr('app.offer.backToResults')}</button>`);$('[data-close-availability]').onclick=()=>modal.close();}
+  }catch(error){if(!currentOffer()||(error.name==='AbortError'&&!modal.open))return;modal.classList.remove('pass-modal');openModal(`<span class="dialog-kicker">${tr('app.offer.failKicker')}</span>${tr('app.offer.failTitle')}<p>${escapeHTML(error.name==='AbortError'?tr('app.offer.timeout'):error.message)}</p><button class="button secondary full-width" data-close-availability>${tr('app.offer.backToResults')}</button>`);$('[data-close-availability]').onclick=()=>modal.close();}
   finally{clearTimeout(timer);offerButton.disabled=false;offerButton.textContent=tr('app.offer.checkButton');markStaleResults();}
  }
  const info=e.target.closest('[data-info]');if(info)showInfo(info.dataset.info);

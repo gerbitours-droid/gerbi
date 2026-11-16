@@ -223,3 +223,48 @@ button.swap{border:0;background:none;cursor:pointer;color:var(--blue,#096bd2);mi
 .did-you-know p.dyk-in{animation:dyk-in .45s ease-out}
 @keyframes dyk-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media(max-width:700px){.did-you-know{gap:10px;padding:10px 12px;min-height:84px}.did-you-know img{width:52px;height:52px}.did-you-know p{font-size:14px}}
+
+/* Spec 27 – availability check as a boarding pass (#modal.pass-modal > .bp) */
+#modal.pass-modal{padding:0;width:min(860px,calc(100% - 24px));background:transparent;box-shadow:none;overflow:auto}
+#modal.pass-modal .modal-close{top:12px;inset-inline-end:12px;background:#ffffff26;color:#fff}
+.bp{--stub:260px;--x:calc(100% - var(--stub));position:relative;display:grid;grid-template-columns:1fr var(--stub);background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 30px 90px #00103a59;
+ -webkit-mask:radial-gradient(circle at var(--x) 0,#0000 15px,#000 15.5px) top/100% 51% no-repeat,radial-gradient(circle at var(--x) 100%,#0000 15px,#000 15.5px) bottom/100% 51% no-repeat;
+ mask:radial-gradient(circle at var(--x) 0,#0000 15px,#000 15.5px) top/100% 51% no-repeat,radial-gradient(circle at var(--x) 100%,#0000 15px,#000 15.5px) bottom/100% 51% no-repeat}
+html[dir=rtl] .bp{--x:var(--stub)}
+.bp-top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 60px 14px 22px;background:linear-gradient(110deg,#0a1b60,#0b3a9a 60%,#096bd2);color:#fff}
+html[dir=rtl] .bp-top{padding:14px 22px 14px 60px}
+.bp-brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px;letter-spacing:-.3px}
+.bp-brand img{width:34px;height:34px;object-fit:contain;background:#ffdf25;border-radius:50%;padding:2px}
+.bp-kind{font-size:11.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;opacity:.85}
+.bp-body{padding:18px 24px 22px;min-width:0}
+.bp-status{display:inline-flex;align-items:center;gap:8px;margin:0 0 6px;font-size:13px;font-weight:800;padding:5px 12px;border-radius:999px;background:#fff6d6;color:#7a5a00}
+.bp-dot{width:9px;height:9px;border-radius:50%;background:#f0b400;animation:bp-pulse 1.1s ease-in-out infinite}
+.bp[data-state=ok] .bp-status{background:#e5f7ec;color:#11683a}.bp[data-state=ok] .bp-dot{background:#1a9b55;animation:none}
+.bp[data-state=changed] .bp-status{background:#fff0e3;color:#9a4a00}.bp[data-state=changed] .bp-dot{background:#ef7d00;animation:none}
+@keyframes bp-pulse{50%{transform:scale(.55);opacity:.5}}
+.bp-body h2{margin:2px 0 2px;font-size:26px;font-weight:900;letter-spacing:-.6px;line-height:1.25}
+.bp-sub{margin:0 0 12px;color:#4f6283;font-size:14px}
+.bp-legs .flight-leg{border-top:1px solid #e6eef7;padding-top:12px;margin-top:12px}
+.bp-legs .flight-leg:first-child{border-top:0;margin-top:0;padding-top:4px}
+.bp-legs .flight-segments{margin-top:12px}
+.bp-stub{grid-column:2;background:#f5f9ff;border-inline-start:2px dashed #c3d6ea;padding:20px 20px 18px;display:flex;flex-direction:column;gap:10px}
+.bp-tear{display:none}
+.bp-price small{display:block;font-size:12px;color:#4f6283}
+.bp-price strong{display:block;font-size:34px;font-weight:900;color:#0a1b60;letter-spacing:-1px;line-height:1.15}
+.bp-was{display:block;font-size:12.5px;color:#9a4a00;text-decoration:line-through}
+.bp-shimmer strong{background:linear-gradient(90deg,#0a1b60 0%,#7fa9d8 45%,#0a1b60 90%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:bp-shine 1.4s linear infinite}
+@keyframes bp-shine{to{background-position:-200% 0}}
+.bp-wait{margin:0;font-size:13px;color:#4f6283;line-height:1.5;display:flex;gap:8px;align-items:flex-start}
+.bp-plane{display:inline-block;color:#096bd2;animation:bp-fly 1.6s ease-in-out infinite}
+html[dir=rtl] .bp-plane{transform:scaleX(-1)}
+@keyframes bp-fly{50%{translate:6px -3px}}
+.bp-time{margin:0;font-size:12px;color:#4f6283}
+.bp-actions{display:grid;gap:8px}.bp-actions .button{padding:10px 12px;font-size:15px;border-radius:11px;width:100%}
+.bp-barcode{margin-top:auto;height:44px;border-radius:4px;opacity:.75;background:repeating-linear-gradient(90deg,#0a1b60 0 2px,#0000 2px 4px,#0a1b60 4px 5px,#0000 5px 8px,#0a1b60 8px 11px,#0000 11px 13px)}
+.bp-notice{margin:12px 0 0}
+@media(max-width:700px){
+ .bp{grid-template-columns:1fr;-webkit-mask:none;mask:none}
+ .bp-stub{grid-column:1;border-inline-start:0;border-top:2px dashed #c3d6ea}
+ .bp-body{padding:16px}.bp-body h2{font-size:22px}
+ .bp-kind{display:none}.bp-barcode{height:34px}
+}
