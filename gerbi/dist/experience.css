@@ -151,3 +151,67 @@ button.swap{border:0;background:none;cursor:pointer;color:var(--blue,#096bd2);mi
 [tabindex="-1"]:focus{outline:none}
 .pointer-nav :is(input,select,textarea,button,a,summary,label,[tabindex]):focus{outline:none}
 :is(.field,.prompt-input,.search-box):focus-within{border-color:#0877e4}
+/* ---- Flight result card: boarding pass (route body + price stub). Route rows (.flight-leg/.fc-*) are shared with the
+   offer-check dialog; card-only rules are scoped to .flight-list. */
+.flight-leg{display:block;margin:0;padding:8px 0}
+.flight-leg+.flight-leg{border-top:1px solid #edf2f8}
+.fc-leg-head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.fc-dir{font-size:12px;font-weight:800;color:var(--blue,#096bd2);letter-spacing:.2px}
+.flight-leg .fc-date{font-size:12px;color:#526687}
+.fc-route{display:grid;grid-template-columns:132px minmax(0,1fr) 132px;align-items:center;gap:14px}
+.fc-end{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.fc-from{align-items:flex-start}.fc-to{align-items:flex-end;text-align:right}.fc-end>*{max-width:100%}
+.flight-leg .fc-time{font-size:24px;font-weight:800;color:var(--navy,#071751);font-variant-numeric:tabular-nums;line-height:1.1;white-space:nowrap}
+.fc-plus{font-size:12px;font-weight:800;color:#a53824;margin-left:2px}
+.fc-code{font-size:13px;font-weight:700;letter-spacing:.6px;color:var(--navy,#071751)}
+.fc-place{font-size:12px;color:#526687;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-arrdate{font-size:11px;font-weight:700;color:#a53824;margin-top:2px}
+.fc-path{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;text-align:center}
+.fc-dur{font-size:13px;font-weight:700;color:var(--navy,#071751)}
+.fc-line{position:relative;display:flex;align-items:center;justify-content:space-evenly;width:100%;height:12px}
+.fc-line:before{content:"";position:absolute;inset-inline:4px 6px;top:50%;border-top:2px solid #a9c8ea}
+.fc-line:after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);border:5px solid transparent;border-left:7px solid #a9c8ea;border-right:0}
+.fc-line i{position:relative;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #c56a00}
+.fc-stops{font-size:12px;font-weight:600;color:#8a4b00}
+.fc-stops.is-direct{color:#24603a}
+.fc-alerts{list-style:none;display:flex;flex-wrap:wrap;gap:4px 16px;margin:8px 0 0;padding:0}
+.flight-leg .fc-alerts .leg-warning{display:flex;align-items:flex-start;gap:5px;flex-basis:auto;background:none;border-radius:0;padding:0;font-size:12px;font-weight:600;color:#8a4b00}
+.fc-alerts svg{width:15px;height:15px;margin-top:2px}
+.flight-list .flight-card{grid-template-columns:minmax(0,1fr) 236px;border:1px solid #d9e4ef;border-radius:18px;background:#fff;box-shadow:0 2px 10px #0b3a6b0d;overflow:hidden}
+.flight-list .flight-details{padding:14px 22px 6px;min-width:0}
+.fc-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-bottom:2px}
+.flight-list .fc-head h3{margin:0;font-size:15px;font-weight:800;color:var(--navy,#071751);overflow-wrap:anywhere}
+.fc-head .flight-badges{margin:0}
+.flight-list .why{margin:2px 0 2px;font-size:12px}
+.flight-list .bag-line{list-style:none;display:flex;flex-wrap:wrap;gap:6px 18px;margin:2px 0 0;padding:10px 0 0;border-top:1px solid #edf2f8}
+.bag-line .bag{display:inline-flex;align-items:center;gap:6px;background:none;border:0;border-radius:0;padding:0;font-size:13px}
+.bag-line .bag svg{width:17px;height:17px}
+.bag-line .bag-yes{color:#24603a;font-weight:600}
+.bag-line .bag-no{color:#4d5870}
+.bag-line .bag-unknown{color:#5c6780}.bag-line .bag-unknown svg{opacity:.5}.bag-line .bag-unknown span{text-decoration:underline dotted #9aa6b8;text-underline-offset:3px}
+.flight-list .flight-segments{border-top:0;margin-top:4px;padding-top:0}
+.flight-list .flight-segments summary{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-size:13px;font-weight:700;color:var(--blue,#096bd2)}
+.fc-seg-title{margin:10px 0 0;font-size:13px}
+.flight-list .flight-price{position:relative;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;padding:18px 18px 12px;border-inline-start:2px dashed #cddbe9;background:#f6faff}
+.flight-list .flight-price:before,.flight-list .flight-price:after{content:"";position:absolute;inset-inline-start:-11px;width:20px;height:20px;border-radius:50%;background:var(--fc-notch,#fff);border:1px solid #d9e4ef}
+.flight-list .flight-price:before{top:-11px}.flight-list .flight-price:after{bottom:-11px}
+.flight-list .flight-price strong{font-size:30px;font-weight:900;color:var(--navy,#071751);line-height:1.15;text-align:start}
+.flight-list .flight-price>small{font-size:12px;font-weight:600;color:#3f5470}
+.flight-list .flight-price .pax-prices,.flight-list .flight-price .fare-original{font-size:11px;font-weight:400}
+.flight-list .flight-price .button{width:100%;min-height:46px;margin-top:8px;font-size:15px;padding:10px 12px}
+.flight-list .flight-price .compare-check{justify-content:center;border-top:0;margin-top:0;padding-top:0;min-height:44px;font-size:13px}
+@media(max-width:760px){
+ .flight-list .flight-card{grid-template-columns:1fr}
+ .flight-list .flight-details{padding:12px 14px 4px}
+ .fc-route{grid-template-columns:74px minmax(0,1fr) 74px;gap:8px}
+ .flight-leg .fc-time{font-size:21px}
+ .fc-place{font-size:11px}
+ .flight-list .flight-price{display:flex;flex-direction:row;flex-wrap:wrap;align-items:baseline;justify-content:flex-start;gap:2px 10px;padding:14px;border-inline-start:0;border-top:2px dashed #cddbe9}
+ .flight-list .flight-price>*{grid-column:auto}
+ .flight-list .flight-price>small,.flight-list .flight-price .seats-left,.flight-list .flight-price .button,.flight-list .flight-price .compare-check,.flight-list .flight-price .verified-stamp{flex-basis:100%}
+ .flight-list .flight-price strong{font-size:27px}
+ .flight-list .flight-price .pax-prices,.flight-list .flight-price .fare-original{display:inline;margin:0}
+ .flight-list .flight-price .button{grid-row:auto;min-height:48px;font-size:15px;margin-top:6px}
+ .flight-list .flight-price:before{top:-11px;inset-inline-start:-11px}
+ .flight-list .flight-price:after{top:-11px;bottom:auto;inset-inline-start:auto;inset-inline-end:-11px}
+}
