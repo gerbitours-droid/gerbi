@@ -1,4 +1,4 @@
-/* Magic trip builder (spec 24): home prompt + #/build. Mobile first; logical properties so RTL and LTR share the rules. */
+/* Trip builder – "בונים חופשה עם ג׳רבי" (spec 24, chat look spec 27): home prompt + #/build. Mobile first; logical properties so RTL and LTR share the rules. */
 .magic-form{max-width:760px;margin:14px auto 0;text-align:start;background:#ffffffeb;border:1px solid #fff;border-radius:18px;padding:12px 14px;box-shadow:0 6px 22px #004c8c14}
 .magic-label{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;margin-bottom:8px}
 .magic-label svg{width:22px;height:22px;color:var(--blue)}
@@ -129,3 +129,71 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
 .bk-badges{display:flex;flex-wrap:wrap;gap:5px;align-items:center}.bk-badges .flight-badge{width:auto;margin:0}
 .bk-range{white-space:nowrap;display:inline-block}.bk-sum .bk-range{display:block}
 .bk-day li{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.bk-day [data-remove-item],[data-add-spare]{min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;text-decoration:none}.bk-day [data-remove-item]:hover{background:#fff1ea}
+
+/* Spec 27 – "בונים חופשה עם ג׳רבי": chat-style page. ASCII glow stage + composer + thread + sling back-to-top. */
+.gb-page{padding-bottom:30px}
+.gb-stage{position:relative;overflow:hidden;min-height:calc(100dvh - 80px);display:flex;align-items:center;background:linear-gradient(180deg,#fff 0%,#f4faff 55%,#e6f3ff 100%);padding:18px 0 40px;transition:min-height .4s}
+.gb-ascii{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 35%);mask-image:linear-gradient(180deg,transparent 0,#000 35%)}
+.gb-stage-inner{position:relative;z-index:1;max-width:860px}
+.gb-hero{text-align:center;display:flex;flex-direction:column;align-items:center}
+.gb-avatar{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 8px 18px #0a3d7a2e);animation:gb-float 5s ease-in-out infinite}
+@keyframes gb-float{50%{transform:translateY(-6px)}}
+.gb-hero h1{font-size:clamp(32px,5vw,56px);letter-spacing:-1.5px;margin:4px 0 6px}
+.gb-hero>p{margin:0 auto 22px;max-width:640px;font-size:17px}
+.gb-composer{background:none;border:0;padding:0;gap:14px}
+.gb-box{background:#fff;border:1px solid #d6e4f2;border-radius:28px;padding:14px 16px 10px;box-shadow:0 12px 40px #0b3d7a1c,0 2px 6px #0b3d7a0d;transition:box-shadow .2s,border-color .2s;text-align:start}
+.gb-box:focus-within{border-color:#8fc0ef;box-shadow:0 0 0 4px #096bd21f,0 16px 46px #0b3d7a26}
+.build-form .gb-box textarea{border:0;min-height:56px;max-height:240px;padding:4px 6px;resize:none;background:transparent;font-size:18px;outline:none;box-shadow:none}
+.gb-bar{display:flex;align-items:center;gap:10px;margin-top:6px}
+.gb-tool{display:inline-flex;align-items:center;gap:6px;border:1px solid #d6e4f2;border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600;min-height:40px;background:#fff}
+.gb-tool svg{width:18px;height:18px}
+.gb-tool[aria-expanded=true]{background:#eaf4ff;border-color:#8fc0ef;color:#075db4}
+.gb-hint{flex:1;min-width:0;font-size:12.5px;color:#6a7a97;line-height:1.35}
+.gb-send.build-submit{width:46px;height:46px;padding:0;border-radius:50%;border:0;display:grid;place-items:center;background:linear-gradient(135deg,#0a1b60,#096bd2);color:#fff;box-shadow:0 6px 16px #096bd240;transition:transform .15s,box-shadow .15s;flex-shrink:0}
+.gb-send svg{width:22px;height:22px;stroke:#fff;stroke-width:2.4}
+.gb-send:hover{transform:translateY(-1px);box-shadow:0 9px 20px #096bd255}
+.gb-send[aria-busy=true]{animation:pulse 1s infinite}
+.gb-prefs{background:#ffffffe6;border:1px solid #d6e4f2;border-radius:20px;padding:12px 14px;display:grid;gap:9px;text-align:start;backdrop-filter:blur(6px)}
+.gb-prefs[hidden]{display:none}
+.gb-suggest{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.gb-card{display:flex;flex-direction:column;gap:4px;text-align:start;background:#ffffffd9;border:1px solid #d6e4f2;border-radius:18px;padding:12px 14px;backdrop-filter:blur(6px);transition:transform .15s,box-shadow .15s,border-color .15s;min-height:44px}
+.gb-card:hover{transform:translateY(-2px);border-color:#8fc0ef;box-shadow:0 8px 22px #0b3d7a1a}
+.gb-card strong{font-size:14.5px;font-weight:800}
+.gb-card span{font-size:13px;color:#5d6e8c;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gb-thread{max-width:1040px;padding-top:26px}
+.gb-you{display:flex;justify-content:flex-end;margin-bottom:18px}
+.gb-you p{margin:0;max-width:min(75%,620px);background:#eaf2ff;border-radius:22px;padding:11px 18px;font-size:16px;line-height:1.55}
+.gb-you[hidden]{display:none}
+.gb-msg{display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:start}
+.gb-msg-avatar{width:40px;height:40px;border-radius:50%;background:#fff8d6;border:1px solid #f1e3a1;object-fit:contain;position:sticky;top:90px}
+.gb-msg .build-result{margin-top:0;min-width:0}
+.gb-msg:has(#build-result:empty){display:none}
+/* After the first answer the stage folds down so the conversation is in view. */
+.gb-page:has(#build-result:not(:empty)) .gb-stage{min-height:0;padding:10px 0 26px}
+.gb-page:has(#build-result:not(:empty)) .gb-hero>p,.gb-page:has(#build-result:not(:empty)) .gb-suggest{display:none}
+.gb-page:has(#build-result:not(:empty)) .gb-avatar{width:64px;height:64px}
+@media(max-width:700px){
+ .gb-stage{min-height:calc(100dvh - 72px);padding-bottom:28px}
+ .gb-hero h1{font-size:30px}.gb-hero>p{font-size:15px;margin-bottom:16px}
+ .gb-avatar{width:76px;height:76px}
+ .gb-box{border-radius:22px;padding:10px 12px 8px}
+ .build-form .gb-box textarea{font-size:16px}
+ .gb-hint{display:none}.gb-bar{justify-content:space-between}
+ .gb-suggest{grid-template-columns:1fr}
+ .gb-msg{grid-template-columns:1fr}.gb-msg-avatar{display:none}
+ .gb-you p{max-width:88%}
+}
+
+/* Sling back-to-top */
+.sling-top{position:fixed;z-index:9;bottom:28px;inset-inline-start:24px;width:56px;height:56px}
+.sling-top[hidden]{display:none}
+.sling-fx{position:absolute;width:120px;height:120px;left:50%;top:50%;margin:-60px 0 0 -60px;overflow:visible;pointer-events:none}
+.sling-well{fill:#0a1b60;opacity:.1}
+.sling-band{fill:none;stroke:#096bd2;stroke-width:3;stroke-linecap:round;transition:stroke-width .16s}
+.sling-top[data-armed] .sling-band{stroke-width:4.5;stroke:#0a1b60}
+.sling-pad{position:relative;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#ffe640,#ffd718);border:1px solid #f6dc55;box-shadow:0 8px 20px #0a1b6033;cursor:grab;touch-action:none;user-select:none}
+.sling-pad svg{width:24px;height:24px;stroke:#0a1b60;stroke-width:2.4}
+.sling-top[data-armed] .sling-pad{transform-origin:center;box-shadow:0 10px 26px #0a1b604d}
+.sling-dot{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#096bd2;pointer-events:none}
+.sling-dot:nth-child(odd){background:#ffd718}
+@media(max-width:700px){.sling-top{bottom:92px;inset-inline-start:16px}}

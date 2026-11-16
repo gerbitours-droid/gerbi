@@ -1,8 +1,10 @@
 // Dictionary area "build" (spec 24): the magic trip builder (#/build), its plan wording and the customer-area list.
 export default {
   he: {
-    'build.title': 'בונים חופשה בקסם',
-    'build.kicker': 'מתארים – ואנחנו בונים',
+    'build.title': 'בונים חופשה עם ג׳רבי',
+    'build.prefs': 'העדפות',
+    'build.toTop': 'חזרה למעלה',
+    'build.kicker': 'מתארים – וג׳רבי בונה',
     'build.subtitle': 'ספרו לנו במשפט אחד על החופשה שאתם חולמים עליה. נבנה לכם טיסות, מלון, רכב, תוכנית יום־יום וכל מה שצריך לדעת – עם מחירים חיים כשיש, והערכה ברורה כשאין.',
     'build.disclaimer': 'מחיר "חי" נבדק מול הספק בשעה שמופיעה לידו ועשוי להשתנות עד ההזמנה. "הערכה" היא טווח מחושב מתקציב ממוצע ליעד. "לפי הצעה" – נציג יחזור אליכם עם מחיר. אין הזמנה או חיוב באתר.',
     'build.input.label': 'ספרו לנו על החופשה שאתם חולמים עליה',
@@ -189,7 +191,7 @@ export default {
     'build.account.new': 'בנו חבילה חדשה',
     'build.account.untitled': 'חבילה',
     'build.account.open': 'פתיחה',
-    'build.account.none': 'עוד לא שמרתם חבילות. ב"בונים חופשה בקסם" כותבים משפט ומקבלים טיול שלם.',
+    'build.account.none': 'עוד לא שמרתם חבילות. ב"בונים חופשה עם ג׳רבי" כותבים משפט ומקבלים טיול שלם.',
     'build.cta.destination': 'בנו לי חופשה לכאן',
     'build.cta.planner': 'בנו לי חופשה שלמה מזה',
     'build.understood.board.AI': 'הכול כלול', 'build.understood.board.FB': 'פנסיון מלא', 'build.understood.board.HB': 'חצי פנסיון', 'build.understood.board.BB': 'ארוחת בוקר',
@@ -216,8 +218,10 @@ export default {
     'build.assumed.ages': 'גיל 8 לילדים בחיפוש המלון'
   },
   en: {
-    'build.title': 'Magic trip builder',
-    'build.kicker': 'Describe it – we build it',
+    'build.title': 'Plan your holiday with Gerbi',
+    'build.prefs': 'Preferences',
+    'build.toTop': 'Back to top',
+    'build.kicker': 'You describe it – Gerbi builds it',
     'build.subtitle': 'Tell us in one sentence about the holiday you dream of. We build flights, a hotel, a car, a day-by-day plan and everything worth knowing – with live prices where we have them and a clear estimate where we do not.',
     'build.disclaimer': 'A "live" price was checked with the supplier at the time shown next to it and may change until booking. An "estimate" is a range calculated from an average daily budget for the destination. "On request" – an agent will get back to you with a price. Nothing is booked or charged on the site.',
     'build.input.label': 'Tell us about the holiday you dream of',
@@ -404,7 +408,7 @@ export default {
     'build.account.new': 'Build a new package',
     'build.account.untitled': 'Package',
     'build.account.open': 'Open',
-    'build.account.none': 'No saved packages yet. In the magic trip builder you write one sentence and get a whole trip.',
+    'build.account.none': 'No saved packages yet. In “Plan your holiday with Gerbi” you write one sentence and get a whole trip.',
     'build.cta.destination': 'Build me a holiday here',
     'build.cta.planner': 'Build a whole holiday from this',
     'build.understood.board.AI': 'All-inclusive', 'build.understood.board.FB': 'Full board', 'build.understood.board.HB': 'Half board', 'build.understood.board.BB': 'Breakfast',

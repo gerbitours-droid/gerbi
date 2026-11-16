@@ -9,6 +9,8 @@ import { multiLink } from './multi-city-core.mjs';
 import { timeVsIsrael } from './timezone.mjs';
 import { account, ready as accountReady } from './account.mjs';
 import { bookingConfig, startBooking } from './booking-client.mjs';
+import { asciiBackground } from './ascii-bg.mjs';
+import { slingTop } from './sling-top.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const L = (v) => (v && typeof v === 'object' ? v[lang] || v.he || v.en || '' : v ?? '');
@@ -17,6 +19,9 @@ const $ = (s, root = document) => root.querySelector(s);
 const SAVED_KEY = 'gerbi-packages-v1', CURRENT_KEY = 'gerbi-build-current-v1';
 const MONTHS = Array.from({ length: 12 }, (_, i) => new Date(2026, i, 15).toLocaleDateString(locale(), { month: 'long' }));
 
+let decor = [];
+const stopDecor = () => { decor.forEach((stop) => stop()); decor = []; };
+if (typeof window !== 'undefined') addEventListener('hashchange', () => { if (!location.hash.startsWith('#/build')) stopDecor(); });
 let pkg = null, view = null, version = 0, lastInput = null, showAllHotels = new Set(), leadOpen = false;
 
 // ---- prices
@@ -32,14 +37,22 @@ const travellersText = (r) => t('build.travellers', { adults: r.adults, children
 const EXAMPLES = ['build.example.family', 'build.example.couple', 'build.example.friends'];
 const CHIPS = [['who', ['couple', 'family', 'friends', 'solo']], ['budget', ['low', 'mid', 'high']], ['style', ['beach', 'city', 'nature', 'ski', 'allInclusive', 'car']]];
 function inputHtml(text = '') {
-  return `<form id="build-form" class="build-form" novalidate>
-   <label for="build-text" class="build-label">${t('build.input.label')}</label>
-   <textarea id="build-text" name="text" rows="3" maxlength="1500" placeholder="${esc(t('build.input.placeholder'))}" aria-describedby="build-hint">${esc(text)}</textarea>
-   <p id="build-hint" class="micro-copy">${t('build.input.hint')}</p>
+  // Chat composer (spec 27): one rounded box – text on top, tools and a round send button underneath.
+  return `<form id="build-form" class="build-form gb-composer" novalidate>
+   <label for="build-text" class="build-label sr-only">${t('build.input.label')}</label>
+   <div class="gb-box">
+    <textarea id="build-text" name="text" rows="2" maxlength="1500" placeholder="${esc(t('build.input.placeholder'))}" aria-describedby="build-hint">${esc(text)}</textarea>
+    <div class="gb-bar">
+     <button type="button" class="gb-tool" aria-expanded="false" aria-controls="gb-prefs" data-prefs>${icon('filter')}<span>${t('build.prefs')}</span></button>
+     <span id="build-hint" class="gb-hint">${t('build.input.hint')}</span>
+     <button type="submit" class="build-submit gb-send" aria-label="${esc(t('build.input.submit'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+    </div>
+   </div>
+   <div id="gb-prefs" class="gb-prefs" hidden>
    ${CHIPS.map(([group, ids]) => `<div class="build-chips" role="group" aria-label="${esc(t(`build.chip.${group}`))}"><span class="build-chip-label" aria-hidden="true">${t(`build.chip.${group}`)}</span>${ids.map((id) => `<button type="button" class="build-chip" data-chip="${group}.${id}" aria-pressed="false">${t(`build.chip.${group}.${id}`)}</button>`).join('')}</div>`).join('')}
    <div class="build-chips" role="group" aria-label="${esc(t('build.chip.when'))}"><label class="build-chip-label" for="build-month">${t('build.chip.when')}</label><select id="build-month" class="build-month"><option value="">${t('build.chip.when.any')}</option>${MONTHS.map((m, i) => `<option value="${i}">${esc(m)}</option>`).join('')}</select></div>
-   <div class="build-submit-row"><button type="submit" class="button yellow build-submit">${icon('spark')}${t('build.input.submit')}</button>
-    <div class="build-examples"><span class="micro-copy">${t('build.input.examples')}</span>${EXAMPLES.map((k) => `<button type="button" class="link-button" data-example="${k}">${t(k + '.short')}</button>`).join('')}</div></div>
+   </div>
+   <div class="build-examples gb-suggest"><span class="sr-only">${t('build.input.examples')}</span>${EXAMPLES.map((k) => `<button type="button" class="gb-card" data-example="${k}"><strong>${t(k + '.short')}</strong><span>${t(k)}</span></button>`).join('')}</div>
    <p class="build-error" role="alert" hidden></p>
   </form>`;
 }
@@ -51,6 +64,7 @@ function toggleChip(button) {
   if (on && group !== 'style') view.querySelectorAll(`[data-chip^="${group}."][aria-pressed="true"]`).forEach((b) => { b.setAttribute('aria-pressed', 'false'); area.value = area.value.replace(chipPhrase(b.dataset.chip), '').replace(/\s*,\s*,/g, ',').trim(); });
   button.setAttribute('aria-pressed', String(on));
   area.value = on ? [area.value.trim().replace(/[,.]$/, ''), phrase].filter(Boolean).join(', ') : area.value.replace(phrase, '').replace(/\s*,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '').trim();
+  area.dispatchEvent(new Event('input'));
 }
 
 // ---- server calls
@@ -63,7 +77,8 @@ async function post(path, payload) {
 function announce(text) { const s = $('#build-status'); if (s) { s.textContent = ''; setTimeout(() => { s.textContent = text; }, 30); } }
 
 async function build(input) {
-  lastInput = input; const mine = ++version; leadOpen = false; showAllHotels = new Set();
+  lastInput = input; const mine = ++version;
+  const you = $('.gb-you', view); if (you && input.text) { you.querySelector('p').textContent = input.text; you.hidden = false; } leadOpen = false; showAllHotels = new Set();
   const out = $('#build-result'), err = $('.build-error', view), button = $('.build-submit', view);
   err.hidden = true; button.disabled = true; button.setAttribute('aria-busy', 'true');
   out.setAttribute('aria-busy', 'true'); out.innerHTML = skeletonHtml(); announce(t('build.status.planning'));
@@ -385,11 +400,25 @@ function refreshFromSnapshot() {
 function page({ view: host, footer, bread }) {
   view = host;
   const params = new URLSearchParams(location.hash.split('?')[1] || ''), q = params.get('q') || '', dest = params.get('dest') || '', shared = params.get('p') || '';
-  view.innerHTML = `<div class="route-width build-page">${bread(t('build.title'))}
-   <header class="build-hero"><span class="eyebrow">${icon('spark')}${t('build.kicker')}</span><h1 tabindex="-1">${t('build.title')}</h1><p>${t('build.subtitle')}</p>${inputHtml(q)}</header>
-   <p id="build-status" class="sr-only" aria-live="polite"></p>
-   <div id="build-result" class="build-result"></div>
-   <p class="micro-copy build-disclaimer">${t('build.disclaimer')}</p></div>${footer}`;
+  stopDecor();
+  view.innerHTML = `<div class="build-page gb-page">
+   <section class="gb-stage"><canvas class="gb-ascii" aria-hidden="true"></canvas>
+    <div class="route-width gb-stage-inner">${bread(t('build.title'))}
+     <header class="build-hero gb-hero"><img class="gb-avatar" src="/assets/mascot.webp" alt="" width="96" height="96"><span class="eyebrow">${icon('spark')}${t('build.kicker')}</span><h1 tabindex="-1">${t('build.title')}</h1><p>${t('build.subtitle')}</p></header>
+     ${inputHtml(q)}
+    </div>
+   </section>
+   <div class="route-width gb-thread">
+    <p id="build-status" class="sr-only" aria-live="polite"></p>
+    <div class="gb-you" hidden><p></p></div>
+    <div class="gb-msg"><img class="gb-msg-avatar" src="/assets/mascot.webp" alt="" width="40" height="40"><div id="build-result" class="build-result"></div></div>
+    <p class="micro-copy build-disclaimer">${t('build.disclaimer')}</p>
+   </div></div>${footer}`;
+  const canvas = $('.gb-ascii', view), area = $('#build-text', view);
+  decor = [asciiBackground(canvas), slingTop(t('build.toTop'))];
+  const grow = () => { area.style.height = 'auto'; area.style.height = Math.min(area.scrollHeight, 240) + 'px'; };
+  area.addEventListener('input', grow); grow();
+  area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-form', view).requestSubmit(); } });
   loadFx();
   if (shared && /^[a-f0-9]{16}$/.test(shared)) openShared(shared);
   else if (q || dest) build({ text: q, dest });
@@ -422,7 +451,8 @@ function wire() {
   document.addEventListener('click', async (e) => {
     if (!view?.contains(e.target)) return;
     const el = (s) => e.target.closest(s);
-    if (el('[data-example]')) { $('#build-text').value = t(el('[data-example]').dataset.example); $('#build-text').focus(); return; }
+    if (el('[data-example]')) { const area = $('#build-text'); area.value = t(el('[data-example]').dataset.example); area.dispatchEvent(new Event('input')); area.focus(); return; }
+    if (el('[data-prefs]')) { const b = el('[data-prefs]'), open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', String(open)); $('#gb-prefs', view).hidden = !open; return; }
     if (el('[data-chip]')) { toggleChip(el('[data-chip]')); return; }
     if (!pkg) return;
     if (el('[data-choose]')) { build({ ...lastInput, chosen: el('[data-choose]').dataset.choose }); return; }
