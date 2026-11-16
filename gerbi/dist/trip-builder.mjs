@@ -7,6 +7,7 @@ import { destinations, byId, byCode, rank, normalize, monthName, nameVariants, s
 import { placeByCode, placeType } from './places.mjs';
 import { t } from './i18n.mjs';
 import { mapsUrl } from './trip-package.mjs';
+import { estimateTrip, fitTrip, floorConfig } from './budget.mjs';
 
 export const L = (v, l = 'he') => (v && typeof v === 'object' && !Array.isArray(v) ? v[l] || v.he || v.en || '' : v ?? '');
 const pad = (n) => String(n).padStart(2, '0');
@@ -51,7 +52,7 @@ function namedInText(text) {
 }
 
 // text + quick chips (already appended to the text by the page) → the trip request.
-export function parseTrip(text, { today = new Date().toISOString().slice(0, 10), lang = 'he', destId = '' } = {}) {
+export function parseTrip(text, { today = new Date().toISOString().slice(0, 10), lang = 'he', destId = '', fx = null } = {}) {
   const raw = String(text || '').slice(0, 1500), u = understandRequest(raw, {}, { today, lang }), b = u.brief, has = (rx) => rx.test(raw);
   const styles = ['beach', 'city', 'relaxation', 'family', 'couple'].filter((k) => b[k] === true);
   for (const k of ['ski', 'nature', 'nightlife', 'food', 'culture', 'shopping', 'luxury']) if (has(RX[k]) && !styles.includes(k)) styles.push(k);
@@ -77,15 +78,21 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   if (stars) say('stars', 'stars', { stars });
   if (honeymoon) say('occasion', 'honeymoon'); else if (friends) say('occasion', 'friends');
   for (const k of ['ski', 'nature', 'nightlife']) if (styles.includes(k)) say('style', `style.${k}`);
+  // Budget (spec 28 §א): a cap for everyone in shekels. "$3000" / "€2500" convert at today's rate (the site's /api/fx);
+  // with no rate the amount is unknown and the visitor is asked for it in shekels.
+  const foreign = b.budgetForeign, rate = foreign ? fx?.rates?.[foreign.currency] : null;
+  const budget = Number.isFinite(b.budget) ? b.budget : rate ? Math.floor(foreign.amount * rate / 10) * 10 : null;
+  if (foreign && rate) say('budget', 'budgetFx', { amount: `₪${new Intl.NumberFormat('en-US').format(budget)}` });
   const request = {
     text: raw, lang, origin: placeByCode(b.origin)?.code || 'TLV', adults: b.adults || 2, children: b.children || 0, childAges: (b.childAges || []).filter((a) => Number.isInteger(a) && a >= 0 && a < 18).slice(0, 8),
     infants: b.infants || 0, nights: b.nights || 0, start: b.start || '', end: b.end || '', month: monthIndex(b.month), styles, occasion,
-    budget: Number.isFinite(b.budget) ? b.budget : null, budgetLevel: luxury ? 'high' : b.cheaper ? 'low' : 'mid',
+    budget, budgetLevel: luxury ? 'high' : b.cheaper ? 'low' : 'mid',
     needs: { car, allInclusive, board, minStars: stars || (luxury ? 5 : 0), kosher: b.kosher === true, shabbat: b.shabbat === true, accessible: b.accessible === true, direct: b.stops === '0' },
+    asked: { stars: stars > 0 },
     destinations: alternatives ? [] : wanted.map((d) => d.id).slice(0, 4), shortlist: alternatives ? wanted.map((d) => d.id) : [], countries: named.countries, exclude: [...excluded],
     legs, suggest: !wanted.length || has(RX.suggest) && !forced,
     understood: [...u.understood.filter((x) => !['want', 'exclude'].includes(x.field)).map(({ field, label }) => ({ field, label })), ...extra],
-    questions: u.questions.filter((q) => !['destination', 'budget', 'budget-currency', 'nights', 'ages', 'children'].includes(q.id)).map((q) => q.question).slice(0, 2),
+    questions: u.questions.filter((q) => !['destination', 'budget', 'nights', 'ages', 'children'].includes(q.id) && (q.id !== 'budget-currency' || !budget)).map((q) => q.question).slice(0, 2),
     coverage: u.coverage
   };
   if (request.children && request.childAges.length < request.children) request.questions.unshift(t('build.q.ages', {}, lang));
@@ -105,7 +112,10 @@ export function applyEdits(request, e = {}, today = new Date().toISOString().sli
   if (typeof e.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.start) && e.start >= today) { r.start = e.start; r.end = ''; r.nights = r.nights || 5; }
   if (['yes', 'no', 'auto'].includes(e.car)) r.needs.car = e.car;
   if (typeof e.allInclusive === 'boolean') { r.needs.allInclusive = e.allInclusive; r.needs.board = e.allInclusive ? 'AI' : r.needs.board === 'AI' ? '' : r.needs.board; }
-  if (int(e.minStars, 0, 5) !== null) r.needs.minStars = e.minStars;
+  // A star level chosen in the form (a change, not the value it was showing) is a hard constraint for the budget fit.
+  if (int(e.minStars, 0, 5) !== null) { if (e.minStars !== request.needs.minStars) r.asked = { ...request.asked, stars: e.minStars > 0 }; r.needs.minStars = e.minStars; }
+  // Budget (spec 28): the "raise the budget" button and the ₪500 upgrades re-plan with a new cap; 0 clears it.
+  if (int(e.budget, 0, 5_000_000) !== null) r.budget = e.budget || null;
   for (const k of ['kosher', 'shabbat']) if (typeof e[k] === 'boolean') r.needs[k] = e[k];
   return r;
 }
@@ -125,9 +135,25 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   if (request.children > 0) ranked = ranked.filter((x) => x.destination.flightHours <= 6 || ranked.length <= limit);
   // The AI partner's ideas (when the rules understood little) lead the list; they never hide the catalog's ranking.
   if (request.boost?.length) ranked = [...ranked.filter((x) => request.boost.includes(x.destination.id)), ...ranked.filter((x) => !request.boost.includes(x.destination.id))];
+  // Budget (spec 28 §א.2): a destination whose LOW end – with everything the plan may give up given up – is above the
+  // cap is not offered; the ones whose HIGH end fits lead; "cheap" orders the best-matching ones by estimated cost.
+  const cost = new Map();
+  if (request.budget > 0) {
+    for (const x of ranked.slice(0, 40)) { const d = x.destination, stops = [{ dest: d, nights: planDates(request, d, today).nights }]; cost.set(d.id, estimateTrip(stops, request, floorConfig(request, baseConfigOf(request, d)))); }
+    const known = ranked.filter((x) => cost.has(x.destination.id)), fitting = known.filter((x) => cost.get(x.destination.id).low <= request.budget);
+    if (fitting.length) {
+      const fits = (x) => cost.get(x.destination.id).high <= request.budget;
+      ranked = [...fitting.filter(fits), ...fitting.filter((x) => !fits(x))];
+      if (request.budgetLevel === 'low') ranked = [...ranked.slice(0, 8).sort((a, b) => cost.get(a.destination.id).high - cost.get(b.destination.id).high), ...ranked.slice(8)];
+    } else ranked = known.sort((a, b) => cost.get(a.destination.id).low - cost.get(b.destination.id).low);
+  }
   return ranked.slice(0, limit).map(({ destination: d, score, reasons }) => ({ id: d.id, name: d.name, country: d.country, image: imageOf(d), score,
-    reasons: reasons.slice(0, 3).map((r) => L(r, request.lang)), flightHours: d.flightHours, direct: d.direct, budgetLevel: d.budgetLevel, advisory: L(d.advisory, request.lang) }));
+    reasons: reasons.slice(0, 3).map((r) => L(r, request.lang)), flightHours: d.flightHours, direct: d.direct, budgetLevel: d.budgetLevel, advisory: L(d.advisory, request.lang),
+    ...(cost.has(d.id) ? { estimate: { low: cost.get(d.id).low, high: cost.get(d.id).high }, fitsBudget: cost.get(d.id).high <= request.budget } : {}) }));
 }
+// The configuration a plan starts from before the budget fit: the hotel search's stars and meal plan, the car advice.
+export const baseConfigOf = (request, dest) => ({ stars: defaultStars(request), board: request.needs.board || '', car: carAdvice(dest, request).include });
+const defaultStars = (request) => request.needs.minStars || (request.occasion === 'honeymoon' ? 4 : request.children || request.budgetLevel !== 'low' ? 4 : 3);
 export const imageOf = (d) => (d?.image?.thumb ? d.image.thumb : d?.trip ? `/assets/${d.trip}.jpg` : '');
 
 // ---- 3. Dates: what was said, else the month (first Sunday on/after the 10th), else the next good month.
@@ -420,7 +446,7 @@ export function roomsOf(request) {
 }
 export function hotelSearchOf(request, stop, area) {
   return { destinationId: stop.dest.id, city: hotelCityOf(stop.dest), checkIn: stop.start, checkOut: stop.end, rooms: roomsOf(request), board: request.needs.board || '',
-    minStars: request.needs.minStars || (request.occasion === 'honeymoon' ? 4 : request.children || request.budgetLevel !== 'low' ? 4 : 3), family: request.children > 0, area: area ? L(area.name, 'en') : '' };
+    minStars: defaultStars(request), family: request.children > 0, area: area ? L(area.name, 'en') : '' };
 }
 // The area the catalog recommends for these travellers: matched on its "for whom" text.
 export function areaFor(dest, request) {
@@ -460,13 +486,25 @@ export function planPackage(request, { today = new Date().toISOString().slice(0,
   if (request.children > request.childAges.length) assumed.push(t('build.assumed.ages', {}, l));
   const stopView = (s) => ({ id: s.dest.id, code: s.dest.code, name: s.dest.name, country: s.dest.country, nights: s.nights, start: s.start, end: s.end, dailyBudgetIls: s.dest.dailyBudgetIls, image: imageOf(s.dest), summary: s.dest.summary, advisory: s.dest.advisory || null });
   const areas = stops.map((s) => areaFor(s.dest, r));
+  // Budget (spec 28 §א.2): the highest stars / meal plan / car whose estimated HIGH end fits the cap (no supplier call).
+  const base = baseConfigOf(r, main), budgetPlan = fitTrip(stops, r, base), cfg = budgetPlan?.config || base;
+  if (budgetPlan) {
+    const what = budgetPlan.changes.map((k) => t(`build.assumed.budget.${k}`, { stars: cfg.stars, board: t(`build.understood.board.${cfg.board || 'RO'}`, {}, l) }, l));
+    if (what.length) assumed.push(t('build.assumed.budget', { list: what.join(', ') }, l));
+    // Nearest alternatives: destinations that fit; when none does, the cheapest ones that are cheaper than this plan.
+    if (!budgetPlan.fits) {
+      const others = suggestDestinations({ ...r, destinations: [], shortlist: [], countries: [] }, { limit: 6, today }).filter((s) => !ids.includes(s.id) && s.estimate);
+      const fitting = others.filter((s) => s.fitsBudget), cheaper = others.filter((s) => s.estimate.high < budgetPlan.estimate.high).sort((a, b) => a.estimate.high - b.estimate.high);
+      budgetPlan.alternatives = (fitting.length ? fitting : cheaper).slice(0, 2).map(({ id, name, estimate, fitsBudget }) => ({ id, name, estimate, fits: fitsBudget === true }));
+    }
+  }
   return {
-    request: r, suggestions, assumed,
+    request: r, suggestions, assumed, budgetPlan,
     destination: stopView(stops[0]), stops: stops.length > 1 ? stops.map(stopView) : [],
     areas: stops.map((s) => (s.dest.areas || []).map((a) => ({ name: a.name, forWhom: a.forWhom }))),
-    flightSearch: flightSearchOf(r, stops), hotelSearches: stops.map((s, i) => hotelSearchOf(r, s, areas[i])),
+    flightSearch: flightSearchOf(r, stops), hotelSearches: stops.map((s, i) => ({ ...hotelSearchOf(r, s, areas[i]), minStars: cfg.stars, board: cfg.board })),
     hotelAreas: areas.map((a) => (a ? { name: a.name, forWhom: a.forWhom } : null)),
-    car: carAdvice(main, r, l), itinerary: it.days, spare: it.spare, warnings: it.warnings,
+    car: { ...carAdvice(main, r, l), include: cfg.car }, itinerary: it.days, spare: it.spare, warnings: it.warnings,
     practical: (() => { const pr = practicalOf(main, r, l); if (it.warnings.length) pr.season = [...it.warnings, pr.season].filter(Boolean).join(' '); return pr; })(),
     highlights: (main.highlights || []).slice(0, 4).map((h) => L(h, l))
   };

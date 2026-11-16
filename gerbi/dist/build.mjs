@@ -12,6 +12,7 @@ import { bookingConfig, startBooking } from './booking-client.mjs';
 import { asciiBackground } from './ascii-bg.mjs';
 import { slingTop } from './sling-top.mjs';
 import { brochureHtml } from './brochure.mjs';
+import { fitPackage, upsellOffers, applyUpsell, flightsInBudget } from './budget.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const L = (v) => (v && typeof v === 'object' ? v[lang] || v.he || v.en || '' : v ?? '');
@@ -24,6 +25,9 @@ let decor = [];
 const stopDecor = () => { decor.forEach((stop) => stop()); decor = []; };
 if (typeof window !== 'undefined') addEventListener('hashchange', () => { if (!location.hash.startsWith('#/build')) stopDecor(); });
 let pkg = null, view = null, version = 0, lastInput = null, showAllHotels = new Set(), leadOpen = false;
+// Attraction / day-trip photos ('<destId>|<English name>' → { src }), generated separately; optional (spec 28 §ב).
+let tripImages = {};
+import('./catalog/attraction-images.mjs').then((m) => { tripImages = Object.fromEntries(Object.entries(m.default || {}).filter(([, v]) => typeof v?.src === 'string').map(([k, v]) => [k, '/' + v.src.replace(/^\/+/, '')])); if (pkg?.destination && view?.isConnected) paint('upsell'); }).catch(() => {});
 
 // ---- prices
 const fare = (price) => { if (!price) return ''; const v = toIls(price, getFx()); return v === null ? formatOriginal(price) : formatIls(v); };
@@ -86,7 +90,7 @@ async function build(input) {
   try {
     const plan = await post('/api/build', input);
     if (mine !== version) return;
-    pkg = { ...plan, flights: { status: plan.flightSearch ? 'pending' : 'quote' },
+    pkg = { ...plan, manual: false, fit: null, extras: [], flights: { status: plan.flightSearch ? 'pending' : 'quote' },
       hotels: plan.stops?.length ? { stops: plan.hotelSearches.map((s, i) => ({ status: s ? 'pending' : 'quote', stop: i, area: plan.hotelAreas[i] })) } : { status: plan.hotelSearches[0] ? 'pending' : 'quote', area: plan.hotelAreas[0] },
       car: { ...plan.car }, insurance: { include: false }, polish: null };
     if (!pkg.destination) { out.removeAttribute('aria-busy'); out.innerHTML = suggestionsOnlyHtml(); announce(t('build.status.suggest')); return; }
@@ -101,15 +105,23 @@ async function build(input) {
 async function fetchFlights(mine) {
   if (!pkg.flightSearch) return;
   try {
-    const result = await post('/api/build/flights', { search: pkg.flightSearch, request: { adults: pkg.request.adults, children: pkg.request.children, needs: pkg.request.needs } });
+    const result = await post('/api/build/flights', { search: pkg.flightSearch, request: { adults: pkg.request.adults, children: pkg.request.children, needs: pkg.request.needs, budget: pkg.request.budget || null } });
     if (mine !== version) return;
     pkg.flights = result.status === 'live' ? result : { status: 'quote', reason: result.reason || result.status };
   } catch (error) { if (mine === version) pkg.flights = { status: 'quote', reason: error.status === 429 ? 'rate_limited' : '' }; }
   if (mine !== version) return;
-  paint('flights'); paint('total'); persist();
+  fitBudget(); repaintPrices(); persist();
   announce(pkg.flights.status === 'live' ? t('build.status.flights', { count: pkg.flights.picks.length }) : t('build.status.flightsQuote'));
 }
 const hotelGroups = () => (pkg.hotels.stops ? pkg.hotels.stops : [pkg.hotels]);
+// Spec 28: once every price is in, fit the package under the budget (cheapest fitting flight → cheaper hotel → lower
+// meal plan → a star down → no car). In memory on what arrived; never after the visitor chose something by hand.
+function fitBudget() {
+  if (!pkg?.request?.budget || pkg.manual || pkg.flights.status === 'pending' || hotelGroups().some((g) => g.status === 'pending')) return;
+  const result = fitPackage(pkg, getFx());
+  if (result) pkg.fit = { ...result, steps: [...new Set([...(pkg.fit?.steps || []), ...result.steps])] };
+}
+function repaintPrices() { for (const part of ['flights', 'hotels', 'car', 'total', 'banner', 'upsell']) paint(part); }
 async function fetchHotels(mine, i, area) {
   const spec = pkg.hotelSearches?.[i];
   if (!spec) return;
@@ -121,7 +133,7 @@ async function fetchHotels(mine, i, area) {
     Object.assign(group, result.status === 'live' ? { ...result, selected: result.picks[0]?.id } : result.status === 'estimate' ? { ...result, picks: [] } : { status: 'quote', picks: [], reason: result.reason || result.status });
   } catch (error) { if (mine === version) Object.assign(group, { status: 'quote', picks: [], reason: error.status === 429 ? 'rate_limited' : '' }); }
   if (mine !== version) return;
-  paint('hotels'); paint('total'); persist();
+  fitBudget(); repaintPrices(); persist();
   announce(group.status === 'live' ? t('build.status.hotels', { count: group.picks.length }) : group.status === 'estimate' ? t('build.status.hotelsEstimate') : t('build.status.hotelsQuote'));
 }
 async function fetchPolish(mine) {
@@ -160,6 +172,7 @@ function render() {
     ${pkg.questions?.length ? `<p class="next-question">${pkg.questions.map(esc).join('<br>')}</p>` : ''}
     ${stale ? `<p class="notice">${t('build.shared.stale', { time: esc(fmtDate(pkg.sharedAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) })} <button type="button" class="link-button" data-act="refresh">${t('build.shared.refresh')}</button></p>` : ''}
     </div></div>
+   <div id="bc-banner" class="bk-banner-host"></div>
    ${editHtml()}
    <div class="bk-grid">
     <div class="bk-main">
@@ -172,6 +185,7 @@ function render() {
      <section class="bk-card" id="bc-practical" aria-labelledby="bh-practical"></section>
     </div>
     <aside class="bk-side"><section class="bk-card bk-total" id="bc-total" aria-labelledby="bh-total"></section>
+     <section class="bk-card bk-upsell" id="bc-upsell" aria-labelledby="bh-upsell"></section>
      <div class="bk-actions" role="group" aria-label="${esc(t('build.actions'))}">
       <button type="button" class="button yellow full-width" data-act="lead">${icon('send')}${t('build.act.lead')}</button>
       <button type="button" class="button secondary" data-act="save">${icon('heart')}${t('build.act.save')}</button>
@@ -183,7 +197,7 @@ function render() {
      <section class="bk-card bk-lead" id="bc-lead" ${leadOpen ? '' : 'hidden'}></section>
     </aside>
    </div>`;
-  for (const part of ['where', 'flights', 'hotels', 'car', 'insurance', 'itinerary', 'practical', 'total']) paint(part);
+  for (const part of ['where', 'flights', 'hotels', 'car', 'insurance', 'itinerary', 'practical', 'total', 'banner', 'upsell']) paint(part);
   if (leadOpen) paintLead();
   wireImages(out);
 }
@@ -224,8 +238,11 @@ const PAINT = {
     if (f.status !== 'live') return head + `<p>${kindPill('quote')} ${t(f.reason === 'not_connected' ? 'build.flights.notConnected' : f.reason === 'rate_limited' ? 'build.err.rateLimited' : 'build.flights.quote')}</p>`;
     const link = pkg.stops?.length ? multiLink({ legs: f.picks[0].legs.map((l) => ({ from: l.from, to: l.to, date: l.date })), adults: pkg.request.adults, children: pkg.request.children })
       : searchLink({ origin: pkg.request.origin, destination: pkg.destination.code, start: pkg.request.start, end: pkg.request.end, type: 'round', adults: pkg.request.adults, children: pkg.request.children });
+    const flightView = flightsInBudget(pkg, getFx());
     return head + `<p class="micro-copy">${kindPill('live')} ${t('build.flights.found', { count: f.total })} · ${esc(checked(f.searchedAt))}</p>
-     <ul class="bk-options">${f.picks.map((p) => `<li><button type="button" class="bk-option" data-pick-flight="${esc(p.key)}" aria-pressed="${p.key === f.selected}">
+     ${flightView.hidden ? `<p class="micro-copy bk-over-note">${t('build.flights.hiddenOver', { count: flightView.hidden, budget: esc(formatIls(pkg.request.budget)) })}</p>` : ''}
+     ${flightView.allOver ? `<p class="bk-budget bk-budget-over">${t('build.flights.allOver', { budget: esc(formatIls(pkg.request.budget)) })}</p>` : ''}
+     <ul class="bk-options">${flightView.shown.map((p) => `<li><button type="button" class="bk-option" data-pick-flight="${esc(p.key)}" aria-pressed="${p.key === f.selected}">
       <span class="bk-option-main"><strong>${esc(p.carriers.join(' + '))}</strong>${p.badges.length ? `<span class="bk-badges">${p.badges.map((b) => `<span class="flight-badge badge-${esc(b)}">${t(`app.badge.${b}`)}</span>`).join('')}</span>` : ''}
       ${p.legs.map((l) => `<span class="bk-leg" dir="ltr">${esc(l.from)} ${esc(l.depart)} → ${esc(l.to)} ${esc(l.arrive)}${l.dayOffset ? ` +${l.dayOffset}` : ''}</span><small>${esc(longDay(l.date))} · ${l.stops ? t('build.flights.stops', { count: l.stops }) : t('build.flights.direct')}</small>`).join('')}
       ${p.reasons.length ? `<small class="why">${esc(p.reasons.join(' · '))}</small>` : ''}</span>
@@ -289,16 +306,80 @@ const PAINT = {
     return `<h3 id="bh-practical">${icon('shield')}${t('build.practical.title')}</h3><dl class="bk-practical">${rows.map(([k, v]) => `<div class="${(k === 'kosher' && pkg.request.needs.kosher) || (k === 'shabbat' && pkg.request.needs.shabbat) ? 'bk-flag' : ''}"><dt>${t(`build.practical.${k}`)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl><p class="micro-copy">${esc(p.check || t('build.practical.check'))}</p>`;
   },
   total() {
-    const pr = pricePackage(pkg, getFx()), label = (l) => t(`build.line.${l.id.split(':')[0]}`, { place: l.stop !== undefined && pkg.stops?.length ? L(pkg.stops[l.stop]?.name) : '' });
+    const pr = pricePackage(pkg, getFx()), label = (l) => l.name || t(`build.line.${l.id.split(':')[0]}`, { place: l.stop !== undefined && pkg.stops?.length ? L(pkg.stops[l.stop]?.name) : '' });
     const value = (l) => l.kind === 'live' ? `<strong dir="ltr">${esc(l.ils === null ? formatOriginal(l.price) : formatIls(l.ils))}</strong>` : l.kind === 'estimate' ? (l.range ? range(l.range.low, l.range.high) : `<span class="bk-range" dir="ltr">${esc(formatOriginal({ value: l.original.low, currency: l.original.currency }))} – ${esc(formatOriginal({ value: l.original.high, currency: l.original.currency }))}</span>`) : l.kind === 'pending' ? `<span class="bk-pending">${t('build.kind.pending')}</span>` : `<span>${t('build.price.byRep')}</span>`;
     return `<h3 id="bh-total">${icon('tag')}${t('build.total.title')}</h3><table class="bk-lines"><tbody>${pr.lines.map((l) => `<tr><th scope="row">${esc(label(l))}<br>${kindPill(l.kind)}</th><td>${value(l)}${l.at ? `<small>${esc(checked(l.at))}</small>` : ''}</td></tr>`).join('')}</tbody></table>
      ${pr.total ? `<div class="bk-sum"><p>${t('build.total.live')} <strong dir="ltr">${esc(formatIls(pr.total.live))}</strong></p><p>${t('build.total.withEstimate')} <strong>${range(pr.total.low, pr.total.high)}</strong></p>
        <p class="micro-copy">${t('build.total.perPerson', { live: esc(formatIls(pr.perPerson.live)), low: esc(formatIls(pr.perPerson.low)), high: esc(formatIls(pr.perPerson.high)), count: pr.people })}</p></div>` : pr.missingFx ? `<p class="micro-copy">${t('build.total.noFx')}</p>` : ''}
-     ${pr.budget ? `<p class="bk-budget bk-budget-${pr.budget.verdict}">${t(`build.total.budget.${pr.budget.verdict}`, { budget: esc(formatIls(pr.budget.amount)), diff: esc(formatIls(Math.abs(pr.budget.diff))) })}</p>` : ''}
+     ${pr.budget ? budgetHtml(pr) : ''}
      <div class="bk-legend"><p>${kindPill('live')} ${t('build.legend.live')}</p><p>${kindPill('estimate')} ${t('build.legend.estimate')}</p><p>${kindPill('quote')} ${t('build.legend.quote')}</p></div>
      ${getFx() ? `<p class="micro-copy">${esc(fxNote())}</p>` : ''}`;
-  }
+  },
+  // Above the cards: an over-budget package is never shown as if it fits (spec 28 §א.5).
+  banner() {
+    const b = pricePackage(pkg, getFx()).budget;
+    return b?.verdict === 'over' ? `<p class="bk-budget-banner">${t('build.budget.banner', { diff: esc(formatIls(b.diff)), budget: esc(formatIls(b.amount)) })} <a href="#bc-total" data-budget-jump>${t('build.budget.bannerLink')}</a></p>` : '';
+  },
+  upsell() { return upsellHtml(); }
 };
+// The budget box of the total card: within (with what is left), over (closest + three ways out), or not yet known.
+function budgetHtml(pr) {
+  const b = pr.budget, money = (v) => esc(formatIls(v)), all = pkg.fit?.steps || [], steps = all.filter((s) => s !== 'restored');
+  const restored = all.includes('restored') ? `<p class="micro-copy">${t('build.budget.restored', { stars: hotelGroups()[0]?.minStars || '' })}</p>` : '';
+  if (b.verdict === 'within') return `<div class="bk-budget bk-budget-within"><p>${t('build.budget.within', { budget: money(b.amount), left: money(b.left) })}</p>${restored}${steps.length ? `<p class="micro-copy">${t('build.budget.steps', { list: steps.map((s) => t(`build.budget.step.${s}`)).join(', ') })}</p>` : ''}</div>`;
+  if (b.verdict !== 'over') {
+    const plan = pkg.budgetPlan;
+    return `<p class="bk-budget bk-budget-${b.verdict}">${t(`build.total.budget.${b.verdict}`, { budget: money(b.amount) })}</p>${b.verdict === 'unverified' && plan && !plan.fits ? budgetActions({ overBy: plan.overBy, raiseTo: plan.raiseTo, nights: plan.nights }, b.amount) : ''}`;
+  }
+  return budgetActions({ overBy: b.diff, raiseTo: Math.ceil(pr.total.high / 100) * 100, nights: pkg.fit?.nights || pkg.budgetPlan?.nights }, b.amount, steps);
+}
+function budgetActions({ overBy, raiseTo, nights }, amount, steps = []) {
+  const alts = (pkg.budgetPlan?.alternatives || []).filter((a) => a.id !== pkg.destination.id);
+  return `<div class="bk-budget bk-budget-over"><p><strong>${t('build.budget.over', { diff: esc(formatIls(overBy)), budget: esc(formatIls(amount)) })}</strong></p>
+    ${steps.length ? `<p class="micro-copy">${t('build.budget.steps', { list: steps.map((s) => t(`build.budget.step.${s}`)).join(', ') })}</p>` : ''}
+    <p class="micro-copy">${t('build.budget.overLead')}</p>
+    <div class="bk-budget-acts" role="group" aria-label="${esc(t('build.budget.overLead'))}">
+     ${nights && nights < pkg.request.nights ? `<button type="button" class="button secondary" data-budget-act="nights" data-value="${nights}">${t('build.budget.act.nights', { nights })}</button>` : ''}
+     ${alts.map((a) => `<button type="button" class="button secondary" data-budget-act="dest" data-value="${esc(a.id)}">${t('build.budget.act.dest', { place: esc(L(a.name)) })}</button>`).join('')}
+     <button type="button" class="button yellow" data-budget-act="raise" data-value="${raiseTo}">${t('build.budget.act.raise', { amount: esc(formatIls(raiseTo)) })}</button>
+    </div></div>`;
+}
+
+// ---- "add up to ₪500 and get…" (spec 28 §ב): an accessible scroll-snap carousel next to the total.
+let offers = [];
+const offerTitle = (o) => (o.type === 'trip' ? o.name : t(`build.upsell.${o.type}.title`, { stars: o.stars, board: o.board ? t(`build.board.${o.board}`) : '' }));
+const offerWhat = (o) => (o.type === 'trip' ? esc(o.note || t('build.upsell.trip.what')) : t(`build.upsell.${o.type}.what`, { stars: o.stars, carriers: esc((o.carriers || []).join(' + ')), nights: o.nights, was: pkg.request.nights }));
+const offerIcon = (o) => (o.type === 'direct' || o.type === 'bag' ? 'plane' : o.type === 'trip' ? 'pin' : 'hotel');
+function upsellHtml() {
+  offers = pkg.sharedAt ? [] : upsellOffers(pkg, getFx(), { trips: pkg.upsellTrips || [], images: tripImages });
+  if (!offers.length) return '';
+  const rtl = document.documentElement.dir === 'rtl';
+  return `<h3 id="bh-upsell">${icon('spark')}${t('build.upsell.title')}</h3><p class="micro-copy">${t('build.upsell.intro')}</p>
+   <div class="bk-carousel" role="region" aria-roledescription="carousel" aria-label="${esc(t('build.upsell.label'))}">
+    <ul class="bk-car-track">${offers.map((o, i) => `<li class="bk-car-slide" role="group" aria-roledescription="slide" aria-label="${esc(t('build.upsell.slide', { n: i + 1, count: offers.length }))}: ${esc(offerTitle(o))}">
+     <div class="bk-car-img">${o.image ? `<img src="${esc(o.image)}" alt="" loading="lazy" data-fallback>` : ''}<span class="bk-car-badge" aria-hidden="true">${icon(offerIcon(o))}</span></div>
+     <div class="bk-car-body"><h4>${esc(offerTitle(o))}</h4><p>${offerWhat(o)}</p>
+      <p class="bk-car-price"><strong>${t(o.exact ? 'build.upsell.exact' : 'build.upsell.estimate', { amount: `<bdi dir="ltr">+${esc(formatIls(o.extra))}</bdi>` })}</strong> <span class="bk-kind bk-${o.exact ? 'live' : 'estimate'}">${t(o.exact ? 'build.upsell.kind.exact' : 'build.upsell.kind.estimate')}</span></p>
+      <button type="button" class="button yellow" data-upsell="${i}">${t('build.upsell.add')}</button></div></li>`).join('')}</ul>
+    ${offers.length > 1 ? `<div class="bk-car-nav"><button type="button" class="icon-button" data-carousel="-1" aria-label="${esc(t('build.upsell.prev'))}">${rtl ? '›' : '‹'}</button><span class="micro-copy" data-car-pos aria-hidden="true">1 / ${offers.length}</span><button type="button" class="icon-button" data-carousel="1" aria-label="${esc(t('build.upsell.next'))}">${rtl ? '‹' : '›'}</button></div>` : ''}
+   </div>`;
+}
+// The slide whose start edge is nearest the track's start edge (works for RTL negative scroll and LTR alike).
+function currentSlide(track) {
+  const slides = [...track.children], box = track.getBoundingClientRect(), rtl = getComputedStyle(track).direction === 'rtl';
+  const edge = (r) => Math.abs(rtl ? box.right - r.right : r.left - box.left);
+  return slides.reduce((best, s, i) => (edge(s.getBoundingClientRect()) < edge(slides[best].getBoundingClientRect()) ? i : best), 0);
+}
+function moveCarousel(root, dir, focus = false) {
+  const track = root.querySelector('.bk-car-track'), slides = [...(track?.children || [])];
+  if (!slides.length) return;
+  const next = slides[Math.min(slides.length - 1, Math.max(0, currentSlide(track) + dir))];
+  const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  track.scrollTo({ left: track.scrollLeft + (next.getBoundingClientRect()[getComputedStyle(track).direction === 'rtl' ? 'right' : 'left'] - track.getBoundingClientRect()[getComputedStyle(track).direction === 'rtl' ? 'right' : 'left']), behavior: smooth ? 'smooth' : 'auto' });
+  const pos = root.querySelector('[data-car-pos]');
+  if (pos) pos.textContent = `${slides.indexOf(next) + 1} / ${slides.length}`;
+  if (focus) next.querySelector('button')?.focus({ preventScroll: true });
+}
 // Spec 25: the chosen flight can be booked on the site while its search is fresh (the supplier token lives an hour).
 // Flights only – hotels stay quoted by an agent while HOTELS_PUBLIC_DISPLAY is off.
 let bookingEnabled = false;
@@ -308,6 +389,7 @@ function paint(part) {
   if (!host || !pkg?.destination) return;
   const focus = document.activeElement && host.contains(document.activeElement) ? [...host.querySelectorAll('button,select,input,a')].indexOf(document.activeElement) : -1;
   host.innerHTML = PAINT[part]();
+  if (part === 'upsell' || part === 'banner') host.hidden = !host.innerHTML.trim();
   host.toggleAttribute('aria-busy', host.querySelector('[aria-busy="true"]') !== null);
   wireImages(host);
   if (focus >= 0) host.querySelectorAll('button,select,input,a')[focus]?.focus();
@@ -452,7 +534,19 @@ let wired = false;
 function wire() {
   bookingConfig().then((c) => { bookingEnabled = c.enabled === true; if (pkg?.flights?.status === 'live' && view?.isConnected) paint('flights'); }).catch(() => {});
   if (wired) return; wired = true;
-  onFx(() => { if (pkg?.destination && view?.isConnected) { paint('flights'); paint('hotels'); paint('total'); } });
+  onFx(() => { if (pkg?.destination && view?.isConnected) { fitBudget(); repaintPrices(); } });
+  // Upgrade carousel: arrow keys move between slides (visual direction, so RTL and LTR both feel right); Home / End.
+  document.addEventListener('keydown', (e) => {
+    const root = e.target.closest?.('.bk-carousel');
+    if (!root || !view?.contains(root) || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+    const rtl = getComputedStyle(root).direction === 'rtl', n = root.querySelectorAll('.bk-car-slide').length;
+    const dir = e.key === 'Home' ? -n : e.key === 'End' ? n : (e.key === 'ArrowRight') !== rtl ? 1 : -1;
+    e.preventDefault(); moveCarousel(root, dir, true);
+  });
+  document.addEventListener('scroll', (e) => {
+    const track = e.target?.classList?.contains('bk-car-track') ? e.target : null, pos = track?.closest('.bk-carousel')?.querySelector('[data-car-pos]');
+    if (pos) pos.textContent = `${currentSlide(track) + 1} / ${track.children.length}`;
+  }, { capture: true, passive: true });
   document.addEventListener('submit', (e) => {
     if (!view?.contains(e.target)) return;
     if (e.target.id === 'build-form') {
@@ -460,13 +554,13 @@ function wire() {
       const full = month !== '' ? `${text}${text ? ', ' : ''}${t('build.chip.when.phrase', { month: MONTHS[Number(month)] })}` : text;
       if (!full) { const err = $('.build-error', view); err.textContent = t('build.err.empty'); err.hidden = false; $('#build-text').focus(); return; }
       history.replaceState(null, '', `#/build?q=${encodeURIComponent(full)}`); build({ text: full });
-    } else if (e.target.id === 'build-edit') { e.preventDefault(); build({ ...lastInput, chosen: pkg.destination.id, edits: editsFrom(e.target) }); }
+    } else if (e.target.id === 'build-edit') { e.preventDefault(); build({ ...lastInput, chosen: pkg.destination.id, edits: { ...(lastInput?.edits?.budget ? { budget: lastInput.edits.budget } : {}), ...editsFrom(e.target) } }); }
     else if (e.target.id === 'build-lead') { e.preventDefault(); submitLead(e.target); }
   });
   document.addEventListener('change', (e) => {
     if (!view?.contains(e.target) || !pkg) return;
-    if (e.target.matches('[data-insurance]')) { pkg.insurance = { include: e.target.checked }; paint('insurance'); paint('total'); persist(); $('[data-insurance]', view)?.focus(); }
-    if (e.target.matches('[data-car]')) { pkg.car.include = e.target.checked; paint('car'); paint('total'); persist(); $('[data-car]', view)?.focus(); }
+    if (e.target.matches('[data-insurance]')) { pkg.insurance = { include: e.target.checked }; paint('insurance'); paint('total'); paint('banner'); paint('upsell'); persist(); $('[data-insurance]', view)?.focus(); }
+    if (e.target.matches('[data-car]')) { pkg.car.include = e.target.checked; pkg.manual = true; paint('car'); paint('total'); paint('banner'); paint('upsell'); persist(); $('[data-car]', view)?.focus(); }
     if (e.target.matches('[data-area]')) { const i = Number(e.target.dataset.area), area = (pkg.areas[i] || []).find((a) => (a.name.en || L(a.name)) === e.target.value); hotelGroups()[i].area = area || null; fetchHotels(version, i, e.target.value); }
   });
   document.addEventListener('click', async (e) => {
@@ -484,8 +578,27 @@ function wire() {
       catch (error) { button.disabled = false; button.removeAttribute('aria-busy'); const status = $('#bo-book-status', view); if (status) status.textContent = t(error.code === 'offer_unavailable' ? 'booking.offer.gone' : error.status === 429 ? 'booking.offer.busy' : 'booking.offer.failed'); }
       return;
     }
-    if (el('[data-pick-flight]')) { pkg.flights.selected = el('[data-pick-flight]').dataset.pickFlight; paint('flights'); paint('total'); persist(); return; }
-    if (el('[data-pick-hotel]')) { const [i, id] = el('[data-pick-hotel]').dataset.pickHotel.split(':'); hotelGroups()[Number(i)].selected = id; paint('hotels'); paint('total'); persist(); return; }
+    if (el('[data-pick-flight]')) { pkg.flights.selected = el('[data-pick-flight]').dataset.pickFlight; pkg.manual = true; paint('flights'); paint('total'); paint('banner'); paint('upsell'); persist(); return; }
+    if (el('[data-pick-hotel]')) { const [i, id] = el('[data-pick-hotel]').dataset.pickHotel.split(':'); hotelGroups()[Number(i)].selected = id; pkg.manual = true; paint('hotels'); paint('total'); paint('banner'); paint('upsell'); persist(); return; }
+    if (el('[data-budget-jump]')) { e.preventDefault(); const box = $('#bc-total', view); box?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); (box?.querySelector('[data-budget-act]') || box)?.focus?.({ preventScroll: true }); return; }
+    if (el('[data-budget-act]')) {
+      const b = el('[data-budget-act]'), value = b.dataset.value, edits = { ...(lastInput?.edits || {}) };
+      if (b.dataset.budgetAct === 'dest') { build({ ...lastInput, chosen: value, edits }); return; }
+      if (b.dataset.budgetAct === 'nights') edits.nights = Number(value); else edits.budget = Number(value);
+      build({ ...lastInput, chosen: pkg.destination.id, edits }); return;
+    }
+    if (el("[data-carousel]")) { moveCarousel(el(".bk-carousel"), Number(el("[data-carousel]").dataset.carousel)); return; }
+    if (el('[data-upsell]')) {
+      const offer = offers[Number(el('[data-upsell]').dataset.upsell)];
+      if (!offer) return;
+      const done = applyUpsell(pkg, offer, getFx()), title = offer.type === 'trip' ? offer.name : offerTitle(offer);
+      lastInput = { ...lastInput, edits: { ...(lastInput?.edits || {}), budget: done.budget } };
+      if (done.rebuild) { build({ ...lastInput, chosen: pkg.destination.id, edits: { ...lastInput.edits, nights: done.nights } }); return; }
+      pkg.manual = true; repaintPrices(); persist();
+      announce(t('build.upsell.added', { title, budget: formatIls(done.budget) }));
+      $('#bh-total', view)?.setAttribute('tabindex', '-1'); $('#bh-total', view)?.focus();
+      return;
+    }
     if (el('[data-more-hotels]')) { const i = Number(el('[data-more-hotels]').dataset.moreHotels); showAllHotels.has(i) ? showAllHotels.delete(i) : showAllHotels.add(i); paint('hotels'); $(`[data-more-hotels="${i}"]`, view)?.focus(); return; }
     if (el('[data-day-up]')) { moveDay(Number(el('[data-day-up]').dataset.dayUp), -1); return; }
     if (el('[data-day-down]')) { moveDay(Number(el('[data-day-down]').dataset.dayDown), 1); return; }

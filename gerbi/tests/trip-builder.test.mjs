@@ -106,22 +106,26 @@ test('passengers and rooms: infants on laps, 12+ fly as adults; two adults per r
   assert.equal(hotelCityOf(byId('rome')), 'ROM');
 });
 
-test('pricing: live lines carry their time, the ground estimate is a range, the rest is "on request"; totals per person and vs budget', () => {
+test('pricing: live lines carry their time; ground, car, transfers, insurance and bags are estimate ranges in the total; totals per person and vs budget', () => {
   const p = plan('זוג עם ילד בן 8, 4 לילות ברומא בינואר, תקציב 6000 שקל');
   const pkg = { ...p, flights: { status: 'live', searchedAt: '2026-11-15T10:00:00Z', selected: 'a', picks: [{ key: 'a', price: { value: 400, currency: 'USD' } }, { key: 'b', price: { value: 500, currency: 'USD' } }] },
     hotels: { status: 'live', searchedAt: '2026-11-15T10:01:00Z', selected: 'h2', picks: [{ id: 'h1', price: { value: 200, currency: 'USD' } }, { id: 'h2', price: { value: 300, currency: 'USD' } }] }, car: { include: true } };
   const fx = { rates: { USD: 3.5 } }, pr = pricePackage(pkg, fx);
-  assert.deepEqual(pr.lines.map((l) => [l.id, l.kind]), [['flight', 'live'], ['hotel', 'live'], ['ground', 'estimate'], ['car', 'quote'], ['transfers', 'quote']]);
+  // Spec 28: everything counts – a car (no transfers then), and a checked bag when the fare does not include one.
+  assert.deepEqual(pr.lines.map((l) => [l.id, l.kind]), [['flight', 'live'], ['hotel', 'live'], ['ground', 'estimate'], ['car', 'estimate'], ['bags', 'estimate']]);
   assert.equal(pr.total.live, 2450, '400×3.5 + 300×3.5 (the selected hotel)');
   const g = groundEstimate(pkg), d = byId('rome').dailyBudgetIls;
   assert.deepEqual(g, { low: Math.round(d.low * 4 * 2.6 / 10) * 10, high: Math.round(d.mid * 4 * 2.6 / 10) * 10 });
-  assert.deepEqual([pr.total.low, pr.total.high], [2450 + g.low, 2450 + g.high]);
+  const extra = pr.lines.filter((l) => ['car', 'bags'].includes(l.id)).reduce((s, l) => ({ low: s.low + l.range.low, high: s.high + l.range.high }), { low: 0, high: 0 });
+  assert.deepEqual(pr.lines.find((l) => l.id === 'car').range, { low: 170 * 4, high: 300 * 4 });
+  assert.deepEqual([pr.total.low, pr.total.high], [2450 + g.low + extra.low, 2450 + g.high + extra.high]);
   assert.equal(pr.perPerson.live, Math.round(2450 / 3));
-  assert.equal(pr.budget.amount, 6000); assert.ok(['within', 'tight', 'over'].includes(pr.budget.verdict));
+  assert.equal(pr.budget.amount, 6000); assert.equal(pr.budget.verdict, pr.total.high <= 6000 ? 'within' : 'over', 'compared at the high end; there is no "tight"');
   const noFx = pricePackage(pkg, null);
   assert.equal(noFx.total, null); assert.equal(noFx.missingFx, true, 'no shekel total without a rate');
   const quoteOnly = pricePackage({ ...pkg, flights: { status: 'quote' }, hotels: { status: 'quote' }, car: { include: false } }, fx);
   assert.deepEqual(quoteOnly.lines.filter((l) => l.kind === 'live'), []); assert.equal(quoteOnly.total.live, 0);
+  assert.equal(quoteOnly.budget.verdict, 'unverified', 'never "within" while the flight or hotel price is unknown');
   assert.equal(isStale('2026-11-15T10:00:00Z', Date.parse('2026-11-15T10:20:00Z')), false);
   assert.equal(isStale('2026-11-15T10:00:00Z', Date.parse('2026-11-15T10:31:00Z')), true);
 });
@@ -250,8 +254,9 @@ test('HTTP (default, hotels private): aggregate estimate only – no hotel names
     const flights = (await call('POST', '/api/build/flights', { search: p.flightSearch, request: p.request })).data;
     const pkg = { ...p, flights: { ...flights, selected: flights.picks[0].key }, hotels: { ...hotels, area: p.hotelAreas[0] }, insurance: { include: true } };
     const pr = pricePackage(pkg, { rates: { USD: 3.5 } });
-    assert.deepEqual(pr.lines.map((l) => [l.id, l.kind]), [['flight', 'live'], ['hotel', 'estimate'], ['ground', 'estimate'], ['insurance', 'quote'], ['transfers', 'quote']]);
-    assert.equal(pr.total.low, pr.total.live + pr.lines[1].range.low + pr.lines[2].range.low, 'the hotel range adds to the estimate, never to the live sum');
+    assert.deepEqual(pr.lines.slice(0, 5).map((l) => [l.id, l.kind]), [['flight', 'live'], ['hotel', 'estimate'], ['ground', 'estimate'], ['insurance', 'estimate'], ['transfers', 'estimate']]);
+    assert.equal(pr.total.low, pr.total.live + pr.lines.slice(1).reduce((s, l) => s + l.range.low, 0), 'the hotel range adds to the estimate, never to the live sum');
+    assert.ok(hotels.options.every((o) => o.estimate && !o.pick), 'private budget options are aggregates only');
     const snapshot = sanitizePackage(pkg);
     assert.equal(snapshot.hotels.ref, hotels.ref); assert.equal(snapshot.insurance.include, true);
     const fields = packageLeadFields(snapshot);

@@ -29,17 +29,38 @@ export function flightPicks(payload, request = {}, l = 'he') {
   setLang(l);
   try {
     const scored = scoreOffers(facts, brief), ranked = rankScored(scored), top = diverseTop(ranked, 3), tags = badges(scored);
-    return top.map((x) => ({ key: itineraryKey(x.facts), offerIndex: String(x.facts.index), itineraryIndex: x.facts.offer?.flightsOverview?.[0]?.itineraryIndex ?? 0, carriers: x.facts.carriers.slice(0, 4), price: x.facts.price, stops: x.facts.stops ?? 0, minutes: x.facts.totalMinutes, bag: x.facts.checked,
-      legs: x.facts.legs.map((leg) => ({ from: leg.segments[0]?.departure?.airport?.code || '', to: leg.segments.at(-1)?.arrival?.airport?.code || '', date: leg.summary.departDate,
-        depart: leg.segments[0]?.departure?.time || '', arrive: leg.segments.at(-1)?.arrival?.time || '', stops: leg.summary.stops, dayOffset: leg.summary.dayOffset })),
-      badges: tags.get(x.key) || [], reasons: explain(x, scored, (v) => `${Math.round(v)} ${x.facts.price.currency}`) }));
+    return top.map((x) => ({ ...pickOf(x.facts), badges: tags.get(x.key) || [], reasons: explain(x, scored, (v) => `${Math.round(v)} ${x.facts.price.currency}`) }));
   } finally { setLang(previous); }
+}
+function pickOf(f) {
+  return { key: itineraryKey(f), offerIndex: String(f.index), itineraryIndex: f.offer?.flightsOverview?.[0]?.itineraryIndex ?? 0, carriers: f.carriers.slice(0, 4), price: f.price, stops: f.stops ?? 0, minutes: f.totalMinutes, bag: f.checked,
+    legs: f.legs.map((leg) => ({ from: leg.segments[0]?.departure?.airport?.code || '', to: leg.segments.at(-1)?.arrival?.airport?.code || '', date: leg.summary.departDate,
+      depart: leg.segments[0]?.departure?.time || '', arrive: leg.segments.at(-1)?.arrival?.time || '', stops: leg.summary.stops, dayOffset: leg.summary.dayOffset })), badges: [], reasons: [] };
+}
+// Budget fit + upgrades (spec 28), from the offers already fetched: the cheapest offer that meets the hard constraints
+// (direct when asked for), the cheapest direct one, and the cheapest with a checked bag included.
+export function flightAlternatives(payload, request = {}) {
+  const facts = (Array.isArray(payload?.offers) ? payload.offers : []).map((offer) => offerFacts(offer, payload)).filter((f) => f.price && Number.isFinite(f.price.value));
+  const cheapest = (list) => list.reduce((a, b) => (!a || b.price.value < a.price.value ? b : a), null);
+  const hard = facts.filter((f) => !request.needs?.direct || f.stops === 0);
+  const pick = (f) => (f ? { ...pickOf(f), badges: [] } : null);
+  return { cheapest: pick(cheapest(hard)), direct: pick(cheapest(facts.filter((f) => f.stops === 0))), bag: pick(cheapest(hard.filter((f) => f.checked === 'included'))) };
+}
+// The destination's day trips as "add to my trip" ideas: catalog price per person when present (spec 28 §ד),
+// else an estimate from the trip's travel time. English name kept for the photo key ('<destId>|<English name>').
+export function upsellTrips(destId, l = 'he') {
+  const d = byId(destId);
+  return (d?.dayTrips || []).slice(0, 6).map((x, i) => {
+    const priced = Number.isFinite(x.priceIls?.low) && Number.isFinite(x.priceIls?.high) && x.priceIls.low <= x.priceIls.high;
+    const hours = Number.isFinite(x.hours) ? x.hours : 1.5;
+    return { key: i, name: L(x.name, l), en: x.name?.en || '', note: L(x.note, l), priced, price: priced ? { low: x.priceIls.low, high: x.priceIls.high } : { low: Math.round(120 + 40 * hours), high: Math.round(200 + 70 * hours) } };
+  });
 }
 
 // What the booking wizard needs to price the chosen flight again (spec 25 §9). The search token lives an hour.
 const bookingRef = (data) => (data?.srk && data?.tokens?.searchResults ? { srk: data.srk, searchToken: data.tokens.searchResults } : null);
 
-export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, polish = null, log = () => {}, now = () => Date.now() }) {
+export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, polish = null, fx = null, log = () => {}, now = () => Date.now() }) {
   const today = () => new Date(now()).toISOString().slice(0, 10);
   const hotels = createHotelSearch({ store, log, now, keyPrefix: fixtures(env) ? 'fixture-h:' : 'h:', search: async (input, options) => {
     if (fixtures(env)) { const f = await fixture('hotels'); return { hotels: f.hotels, totalItems: f.totalItems, complete: true, filtered: !options.fallbackQuery }; }
@@ -49,7 +70,8 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
   async function flights(search, request, l) {
     // Recorded answers never read or write the live cache (one store serves both in development), and an empty
     // supplier answer is never cached: the next build asks again instead of showing nothing for 20 minutes.
-    if (fixtures(env)) { const data = await fixture('flights'), picks = flightPicks(data, request, l); return { status: picks.length ? 'live' : 'none', searchedAt: new Date(now()).toISOString(), total: data.offers.length, picks, selected: picks[0]?.key || '', cached: false, booking: bookingRef(data) }; }
+    const extras = (data) => (request.budget > 0 ? { alternatives: flightAlternatives(data, request) } : {});
+    if (fixtures(env)) { const data = await fixture('flights'), picks = flightPicks(data, request, l); return { status: picks.length ? 'live' : 'none', searchedAt: new Date(now()).toISOString(), total: data.offers.length, picks, selected: picks[0]?.key || '', cached: false, booking: bookingRef(data), ...extras(data) }; }
     const key = 'f:' + hash(search), cachedHit = await store?.get(key).catch(() => null), hit = cachedHit?.data?.offers?.length ? cachedHit : null;
     let data, searchedAt, cached = Boolean(hit);
     if (hit) ({ data, searchedAt } = hit);
@@ -59,7 +81,7 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
       if (data?.offers?.length) await store?.set(key, { data, searchedAt }, FLIGHT_TTL).catch(() => {});
     }
     const picks = flightPicks(data, request, l);
-    return { status: picks.length ? 'live' : 'none', searchedAt, total: data?.offers?.length || 0, picks, selected: picks[0]?.key || '', cached, booking: bookingRef(data) };
+    return { status: picks.length ? 'live' : 'none', searchedAt, total: data?.offers?.length || 0, picks, selected: picks[0]?.key || '', cached, booking: bookingRef(data), ...extras(data) };
   }
 
   async function plan(input) {
@@ -67,7 +89,9 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     const text = typeof input.text === 'string' ? input.text.slice(0, 1500) : '';
     const dest = typeof input.dest === 'string' && byId(input.dest) ? input.dest : '';
     if (!text.trim() && !dest) return { error: 'text_required' };
-    let request = parseTrip(text, { today: t0, lang: l, destId: dest });
+    // A budget in dollars / euros converts at the site's rate (spec 28 §א.1); no rate in 1.5 s → the amount is asked for.
+    const rates = fx && /[$€]|usd|eur|dollar|euro|דולר|יורו/i.test(text) ? await Promise.race([fx.get().catch(() => null), new Promise((r) => setTimeout(r, 1500, null))]) : null;
+    let request = parseTrip(text, { today: t0, lang: l, destId: dest, fx: rates });
     // The LLM partner only when the rules understood little and named no destination (spec 24 §8).
     if (partner && !request.destinations.length && request.coverage?.needsPartner) {
       const extra = await partner(text, request, l).catch(() => null);
@@ -82,7 +106,7 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     const chosen = typeof input.chosen === 'string' && byId(input.chosen) ? input.chosen : '';
     const p = planPackage(request, { today: t0, chosenId: chosen });
     const { coverage, legs, ...publicRequest } = p.request;
-    return { id: randomUUID().slice(0, 12), createdAt: new Date(now()).toISOString(), lang: l, ...p, request: publicRequest,
+    return { id: randomUUID().slice(0, 12), createdAt: new Date(now()).toISOString(), lang: l, ...p, request: publicRequest, upsellTrips: p.request.budget > 0 && p.destination ? upsellTrips(p.destination.id, l) : [],
       config: { hotelsPublic: hotelsPublic(env), insuranceUrl: insuranceUrl(env) },
       understood: request.understood, questions: request.questions, flightSearch: validSearch(p.flightSearch, t0), hotelSearches: (p.hotelSearches || []).map((s) => validHotelSearch(s, t0) && s) };
   }
@@ -127,14 +151,14 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
       if (!env.VOLERO_CLIENT_ID && !fixtures(env)) return send(200, { status: 'quote', reason: 'not_connected' });
       const started = now();
       try {
-        const { estimate, ...result } = await hotels(search);
+        const { estimate, ...result } = await hotels(search, { publicMode: hotelsPublic(env) });
         if (hotelsPublic(env)) return send(200, result);
         // Private mode: statistics only; the agent's top options stay on the server, keyed by an opaque reference.
         const ref = randomUUID().replace(/-/g, '').slice(0, 16);
         if (result.picks.length) await store?.set('agent-hotels:' + ref, { searchedAt: result.searchedAt, city: search.city, checkIn: search.checkIn, checkOut: search.checkOut, area: search.area,
           picks: result.picks.slice(0, 3).map(({ name, stars, board, price, address, refundable, role }) => ({ name, stars, board, price, address, refundable, role })) }, AGENT_TTL).catch(() => {});
         return send(200, { status: estimate ? 'estimate' : 'quote', mode: 'private', searchedAt: result.searchedAt, nights: result.nights, board: result.board, boardFallback: result.boardFallback,
-          minStars: search.minStars, estimate, ref: result.picks.length ? ref : '' });
+          minStars: search.minStars, estimate, options: result.options, ref: result.picks.length ? ref : '' });
       }
       catch (error) { log({ route: 'build_hotels', ok: false, ms: now() - started, error: error.message, status: error.status }); return send(200, { status: 'quote', reason: 'supplier_error' }); }
     }

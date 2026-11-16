@@ -138,11 +138,18 @@ function extractTravelers(text) {
   return found;
 }
 
+// A bare round amount (no keyword, no currency) still reads as a budget: ≥ 1,000, whole hundreds, not a year, and not
+// followed by a unit (km, metres, points…). "4 אלף" / "10K" were already turned into digits by numerals().
+const roundAmount = (m, text) => {
+  const n = +m[3], after = text.slice(m.index + m[0].length, m.index + m[0].length + 12);
+  return n >= 1000 && n % 100 === 0 && !(n >= 1900 && n <= 2100) && !/^\s*(?:ק"מ|קמ|מטר|רגל|נקודות|km|kilomet|met|feet|ft|miles|points|mi\b)/.test(after);
+};
 function extractBudget(text) {
   const currencyOf = value => CURRENCIES.find(([pattern]) => pattern.test(value))?.[1] || null;
   const pattern = /(?:(עד|תקציב(?: של)?|בסביבות|בערך|לא יותר מ-?|מקסימום|כ-)\s*)?(₪|\$|€)?\s*(\d{3,7})\s*(₪|\$|€|ש"ח|שח|שקלים|שקל|דולרים|דולר|יורו|nis|ils|usd|eur)?\s*(לאדם|לנוסע|פר אדם|לכל אחד|לזוג|לכולם|בסך הכל|סה"כ)?/g;
-  // The first amount that is marked as money (a keyword or a currency); a bare number such as a year is not a budget.
-  const match = [...text.matchAll(pattern)].find(m => m[1] || m[2] || m[4]);
+  // The first amount that is marked as money (a keyword, a currency or "per person"); a bare number such as a year is
+  // not a budget, but a round amount from a thousands word ("10K", "10 אלף") or ≥ 1,000 that is not a year is (spec 28 §א).
+  const match = [...text.matchAll(pattern)].find(m => m[1] || m[2] || m[4] || m[5]) || [...text.matchAll(pattern)].find(m => roundAmount(m, text));
   if (!match) return null;
   const currency = currencyOf(`${match[2] || ''}${match[4] || ''}`) || 'ILS';
   const scope = /לאדם|לנוסע|פר אדם|לכל אחד/.test(match[5] || '') ? 'person' : /לזוג/.test(match[5] || '') ? 'couple' : 'total';
@@ -352,7 +359,7 @@ function extractTravelersEn(text) {
 
 function extractBudgetEn(text) {
   const pattern = /(?:(up to|under|below|max(?:imum)?|no more than|budget(?: is| of)?|around|about|approx(?:imately)?|roughly)\s*)?(₪|\$|€)?\s*(\d{3,7})\s*(₪|\$|€|nis|ils|shekels?|usd|dollars?|eur|euros?)?\s*(per person|a person|each|pp|per head|per couple|for (?:the )?2 of us|in total|total|for everyone|for all of us)?/g;
-  const match = [...text.matchAll(pattern)].find(m => m[1] || m[2] || m[4]);
+  const match = [...text.matchAll(pattern)].find(m => m[1] || m[2] || m[4] || m[5]) || [...text.matchAll(pattern)].find(m => roundAmount(m, text));
   if (!match) return null;
   const unit = `${match[2] || ''}${match[4] || ''}`;
   const currency = /\$|usd|dollar/.test(unit) ? 'USD' : /€|eur/.test(unit) ? 'EUR' : 'ILS';
@@ -467,7 +474,9 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
     const people = (brief.adults || 2) + (brief.children || 0);
     const total = budget.scope === 'person' ? budget.amount * people : budget.amount;
     brief.budgetCurrency = budget.currency;
-    if (budget.currency === 'ILS') brief.budget = total; else delete brief.budget;
+    // Foreign money stays out of brief.budget (everything here is in shekels); callers with today's rates convert it.
+    if (budget.currency === 'ILS') { brief.budget = total; delete brief.budgetForeign; } else { delete brief.budget; brief.budgetForeign = { amount: total, currency: budget.currency }; }
+    brief.budgetScope = budget.scope;
     const symbol = l === 'en' ? { ILS: '₪', USD: '$', EUR: '€' }[budget.currency] : budget.currency === 'ILS' ? '₪' : budget.currency;
     say('budget', tr('planner.budget', { perPerson: budget.scope === 'person' ? tr('planner.budget.perPerson', { amount: l === 'en' ? symbol + num(budget.amount) : num(budget.amount) }) : '', total: num(total), currency: symbol }), budget.source);
   }

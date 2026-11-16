@@ -109,7 +109,7 @@ const deals = createDeals({ search: searchForDeals(voleroFlightSearch, withRetry
 // On Vercel the function freezes after the response; waitUntil keeps the background refresh alive.
 const background = promise => { const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.(); if (ctx?.waitUntil) ctx.waitUntil(promise.catch(() => {})); else promise.catch(() => {}); };
 // Magic trip builder (spec 24): plans from the catalog, then live flights + hotels through its own caches.
-const builder = createBuilder({ store: createStore('build', dataDirectory), llmCache, flightSearch: voleroFlightSearch, hotelSearch: voleroHotelSearch, hotelImage: voleroHotelImage,
+const builder = createBuilder({ store: createStore('build', dataDirectory), llmCache, flightSearch: voleroFlightSearch, hotelSearch: voleroHotelSearch, hotelImage: voleroHotelImage, fx,
   partner: (text, request, l) => partnerUnderstand(llmCache, text, { adults: request.adults, children: request.children, nights: request.nights, month: '', want: [], exclude: [] }, { lang: l }),
   polish: (destination, travellers, days, l) => tripPolish(destination, travellers, days, { store: llmCache, lang: l }), log: entry => logSupplier({ cached: false, ...entry }) });
 const tooMany = (send) => send(429, { error:'rate_limited', message:'יותר מדי בקשות בזמן קצר. נסו שוב בעוד דקה.' });

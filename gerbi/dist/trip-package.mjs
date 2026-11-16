@@ -46,7 +46,36 @@ export function groundEstimate(pkg) {
   return stops.length ? { low: Math.round(low / 10) * 10, high: Math.round(high / 10) * 10 } : null;
 }
 
+// Cost model for what no supplier prices yet (spec 28 §א): stated, rounded assumptions in ILS – the same ones
+// docs/qa/itinerary-algorithm-review-he.md measured with. Used for the pre-search fit and for the estimate lines.
+export const COST_MODEL = {
+  // Economy round trip per traveller from flight hours, booked ~2 months out; non-direct ×1.15; high end ×1.7.
+  flight: { base: 350, perHour: 230, connecting: 1.15, high: 1.7, infant: 0.1 },
+  // Hotel per room-night at 3★ by the destination's budgetLevel (1–4); stars and meal plan multiply; high end ×1.35.
+  hotel3: { 1: 300, 2: 450, 3: 650, 4: 950 }, starMult: { 3: 1, 4: 1.4, 5: 2.3 }, boardMult: { AI: 1.8, FB: 1.5, HB: 1.3 }, hotelHigh: 1.35,
+  carPerDay: { low: 170, high: 300 }, insurancePerPersonDay: { low: 30, high: 50 },
+  transferPerVanEachWay: { low: 150, high: 400 }, bagPerTraveller: { low: 180, high: 400 }
+};
+const band = (b, n) => ({ low: Math.round(b.low * n), high: Math.round(b.high * n) });
+export const carsFor = (r = {}) => ((r.adults || 0) + (r.children || 0) > 5 ? 2 : 1);
+export const vansFor = (r = {}) => Math.max(1, Math.ceil(((r.adults || 0) + (r.children || 0)) / 4));
+// The extras every package carries as estimate ranges: car (when included), insurance (when chosen), transfers
+// (when there is no car), a checked bag per traveller (when the chosen fare has none included), added day trips.
+export function extrasLines(pkg) {
+  const r = pkg?.request || {}, nights = r.nights || 0, people = travellers(r), stops = pkg?.stops?.length || 1, out = [];
+  if (pkg?.car?.include) out.push({ id: 'car', kind: 'estimate', range: band(COST_MODEL.carPerDay, nights * carsFor(r)) });
+  if (pkg?.insurance?.include) out.push({ id: 'insurance', kind: 'estimate', range: band(COST_MODEL.insurancePerPersonDay, (nights + 1) * Math.max(1, people)) });
+  if (!pkg?.car?.include) out.push({ id: 'transfers', kind: 'estimate', range: band(COST_MODEL.transferPerVanEachWay, stops * 2 * vansFor(r)) });
+  const flight = selectedFlight(pkg);
+  if (flight && flight.bag !== 'included') out.push({ id: 'bags', kind: 'estimate', range: band(COST_MODEL.bagPerTraveller, Math.max(1, people)) });
+  (Array.isArray(pkg?.extras) ? pkg.extras : []).forEach((x, i) => { if (num(x?.range?.low) !== null && num(x?.range?.high) !== null) out.push({ id: `extra:${i}`, kind: 'estimate', name: x.name, range: { low: x.range.low, high: x.range.high } }); });
+  return out;
+}
+
 // Every line of the "total" card with its kind, and the sums. fx = the /api/fx rates (null → no shekel totals).
+// With a budget the verdict compares the HIGH end of everything (flight, hotel, ground, car, insurance, transfers,
+// bags, extras): "within" only when the high end fits; anything else is "over" (there is no "tight"). It is only
+// given once the flight is live and every hotel has a live price or estimate ("pending" / "unverified" before).
 export function pricePackage(pkg, fx) {
   const r = pkg?.request || {}, people = Math.max(1, travellers(r)), lines = [];
   const fl = pkg?.flights || {}, flight = selectedFlight(pkg);
@@ -63,16 +92,18 @@ export function pricePackage(pkg, fx) {
   });
   const ground = groundEstimate(pkg);
   if (ground) lines.push({ id: 'ground', kind: 'estimate', range: ground });
-  if (pkg?.car?.include) lines.push({ id: 'car', kind: 'quote' });
-  if (pkg?.insurance?.include) lines.push({ id: 'insurance', kind: 'quote' });
-  lines.push({ id: 'transfers', kind: 'quote' });
+  lines.push(...extrasLines(pkg));
   const live = lines.filter((l) => l.kind === 'live'), hotelEst = lines.filter((l) => l.hotel), missingFx = live.some((l) => l.ils === null) || hotelEst.some((l) => !l.range);
   const liveIls = live.length && !missingFx ? Math.round(live.reduce((s, l) => s + l.ils, 0)) : live.length ? null : 0;
-  const est = hotelEst.reduce((s, l) => (l.range ? { low: s.low + l.range.low, high: s.high + l.range.high } : s), { low: ground?.low || 0, high: ground?.high || 0 });
+  const est = lines.filter((l) => l.kind === 'estimate' && l.range).reduce((s, l) => ({ low: s.low + l.range.low, high: s.high + l.range.high }), { low: 0, high: 0 });
   const total = liveIls === null || missingFx ? null : { live: liveIls, low: liveIls + est.low, high: liveIls + est.high };
   const perPerson = total ? { live: Math.round(total.live / people), low: Math.round(total.low / people), high: Math.round(total.high / people) } : null;
   let budget = null;
-  if (num(r.budget, 1) && total) budget = { amount: r.budget, verdict: total.high <= r.budget ? 'within' : total.low > r.budget ? 'over' : 'tight', diff: Math.round(total.low - r.budget) };
+  if (num(r.budget, 1)) {
+    const pending = lines.some((l) => l.kind === 'pending'), known = total && flight && selectedHotels(pkg).every(({ group, pick }) => pick || (group.status === 'estimate' && group.estimate));
+    budget = !known ? { amount: r.budget, verdict: pending ? 'pending' : 'unverified' }
+      : { amount: r.budget, verdict: total.high <= r.budget ? 'within' : 'over', diff: Math.round(total.high - r.budget), left: Math.max(0, Math.round(r.budget - total.high)) };
+  }
   return { lines, total, perPerson, people, budget, missingFx, pending: lines.some((l) => l.kind === 'pending'), oldestLive: live.map((l) => l.at).filter(Boolean).sort()[0] || null };
 }
 
@@ -113,6 +144,7 @@ export function sanitizePackage(pkg) {
     hotels: pkg.hotels?.stops?.length ? { stops: list(pkg.hotels.stops, 4).map(cleanHotelGroup) } : cleanHotelGroup(pkg.hotels),
     car: { advice: ['recommended', 'optional', 'not_needed'].includes(pkg.car?.advice) ? pkg.car.advice : 'optional', include: pkg.car?.include === true, note: txt(pkg.car?.note, 300) },
     insurance: { include: pkg.insurance?.include === true },
+    extras: list(pkg.extras, 4).map((x) => ({ name: str(x?.name, 120), range: { low: num(x?.range?.low, 0, 1e6), high: num(x?.range?.high, 0, 1e6) } })).filter((x) => x.name && x.range.low !== null && x.range.high !== null && x.range.low <= x.range.high),
     itinerary: list(pkg.itinerary, 40).map((d) => ({ day: int(d?.day, 1, 61) ?? 1, date: day(d?.date), kind: slug(d?.kind) || 'full', stop: int(d?.stop, 0, 4) ?? 0, title: str(d?.title, 140), note: str(d?.note, 240),
       items: list(d?.items, 6).map((x) => ({ name: str(x?.name, 120), kind: slug(x?.kind), durationH: num(x?.durationH, 0, 24) ?? 0, mapsUrl: mapsUrl(str(x?.name, 120), str(x?.where, 80)), where: str(x?.where, 80) })) })),
     practical: pkg.practical && typeof pkg.practical === 'object' ? Object.fromEntries(['visa', 'currency', 'language', 'timeZone', 'kosher', 'shabbat', 'season', 'transport'].map((k) => [k, str(pkg.practical[k], 600)])) : null,
@@ -131,7 +163,7 @@ export function packageLeadFields(pkg, l = 'he') {
   const budget = r.budget ? BUDGET_BANDS.find(([max]) => r.budget <= max)[1] : 'open';
   const styles = [...new Set([...(r.styles || []), r.occasion].map((s) => STYLE_MAP[s]).filter(Boolean))];
   const needs = [r.needs.allInclusive && (l === 'en' ? 'all-inclusive' : 'הכול כלול'), r.needs.kosher && (l === 'en' ? 'kosher' : 'כשר'), r.needs.shabbat && (l === 'en' ? 'Shabbat observant' : 'שומרי שבת'),
-    r.needs.accessible && (l === 'en' ? 'accessibility' : 'נגישות'), pkg.car?.include && (l === 'en' ? 'car rental' : 'השכרת רכב'), pkg.insurance?.include && (l === 'en' ? 'travel insurance (Harel)' : 'ביטוח נסיעות (הראל)'), r.childAges?.length && (l === 'en' ? `children's ages ${r.childAges.join(', ')}` : `גילי ילדים ${r.childAges.join(', ')}`)].filter(Boolean);
+    r.needs.accessible && (l === 'en' ? 'accessibility' : 'נגישות'), ...(pkg.extras || []).map((x) => (l === 'en' ? `add-on: ${x.name}` : `תוספת: ${x.name}`)), pkg.car?.include && (l === 'en' ? 'car rental' : 'השכרת רכב'), pkg.insurance?.include && (l === 'en' ? 'travel insurance (Harel)' : 'ביטוח נסיעות (הראל)'), r.childAges?.length && (l === 'en' ? `children's ages ${r.childAges.join(', ')}` : `גילי ילדים ${r.childAges.join(', ')}`)].filter(Boolean);
   return { destinations: stops.map((s) => name(s.name, l)).filter(Boolean).join(', ').slice(0, 200) || '—', start: r.start || '', end: r.end || '', flexibility: r.datesAssumed ? 'month' : 'exact',
     adults: r.adults, children: r.children, budget, styles, notes: [l === 'en' ? 'Package from the magic trip builder.' : 'חבילה מבונה החופשות.', needs.join(' · ')].filter(Boolean).join(' ').slice(0, 2000) };
 }

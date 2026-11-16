@@ -273,3 +273,35 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
  .br-contact span{background:#ffffff1a;border-radius:20mm;padding:2mm 6mm}
  .br-fine{position:static;font-size:8pt!important;opacity:.6!important;margin-top:12mm!important}
 }
+/* Budget cap + "add up to ₪500" carousel (spec 28). Navy #0a1b60, blue #096bd2, yellow #ffdf25; logical properties. */
+.bk-budget-unverified,.bk-budget-pending{background:#eef2f7}
+.bk-budget p{margin:3px 0}
+.bk-budget-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.bk-budget-acts .button{padding:8px 12px;border-radius:10px;font-weight:700;font-size:14px;min-height:40px}
+.bk-banner-host[hidden]{display:none}
+.bk-budget-banner{margin:0 0 12px;background:#fff1ea;border:1px solid #f3c9b4;border-inline-start:5px solid #d9541e;border-radius:12px;padding:10px 14px;font-weight:700;color:#7a2d10}
+.bk-budget-banner a{color:#075db4;text-decoration:underline;text-underline-offset:2px;margin-inline-start:6px}
+.bk-upsell{background:linear-gradient(160deg,#0a1b60,#123188);color:#fff;border-color:#0a1b60;overflow:hidden}
+.bk-upsell[hidden]{display:none}
+.bk-upsell h3{color:#fff}.bk-upsell h3 svg{color:#ffdf25}.bk-upsell>.micro-copy{color:#d5e2ff}
+.bk-carousel{position:relative;margin-top:8px}
+.bk-car-track{list-style:none;margin:0;padding:2px 2px 8px;display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;scrollbar-width:thin}
+.bk-car-slide{flex:0 0 86%;scroll-snap-align:start;background:#fff;color:#0a1b60;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-width:0;box-shadow:0 4px 14px #00103a33}
+.bk-car-img{position:relative;height:118px;background:linear-gradient(135deg,#cfe7ff,#eaf6ff)}
+.bk-car-img img{width:100%;height:100%;object-fit:cover;display:block}
+.bk-car-badge{position:absolute;inset-block-start:8px;inset-inline-start:8px;width:34px;height:34px;border-radius:50%;background:#ffdf25;color:#0a1b60;display:grid;place-items:center;box-shadow:0 2px 6px #0003}
+.bk-car-badge svg{width:19px;height:19px}
+.bk-car-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.bk-car-body h4{margin:0;font-size:17px;font-weight:900}
+.bk-car-body p{margin:0;font-size:14px;line-height:1.5;color:#3c4d6e}
+.bk-car-body .bk-car-price{display:flex;flex-wrap:wrap;align-items:center;gap:6px;color:#0a1b60}
+.bk-car-price strong{font-size:20px;color:#096bd2;font-weight:900}
+.bk-car-body .button{margin-top:auto;padding:9px 12px;border-radius:11px;font-size:15px;min-height:44px;width:100%}
+.bk-car-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:6px}
+.bk-car-nav .icon-button{width:44px;height:44px;font-size:24px;line-height:1;background:#fff;color:#0a1b60;border-color:#fff}
+.bk-car-nav .micro-copy{color:#d5e2ff;min-width:44px;text-align:center}
+.bk-upsell .icon-button:focus-visible,.bk-upsell .button:focus-visible{outline:3px solid #ffdf25;outline-offset:2px}
+@media(min-width:900px){.bk-side:has(.bk-upsell:not([hidden])){position:static}}
+@media(min-width:560px) and (max-width:899px){.bk-car-slide{flex-basis:46%}}
+@media(prefers-reduced-motion:reduce){.bk-car-track{scroll-behavior:auto}}
+@media print{.bk-upsell,.bk-budget-acts,.bk-budget-banner a{display:none!important}}

@@ -50,8 +50,11 @@ export function slimHotel(h, board = '') {
   const price = priceOf(wanted?.price || h?.minPrice);
   const d = h?.details || {};
   const nonRef = (Array.isArray(h?.nonRefundable) ? h.nonRefundable : []).some((x) => priceOf(x?.price) && price && x.price.value <= price.value + 0.01);
+  // Every meal plan's price (same currency as `price`) – what the budget fit and the upgrades compare (spec 28).
+  const boardPrices = {};
+  for (const b of boards) if (!price || b.price.currency === price.currency) boardPrices[b.code] = Math.min(boardPrices[b.code] ?? Infinity, Math.round(b.price.value * 100) / 100);
   return { id: String(h?.index ?? d.id ?? '').slice(0, 20), name: String(h?.name || d.name || '').slice(0, 120), stars: Number.isInteger(h?.stars) ? h.stars : Number(d.stars) || 0,
-    price, board: wanted ? board : cheapest?.code || '', boards: [...new Set(boards.map((b) => b.code))],
+    price, board: wanted ? board : cheapest?.code || '', boards: [...new Set(boards.map((b) => b.code))], boardPrices,
     address: String(d.address || '').slice(0, 160), lat: Number(d.geolocation?.latitude) || null, lon: Number(d.geolocation?.longitude) || null, image: imageSrc(d.mainImage?.url || ''), refundable: !nonRef,
     family: (Array.isArray(d.categories) ? d.categories : []).some((c) => /family/i.test(c?.name || '')) };
 }
@@ -100,6 +103,43 @@ export function hotelEstimate(list, spec) {
   return { perNight: { low, high }, stay: { low: low * nights, high: high * nights }, currency, count: scope.length, areaScope: scope === inArea, nights };
 }
 
+// Budget fit + upgrades (spec 28), from the list already fetched – no supplier call. Each option is a whole state the
+// page can switch the hotel to: { id, tier, minStars, board, estimate } (private: middle of a price window of the
+// hotels that qualify, never a hotel) or { id, minStars, board, pick } (public: the cheapest qualifying hotel).
+//   budget  – same stars and meal plan, cheaper tier, any area        (fit step 2)
+//   board   – one meal plan down (never down from all-inclusive)       (fit step 3)
+//   stars   – one star down, with the lower meal plan when there is one (fit step 4)
+//   upStars – one star up; upBoard – one meal plan up (the ₪500 upgrades), in the "asked" and the "cheap" tier.
+const DOWN = { AI: 'FB', FB: 'HB', HB: 'BB', BB: '' }, UP = { '': 'BB', RO: 'BB', SC: 'BB', BB: 'HB', HB: 'FB', FB: 'AI' };
+const TIERS = { asked: [0.25, 0.75], cheap: [0.1, 0.3] };
+const boardPrice = (h, board) => {
+  const prices = h.boardPrices || {};
+  if (!board) { const all = Object.values(prices); return all.length ? Math.min(...all) : h.price?.value ?? null; }
+  return prices[board] ?? (h.board === board ? h.price?.value ?? null : null);
+};
+export function hotelOptions(list, spec, { publicMode = false } = {}) {
+  const nights = nightsOf(spec) || 1, priced = list.filter((h) => h.price && h.name);
+  const currency = [...priced.reduce((m, h) => m.set(h.price.currency, (m.get(h.price.currency) || 0) + 1), new Map())].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const pool = priced.filter((h) => h.price.currency === currency), out = [];
+  const option = (id, minStars, board, tier = 'cheap') => {
+    const rows = pool.filter((h) => h.stars >= minStars && h.stars <= 5).map((h) => ({ h, v: boardPrice(h, board) })).filter((x) => Number.isFinite(x.v) && x.v > 0).sort((a, b) => a.v - b.v);
+    if (publicMode) { if (!rows.length) return; const { h, v } = rows[0]; out.push({ id, minStars, board, pick: { ...h, board: board || h.board, price: { value: v, currency } } }); return; }
+    if (rows.length < 3) return;
+    const per = rows.map((x) => x.v / nights), [a, z] = TIERS[tier], at = (p) => per[Math.round(p * (per.length - 1))];
+    const low = Math.round(at(a)), high = Math.max(low, Math.round(at(z)));
+    out.push({ id, tier, minStars, board, estimate: { perNight: { low, high }, stay: { low: low * nights, high: high * nights }, currency, count: rows.length, areaScope: false, nights } });
+  };
+  const stars = spec.minStars || 3, board = spec.board || '', lower = board && board !== 'AI' ? DOWN[board] : null;
+  option('budget', stars, board);
+  if (lower !== null && lower !== undefined) option('board', stars, lower);
+  if (stars >= 3) option('stars', stars - 1, lower ?? board);
+  for (const tier of publicMode ? ['asked'] : ['asked', 'cheap']) {
+    if (stars < 5) option('upStars', stars + 1, board, tier);
+    if (UP[board]) option('upBoard', stars, UP[board], tier);
+  }
+  return out;
+}
+
 // Search → slim (KV cache 30 min, in-flight de-dup) → rank per request. The cache key holds only what the supplier
 // receives, so another area or family preference re-ranks the same list without a new supplier call.
 const HOTEL_TTL = 30 * 60;
@@ -123,11 +163,13 @@ export function createHotelSearch({ store, search, log = () => {}, now = () => D
     inFlight.set(key, run);
     return run;
   }
-  return async function hotels(spec) {
+  const shown = (h, nights) => { const { boardPrices, lat, lon, score, ...rest } = h; return { ...rest, nights, image: h.image ? `/api/build/hotel-image?src=${encodeURIComponent(h.image)}` : '' }; };
+  return async function hotels(spec, { publicMode = true } = {}) {
     const found = await list(spec), ranked = rankHotels(found.list, spec), nights = nightsOf(spec);
     return { status: ranked.picks.length ? 'live' : 'none', searchedAt: found.searchedAt, total: found.total, nights, cached: found.cached,
       board: spec.board, boardFallback: Boolean(spec.board) && !found.filtered, relaxedStars: ranked.relaxedStars,
-      picks: ranked.picks.map((h) => ({ ...h, nights, image: h.image ? `/api/build/hotel-image?src=${encodeURIComponent(h.image)}` : '' })),
-      estimate: hotelEstimate(found.list, spec) };
+      picks: ranked.picks.map((h) => shown(h, nights)),
+      estimate: hotelEstimate(found.list, spec),
+      options: hotelOptions(found.list, spec, { publicMode }).map((o) => (o.pick ? { ...o, pick: shown(o.pick, nights) } : o)) };
   };
 }
