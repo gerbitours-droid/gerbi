@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ponytail: pages are hash routes (one document per language); list blog posts here when they get real URLs. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url><loc>https://gerbitours.co.il/</loc><xhtml:link rel="alternate" hreflang="he" href="https://gerbitours.co.il/"/><xhtml:link rel="alternate" hreflang="en" href="https://gerbitours.co.il/en/"/></url>
+  <url><loc>https://gerbitours.co.il/en/</loc><xhtml:link rel="alternate" hreflang="he" href="https://gerbitours.co.il/"/><xhtml:link rel="alternate" hreflang="en" href="https://gerbitours.co.il/en/"/></url>
+</urlset>
