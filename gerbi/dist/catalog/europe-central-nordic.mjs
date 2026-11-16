@@ -1,5 +1,7 @@
 // Catalog data (spec 23): Central Europe, the Alps and the Nordics. Shape: dist/catalog.mjs.
 // Budget figures are rough per-person-per-day on-the-ground estimates in ₪, excluding flights and lodging.
+// dayTrips[].priceIls = rough ₪ per adult, ESTIMATES (Nov 2026): low ≈ do-it-yourself public transport + main entry fee,
+// high ≈ a typical organised group tour from the base; converted at about €1=₪4, $1=₪3.7, £1=₪4.7 and rounded. Show as estimates.
 export default [
   {
     id: 'vienna', code: 'VIE', airports: ['VIE'],
@@ -23,11 +25,11 @@ export default [
       { name: { he: 'ליד הנאשמרקט (רבעים 4 ו־6)', en: 'Around the Naschmarkt (4th & 6th districts)' }, forWhom: { he: 'אוהבי אוכל, מרכזי ומעט זול יותר', en: 'Food lovers — central and a little cheaper' } }
     ],
     attractions: [
-      { name: { he: 'ארמון שנברון', en: 'Schönbrunn Palace' }, kind: 'landmark', durationH: 3, tags: ['culture', 'family'] },
-      { name: { he: 'ארמון הופבורג ומוזיאון סיסי', en: 'Hofburg Palace & Sisi Museum' }, area: 'Innere Stadt (1st district)', kind: 'museum', durationH: 2, tags: ['culture'] },
-      { name: { he: 'קתדרלת סטפן הקדוש', en: 'St Stephen’s Cathedral' }, area: 'Innere Stadt (1st district)', kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'המוזיאון לתולדות האמנות', en: 'Kunsthistorisches Museum' }, kind: 'museum', durationH: 3, tags: ['culture'] },
-      { name: { he: 'ארמון בלוודר', en: 'Belvedere Palace' }, kind: 'museum', durationH: 2, tags: ['culture', 'couple'] },
+      { name: { he: 'ארמון שנברון', en: 'Schönbrunn Palace' }, kind: 'landmark', durationH: 3, tags: ['culture', 'family'], area: 'Schönbrunn', mustSee: true },
+      { name: { he: 'ארמון הופבורג ומוזיאון סיסי', en: 'Hofburg Palace & Sisi Museum' }, area: 'Innere Stadt (1st district)', kind: 'museum', durationH: 2, tags: ['culture'], mustSee: true },
+      { name: { he: 'קתדרלת סטפן הקדוש', en: 'St Stephen’s Cathedral' }, area: 'Innere Stadt (1st district)', kind: 'religious', durationH: 1, tags: ['culture'], mustSee: true },
+      { name: { he: 'המוזיאון לתולדות האמנות', en: 'Kunsthistorisches Museum' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Innere Stadt (1st district)' },
+      { name: { he: 'ארמון בלוודר', en: 'Belvedere Palace' }, kind: 'museum', durationH: 2, tags: ['culture', 'couple'], area: 'Landstraße' },
       { name: { he: 'האלברטינה', en: 'The Albertina' }, area: 'Innere Stadt (1st district)', kind: 'museum', durationH: 2, tags: ['culture'] },
       { name: { he: 'בית האופרה הממלכתי (סיור או הופעה)', en: 'Vienna State Opera (tour or performance)' }, area: 'Innere Stadt (1st district)', kind: 'landmark', durationH: 1.5, tags: ['culture', 'couple'] },
       { name: { he: 'בית הספר הספרדי לרכיבה', en: 'Spanish Riding School' }, area: 'Innere Stadt (1st district)', kind: 'experience', durationH: 1.5, tags: ['culture', 'family'] },
@@ -35,12 +37,12 @@ export default [
       { name: { he: 'רובע המוזיאונים', en: 'MuseumsQuartier' }, area: 'Neubau & Spittelberg (7th district)', kind: 'neighborhood', durationH: 2, tags: ['culture'] },
       { name: { he: 'הפראטר והגלגל הענק', en: 'Prater & the Giant Ferris Wheel' }, area: 'Leopoldstadt (2nd district)', kind: 'park', durationH: 2.5, tags: ['family', 'with_children'] },
       { name: { he: 'המוזיאון היהודי של וינה', en: 'Jewish Museum Vienna' }, area: 'Innere Stadt (1st district)', kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'בית הונדרטוואסר', en: 'Hundertwasserhaus' }, kind: 'landmark', durationH: 0.5, tags: [] }
+      { name: { he: 'בית הונדרטוואסר', en: 'Hundertwasserhaus' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Landstraße' }
     ],
     dayTrips: [
-      { name: { he: 'עמק הוואכאו — מנזר מלק ודירנשטיין', en: 'Wachau Valley — Melk Abbey & Dürnstein' }, hours: 1.5, note: { he: 'כרמים לאורך הדנובה, מנזר מרשים ושייט נהר בעונה', en: 'Vineyards along the Danube, a striking abbey and river boats in season' } },
-      { name: { he: 'ברטיסלבה', en: 'Bratislava' }, hours: 1, note: { he: 'בירת סלובקיה ברכבת או בסירה על הדנובה', en: 'Slovakia’s capital by train or by boat on the Danube' } },
-      { name: { he: 'זלצבורג', en: 'Salzburg' }, hours: 2.5, note: { he: 'ברכבת מהירה — יום ארוך אבל אפשרי', en: 'By fast train — a long but doable day' } }
+      { name: { he: 'עמק הוואכאו — מנזר מלק ודירנשטיין', en: 'Wachau Valley — Melk Abbey & Dürnstein' }, hours: 1.5, note: { he: 'כרמים לאורך הדנובה, מנזר מרשים ושייט נהר בעונה', en: 'Vineyards along the Danube, a striking abbey and river boats in season' }, priceIls: { low: 200, high: 450 }, kind: 'nature' },
+      { name: { he: 'ברטיסלבה', en: 'Bratislava' }, hours: 1, note: { he: 'בירת סלובקיה ברכבת או בסירה על הדנובה', en: 'Slovakia’s capital by train or by boat on the Danube' }, priceIls: { low: 60, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'זלצבורג', en: 'Salzburg' }, hours: 2.5, note: { he: 'ברכבת מהירה — יום ארוך אבל אפשרי', en: 'By fast train — a long but doable day' }, priceIls: { low: 200, high: 600 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'רכבת תחתית, חשמליות ואוטובוסים מכסים את כל העיר; מהשדה יש רכבת למרכז. רכב רק מסבך — חניה יקרה ומוגבלת.', en: 'U-Bahn, trams and buses cover the whole city, and a train runs from the airport to the centre. A car only complicates things — parking is expensive and restricted.' } },
     practical: {
@@ -73,24 +75,24 @@ export default [
       { name: { he: 'רובע הטירה בבודה', en: 'Buda Castle District' }, forWhom: { he: 'שקט ורומנטי, עם נוף לעיר', en: 'Quiet and romantic, with city views' } }
     ],
     attractions: [
-      { name: { he: 'בניין הפרלמנט ההונגרי', en: 'Hungarian Parliament Building' }, area: 'District V (central Pest)', kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'ארמון בודה', en: 'Buda Castle' }, area: 'Buda Castle District', kind: 'landmark', durationH: 2, tags: ['culture'] },
-      { name: { he: 'מבצר הדייגים וכנסיית מתיאש', en: 'Fisherman’s Bastion & Matthias Church' }, area: 'Buda Castle District', kind: 'viewpoint', durationH: 1, tags: ['couple'] },
-      { name: { he: 'מרחצאות סצ׳ני', en: 'Széchenyi Thermal Bath' }, kind: 'experience', durationH: 3, tags: ['relaxation', 'family'] },
-      { name: { he: 'מרחצאות גלרט', en: 'Gellért Thermal Bath' }, kind: 'experience', durationH: 2.5, tags: ['relaxation', 'couple'] },
+      { name: { he: 'בניין הפרלמנט ההונגרי', en: 'Hungarian Parliament Building' }, area: 'District V (central Pest)', kind: 'landmark', durationH: 1.5, tags: ['culture'], mustSee: true },
+      { name: { he: 'ארמון בודה', en: 'Buda Castle' }, area: 'Buda Castle District', kind: 'landmark', durationH: 2, tags: ['culture'], mustSee: true },
+      { name: { he: 'מבצר הדייגים וכנסיית מתיאש', en: 'Fisherman’s Bastion & Matthias Church' }, area: 'Buda Castle District', kind: 'viewpoint', durationH: 1, tags: ['couple'], mustSee: true },
+      { name: { he: 'מרחצאות סצ׳ני', en: 'Széchenyi Thermal Bath' }, kind: 'experience', durationH: 3, tags: ['relaxation', 'family'], area: 'City Park', mustSee: true },
+      { name: { he: 'מרחצאות גלרט', en: 'Gellért Thermal Bath' }, kind: 'experience', durationH: 2.5, tags: ['relaxation', 'couple'], area: 'Gellért Hill' },
       { name: { he: 'בית הכנסת ברחוב דוהאני', en: 'Dohány Street Synagogue' }, area: 'District VII (Jewish Quarter)', kind: 'religious', durationH: 1.5, tags: ['culture'] },
       { name: { he: 'אנדרטת הנעליים על גדת הדנובה', en: 'Shoes on the Danube Bank' }, area: 'District V (central Pest)', kind: 'landmark', durationH: 0.5, tags: ['culture'] },
       { name: { he: 'בזיליקת סטפן הקדוש', en: 'St Stephen’s Basilica' }, area: 'District V (central Pest)', kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'השוק הגדול', en: 'Great Market Hall' }, kind: 'market', durationH: 1.5, tags: ['food', 'shopping'] },
-      { name: { he: 'סימפלה קרט', en: 'Szimpla Kert' }, area: 'District VII (Jewish Quarter)', kind: 'experience', durationH: 2, tags: ['nightlife'] },
-      { name: { he: 'האי מרגרט', en: 'Margaret Island' }, kind: 'park', durationH: 2, tags: ['family', 'with_children'] },
-      { name: { he: 'תצפית מגבעת גלרט', en: 'Gellért Hill viewpoint' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple'] },
-      { name: { he: 'שייט ערב על הדנובה', en: 'Evening Danube cruise' }, kind: 'experience', durationH: 1.5, tags: ['couple'] }
+      { name: { he: 'השוק הגדול', en: 'Great Market Hall' }, kind: 'market', durationH: 1.5, tags: ['food', 'shopping'], area: 'Fővám Square' },
+      { name: { he: 'סימפלה קרט', en: 'Szimpla Kert' }, area: 'District VII (Jewish Quarter)', kind: 'experience', durationH: 2, tags: ['nightlife', 'evening', 'adults'] },
+      { name: { he: 'האי מרגרט', en: 'Margaret Island' }, kind: 'park', durationH: 2, tags: ['family', 'with_children'], area: 'Margaret Island' },
+      { name: { he: 'תצפית מגבעת גלרט', en: 'Gellért Hill viewpoint' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple'], area: 'Gellért Hill' },
+      { name: { he: 'שייט ערב על הדנובה', en: 'Evening Danube cruise' }, kind: 'experience', durationH: 1.5, tags: ['couple', 'evening'], area: 'District V (central Pest)' }
     ],
     dayTrips: [
-      { name: { he: 'סנטנדרה', en: 'Szentendre' }, hours: 0.7, note: { he: 'עיירת אמנים ציורית, ברכבת פרברים או בסירה בקיץ', en: 'A picturesque artists’ town, by suburban train or by boat in summer' } },
-      { name: { he: 'עיקול הדנובה — ויזגרד ואסטרגום', en: 'Danube Bend — Visegrád & Esztergom' }, hours: 1.5, note: { he: 'מצודה על הר ובזיליקה ענקית מעל הנהר', en: 'A hilltop citadel and a huge basilica above the river' } },
-      { name: { he: 'אגם בלטון', en: 'Lake Balaton' }, hours: 2, note: { he: 'בעיקר בקיץ — רחצה ועיירות נופש', en: 'Mainly in summer — swimming and resort towns' } }
+      { name: { he: 'סנטנדרה', en: 'Szentendre' }, hours: 0.7, note: { he: 'עיירת אמנים ציורית, ברכבת פרברים או בסירה בקיץ', en: 'A picturesque artists’ town, by suburban train or by boat in summer' }, priceIls: { low: 20, high: 200 }, kind: 'neighborhood' },
+      { name: { he: 'עיקול הדנובה — ויזגרד ואסטרגום', en: 'Danube Bend — Visegrád & Esztergom' }, hours: 1.5, note: { he: 'מצודה על הר ובזיליקה ענקית מעל הנהר', en: 'A hilltop citadel and a huge basilica above the river' }, priceIls: { low: 100, high: 400 }, kind: 'landmark' },
+      { name: { he: 'אגם בלטון', en: 'Lake Balaton' }, hours: 2, note: { he: 'בעיקר בקיץ — רחצה ועיירות נופש', en: 'Mainly in summer — swimming and resort towns' }, priceIls: { low: 80, high: 350 }, kind: 'beach', months: [6, 7, 8, 9] }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו, חשמליות (קו 2 לאורך הדנובה יפהפה) ואוטובוסים; מהשדה יש אוטובוס 100E למרכז. אין צורך ברכב.', en: 'Metro, trams (line 2 along the Danube is lovely) and buses; the 100E bus links the airport to the centre. No need for a car.' } },
     practical: {
@@ -122,24 +124,24 @@ export default [
       { name: { he: 'ליד התחנה המרכזית', en: 'Around the main station' }, forWhom: { he: 'תקציב ונוחות תחבורה לטיולי יום', en: 'Budget and easy transport for day trips' } }
     ],
     attractions: [
-      { name: { he: 'הכיכר המרכזית ואולם הבדים', en: 'Main Market Square & Cloth Hall' }, area: 'Old Town (Stare Miasto)', kind: 'landmark', durationH: 1.5, tags: ['culture', 'shopping'] },
+      { name: { he: 'הכיכר המרכזית ואולם הבדים', en: 'Main Market Square & Cloth Hall' }, area: 'Old Town (Stare Miasto)', kind: 'landmark', durationH: 1.5, tags: ['culture', 'shopping'], mustSee: true },
       { name: { he: 'בזיליקת מריה הקדושה', en: 'St Mary’s Basilica' }, area: 'Old Town (Stare Miasto)', kind: 'religious', durationH: 1, tags: ['culture'] },
       { name: { he: 'המוזיאון התת־קרקעי מתחת לכיכר', en: 'Rynek Underground museum' }, area: 'Old Town (Stare Miasto)', kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'טירת ואוול', en: 'Wawel Royal Castle' }, kind: 'landmark', durationH: 2.5, tags: ['culture'] },
-      { name: { he: 'קתדרלת ואוול', en: 'Wawel Cathedral' }, kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'מערת הדרקון בוואוול', en: 'Wawel Dragon’s Den' }, kind: 'experience', durationH: 0.5, tags: ['family', 'with_children'] },
-      { name: { he: 'רובע קזימייז', en: 'Kazimierz' }, area: 'Kazimierz', kind: 'neighborhood', durationH: 2.5, tags: ['culture', 'food'] },
+      { name: { he: 'טירת ואוול', en: 'Wawel Royal Castle' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Wawel', mustSee: true },
+      { name: { he: 'קתדרלת ואוול', en: 'Wawel Cathedral' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Wawel' },
+      { name: { he: 'מערת הדרקון בוואוול', en: 'Wawel Dragon’s Den' }, kind: 'experience', durationH: 0.5, tags: ['family', 'with_children'], area: 'Wawel' },
+      { name: { he: 'רובע קזימייז', en: 'Kazimierz' }, area: 'Kazimierz', kind: 'neighborhood', durationH: 2.5, tags: ['culture', 'food'], mustSee: true },
       { name: { he: 'בית הכנסת הישן', en: 'Old Synagogue' }, area: 'Kazimierz', kind: 'museum', durationH: 1, tags: ['culture'] },
       { name: { he: 'בית הכנסת והקברות של הרמ״א', en: 'Remuh Synagogue & Cemetery' }, area: 'Kazimierz', kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'כיכר נובי', en: 'Plac Nowy' }, area: 'Kazimierz', kind: 'market', durationH: 1, tags: ['food'] },
+      { name: { he: 'כיכר נובי', en: 'Plac Nowy' }, area: 'Kazimierz', kind: 'market', durationH: 1, tags: ['food', 'evening'] },
       { name: { he: 'מפעל האמייל של אוסקר שינדלר', en: 'Oskar Schindler’s Enamel Factory' }, area: 'Podgórze', kind: 'museum', durationH: 2.5, tags: ['culture'] },
       { name: { he: 'כיכר גיבורי הגטו', en: 'Ghetto Heroes Square' }, area: 'Podgórze', kind: 'landmark', durationH: 0.5, tags: ['culture'] },
       { name: { he: 'פארק הפלאנטי', en: 'Planty Park' }, area: 'Old Town (Stare Miasto)', kind: 'park', durationH: 1, tags: ['family'] }
     ],
     dayTrips: [
-      { name: { he: 'אושוויץ־בירקנאו — אתר ההנצחה והמוזיאון', en: 'Auschwitz-Birkenau Memorial and Museum' }, hours: 1.5, note: { he: 'ביקור מטלטל שדורש יום שלם; כדאי להזמין כניסה עם הדרכה מראש ולהגיע בלבוש מכבד', en: 'A deeply moving visit that takes a full day; book a guided entry in advance and dress respectfully' } },
-      { name: { he: 'מכרה המלח בווליצ׳קה', en: 'Wieliczka Salt Mine' }, hours: 0.5, note: { he: 'אולמות וקפלות מגולפים במלח עמוק מתחת לאדמה; הזמינו סיור מראש', en: 'Halls and chapels carved from salt deep underground; book a tour in advance' } },
-      { name: { he: 'זקופנה והרי הטטרה', en: 'Zakopane & the Tatra Mountains' }, hours: 2, note: { he: 'עיירת הרים — הליכות בקיץ ושלג בחורף', en: 'A mountain town — hiking in summer, snow in winter' } }
+      { name: { he: 'אושוויץ־בירקנאו — אתר ההנצחה והמוזיאון', en: 'Auschwitz-Birkenau Memorial and Museum' }, hours: 1.5, note: { he: 'ביקור מטלטל שדורש יום שלם; כדאי להזמין כניסה עם הדרכה מראש ולהגיע בלבוש מכבד', en: 'A deeply moving visit that takes a full day; book a guided entry in advance and dress respectfully' }, priceIls: { low: 130, high: 300 }, kind: 'museum' },
+      { name: { he: 'מכרה המלח בווליצ׳קה', en: 'Wieliczka Salt Mine' }, hours: 0.5, note: { he: 'אולמות וקפלות מגולפים במלח עמוק מתחת לאדמה; הזמינו סיור מראש', en: 'Halls and chapels carved from salt deep underground; book a tour in advance' }, priceIls: { low: 150, high: 300 }, kind: 'experience' },
+      { name: { he: 'זקופנה והרי הטטרה', en: 'Zakopane & the Tatra Mountains' }, hours: 2, note: { he: 'עיירת הרים — הליכות בקיץ ושלג בחורף', en: 'A mountain town — hiking in summer, snow in winter' }, priceIls: { low: 50, high: 300 }, kind: 'nature' }
     ],
     transport: { carRecommended: false, note: { he: 'המרכז קומפקטי ונוח להליכה, עם חשמליות; מהשדה יש רכבת למרכז. לאושוויץ ולווליצ׳קה הכי פשוט בסיור מאורגן או בתחבורה ציבורית.', en: 'The centre is compact and walkable, with trams; a train links the airport to the centre. For Auschwitz and Wieliczka an organised tour or public transport is simplest.' } },
     practical: {
@@ -172,24 +174,24 @@ export default [
       { name: { he: 'גרינדלוולד, ונגן ולאוטרברונן', en: 'Grindelwald, Wengen & Lauterbrunnen' }, forWhom: { he: 'כפרי הרים — למטיילים ולגולשי סקי', en: 'Mountain villages — for hikers and skiers' } }
     ],
     attractions: [
-      { name: { he: 'יונגפראויוך', en: 'Jungfraujoch' }, area: 'Grindelwald, Wengen & Lauterbrunnen', kind: 'viewpoint', durationH: 6, tags: ['nature', 'family'] },
-      { name: { he: 'גשר הקפלה בלוצרן', en: 'Chapel Bridge, Lucerne' }, area: 'Lucerne', kind: 'landmark', durationH: 1, tags: ['culture'] },
+      { name: { he: 'יונגפראויוך', en: 'Jungfraujoch' }, area: 'Grindelwald, Wengen & Lauterbrunnen', kind: 'viewpoint', durationH: 6, tags: ['nature', 'family'], mustSee: true },
+      { name: { he: 'גשר הקפלה בלוצרן', en: 'Chapel Bridge, Lucerne' }, area: 'Lucerne', kind: 'landmark', durationH: 1, tags: ['culture'], mustSee: true },
       { name: { he: 'שייט באגם לוצרן', en: 'Lake Lucerne boat cruise' }, area: 'Lucerne', kind: 'experience', durationH: 2, tags: ['relaxation', 'couple'] },
       { name: { he: 'הר פילאטוס', en: 'Mount Pilatus' }, area: 'Lucerne', kind: 'viewpoint', durationH: 4, tags: ['nature'] },
-      { name: { he: 'הר ריגי', en: 'Mount Rigi' }, kind: 'viewpoint', durationH: 4, tags: ['nature', 'family'] },
+      { name: { he: 'הר ריגי', en: 'Mount Rigi' }, kind: 'viewpoint', durationH: 4, tags: ['nature', 'family'], area: 'Lucerne' },
       { name: { he: 'המוזיאון השווייצרי לתחבורה', en: 'Swiss Museum of Transport' }, area: 'Lucerne', kind: 'museum', durationH: 3, tags: ['family', 'with_children'] },
-      { name: { he: 'עמק לאוטרברונן ומפל שטאובך', en: 'Lauterbrunnen Valley & Staubbach Falls' }, area: 'Grindelwald, Wengen & Lauterbrunnen', kind: 'nature', durationH: 2, tags: ['nature'] },
+      { name: { he: 'עמק לאוטרברונן ומפל שטאובך', en: 'Lauterbrunnen Valley & Staubbach Falls' }, area: 'Grindelwald, Wengen & Lauterbrunnen', kind: 'nature', durationH: 2, tags: ['nature'], mustSee: true },
       { name: { he: 'מפלי טרומלבך', en: 'Trümmelbach Falls' }, area: 'Grindelwald, Wengen & Lauterbrunnen', kind: 'nature', durationH: 1.5, tags: ['nature'] },
-      { name: { he: 'פירסט ושביל המצוק', en: 'Grindelwald First & Cliff Walk' }, area: 'Grindelwald, Wengen & Lauterbrunnen', kind: 'experience', durationH: 3, tags: ['adventure', 'family'] },
+      { name: { he: 'פירסט ושביל המצוק', en: 'Grindelwald First & Cliff Walk' }, area: 'Grindelwald, Wengen & Lauterbrunnen', kind: 'experience', durationH: 3, tags: ['adventure', 'family', 'teens'] },
       { name: { he: 'תצפית הרדר קולם', en: 'Harder Kulm viewpoint' }, area: 'Interlaken', kind: 'viewpoint', durationH: 1.5, tags: ['couple'] },
       { name: { he: 'שייט באגם בריינץ', en: 'Lake Brienz boat trip' }, area: 'Interlaken', kind: 'experience', durationH: 2, tags: ['relaxation'] },
       { name: { he: 'העיר העתיקה של ציריך ובאנהופשטראסה', en: 'Zurich Old Town & Bahnhofstrasse' }, area: 'Zurich', kind: 'neighborhood', durationH: 2, tags: ['shopping', 'culture'] },
       { name: { he: 'בית השוקולד של לינדט', en: 'Lindt Home of Chocolate' }, area: 'Zurich', kind: 'museum', durationH: 1.5, tags: ['family', 'food'] }
     ],
     dayTrips: [
-      { name: { he: 'מפלי הריין', en: 'Rhine Falls' }, hours: 0.75, note: { he: 'המפלים הגדולים באירופה, קרוב לציריך', en: 'Europe’s largest waterfall, close to Zurich' } },
-      { name: { he: 'ברן', en: 'Bern' }, hours: 1, note: { he: 'עיר הבירה עם עיר עתיקה מקורה בארקדות — ברכבת מציריך או מאינטרלאקן', en: 'The capital, with an arcaded old town — by train from Zurich or Interlaken' } },
-      { name: { he: 'צרמט והמטרהורן', en: 'Zermatt & the Matterhorn' }, hours: 2.5, note: { he: 'יום ארוך מאינטרלאקן; עדיף ללון לילה', en: 'A long day from Interlaken; better with an overnight stay' } }
+      { name: { he: 'מפלי הריין', en: 'Rhine Falls' }, hours: 0.75, note: { he: 'המפלים הגדולים באירופה, קרוב לציריך', en: 'Europe’s largest waterfall, close to Zurich' }, priceIls: { low: 130, high: 350 }, kind: 'nature' },
+      { name: { he: 'ברן', en: 'Bern' }, hours: 1, note: { he: 'עיר הבירה עם עיר עתיקה מקורה בארקדות — ברכבת מציריך או מאינטרלאקן', en: 'The capital, with an arcaded old town — by train from Zurich or Interlaken' }, priceIls: { low: 120, high: 400 }, kind: 'neighborhood' },
+      { name: { he: 'צרמט והמטרהורן', en: 'Zermatt & the Matterhorn' }, hours: 2.5, note: { he: 'יום ארוך מאינטרלאקן; עדיף ללון לילה', en: 'A long day from Interlaken; better with an overnight stay' }, priceIls: { low: 600, high: 1100 }, kind: 'viewpoint' }
     ],
     transport: { carRecommended: false, note: { he: 'הרכבות, הסירות ורכבלי ההרים מתואמים ומדויקים; כרטיס מעבר תיירותי (Swiss Travel Pass) משתלם לרוב. ונגן ומירן סגורים לרכבים, כך שרכב לא באמת נחוץ.', en: 'Trains, boats and mountain lifts are timed together and punctual; a Swiss Travel Pass often pays off. Wengen and Mürren are car-free, so a car isn’t really needed.' } },
     practical: {
@@ -223,22 +225,22 @@ export default [
     ],
     attractions: [
       { name: { he: 'קרחון הינטרטוקס', en: 'Hintertux Glacier' }, area: 'Zillertal (Mayrhofen)', kind: 'nature', durationH: 6, tags: ['ski', 'adventure'] },
-      { name: { he: 'רכבל הנורדקטה', en: 'Nordkette cable car' }, area: 'Innsbruck', kind: 'viewpoint', durationH: 3, tags: ['nature', 'family'] },
-      { name: { he: 'הגג המוזהב והעיר העתיקה של אינסברוק', en: 'Golden Roof & Innsbruck Old Town' }, area: 'Innsbruck', kind: 'landmark', durationH: 1.5, tags: ['culture'] },
+      { name: { he: 'רכבל הנורדקטה', en: 'Nordkette cable car' }, area: 'Innsbruck', kind: 'viewpoint', durationH: 3, tags: ['nature', 'family'], mustSee: true },
+      { name: { he: 'הגג המוזהב והעיר העתיקה של אינסברוק', en: 'Golden Roof & Innsbruck Old Town' }, area: 'Innsbruck', kind: 'landmark', durationH: 1.5, tags: ['culture'], mustSee: true },
       { name: { he: 'טירת אמבראס', en: 'Ambras Castle' }, area: 'Innsbruck', kind: 'museum', durationH: 2, tags: ['culture'] },
       { name: { he: 'קפיצת הסקי ברגאיזל', en: 'Bergisel Ski Jump' }, area: 'Innsbruck', kind: 'viewpoint', durationH: 1, tags: ['ski'] },
-      { name: { he: 'עולמות הקריסטל של סברובסקי', en: 'Swarovski Crystal Worlds' }, kind: 'museum', durationH: 2, tags: ['family', 'shopping'] },
-      { name: { he: 'העיר קיצביל והר האנקאם', en: 'Kitzbühel town & the Hahnenkamm' }, area: 'Kitzbühel & SkiWelt', kind: 'neighborhood', durationH: 2, tags: ['ski', 'luxury'] },
-      { name: { he: 'העיר העתיקה של זלצבורג ומבצר הוהנזלצבורג', en: 'Salzburg Old Town & Hohensalzburg Fortress' }, kind: 'landmark', durationH: 3, tags: ['culture'] },
-      { name: { he: 'צל אם זה והאגם', en: 'Zell am See and its lake' }, kind: 'nature', durationH: 3, tags: ['nature', 'relaxation'] },
-      { name: { he: 'מפלי קרימל (בעיקר בקיץ)', en: 'Krimml Waterfalls (mainly summer)' }, kind: 'nature', durationH: 3, tags: ['nature', 'family'] },
-      { name: { he: 'כביש הגרוסגלוקנר (מאי–אוקטובר)', en: 'Grossglockner High Alpine Road (May–October)' }, kind: 'experience', durationH: 5, tags: ['nature'] },
-      { name: { he: 'מערת הקרח אייזריזנוולט (מאי–אוקטובר)', en: 'Eisriesenwelt ice cave (May–October)' }, kind: 'nature', durationH: 3, tags: ['adventure'] }
+      { name: { he: 'עולמות הקריסטל של סברובסקי', en: 'Swarovski Crystal Worlds' }, kind: 'museum', durationH: 2, tags: ['family', 'shopping'], area: 'Innsbruck' },
+      { name: { he: 'העיר קיצביל והר האנקאם', en: 'Kitzbühel town & the Hahnenkamm' }, area: 'Kitzbühel & SkiWelt', kind: 'neighborhood', durationH: 2, tags: ['ski', 'luxury'], mustSee: true },
+      { name: { he: 'העיר העתיקה של זלצבורג ומבצר הוהנזלצבורג', en: 'Salzburg Old Town & Hohensalzburg Fortress' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'Salzburg' },
+      { name: { he: 'צל אם זה והאגם', en: 'Zell am See and its lake' }, kind: 'nature', durationH: 3, tags: ['nature', 'relaxation'], area: 'Zell am See' },
+      { name: { he: 'מפלי קרימל (בעיקר בקיץ)', en: 'Krimml Waterfalls (mainly summer)' }, kind: 'nature', durationH: 3, tags: ['nature', 'family'], area: 'Krimml', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'כביש הגרוסגלוקנר (מאי–אוקטובר)', en: 'Grossglockner High Alpine Road (May–October)' }, kind: 'experience', durationH: 5, tags: ['nature'], area: 'Zell am See', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'מערת הקרח אייזריזנוולט (מאי–אוקטובר)', en: 'Eisriesenwelt ice cave (May–October)' }, kind: 'nature', durationH: 3, tags: ['adventure', 'teens'], area: 'Werfen', months: [5, 6, 7, 8, 9, 10] }
     ],
     dayTrips: [
-      { name: { he: 'זלצבורג מאינסברוק', en: 'Salzburg from Innsbruck' }, hours: 2, note: { he: 'ברכבת — עיר עתיקה, מבצר ובית הולדתו של מוצרט', en: 'By train — old town, fortress and Mozart’s birthplace' } },
-      { name: { he: 'הלשטאט', en: 'Hallstatt' }, hours: 1.5, note: { he: 'מזלצבורג; כפר על אגם — עמוס מאוד בשעות היום', en: 'From Salzburg; a lakeside village — very crowded during the day' } },
-      { name: { he: 'טירת נוישוונשטיין', en: 'Neuschwanstein Castle' }, hours: 2, note: { he: 'מעבר לגבול בגרמניה, ברכב מאינסברוק; להזמין כרטיסים מראש', en: 'Over the border in Germany, by car from Innsbruck; book tickets ahead' } }
+      { name: { he: 'זלצבורג מאינסברוק', en: 'Salzburg from Innsbruck' }, hours: 2, note: { he: 'ברכבת — עיר עתיקה, מבצר ובית הולדתו של מוצרט', en: 'By train — old town, fortress and Mozart’s birthplace' }, priceIls: { low: 250, high: 450 }, kind: 'neighborhood' },
+      { name: { he: 'הלשטאט', en: 'Hallstatt' }, hours: 1.5, note: { he: 'מזלצבורג; כפר על אגם — עמוס מאוד בשעות היום', en: 'From Salzburg; a lakeside village — very crowded during the day' }, priceIls: { low: 120, high: 450 }, kind: 'neighborhood' },
+      { name: { he: 'טירת נוישוונשטיין', en: 'Neuschwanstein Castle' }, hours: 2, note: { he: 'מעבר לגבול בגרמניה, ברכב מאינסברוק; להזמין כרטיסים מראש', en: 'Over the border in Germany, by car from Innsbruck; book tickets ahead' }, priceIls: { low: 150, high: 400 }, kind: 'landmark' }
     ],
     transport: { carRecommended: false, note: { he: 'לשבוע סקי מספיקה העברה מהשדה לאתר, ובתוך האתר יש אוטובוסי סקי. בקיץ, או כשרוצים לגלוש בכמה אתרים, רכב נוח — בחורף חובה צמיגי חורף. לרוב טסים עם עצירה בווינה, בציריך או בפרנקפורט, או למינכן וממשיכים ביבשה; לפעמים יש בעונה טיסות שכר של חבילות סקי.', en: 'For a ski week an airport transfer is enough, with ski buses in the resort. In summer, or to ski several areas, a car is handy — winter tyres are mandatory in winter. Flights usually connect via Vienna, Zurich or Frankfurt, or land in Munich and continue overland; ski-package charters sometimes run in season.' } },
     practical: {
@@ -272,22 +274,22 @@ export default [
     attractions: [
       { name: { he: 'כנסיית הלגרימסקירקיה', en: 'Hallgrímskirkja' }, area: 'Reykjavík', kind: 'religious', durationH: 1, tags: ['culture'] },
       { name: { he: 'אולם הקונצרטים הרפה', en: 'Harpa Concert Hall' }, area: 'Reykjavík', kind: 'landmark', durationH: 0.5, tags: ['culture'] },
-      { name: { he: 'הפארק הלאומי תינגווליר', en: 'Þingvellir National Park' }, kind: 'nature', durationH: 2, tags: ['nature', 'culture'] },
-      { name: { he: 'גייסיר ושטרוקור', en: 'Geysir & Strokkur' }, kind: 'nature', durationH: 1, tags: ['nature', 'family'] },
-      { name: { he: 'מפל גולפוס', en: 'Gullfoss' }, kind: 'nature', durationH: 1, tags: ['nature'] },
+      { name: { he: 'הפארק הלאומי תינגווליר', en: 'Þingvellir National Park' }, kind: 'nature', durationH: 2, tags: ['nature', 'culture'], area: 'Reykjavík' },
+      { name: { he: 'גייסיר ושטרוקור', en: 'Geysir & Strokkur' }, kind: 'nature', durationH: 1, tags: ['nature', 'family'], area: 'Reykjavík' },
+      { name: { he: 'מפל גולפוס', en: 'Gullfoss' }, kind: 'nature', durationH: 1, tags: ['nature'], area: 'Reykjavík', mustSee: true },
       { name: { he: 'מפל סליאלנדספוס', en: 'Seljalandsfoss' }, area: 'The South Coast (Vík)', kind: 'nature', durationH: 1, tags: ['nature'] },
       { name: { he: 'מפל סקוגאפוס', en: 'Skógafoss' }, area: 'The South Coast (Vík)', kind: 'nature', durationH: 1, tags: ['nature'] },
-      { name: { he: 'חוף ריינספיארה', en: 'Reynisfjara beach' }, area: 'The South Coast (Vík)', kind: 'beach', durationH: 1, tags: ['nature'] },
-      { name: { he: 'לגונת הקרחונים יוקולסרלון', en: 'Jökulsárlón glacier lagoon' }, area: 'The South Coast (Vík)', kind: 'nature', durationH: 2, tags: ['nature', 'couple'] },
-      { name: { he: 'הלגונה הכחולה', en: 'Blue Lagoon' }, kind: 'experience', durationH: 3, tags: ['relaxation', 'luxury'] },
+      { name: { he: 'חוף ריינספיארה', en: 'Reynisfjara beach' }, area: 'The South Coast (Vík)', kind: 'beach', durationH: 1, tags: ['nature'], mustSee: true },
+      { name: { he: 'לגונת הקרחונים יוקולסרלון', en: 'Jökulsárlón glacier lagoon' }, area: 'The South Coast (Vík)', kind: 'nature', durationH: 2, tags: ['nature', 'couple'], mustSee: true },
+      { name: { he: 'הלגונה הכחולה', en: 'Blue Lagoon' }, kind: 'experience', durationH: 3, tags: ['relaxation', 'luxury'], area: 'Reykjavík', mustSee: true },
       { name: { he: 'סקיי לגון', en: 'Sky Lagoon' }, area: 'Reykjavík', kind: 'experience', durationH: 2, tags: ['relaxation', 'couple'] },
-      { name: { he: 'צפייה בלווייתנים בהוסאוויק', en: 'Whale watching from Húsavík' }, area: 'Akureyri & the North', kind: 'experience', durationH: 3, tags: ['nature', 'family'] },
+      { name: { he: 'צפייה בלווייתנים בהוסאוויק', en: 'Whale watching from Húsavík' }, area: 'Akureyri & the North', kind: 'experience', durationH: 3, tags: ['nature', 'family'], months: [4, 5, 6, 7, 8, 9, 10] },
       { name: { he: 'אזור אגם מיוואטן והמרחצאות הטבעיים', en: 'Lake Mývatn area & Mývatn Nature Baths' }, area: 'Akureyri & the North', kind: 'nature', durationH: 4, tags: ['nature', 'relaxation'] }
     ],
     dayTrips: [
-      { name: { he: 'מעגל הזהב', en: 'The Golden Circle' }, hours: 1, note: { he: 'לולאה של כ־230 ק״מ מרייקיאוויק — יום שלם ברכב או בסיור', en: 'A loop of about 230 km from Reykjavík — a full day by car or on a tour' } },
-      { name: { he: 'החוף הדרומי עד ויק', en: 'The South Coast to Vík' }, hours: 2.5, note: { he: 'מפלים וחוף שחור; עדיף ללון בדרך', en: 'Waterfalls and a black beach; better with an overnight stop' } },
-      { name: { he: 'חצי האי סנייפלסנס', en: 'Snæfellsnes Peninsula' }, hours: 2.5, note: { he: 'הר קירקיופל, חופים וכפרי דייגים', en: 'Kirkjufell mountain, beaches and fishing villages' } }
+      { name: { he: 'מעגל הזהב', en: 'The Golden Circle' }, hours: 1, note: { he: 'לולאה של כ־230 ק״מ מרייקיאוויק — יום שלם ברכב או בסיור', en: 'A loop of about 230 km from Reykjavík — a full day by car or on a tour' }, priceIls: { low: 270, high: 450 }, kind: 'nature' },
+      { name: { he: 'החוף הדרומי עד ויק', en: 'The South Coast to Vík' }, hours: 2.5, note: { he: 'מפלים וחוף שחור; עדיף ללון בדרך', en: 'Waterfalls and a black beach; better with an overnight stop' }, priceIls: { low: 400, high: 600 }, kind: 'nature' },
+      { name: { he: 'חצי האי סנייפלסנס', en: 'Snæfellsnes Peninsula' }, hours: 2.5, note: { he: 'הר קירקיופל, חופים וכפרי דייגים', en: 'Kirkjufell mountain, beaches and fishing villages' }, priceIls: { low: 550, high: 800 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'הכי טוב ברכב שכור; בכבישי ההרים (F) מותר לנסוע רק ב־4x4 ורק בקיץ. בחורף כבישים קפואים וימים קצרים — כדאי לבדוק כל בוקר את road.is ו־safetravel.is, או לבחור בסיורים מאורגנים.', en: 'Best by hire car; the highland F-roads are 4x4-only and summer-only. In winter roads are icy and days short — check road.is and safetravel.is every morning, or choose organised tours.' } },
     practical: {
@@ -319,24 +321,24 @@ export default [
       { name: { he: 'הרדנגר (אודה ולופטהוס)', en: 'Hardanger (Odda & Lofthus)' }, forWhom: { he: 'מטיילים בדרך לטרולטונגה', en: 'Hikers heading to Trolltunga' } }
     ],
     attractions: [
-      { name: { he: 'בריגן', en: 'Bryggen' }, area: 'Bergen', kind: 'landmark', durationH: 1.5, tags: ['culture'] },
+      { name: { he: 'בריגן', en: 'Bryggen' }, area: 'Bergen', kind: 'landmark', durationH: 1.5, tags: ['culture'], mustSee: true },
       { name: { he: 'רכבל פלויבאנן והר פלויין', en: 'Fløibanen funicular & Mount Fløyen' }, area: 'Bergen', kind: 'viewpoint', durationH: 2, tags: ['family'] },
       { name: { he: 'שוק הדגים של ברגן', en: 'Bergen Fish Market' }, area: 'Bergen', kind: 'market', durationH: 1, tags: ['food'] },
       { name: { he: 'הר אולריקן', en: 'Mount Ulriken' }, area: 'Bergen', kind: 'viewpoint', durationH: 3, tags: ['adventure', 'nature'] },
       { name: { he: 'טרולדהאוגן — ביתו של גריג', en: 'Troldhaugen — Grieg’s home' }, area: 'Bergen', kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'רכבת פלאם', en: 'Flåm Railway' }, area: 'Flåm & Aurland', kind: 'experience', durationH: 2, tags: ['family', 'nature'] },
-      { name: { he: 'שייט בנרויפיורד', en: 'Nærøyfjord cruise' }, area: 'Flåm & Aurland', kind: 'experience', durationH: 2, tags: ['nature', 'couple'] },
+      { name: { he: 'רכבת פלאם', en: 'Flåm Railway' }, area: 'Flåm & Aurland', kind: 'experience', durationH: 2, tags: ['family', 'nature'], mustSee: true },
+      { name: { he: 'שייט בנרויפיורד', en: 'Nærøyfjord cruise' }, area: 'Flåm & Aurland', kind: 'experience', durationH: 2, tags: ['nature', 'couple'], mustSee: true },
       { name: { he: 'תצפית סטגאשטיין', en: 'Stegastein viewpoint' }, area: 'Flåm & Aurland', kind: 'viewpoint', durationH: 1, tags: ['nature'] },
-      { name: { he: 'כנסיית העץ בבורגונד', en: 'Borgund Stave Church' }, kind: 'religious', durationH: 1, tags: ['culture'] },
+      { name: { he: 'כנסיית העץ בבורגונד', en: 'Borgund Stave Church' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Lærdal' },
       { name: { he: 'מפל ורינגספוסן', en: 'Vøringsfossen waterfall' }, area: 'Hardanger (Odda & Lofthus)', kind: 'nature', durationH: 1, tags: ['nature'] },
-      { name: { he: 'טרולטונגה', en: 'Trolltunga' }, area: 'Hardanger (Odda & Lofthus)', kind: 'nature', durationH: 10, tags: ['adventure'] },
-      { name: { he: 'פרייקסטולן', en: 'Preikestolen (Pulpit Rock)' }, kind: 'nature', durationH: 4, tags: ['adventure', 'nature'] },
-      { name: { he: 'שייט בגיירנגרפיורד', en: 'Geirangerfjord cruise' }, kind: 'experience', durationH: 1.5, tags: ['nature', 'couple'] }
+      { name: { he: 'טרולטונגה', en: 'Trolltunga' }, area: 'Hardanger (Odda & Lofthus)', kind: 'nature', durationH: 10, tags: ['adventure'], months: [6, 7, 8, 9] },
+      { name: { he: 'פרייקסטולן', en: 'Preikestolen (Pulpit Rock)' }, kind: 'nature', durationH: 4, tags: ['adventure', 'nature'], area: 'Stavanger', months: [4, 5, 6, 7, 8, 9, 10] },
+      { name: { he: 'שייט בגיירנגרפיורד', en: 'Geirangerfjord cruise' }, kind: 'experience', durationH: 1.5, tags: ['nature', 'couple'], area: 'Geiranger' }
     ],
     dayTrips: [
-      { name: { he: 'נורווגיה על קצה המזלג — פלאם', en: 'Norway in a Nutshell — Flåm' }, hours: 3, note: { he: 'לולאה של רכבת, רכבת פלאם, שייט ואוטובוס דרך ווס ומירדל — יום שלם', en: 'A loop of train, the Flåm Railway, a boat and a bus via Voss and Myrdal — a full day' } },
-      { name: { he: 'ווס', en: 'Voss' }, hours: 1.5, note: { he: 'ברכבת מברגן — אגם, מפלים ופעילויות אקסטרים', en: 'By train from Bergen — a lake, waterfalls and adventure sports' } },
-      { name: { he: 'הרדנגרפיורד', en: 'The Hardangerfjord' }, hours: 1.5, note: { he: 'מפלים, מטעי תפוחים וכפרים על המים', en: 'Waterfalls, apple orchards and waterside villages' } }
+      { name: { he: 'נורווגיה על קצה המזלג — פלאם', en: 'Norway in a Nutshell — Flåm' }, hours: 3, note: { he: 'לולאה של רכבת, רכבת פלאם, שייט ואוטובוס דרך ווס ומירדל — יום שלם', en: 'A loop of train, the Flåm Railway, a boat and a bus via Voss and Myrdal — a full day' }, priceIls: { low: 700, high: 900 }, kind: 'experience' },
+      { name: { he: 'ווס', en: 'Voss' }, hours: 1.5, note: { he: 'ברכבת מברגן — אגם, מפלים ופעילויות אקסטרים', en: 'By train from Bergen — a lake, waterfalls and adventure sports' }, priceIls: { low: 170, high: 350 }, kind: 'nature' },
+      { name: { he: 'הרדנגרפיורד', en: 'The Hardangerfjord' }, hours: 1.5, note: { he: 'מפלים, מטעי תפוחים וכפרים על המים', en: 'Waterfalls, apple orchards and waterside villages' }, priceIls: { low: 150, high: 700 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'רכבות ומעבורות מכסות את המסלולים המרכזיים, אבל רכב נותן הכי הרבה חופש. הדרכים צרות, עם מנהרות ארוכות, מעבורות ואגרות. מעברי הרים מסוימים סגורים בחורף.', en: 'Trains and ferries cover the main routes, but a car gives the most freedom. Roads are narrow, with long tunnels, ferries and tolls. Some mountain passes close in winter.' } },
     practical: {
@@ -369,25 +371,25 @@ export default [
       { name: { he: 'אוסטרברו', en: 'Østerbro' }, forWhom: { he: 'משפחות — פארקים ושכונה רגועה', en: 'Families — parks and a calm neighbourhood' } }
     ],
     attractions: [
-      { name: { he: 'נייהאבן', en: 'Nyhavn' }, area: 'Indre By (city centre)', kind: 'neighborhood', durationH: 1, tags: ['couple', 'food'] },
-      { name: { he: 'גני טיבולי', en: 'Tivoli Gardens' }, area: 'Vesterbro', kind: 'park', durationH: 4, tags: ['family', 'with_children'] },
+      { name: { he: 'נייהאבן', en: 'Nyhavn' }, area: 'Indre By (city centre)', kind: 'neighborhood', durationH: 1, tags: ['couple', 'food'], mustSee: true },
+      { name: { he: 'גני טיבולי', en: 'Tivoli Gardens' }, area: 'Vesterbro', kind: 'park', durationH: 4, tags: ['family', 'with_children', 'evening'], mustSee: true, months: [4, 5, 6, 7, 8, 9, 10, 11, 12] },
       { name: { he: 'ארמון רוזנבורג', en: 'Rosenborg Castle' }, area: 'Indre By (city centre)', kind: 'landmark', durationH: 1.5, tags: ['culture'] },
       { name: { he: 'ארמון אמליינבורג וחילופי המשמרות', en: 'Amalienborg Palace & Changing of the Guard' }, area: 'Indre By (city centre)', kind: 'landmark', durationH: 1, tags: ['culture', 'family'] },
       { name: { he: 'ארמון כריסטיאנסבורג', en: 'Christiansborg Palace' }, area: 'Indre By (city centre)', kind: 'landmark', durationH: 2, tags: ['culture'] },
-      { name: { he: 'בת הים הקטנה', en: 'The Little Mermaid' }, area: 'Østerbro', kind: 'landmark', durationH: 0.5, tags: [] },
+      { name: { he: 'בת הים הקטנה', en: 'The Little Mermaid' }, area: 'Østerbro', kind: 'landmark', durationH: 0.5, tags: ['culture', 'family'], mustSee: true },
       { name: { he: 'המגדל העגול', en: 'The Round Tower' }, area: 'Indre By (city centre)', kind: 'viewpoint', durationH: 1, tags: ['family'] },
       { name: { he: 'צריח כנסיית המושיע', en: 'Church of Our Saviour spire' }, area: 'Christianshavn', kind: 'viewpoint', durationH: 1, tags: ['couple'] },
       { name: { he: 'שוק טורבהאלרנה', en: 'Torvehallerne market' }, area: 'Indre By (city centre)', kind: 'market', durationH: 1, tags: ['food'] },
-      { name: { he: 'שוק האוכל רפן', en: 'Reffen street food market' }, kind: 'market', durationH: 2, tags: ['food'] },
+      { name: { he: 'שוק האוכל רפן', en: 'Reffen street food market' }, kind: 'market', durationH: 2, tags: ['food', 'evening'], area: 'Christianshavn', months: [4, 5, 6, 7, 8, 9, 10] },
       { name: { he: 'גליפטוטק ני קרלסברג', en: 'Ny Carlsberg Glyptotek' }, area: 'Indre By (city centre)', kind: 'museum', durationH: 2, tags: ['culture'] },
       { name: { he: 'המוזיאון הלאומי של דנמרק', en: 'National Museum of Denmark' }, area: 'Indre By (city centre)', kind: 'museum', durationH: 2, tags: ['culture', 'family'] },
       { name: { he: 'המוזיאון היהודי הדני', en: 'Danish Jewish Museum' }, area: 'Indre By (city centre)', kind: 'museum', durationH: 1, tags: ['culture'] }
     ],
     dayTrips: [
-      { name: { he: 'טירת קרונבורג בהלסינגור', en: 'Kronborg Castle, Helsingør' }, hours: 0.75, note: { he: 'הטירה של ״המלט״, ברכבת לאורך החוף', en: 'Hamlet’s castle, by train along the coast' } },
-      { name: { he: 'מוזיאון לואיזיאנה לאמנות מודרנית', en: 'Louisiana Museum of Modern Art' }, hours: 0.6, note: { he: 'מוזיאון מרהיב על שפת הים בהומלבק', en: 'A stunning seaside museum in Humlebæk' } },
-      { name: { he: 'מאלמו', en: 'Malmö' }, hours: 0.6, note: { he: 'ברכבת מעל גשר אורסונד לשוודיה', en: 'By train over the Øresund Bridge to Sweden' } },
-      { name: { he: 'מוזיאון ספינות הוויקינגים ברוסקילדה', en: 'Viking Ship Museum, Roskilde' }, hours: 0.5, note: { he: 'ספינות ויקינגיות מקוריות וקתדרלה עתיקה', en: 'Original Viking ships and an old cathedral' } }
+      { name: { he: 'טירת קרונבורג בהלסינגור', en: 'Kronborg Castle, Helsingør' }, hours: 0.75, note: { he: 'הטירה של ״המלט״, ברכבת לאורך החוף', en: 'Hamlet’s castle, by train along the coast' }, priceIls: { low: 170, high: 400 }, kind: 'landmark' },
+      { name: { he: 'מוזיאון לואיזיאנה לאמנות מודרנית', en: 'Louisiana Museum of Modern Art' }, hours: 0.6, note: { he: 'מוזיאון מרהיב על שפת הים בהומלבק', en: 'A stunning seaside museum in Humlebæk' }, priceIls: { low: 170, high: 350 }, kind: 'museum' },
+      { name: { he: 'מאלמו', en: 'Malmö' }, hours: 0.6, note: { he: 'ברכבת מעל גשר אורסונד לשוודיה', en: 'By train over the Øresund Bridge to Sweden' }, priceIls: { low: 110, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'מוזיאון ספינות הוויקינגים ברוסקילדה', en: 'Viking Ship Museum, Roskilde' }, hours: 0.5, note: { he: 'ספינות ויקינגיות מקוריות וקתדרלה עתיקה', en: 'Original Viking ships and an old cathedral' }, priceIls: { low: 160, high: 350 }, kind: 'museum' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו מהשדה למרכז תוך כרבע שעה, ובעיר מטרו, אוטובוסים ואופניים — העיר שטוחה ונוחה מאוד לרכיבה. אין צורך ברכב.', en: 'The metro reaches the centre from the airport in about 15 minutes; in town use the metro, buses and bikes — the city is flat and very bike-friendly. No need for a car.' } },
     practical: {

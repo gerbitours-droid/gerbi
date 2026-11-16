@@ -1,5 +1,7 @@
 // Catalog data (spec 23): Africa & Indian Ocean islands. Shape: dist/catalog.mjs.
 // Budget figures are rough per-person-per-day estimates in ₪ on the ground, without flights and lodging.
+// dayTrips[].priceIls = rough ₪ per adult, ESTIMATES (Nov 2026): low ≈ do-it-yourself public transport + main entry fee,
+// high ≈ a typical organised group tour from the base; converted at about €1=₪4, $1=₪3.7, £1=₪4.7 and rounded. Show as estimates.
 export default [
   {
     id: 'zanzibar', code: 'ZNZ', airports: ['ZNZ'],
@@ -23,23 +25,23 @@ export default [
       { name: { he: 'פאג׳ה וג׳מביאני (דרום-מזרח)', en: 'Paje & Jambiani (south-east)' }, forWhom: { he: 'קייטסרפינג, אווירה צעירה ונינוחה; שפל ארוך בחלק מהיום', en: 'Kitesurfing and a relaxed, young vibe; long low tides for part of the day' } }
     ],
     attractions: [
-      { name: { he: 'סיור רגלי בסטון טאון', en: 'Stone Town walking tour' }, kind: 'neighborhood', durationH: 3, tags: ['culture'], area: 'Stone Town' },
-      { name: { he: 'שוק אוכל הערב בגני פורודאני', en: 'Forodhani Gardens night food market' }, kind: 'market', durationH: 1.5, tags: ['food'], area: 'Stone Town' },
+      { name: { he: 'סיור רגלי בסטון טאון', en: 'Stone Town walking tour' }, kind: 'neighborhood', durationH: 3, tags: ['culture'], area: 'Stone Town', mustSee: true },
+      { name: { he: 'שוק אוכל הערב בגני פורודאני', en: 'Forodhani Gardens night food market' }, kind: 'market', durationH: 1.5, tags: ['food', 'evening'], area: 'Stone Town', mustSee: true },
       { name: { he: 'שוק דרג׳אני', en: 'Darajani Market' }, kind: 'market', durationH: 1.5, tags: ['culture', 'food'], area: 'Stone Town' },
       { name: { he: 'המבצר הישן', en: 'The Old Fort' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Stone Town' },
       { name: { he: 'אתר שוק העבדים לשעבר והקתדרלה האנגליקנית', en: 'Former Slave Market site & Anglican Cathedral' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Stone Town' },
-      { name: { he: 'אי הכלא (צ׳אנגו) וצבי הענק', en: 'Prison Island (Changuu) & giant tortoises' }, kind: 'nature', durationH: 3, tags: ['family', 'nature'] },
-      { name: { he: 'סיור תבלינים', en: 'Spice tour' }, kind: 'experience', durationH: 3, tags: ['culture', 'food'] },
-      { name: { he: 'יער ג׳וזאני (פארק לאומי ג׳וזאני-מפרץ צ׳וואקה)', en: 'Jozani Forest (Jozani Chwaka Bay National Park)' }, kind: 'park', durationH: 2.5, tags: ['nature', 'family'] },
-      { name: { he: 'שנורקלינג באטול מנמבה', en: 'Snorkelling at Mnemba Atoll' }, kind: 'nature', durationH: 4, tags: ['beach', 'nature'], area: 'Matemwe & Kiwengwa (north-east)' },
+      { name: { he: 'אי הכלא (צ׳אנגו) וצבי הענק', en: 'Prison Island (Changuu) & giant tortoises' }, kind: 'nature', durationH: 3, tags: ['family', 'nature'], area: 'Stone Town' },
+      { name: { he: 'סיור תבלינים', en: 'Spice tour' }, kind: 'experience', durationH: 3, tags: ['culture', 'food'], area: 'Stone Town' },
+      { name: { he: 'יער ג׳וזאני (פארק לאומי ג׳וזאני-מפרץ צ׳וואקה)', en: 'Jozani Forest (Jozani Chwaka Bay National Park)' }, kind: 'park', durationH: 2.5, tags: ['nature', 'family'], area: 'Jozani' },
+      { name: { he: 'שנורקלינג באטול מנמבה', en: 'Snorkelling at Mnemba Atoll' }, kind: 'nature', durationH: 4, tags: ['beach', 'nature'], area: 'Matemwe & Kiwengwa (north-east)', mustSee: true },
       { name: { he: 'חוף נונגווי', en: 'Nungwi Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'Nungwi & Kendwa (north)' },
-      { name: { he: 'שייט דאו בשקיעה', en: 'Sunset dhow cruise' }, kind: 'experience', durationH: 2, tags: ['couple'] },
+      { name: { he: 'שייט דאו בשקיעה', en: 'Sunset dhow cruise' }, kind: 'experience', durationH: 2, tags: ['couple', 'evening'] },
       { name: { he: 'שיעור קייטסרפינג בפאג׳ה', en: 'Kitesurfing lesson in Paje' }, kind: 'experience', durationH: 3, tags: ['adventure'], area: 'Paje & Jambiani (south-east)' },
-      { name: { he: 'שייט באזור מפרץ מנאי ושרטון החול קוואלה', en: 'Menai Bay boat trip & Kwale sandbank' }, kind: 'experience', durationH: 7, tags: ['beach', 'family'] }
+      { name: { he: 'שייט באזור מפרץ מנאי ושרטון החול קוואלה', en: 'Menai Bay boat trip & Kwale sandbank' }, kind: 'experience', durationH: 7, tags: ['beach', 'family'], area: 'Menai Bay (Fumba)' }
     ],
     dayTrips: [
-      { name: { he: 'ספארי יום בטיסה קלה לפארק בטנזניה (מיקומי או ניירירה)', en: 'Fly-in day safari to mainland Tanzania (Mikumi or Nyerere)' }, hours: 11, note: { he: 'טיסה קצרה במטוס קל ונסיעות ספארי — יום ארוך ויקר, אבל טעימה אמיתית מהספארי', en: 'A short light-aircraft flight and game drives — a long, pricey day, but a real taste of safari' } },
-      { name: { he: 'קיזימקזי', en: 'Kizimkazi' }, hours: 5, note: { he: 'כפר דייגים בדרום האי; יציאה מוקדמת בבוקר לראות דולפינים — בלי לרדוף אחריהם', en: 'A fishing village in the south; early-morning boats to see dolphins — ask for a responsible operator' } }
+      { name: { he: 'ספארי יום בטיסה קלה לפארק בטנזניה (מיקומי או ניירירה)', en: 'Fly-in day safari to mainland Tanzania (Mikumi or Nyerere)' }, hours: 11, note: { he: 'טיסה קצרה במטוס קל ונסיעות ספארי — יום ארוך ויקר, אבל טעימה אמיתית מהספארי', en: 'A short light-aircraft flight and game drives — a long, pricey day, but a real taste of safari' }, priceIls: { low: 1850, high: 3000 }, kind: 'nature' },
+      { name: { he: 'קיזימקזי', en: 'Kizimkazi' }, hours: 5, note: { he: 'כפר דייגים בדרום האי; יציאה מוקדמת בבוקר לראות דולפינים — בלי לרדוף אחריהם', en: 'A fishing village in the south; early-morning boats to see dolphins — ask for a responsible operator' }, priceIls: { low: 90, high: 190 }, kind: 'nature' }
     ],
     transport: { carRecommended: false, note: { he: 'רוב התנועה בהסעות ובנהגים פרטיים; הנסיעה משדה התעופה לצפון או לדרום-מזרח לוקחת כשעה. השכרת רכב דורשת היתר נהיגה מקומי, והנהיגה בצד שמאל.', en: 'Most people use transfers and private drivers; the airport to the north or south-east takes about an hour. Car hire needs a local driving permit, and traffic drives on the left.' } },
     practical: {
@@ -72,22 +74,22 @@ export default [
       { name: { he: 'לה דיג', en: 'La Digue' }, forWhom: { he: 'אי קטן בלי כמעט מכוניות — אופניים, קצב איטי ורומנטיקה', en: 'A small island with hardly any cars — bikes, slow pace and romance' } }
     ],
     attractions: [
-      { name: { he: 'אנס סורס ד׳ארז׳אן', en: 'Anse Source d’Argent' }, kind: 'beach', durationH: 3, tags: ['beach', 'couple'], area: 'La Digue' },
+      { name: { he: 'אנס סורס ד׳ארז׳אן', en: 'Anse Source d’Argent' }, kind: 'beach', durationH: 3, tags: ['beach', 'couple'], area: 'La Digue', mustSee: true },
       { name: { he: 'אחוזת יוניון וצבי הענק', en: 'L’Union Estate & giant tortoises' }, kind: 'park', durationH: 1.5, tags: ['family', 'nature'], area: 'La Digue' },
-      { name: { he: 'ואלה דה מאי (אתר מורשת עולמית)', en: 'Vallée de Mai (World Heritage Site)' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'Praslin' },
-      { name: { he: 'אנס לאציו', en: 'Anse Lazio' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Praslin' },
+      { name: { he: 'ואלה דה מאי (אתר מורשת עולמית)', en: 'Vallée de Mai (World Heritage Site)' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'Praslin', mustSee: true },
+      { name: { he: 'אנס לאציו', en: 'Anse Lazio' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Praslin', mustSee: true },
       { name: { he: 'אי קוריוז ושנורקלינג בסנט פייר', en: 'Curieuse Island & snorkelling at St Pierre' }, kind: 'nature', durationH: 6, tags: ['nature', 'beach'], area: 'Praslin' },
       { name: { he: 'חוף בו ואלון', en: 'Beau Vallon Beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Beau Vallon (north Mahé)' },
-      { name: { he: 'פארק ימי לאומי סנט אן', en: 'Sainte Anne Marine National Park' }, kind: 'nature', durationH: 4, tags: ['beach', 'nature'] },
-      { name: { he: 'הפארק הלאומי מורן סיישלואה ומסלול קופוליה', en: 'Morne Seychellois National Park & the Copolia trail' }, kind: 'park', durationH: 3, tags: ['nature', 'adventure'] },
-      { name: { he: 'שוק סר סלווין סלווין-קלארק בוויקטוריה', en: 'Sir Selwyn Selwyn-Clarke Market, Victoria' }, kind: 'market', durationH: 1, tags: ['food', 'culture'] },
-      { name: { he: 'הגן הבוטני בוויקטוריה', en: 'Victoria Botanical Garden' }, kind: 'park', durationH: 1, tags: ['family', 'nature'] },
-      { name: { he: 'תצפית חורבות המיסיון', en: 'Mission Ruins viewpoint' }, kind: 'viewpoint', durationH: 1, tags: ['culture'] },
+      { name: { he: 'פארק ימי לאומי סנט אן', en: 'Sainte Anne Marine National Park' }, kind: 'nature', durationH: 4, tags: ['beach', 'nature'], area: 'Victoria' },
+      { name: { he: 'הפארק הלאומי מורן סיישלואה ומסלול קופוליה', en: 'Morne Seychellois National Park & the Copolia trail' }, kind: 'park', durationH: 3, tags: ['nature', 'adventure'], area: 'Victoria' },
+      { name: { he: 'שוק סר סלווין סלווין-קלארק בוויקטוריה', en: 'Sir Selwyn Selwyn-Clarke Market, Victoria' }, kind: 'market', durationH: 1, tags: ['food', 'culture'], area: 'Victoria' },
+      { name: { he: 'הגן הבוטני בוויקטוריה', en: 'Victoria Botanical Garden' }, kind: 'park', durationH: 1, tags: ['family', 'nature'], area: 'Victoria' },
+      { name: { he: 'תצפית חורבות המיסיון', en: 'Mission Ruins viewpoint' }, kind: 'viewpoint', durationH: 1, tags: ['culture'], area: 'Victoria' },
       { name: { he: 'אנס אינטנדאנס', en: 'Anse Intendance' }, kind: 'beach', durationH: 2, tags: ['beach', 'couple'], area: 'South & west Mahé' }
     ],
     dayTrips: [
-      { name: { he: 'פראסלין ולה דיג ממאהה', en: 'Praslin & La Digue from Mahé' }, hours: 10, note: { he: 'מעבורת מהירה לפראסלין (כשעה) ומשם קצרה ללה דיג; עדיף לישון לפחות לילה-שניים באיים', en: 'A fast ferry to Praslin (about an hour), then a short hop to La Digue; better to stay a night or two' } },
-      { name: { he: 'האי קוזן', en: 'Cousin Island' }, hours: 3, note: { he: 'שמורת ציפורים קטנה בסירה מפראסלין; פתוחה רק בחלק מימות השבוע', en: 'A small bird reserve by boat from Praslin; open only on some weekdays' } }
+      { name: { he: 'פראסלין ולה דיג ממאהה', en: 'Praslin & La Digue from Mahé' }, hours: 10, note: { he: 'מעבורת מהירה לפראסלין (כשעה) ומשם קצרה ללה דיג; עדיף לישון לפחות לילה-שניים באיים', en: 'A fast ferry to Praslin (about an hour), then a short hop to La Digue; better to stay a night or two' }, priceIls: { low: 600, high: 1000 }, kind: 'beach' },
+      { name: { he: 'האי קוזן', en: 'Cousin Island' }, hours: 3, note: { he: 'שמורת ציפורים קטנה בסירה מפראסלין; פתוחה רק בחלק מימות השבוע', en: 'A small bird reserve by boat from Praslin; open only on some weekdays' }, priceIls: { low: 200, high: 400 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'במאהה ובפראסלין רכב שכור נותן חופש (נהיגה בצד שמאל, כבישים צרים ומתפתלים). בלה דיג מתניידים באופניים. בין האיים — מעבורות או טיסות פנים קצרות.', en: 'On Mahé and Praslin a hire car gives freedom (drive on the left; roads are narrow and winding). On La Digue you get around by bike. Between islands: ferries or short domestic flights.' } },
     practical: {
@@ -120,24 +122,24 @@ export default [
       { name: { he: 'בלו ביי והדרום-מזרח', en: 'Blue Bay & the south-east' }, forWhom: { he: 'שנורקלינג בפארק הימי, קרוב לשדה התעופה', en: 'Snorkelling in the marine park, close to the airport' } }
     ],
     attractions: [
-      { name: { he: 'אדמת שבעת הצבעים בשאמארל', en: 'Seven Coloured Earth, Chamarel' }, kind: 'nature', durationH: 1.5, tags: ['family', 'nature'], area: 'Le Morne & the south-west' },
+      { name: { he: 'אדמת שבעת הצבעים בשאמארל', en: 'Seven Coloured Earth, Chamarel' }, kind: 'nature', durationH: 1.5, tags: ['family', 'nature'], area: 'Le Morne & the south-west', mustSee: true },
       { name: { he: 'מפל שאמארל', en: 'Chamarel Waterfall' }, kind: 'viewpoint', durationH: 1, tags: ['nature'], area: 'Le Morne & the south-west' },
-      { name: { he: 'הפארק הלאומי ערוצי בלאק ריבר', en: 'Black River Gorges National Park' }, kind: 'park', durationH: 4, tags: ['nature', 'adventure'] },
+      { name: { he: 'הפארק הלאומי ערוצי בלאק ריבר', en: 'Black River Gorges National Park' }, kind: 'park', durationH: 4, tags: ['nature', 'adventure'], area: 'Le Morne & the south-west' },
       { name: { he: 'טיפוס להר לה מורן', en: 'Le Morne Brabant hike' }, kind: 'nature', durationH: 4, tags: ['adventure', 'nature'], area: 'Le Morne & the south-west' },
-      { name: { he: 'איל או סרף', en: 'Île aux Cerfs' }, kind: 'beach', durationH: 5, tags: ['beach', 'family'], area: 'Belle Mare & the east' },
-      { name: { he: 'פארק ימי בלו ביי', en: 'Blue Bay Marine Park' }, kind: 'nature', durationH: 2.5, tags: ['beach', 'family'], area: 'Blue Bay & the south-east' },
-      { name: { he: 'גראנד באסן (גנגה טאלאו)', en: 'Grand Bassin (Ganga Talao)' }, kind: 'religious', durationH: 1, tags: ['culture'] },
+      { name: { he: 'איל או סרף', en: 'Île aux Cerfs' }, kind: 'beach', durationH: 5, tags: ['beach', 'family'], area: 'Belle Mare & the east', mustSee: true },
+      { name: { he: 'פארק ימי בלו ביי', en: 'Blue Bay Marine Park' }, kind: 'nature', durationH: 2.5, tags: ['beach', 'family'], area: 'Blue Bay & the south-east', mustSee: true },
+      { name: { he: 'גראנד באסן (גנגה טאלאו)', en: 'Grand Bassin (Ganga Talao)' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Le Morne & the south-west' },
       { name: { he: 'הגן הבוטני בפמפלמוס', en: 'Pamplemousses Botanical Garden' }, kind: 'park', durationH: 2, tags: ['family', 'nature'], area: 'Grand Baie & the north' },
-      { name: { he: 'השוק המרכזי בפורט לואי', en: 'Port Louis Central Market' }, kind: 'market', durationH: 1.5, tags: ['food', 'culture'] },
-      { name: { he: 'אאפרבאסי גאט (אתר מורשת עולמית)', en: 'Aapravasi Ghat (World Heritage Site)' }, kind: 'museum', durationH: 1, tags: ['culture'] },
-      { name: { he: 'מכתש טרו או סרף בקורפיפ', en: 'Trou aux Cerfs crater, Curepipe' }, kind: 'viewpoint', durationH: 1, tags: ['nature'] },
+      { name: { he: 'השוק המרכזי בפורט לואי', en: 'Port Louis Central Market' }, kind: 'market', durationH: 1.5, tags: ['food', 'culture'], area: 'Port Louis' },
+      { name: { he: 'אאפרבאסי גאט (אתר מורשת עולמית)', en: 'Aapravasi Ghat (World Heritage Site)' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Port Louis' },
+      { name: { he: 'מכתש טרו או סרף בקורפיפ', en: 'Trou aux Cerfs crater, Curepipe' }, kind: 'viewpoint', durationH: 1, tags: ['nature'], area: 'Curepipe' },
       { name: { he: 'בית הקברות היהודי סנט מרטין', en: 'St Martin Jewish Cemetery' }, kind: 'religious', durationH: 1, tags: ['culture'] },
       { name: { he: 'קזלה — פארק טבע ובעלי חיים', en: 'Casela Nature Parks' }, kind: 'park', durationH: 4, tags: ['family', 'with_children'], area: 'Flic en Flac & the west' }
     ],
     dayTrips: [
-      { name: { he: 'סיור הדרום: שאמארל, בלאק ריבר וגראנד באסן', en: 'Southern tour: Chamarel, Black River & Grand Bassin' }, hours: 8, note: { he: 'הטיול הקלאסי באי — עם נהג או ברכב שכור', en: 'The classic island tour — with a driver or a hire car' } },
-      { name: { he: 'פורט לואי ופמפלמוס', en: 'Port Louis & Pamplemousses' }, hours: 6, note: { he: 'שוק, היסטוריה וגן בוטני — אפשר לשלב בבית הקברות סנט מרטין', en: 'Market, history and a botanical garden — can be combined with St Martin cemetery' } },
-      { name: { he: 'שייט קטמרן במזרח', en: 'East-coast catamaran cruise' }, hours: 7, note: { he: 'איל או סרף, שנורקלינג וארוחה על הסיפון', en: 'Île aux Cerfs, snorkelling and lunch on board' } }
+      { name: { he: 'סיור הדרום: שאמארל, בלאק ריבר וגראנד באסן', en: 'Southern tour: Chamarel, Black River & Grand Bassin' }, hours: 8, note: { he: 'הטיול הקלאסי באי — עם נהג או ברכב שכור', en: 'The classic island tour — with a driver or a hire car' }, priceIls: { low: 150, high: 350 }, kind: 'nature' },
+      { name: { he: 'פורט לואי ופמפלמוס', en: 'Port Louis & Pamplemousses' }, hours: 6, note: { he: 'שוק, היסטוריה וגן בוטני — אפשר לשלב בבית הקברות סנט מרטין', en: 'Market, history and a botanical garden — can be combined with St Martin cemetery' }, priceIls: { low: 80, high: 250 }, kind: 'market' },
+      { name: { he: 'שייט קטמרן במזרח', en: 'East-coast catamaran cruise' }, hours: 7, note: { he: 'איל או סרף, שנורקלינג וארוחה על הסיפון', en: 'Île aux Cerfs, snorkelling and lunch on board' }, priceIls: { low: 230, high: 380 }, kind: 'beach' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור משתלם לטיולים (נהיגה בצד שמאל); מוניות יקרות יחסית. מי שלא נוהג יכול להזמין נהג לטיולי יום.', en: 'A hire car pays off for touring (drive on the left); taxis are fairly pricey. Non-drivers can book a driver for day trips.' } },
     practical: {
@@ -170,24 +172,24 @@ export default [
       { name: { he: 'הווטרפרונט (V&A)', en: 'V&A Waterfront' }, forWhom: { he: 'משפחות וביקור ראשון — בטוח, נוח ומלא אטרקציות', en: 'Families and first-timers — safe, easy and full of attractions' } }
     ],
     attractions: [
-      { name: { he: 'הר השולחן ורכבל ההר', en: 'Table Mountain & Aerial Cableway' }, kind: 'viewpoint', durationH: 3, tags: ['nature', 'family'], area: 'City Bowl & Gardens' },
-      { name: { he: 'טיפוס לראש האריה (Lion’s Head)', en: 'Lion’s Head hike' }, kind: 'nature', durationH: 3, tags: ['adventure', 'nature'] },
+      { name: { he: 'הר השולחן ורכבל ההר', en: 'Table Mountain & Aerial Cableway' }, kind: 'viewpoint', durationH: 3, tags: ['nature', 'family'], area: 'City Bowl & Gardens', mustSee: true },
+      { name: { he: 'טיפוס לראש האריה (Lion’s Head)', en: 'Lion’s Head hike' }, kind: 'nature', durationH: 3, tags: ['adventure', 'nature'], area: 'City Bowl & Gardens' },
       { name: { he: 'הווטרפרונט', en: 'V&A Waterfront' }, kind: 'neighborhood', durationH: 3, tags: ['shopping', 'food', 'family'], area: 'V&A Waterfront' },
       { name: { he: 'מוזיאון זייץ לאמנות עכשווית אפריקאית (MOCAA)', en: 'Zeitz MOCAA' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'V&A Waterfront' },
-      { name: { he: 'רובן איילנד', en: 'Robben Island' }, kind: 'museum', durationH: 4, tags: ['culture'] },
+      { name: { he: 'רובן איילנד', en: 'Robben Island' }, kind: 'museum', durationH: 4, tags: ['culture'], area: 'V&A Waterfront' },
       { name: { he: 'בו-קאפ', en: 'Bo-Kaap' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'], area: 'City Bowl & Gardens' },
       { name: { he: 'המוזיאון היהודי של דרום אפריקה', en: 'South African Jewish Museum' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'City Bowl & Gardens' },
-      { name: { he: 'הגן הבוטני קירסטנבוש', en: 'Kirstenbosch National Botanical Garden' }, kind: 'park', durationH: 3, tags: ['nature', 'family'] },
-      { name: { he: 'חוף בולדרס והפינגווינים', en: 'Boulders Beach penguins' }, kind: 'nature', durationH: 1.5, tags: ['family', 'nature'] },
-      { name: { he: 'כף התקווה הטובה וקייפ פוינט', en: 'Cape of Good Hope & Cape Point' }, kind: 'viewpoint', durationH: 3, tags: ['nature'] },
-      { name: { he: 'כביש צ׳פמנס פיק', en: 'Chapman’s Peak Drive' }, kind: 'viewpoint', durationH: 1, tags: ['nature', 'couple'] },
-      { name: { he: 'חוף קמפס ביי', en: 'Camps Bay Beach' }, kind: 'beach', durationH: 2, tags: ['beach'], area: 'Camps Bay & Clifton' },
-      { name: { he: 'שקיעה מסיגנל היל', en: 'Sunset from Signal Hill' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] }
+      { name: { he: 'הגן הבוטני קירסטנבוש', en: 'Kirstenbosch National Botanical Garden' }, kind: 'park', durationH: 3, tags: ['nature', 'family'], area: 'Southern Suburbs' },
+      { name: { he: 'חוף בולדרס והפינגווינים', en: 'Boulders Beach penguins' }, kind: 'nature', durationH: 1.5, tags: ['family', 'nature'], area: 'Cape Peninsula', mustSee: true },
+      { name: { he: 'כף התקווה הטובה וקייפ פוינט', en: 'Cape of Good Hope & Cape Point' }, kind: 'viewpoint', durationH: 3, tags: ['nature'], area: 'Cape Peninsula', mustSee: true },
+      { name: { he: 'כביש צ׳פמנס פיק', en: 'Chapman’s Peak Drive' }, kind: 'viewpoint', durationH: 1, tags: ['nature', 'couple'], area: 'Cape Peninsula' },
+      { name: { he: 'חוף קמפס ביי', en: 'Camps Bay Beach' }, kind: 'beach', durationH: 2, tags: ['beach'], area: 'Camps Bay & Clifton', months: [1, 2, 3, 11, 12] },
+      { name: { he: 'שקיעה מסיגנל היל', en: 'Sunset from Signal Hill' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'City Bowl & Gardens' }
     ],
     dayTrips: [
-      { name: { he: 'חצי האי של הכף', en: 'The Cape Peninsula' }, hours: 9, note: { he: 'צ׳פמנס פיק, בולדרס וקייפ פוינט בלולאה אחת — יום חובה', en: 'Chapman’s Peak, Boulders and Cape Point in one loop — a must' } },
-      { name: { he: 'ארץ היין: סטלנבוש ופרנשהוק', en: 'The Winelands: Stellenbosch & Franschhoek' }, hours: 8, note: { he: 'יקבים, אוכל טוב ועיירות הולנדיות-כפיות; עדיף עם נהג', en: 'Wine estates, good food and Cape Dutch towns; better with a driver' } },
-      { name: { he: 'הרמנוס', en: 'Hermanus' }, hours: 8, note: { he: 'צפייה בלווייתנים מהחוף, בעיקר ביולי–נובמבר', en: 'Whale watching from the shore, mainly July–November' } }
+      { name: { he: 'חצי האי של הכף', en: 'The Cape Peninsula' }, hours: 9, note: { he: 'צ׳פמנס פיק, בולדרס וקייפ פוינט בלולאה אחת — יום חובה', en: 'Chapman’s Peak, Boulders and Cape Point in one loop — a must' }, priceIls: { low: 250, high: 450 }, kind: 'nature' },
+      { name: { he: 'ארץ היין: סטלנבוש ופרנשהוק', en: 'The Winelands: Stellenbosch & Franschhoek' }, hours: 8, note: { he: 'יקבים, אוכל טוב ועיירות הולנדיות-כפיות; עדיף עם נהג', en: 'Wine estates, good food and Cape Dutch towns; better with a driver' }, priceIls: { low: 250, high: 450 }, kind: 'experience' },
+      { name: { he: 'הרמנוס', en: 'Hermanus' }, hours: 8, note: { he: 'צפייה בלווייתנים מהחוף, בעיקר ביולי–נובמבר', en: 'Whale watching from the shore, mainly July–November' }, priceIls: { low: 250, high: 400 }, kind: 'nature', months: [7, 8, 9, 10, 11] }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור מומלץ לחצי האי, ליקבים ולדרך הגנים (נהיגה בצד שמאל). בעיר נוח להיעזר באובר. כדאי להימנע מהליכה בלילה ברחובות ריקים ולא להשאיר חפצים ברכב.', en: 'A hire car is worth it for the peninsula, the Winelands and the Garden Route (drive on the left). In town, Uber is handy. Avoid walking empty streets at night and leave nothing on view in the car.' } },
     practical: {
@@ -219,23 +221,23 @@ export default [
       { name: { he: 'נאיבאשה ונאקורו (עמק השבר)', en: 'Naivasha & Nakuru (Rift Valley)' }, forWhom: { he: 'עצירה בדרך למארה: אגמים, ספארי ברגל ורכיבה על אופניים', en: 'A stop on the way to the Mara: lakes, walking safaris and cycling' } }
     ],
     attractions: [
-      { name: { he: 'נסיעות ספארי בשמורת מסאי מארה', en: 'Game drives in the Maasai Mara National Reserve' }, kind: 'nature', durationH: 8, tags: ['adventure', 'nature'], area: 'Maasai Mara' },
-      { name: { he: 'חציית נהר המארה בעונת הנדידה', en: 'Mara River migration crossings' }, kind: 'nature', durationH: 6, tags: ['nature'], area: 'Maasai Mara' },
+      { name: { he: 'נסיעות ספארי בשמורת מסאי מארה', en: 'Game drives in the Maasai Mara National Reserve' }, kind: 'nature', durationH: 8, tags: ['adventure', 'nature'], area: 'Maasai Mara', mustSee: true },
+      { name: { he: 'חציית נהר המארה בעונת הנדידה', en: 'Mara River migration crossings' }, kind: 'nature', durationH: 6, tags: ['nature'], area: 'Maasai Mara', mustSee: true, months: [7, 8, 9, 10] },
       { name: { he: 'כדור פורח מעל המארה', en: 'Hot-air balloon over the Mara' }, kind: 'experience', durationH: 4, tags: ['couple', 'luxury'], area: 'Maasai Mara' },
       { name: { he: 'ביקור בכפר מסאי', en: 'Maasai village visit' }, kind: 'experience', durationH: 1.5, tags: ['culture'], area: 'Maasai Mara' },
-      { name: { he: 'הפארק הלאומי אמבוסלי', en: 'Amboseli National Park' }, kind: 'park', durationH: 7, tags: ['nature'], area: 'Amboseli' },
+      { name: { he: 'הפארק הלאומי אמבוסלי', en: 'Amboseli National Park' }, kind: 'park', durationH: 7, tags: ['nature'], area: 'Amboseli', mustSee: true },
       { name: { he: 'שייט באגם נאיבאשה', en: 'Lake Naivasha boat ride' }, kind: 'nature', durationH: 1.5, tags: ['family', 'nature'], area: 'Naivasha & Nakuru (Rift Valley)' },
       { name: { he: 'ספארי רגלי באי קרסנט', en: 'Walking safari on Crescent Island' }, kind: 'nature', durationH: 2, tags: ['family'], area: 'Naivasha & Nakuru (Rift Valley)' },
       { name: { he: 'אופניים בפארק הלאומי הלס גייט', en: 'Cycling in Hell’s Gate National Park' }, kind: 'park', durationH: 4, tags: ['adventure'], area: 'Naivasha & Nakuru (Rift Valley)' },
       { name: { he: 'הפארק הלאומי אגם נאקורו', en: 'Lake Nakuru National Park' }, kind: 'park', durationH: 5, tags: ['nature'], area: 'Naivasha & Nakuru (Rift Valley)' },
-      { name: { he: 'הפארק הלאומי ניירובי', en: 'Nairobi National Park' }, kind: 'park', durationH: 4, tags: ['nature', 'family'] },
-      { name: { he: 'בית היתומים לפילים של שלדריק', en: 'Sheldrick Wildlife Trust elephant orphanage' }, kind: 'experience', durationH: 1.5, tags: ['family', 'with_children'] },
+      { name: { he: 'הפארק הלאומי ניירובי', en: 'Nairobi National Park' }, kind: 'park', durationH: 4, tags: ['nature', 'family'], area: 'Nairobi (Karen)' },
+      { name: { he: 'בית היתומים לפילים של שלדריק', en: 'Sheldrick Wildlife Trust elephant orphanage' }, kind: 'experience', durationH: 1.5, tags: ['family', 'with_children'], area: 'Nairobi (Karen)' },
       { name: { he: 'מרכז הג׳ירפות', en: 'Giraffe Centre' }, kind: 'experience', durationH: 1, tags: ['family', 'with_children'], area: 'Nairobi (Karen)' },
       { name: { he: 'מוזיאון קארן בליקסן', en: 'Karen Blixen Museum' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Nairobi (Karen)' }
     ],
     dayTrips: [
-      { name: { he: 'נאיבאשה והלס גייט מניירובי', en: 'Naivasha & Hell’s Gate from Nairobi' }, hours: 10, note: { he: 'נסיעה של כשעתיים לכל כיוון; שייט באגם ואופניים בין זברות', en: 'About two hours each way; a boat on the lake and cycling among zebras' } },
-      { name: { he: 'הפארק הלאומי ניירובי', en: 'Nairobi National Park' }, hours: 5, note: { he: 'ספארי בבוקר מוקדם עם קו הרקיע של העיר ברקע — טוב ליום ההגעה או העזיבה', en: 'An early-morning game drive with the city skyline behind — good for arrival or departure day' } }
+      { name: { he: 'נאיבאשה והלס גייט מניירובי', en: 'Naivasha & Hell’s Gate from Nairobi' }, hours: 10, note: { he: 'נסיעה של כשעתיים לכל כיוון; שייט באגם ואופניים בין זברות', en: 'About two hours each way; a boat on the lake and cycling among zebras' }, priceIls: { low: 370, high: 750 }, kind: 'nature' },
+      { name: { he: 'הפארק הלאומי ניירובי', en: 'Nairobi National Park' }, hours: 5, note: { he: 'ספארי בבוקר מוקדם עם קו הרקיע של העיר ברקע — טוב ליום ההגעה או העזיבה', en: 'An early-morning game drive with the city skyline behind — good for arrival or departure day' }, priceIls: { low: 370, high: 600 }, kind: 'nature' }
     ],
     transport: { carRecommended: false, note: { he: 'לא נוהגים לבד: הספארי נעשה ברכב שטח עם נהג-מדריך. למסאי מארה ולאמבוסלי אפשר גם לטוס במטוס קל משדה וילסון בניירובי וכך לחסוך נסיעות ארוכות בכבישים משובשים.', en: 'No self-drive: safaris are done in a 4×4 with a driver-guide. To the Maasai Mara and Amboseli you can also fly by light aircraft from Nairobi’s Wilson Airport and skip long, rough drives.' } },
     practical: {

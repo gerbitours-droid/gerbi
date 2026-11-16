@@ -1,5 +1,7 @@
 // Catalog data (spec 23): Spain, Portugal, the Western Balkans. Shape and editorial rules: dist/catalog.mjs + docs/specs/23-destinations-catalog-he.md.
 // Budget figures are rough per-person-per-day estimates in ₪ without flights.
+// dayTrips[].priceIls = rough ₪ per adult, ESTIMATES (Nov 2026): low ≈ do-it-yourself public transport + main entry fee,
+// high ≈ a typical organised group tour from the base; converted at about €1=₪4, $1=₪3.7, £1=₪4.7 and rounded. Show as estimates.
 const SCHENGEN_VISA = { he: 'בדרך כלל אין צורך בוויזה לביקור קצר באזור שנגן; יש לבדוק את דרישות הכניסה העדכניות (כולל מערכת ETIAS) במקורות הרשמיים.', en: 'Usually no visa is needed for a short Schengen visit; check current entry rules (including ETIAS) with official sources.' };
 
 export default [
@@ -24,24 +26,24 @@ export default [
       { name: { he: 'ברצלונטה', en: 'Barceloneta' }, forWhom: { he: 'מי שבא בשביל הים, בקיץ', en: 'Beach-first summer visitors' } }
     ],
     attractions: [
-      { name: { he: 'הסגרדה פמיליה', en: 'Sagrada Família' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Eixample' },
-      { name: { he: 'פארק גואל', en: 'Park Güell' }, kind: 'park', durationH: 2, tags: ['culture', 'family'] },
-      { name: { he: 'קאסה באטיו', en: 'Casa Batlló' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Eixample' },
+      { name: { he: 'הסגרדה פמיליה', en: 'Sagrada Família' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Eixample', mustSee: true },
+      { name: { he: 'פארק גואל', en: 'Park Güell' }, kind: 'park', durationH: 2, tags: ['culture', 'family'], area: 'Gràcia', mustSee: true },
+      { name: { he: 'קאסה באטיו', en: 'Casa Batlló' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Eixample', mustSee: true },
       { name: { he: 'קאסה מילה (לה פדררה)', en: 'Casa Milà (La Pedrera)' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Eixample' },
-      { name: { he: 'הרובע הגותי', en: 'Gothic Quarter' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Gothic Quarter & El Born' },
-      { name: { he: 'שוק לה בוקריה', en: 'La Boqueria market' }, kind: 'market', durationH: 1, tags: ['food'] },
-      { name: { he: 'לה רמבלה', en: 'La Rambla' }, kind: 'neighborhood', durationH: 1, tags: ['shopping'] },
+      { name: { he: 'הרובע הגותי', en: 'Gothic Quarter' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Gothic Quarter & El Born', mustSee: true },
+      { name: { he: 'שוק לה בוקריה', en: 'La Boqueria market' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Gothic Quarter & El Born' },
+      { name: { he: 'לה רמבלה', en: 'La Rambla' }, kind: 'neighborhood', durationH: 1, tags: ['shopping'], area: 'Gothic Quarter & El Born' },
       { name: { he: 'מוזיאון פיקאסו', en: 'Picasso Museum' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Gothic Quarter & El Born' },
-      { name: { he: 'חוף ברצלונטה', en: 'Barceloneta Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Barceloneta' },
-      { name: { he: 'גבעת מונז׳ואיק', en: 'Montjuïc' }, kind: 'park', durationH: 3, tags: ['family', 'culture'] },
-      { name: { he: 'תצפית הבונקרים (בונקרס דל כרמל)', en: 'Bunkers del Carmel viewpoint' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple'] },
-      { name: { he: 'טיבידאבו — פארק השעשועים והתצפית', en: 'Tibidabo amusement park & viewpoint' }, kind: 'experience', durationH: 3, tags: ['family', 'with_children'] },
+      { name: { he: 'חוף ברצלונטה', en: 'Barceloneta Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Barceloneta', months: [6, 7, 8, 9] },
+      { name: { he: 'גבעת מונז׳ואיק', en: 'Montjuïc' }, kind: 'park', durationH: 3, tags: ['family', 'culture'], area: 'Montjuïc' },
+      { name: { he: 'תצפית הבונקרים (בונקרס דל כרמל)', en: 'Bunkers del Carmel viewpoint' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple', 'evening'], area: 'El Carmel' },
+      { name: { he: 'טיבידאבו — פארק השעשועים והתצפית', en: 'Tibidabo amusement park & viewpoint' }, kind: 'experience', durationH: 3, tags: ['family', 'with_children'], area: 'Tibidabo' },
       { name: { he: 'פלאו דה לה מוזיקה קטלאנה', en: 'Palau de la Música Catalana' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Gothic Quarter & El Born' }
     ],
     dayTrips: [
-      { name: { he: 'מונסראט', en: 'Montserrat' }, hours: 1, note: { he: 'מנזר על הר סלעים מיוחד; רכבת ורכבל', en: 'A monastery on a striking rocky mountain; train and cable car' } },
-      { name: { he: 'סיטג׳ס', en: 'Sitges' }, hours: 0.7, note: { he: 'עיירת חוף נעימה, ברכבת', en: 'A pleasant beach town, by train' } },
-      { name: { he: 'ג׳ירונה', en: 'Girona' }, hours: 0.7, note: { he: 'עיר עתיקה ורובע יהודי היסטורי, ברכבת מהירה', en: 'An old town with a historic Jewish quarter, by high-speed train' } }
+      { name: { he: 'מונסראט', en: 'Montserrat' }, hours: 1, note: { he: 'מנזר על הר סלעים מיוחד; רכבת ורכבל', en: 'A monastery on a striking rocky mountain; train and cable car' }, priceIls: { low: 110, high: 300 }, kind: 'religious' },
+      { name: { he: 'סיטג׳ס', en: 'Sitges' }, hours: 0.7, note: { he: 'עיירת חוף נעימה, ברכבת', en: 'A pleasant beach town, by train' }, priceIls: { low: 30, high: 200 }, kind: 'beach', months: [6, 7, 8, 9] },
+      { name: { he: 'ג׳ירונה', en: 'Girona' }, hours: 0.7, note: { he: 'עיר עתיקה ורובע יהודי היסטורי, ברכבת מהירה', en: 'An old town with a historic Jewish quarter, by high-speed train' }, priceIls: { low: 130, high: 400 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו טוב והרבה הליכה. מהשדה יש אוטובוס ישיר ורכבת. רכב רק לטיולים מחוץ לעיר.', en: 'A good metro and plenty of walking. A direct bus and a train run from the airport. A car only for trips out of town.' } },
     practical: {
@@ -73,23 +75,23 @@ export default [
       { name: { he: 'מלסניה וצ׳ואקה', en: 'Malasaña & Chueca' }, forWhom: { he: 'צעירים וחיי לילה', en: 'Younger travellers and nightlife' } }
     ],
     attractions: [
-      { name: { he: 'מוזיאון הפראדו', en: 'Museo del Prado' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Barrio de las Letras' },
-      { name: { he: 'מוזיאון ריינה סופיה', en: 'Museo Reina Sofía' }, kind: 'museum', durationH: 2, tags: ['culture'] },
+      { name: { he: 'מוזיאון הפראדו', en: 'Museo del Prado' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Barrio de las Letras', mustSee: true },
+      { name: { he: 'מוזיאון ריינה סופיה', en: 'Museo Reina Sofía' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Atocha' },
       { name: { he: 'מוזיאון תיסן-בורנמיסה', en: 'Thyssen-Bornemisza Museum' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Barrio de las Letras' },
-      { name: { he: 'הארמון המלכותי', en: 'Royal Palace of Madrid' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Sol & Centro' },
-      { name: { he: 'פארק רטירו', en: 'Retiro Park' }, kind: 'park', durationH: 2, tags: ['family', 'couple'] },
+      { name: { he: 'הארמון המלכותי', en: 'Royal Palace of Madrid' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Sol & Centro', mustSee: true },
+      { name: { he: 'פארק רטירו', en: 'Retiro Park' }, kind: 'park', durationH: 2, tags: ['family', 'couple'], area: 'Retiro', mustSee: true },
       { name: { he: 'פלאסה מאיור', en: 'Plaza Mayor' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Sol & Centro' },
       { name: { he: 'שוק סן מיגל', en: 'Mercado de San Miguel' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Sol & Centro' },
       { name: { he: 'פוארטה דל סול וגראן ויה', en: 'Puerta del Sol & Gran Vía' }, kind: 'neighborhood', durationH: 1.5, tags: ['shopping'], area: 'Sol & Centro' },
-      { name: { he: 'מקדש דבוד בשקיעה', en: 'Temple of Debod at sunset' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] },
-      { name: { he: 'שוק הפשפשים אל ראסטרו (בימי ראשון)', en: 'El Rastro flea market (Sundays)' }, kind: 'market', durationH: 2, tags: ['shopping'] },
-      { name: { he: 'אצטדיון סנטיאגו ברנבאו', en: 'Santiago Bernabéu Stadium' }, kind: 'experience', durationH: 1.5, tags: ['family'] },
-      { name: { he: 'לה לטינה', en: 'La Latina' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'nightlife'] }
+      { name: { he: 'מקדש דבוד בשקיעה', en: 'Temple of Debod at sunset' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'Plaza de España' },
+      { name: { he: 'שוק הפשפשים אל ראסטרו (בימי ראשון)', en: 'El Rastro flea market (Sundays)' }, kind: 'market', durationH: 2, tags: ['shopping'], area: 'La Latina' },
+      { name: { he: 'אצטדיון סנטיאגו ברנבאו', en: 'Santiago Bernabéu Stadium' }, kind: 'experience', durationH: 1.5, tags: ['family', 'teens'], area: 'Chamartín' },
+      { name: { he: 'לה לטינה', en: 'La Latina' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'nightlife', 'evening'], area: 'La Latina' }
     ],
     dayTrips: [
-      { name: { he: 'טולדו', en: 'Toledo' }, hours: 0.5, note: { he: 'עיר עתיקה על גבעה עם בתי כנסת היסטוריים; ברכבת מהירה', en: 'A hilltop old town with historic synagogues; by high-speed train' } },
-      { name: { he: 'סגוביה', en: 'Segovia' }, hours: 0.5, note: { he: 'אמת המים הרומית והאלקסר; ברכבת מהירה', en: 'The Roman aqueduct and the Alcázar; by high-speed train' } },
-      { name: { he: 'אל אסקוריאל', en: 'El Escorial' }, hours: 1, note: { he: 'מנזר וארמון מלכותי ענק למרגלות ההרים', en: 'A vast royal monastery-palace at the foot of the mountains' } }
+      { name: { he: 'טולדו', en: 'Toledo' }, hours: 0.5, note: { he: 'עיר עתיקה על גבעה עם בתי כנסת היסטוריים; ברכבת מהירה', en: 'A hilltop old town with historic synagogues; by high-speed train' }, priceIls: { low: 120, high: 400 }, kind: 'neighborhood' },
+      { name: { he: 'סגוביה', en: 'Segovia' }, hours: 0.5, note: { he: 'אמת המים הרומית והאלקסר; ברכבת מהירה', en: 'The Roman aqueduct and the Alcázar; by high-speed train' }, priceIls: { low: 120, high: 400 }, kind: 'landmark' },
+      { name: { he: 'אל אסקוריאל', en: 'El Escorial' }, hours: 1, note: { he: 'מנזר וארמון מלכותי ענק למרגלות ההרים', en: 'A vast royal monastery-palace at the foot of the mountains' }, priceIls: { low: 70, high: 350 }, kind: 'landmark' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו מצוין, גם מהשדה. רכב לא נחוץ — לטולדו ולסגוביה נוסעים ברכבת.', en: 'An excellent metro, including from the airport. No car needed — take the train to Toledo and Segovia.' } },
     practical: {
@@ -121,22 +123,22 @@ export default [
       { name: { he: 'החוף הדרום-מזרחי (סנטניי וקאלה ד׳אור)', en: 'South-east coast (Santanyí & Cala d’Or)' }, forWhom: { he: 'מי שבא בשביל המפרצונים והשקט', en: 'Cove-hunters who want quiet' } }
     ],
     attractions: [
-      { name: { he: 'קתדרלת פלמה (לה סאו)', en: 'Palma Cathedral (La Seu)' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Palma' },
+      { name: { he: 'קתדרלת פלמה (לה סאו)', en: 'Palma Cathedral (La Seu)' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Palma', mustSee: true },
       { name: { he: 'טירת בלבר', en: 'Bellver Castle' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture'], area: 'Palma' },
-      { name: { he: 'העיר העתיקה של פלמה', en: 'Palma old town' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'shopping', 'food'], area: 'Palma' },
-      { name: { he: 'רכבת סויר', en: 'Sóller train' }, kind: 'experience', durationH: 3, tags: ['family'] },
-      { name: { he: 'ולדמוסה', en: 'Valldemossa' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'couple'] },
-      { name: { he: 'כף פורמנטור', en: 'Cap de Formentor' }, kind: 'viewpoint', durationH: 3, tags: ['nature'] },
-      { name: { he: 'מערות דראק', en: 'Coves del Drac' }, kind: 'nature', durationH: 2, tags: ['family', 'nature'] },
-      { name: { he: 'חוף אס טרנק', en: 'Es Trenc beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'] },
-      { name: { he: 'קאלו דס מורו', en: 'Caló des Moro' }, kind: 'beach', durationH: 2, tags: ['beach', 'couple'], area: 'South-east coast (Santanyí & Cala d’Or)' },
+      { name: { he: 'העיר העתיקה של פלמה', en: 'Palma old town' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'shopping', 'food'], area: 'Palma', mustSee: true },
+      { name: { he: 'רכבת סויר', en: 'Sóller train' }, kind: 'experience', durationH: 3, tags: ['family'], area: 'Sóller & Port de Sóller', mustSee: true },
+      { name: { he: 'ולדמוסה', en: 'Valldemossa' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'couple'], area: 'Valldemossa' },
+      { name: { he: 'כף פורמנטור', en: 'Cap de Formentor' }, kind: 'viewpoint', durationH: 3, tags: ['nature'], area: 'Pollença', mustSee: true },
+      { name: { he: 'מערות דראק', en: 'Coves del Drac' }, kind: 'nature', durationH: 2, tags: ['family', 'nature'], area: 'Porto Cristo' },
+      { name: { he: 'חוף אס טרנק', en: 'Es Trenc beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'Colònia de Sant Jordi', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'קאלו דס מורו', en: 'Caló des Moro' }, kind: 'beach', durationH: 2, tags: ['beach', 'couple'], area: 'South-east coast (Santanyí & Cala d’Or)', months: [5, 6, 7, 8, 9, 10] },
       { name: { he: 'הפארק הטבעי מונדראגו', en: 'Mondragó Natural Park' }, kind: 'nature', durationH: 3, tags: ['beach', 'nature', 'family'], area: 'South-east coast (Santanyí & Cala d’Or)' },
-      { name: { he: 'פארק המים אקוולנד אל ארנל', en: 'Aqualand El Arenal water park' }, kind: 'experience', durationH: 5, tags: ['water_slides', 'with_children'] },
-      { name: { he: 'מסלולי הליכה ברכס טרמונטנה', en: 'Serra de Tramuntana hiking' }, kind: 'nature', durationH: 4, tags: ['adventure', 'nature'] }
+      { name: { he: 'פארק המים אקוולנד אל ארנל', en: 'Aqualand El Arenal water park' }, kind: 'experience', durationH: 5, tags: ['water_slides', 'with_children', 'teens'], area: 'El Arenal', months: [5, 6, 7, 8, 9] },
+      { name: { he: 'מסלולי הליכה ברכס טרמונטנה', en: 'Serra de Tramuntana hiking' }, kind: 'nature', durationH: 4, tags: ['adventure', 'nature'], area: 'Sóller & Port de Sóller' }
     ],
     dayTrips: [
-      { name: { he: 'האי קבררה', en: 'Cabrera island' }, hours: 1, note: { he: 'שמורה ימית; סירה מקולוניה דה סנט ז׳ורדי, בעונה', en: 'A marine national park; boat from Colònia de Sant Jordi, in season' } },
-      { name: { he: 'דאייה ונמל סויר', en: 'Deià & Port de Sóller' }, hours: 1, note: { he: 'כביש ההרים המפורסם — יום נוף בנסיעה', en: 'The famous mountain road — a scenic driving day' } }
+      { name: { he: 'האי קבררה', en: 'Cabrera island' }, hours: 1, note: { he: 'שמורה ימית; סירה מקולוניה דה סנט ז׳ורדי, בעונה', en: 'A marine national park; boat from Colònia de Sant Jordi, in season' }, priceIls: { low: 180, high: 260 }, kind: 'nature', months: [4, 5, 6, 7, 8, 9, 10] },
+      { name: { he: 'דאייה ונמל סויר', en: 'Deià & Port de Sóller' }, hours: 1, note: { he: 'כביש ההרים המפורסם — יום נוף בנסיעה', en: 'The famous mountain road — a scenic driving day' }, priceIls: { low: 40, high: 250 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור הכי נוח למפרצונים ולכפרים. יש אוטובוסים בין הערים, אבל לחופים הקטנים הם לא מגיעים טוב. החניה במפרצונים מתמלאת בבוקר.', en: 'A hire car is easiest for the coves and villages. Buses link the towns but serve the small beaches poorly. Cove car parks fill up early.' } },
     practical: {
@@ -167,21 +169,21 @@ export default [
       { name: { he: 'פוארטו דה לה קרוס', en: 'Puerto de la Cruz' }, forWhom: { he: 'צפון ירוק ומקומי יותר, ליד לורו פארק', en: 'The greener, more local north, near Loro Parque' } }
     ],
     attractions: [
-      { name: { he: 'הפארק הלאומי טיידה', en: 'Teide National Park' }, kind: 'nature', durationH: 5, tags: ['nature', 'adventure'] },
-      { name: { he: 'רכבל הטיידה', en: 'Teide Cable Car' }, kind: 'viewpoint', durationH: 2, tags: ['nature', 'family'] },
-      { name: { he: 'סיאם פארק', en: 'Siam Park' }, kind: 'experience', durationH: 6, tags: ['water_slides', 'with_children', 'family'], area: 'Costa Adeje' },
-      { name: { he: 'לורו פארק', en: 'Loro Parque' }, kind: 'park', durationH: 5, tags: ['family', 'with_children'], area: 'Puerto de la Cruz' },
-      { name: { he: 'צוקי לוס חיגנטס', en: 'Los Gigantes cliffs' }, kind: 'viewpoint', durationH: 2, tags: ['nature'] },
-      { name: { he: 'מסקה', en: 'Masca' }, kind: 'neighborhood', durationH: 2, tags: ['nature'] },
-      { name: { he: 'שייט לווייתנים ודולפינים', en: 'Whale & dolphin watching cruise' }, kind: 'experience', durationH: 3, tags: ['family', 'nature'] },
+      { name: { he: 'הפארק הלאומי טיידה', en: 'Teide National Park' }, kind: 'nature', durationH: 5, tags: ['nature', 'adventure'], area: 'Teide National Park', mustSee: true },
+      { name: { he: 'רכבל הטיידה', en: 'Teide Cable Car' }, kind: 'viewpoint', durationH: 2, tags: ['nature', 'family'], area: 'Teide National Park' },
+      { name: { he: 'סיאם פארק', en: 'Siam Park' }, kind: 'experience', durationH: 6, tags: ['water_slides', 'with_children', 'family', 'teens'], area: 'Costa Adeje', mustSee: true },
+      { name: { he: 'לורו פארק', en: 'Loro Parque' }, kind: 'park', durationH: 5, tags: ['family', 'with_children'], area: 'Puerto de la Cruz', mustSee: true },
+      { name: { he: 'צוקי לוס חיגנטס', en: 'Los Gigantes cliffs' }, kind: 'viewpoint', durationH: 2, tags: ['nature'], area: 'Los Gigantes' },
+      { name: { he: 'מסקה', en: 'Masca' }, kind: 'neighborhood', durationH: 2, tags: ['nature'], area: 'Masca' },
+      { name: { he: 'שייט לווייתנים ודולפינים', en: 'Whale & dolphin watching cruise' }, kind: 'experience', durationH: 3, tags: ['family', 'nature'], area: 'Costa Adeje' },
       { name: { he: 'פלאיה דל דוקה', en: 'Playa del Duque' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'Costa Adeje' },
-      { name: { he: 'חוף לאס טרסיטס', en: 'Playa de Las Teresitas' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'] },
-      { name: { he: 'סן כריסטובל דה לה לגונה', en: 'San Cristóbal de La Laguna' }, kind: 'neighborhood', durationH: 2, tags: ['culture'] },
-      { name: { he: 'הפארק הכפרי אנאגה', en: 'Anaga Rural Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'adventure'] },
-      { name: { he: 'גראצ׳יקו', en: 'Garachico' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'] }
+      { name: { he: 'חוף לאס טרסיטס', en: 'Playa de Las Teresitas' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Santa Cruz' },
+      { name: { he: 'סן כריסטובל דה לה לגונה', en: 'San Cristóbal de La Laguna' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'La Laguna' },
+      { name: { he: 'הפארק הכפרי אנאגה', en: 'Anaga Rural Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'adventure'], area: 'Anaga' },
+      { name: { he: 'גראצ׳יקו', en: 'Garachico' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'], area: 'Garachico' }
     ],
     dayTrips: [
-      { name: { he: 'האי לה גומרה', en: 'La Gomera' }, hours: 1, note: { he: 'מעבורת מלוס כריסטיאנוס; יערות ועמקים ירוקים', en: 'Ferry from Los Cristianos; forests and green valleys' } }
+      { name: { he: 'האי לה גומרה', en: 'La Gomera' }, hours: 1, note: { he: 'מעבורת מלוס כריסטיאנוס; יערות ועמקים ירוקים', en: 'Ferry from Los Cristianos; forests and green valleys' }, priceIls: { low: 300, high: 550 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור כמעט הכרחי לטיידה, לצפון ולכפרים. יש אוטובוסים בין הערים הגדולות. הכבישים בהרים מתפתלים — לתכנן זמן.', en: 'A hire car is close to essential for Teide, the north and the villages. Buses link the main towns. Mountain roads are winding — allow time.' } },
     practical: {
@@ -213,23 +215,23 @@ export default [
       { name: { he: 'פארק האומות', en: 'Parque das Nações' }, forWhom: { he: 'משפחות — מודרני, שטוח וליד האוקיינריום', en: 'Families — modern, flat and near the Oceanarium' } }
     ],
     attractions: [
-      { name: { he: 'מנזר ז׳רונימוש', en: 'Jerónimos Monastery' }, kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'מגדל בלם', en: 'Belém Tower' }, kind: 'landmark', durationH: 1, tags: ['culture'] },
-      { name: { he: 'מצודת סאו ז׳ורז׳', en: 'São Jorge Castle' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture', 'family'], area: 'Alfama' },
-      { name: { he: 'אלפמה', en: 'Alfama' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'couple'], area: 'Alfama' },
-      { name: { he: 'החשמלית 28', en: 'Tram 28' }, kind: 'experience', durationH: 1, tags: ['family'] },
+      { name: { he: 'מנזר ז׳רונימוש', en: 'Jerónimos Monastery' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Belém', mustSee: true },
+      { name: { he: 'מגדל בלם', en: 'Belém Tower' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Belém' },
+      { name: { he: 'מצודת סאו ז׳ורז׳', en: 'São Jorge Castle' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture', 'family'], area: 'Alfama', mustSee: true },
+      { name: { he: 'אלפמה', en: 'Alfama' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'couple'], area: 'Alfama', mustSee: true },
+      { name: { he: 'החשמלית 28', en: 'Tram 28' }, kind: 'experience', durationH: 1, tags: ['family'], area: 'Alfama' },
       { name: { he: 'האוקיינריום של ליסבון', en: 'Lisbon Oceanarium' }, kind: 'museum', durationH: 2.5, tags: ['family', 'with_children'], area: 'Parque das Nações' },
       { name: { he: 'פראסה דו קומרסיו', en: 'Praça do Comércio' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Baixa & Chiado' },
-      { name: { he: 'באיירו אלטו', en: 'Bairro Alto' }, kind: 'neighborhood', durationH: 2, tags: ['nightlife', 'food'] },
-      { name: { he: 'LX פקטורי', en: 'LX Factory' }, kind: 'market', durationH: 1.5, tags: ['shopping', 'food'] },
-      { name: { he: 'שוק טיים אאוט (מרקדו דה ריביירה)', en: 'Time Out Market (Mercado da Ribeira)' }, kind: 'market', durationH: 1, tags: ['food'] },
-      { name: { he: 'מוזיאון קלוסט גולבנקיאן', en: 'Calouste Gulbenkian Museum' }, kind: 'museum', durationH: 2, tags: ['culture'] },
-      { name: { he: 'תצפית סניורה דו מונטה', en: 'Miradouro da Senhora do Monte' }, kind: 'viewpoint', durationH: 0.5, tags: ['couple'] }
+      { name: { he: 'באיירו אלטו', en: 'Bairro Alto' }, kind: 'neighborhood', durationH: 2, tags: ['nightlife', 'food', 'evening', 'adults'], area: 'Bairro Alto' },
+      { name: { he: 'LX פקטורי', en: 'LX Factory' }, kind: 'market', durationH: 1.5, tags: ['shopping', 'food'], area: 'Alcântara' },
+      { name: { he: 'שוק טיים אאוט (מרקדו דה ריביירה)', en: 'Time Out Market (Mercado da Ribeira)' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Cais do Sodré' },
+      { name: { he: 'מוזיאון קלוסט גולבנקיאן', en: 'Calouste Gulbenkian Museum' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Avenidas Novas' },
+      { name: { he: 'תצפית סניורה דו מונטה', en: 'Miradouro da Senhora do Monte' }, kind: 'viewpoint', durationH: 0.5, tags: ['couple', 'evening'], area: 'Graça' }
     ],
     dayTrips: [
-      { name: { he: 'סינטרה', en: 'Sintra' }, hours: 0.7, note: { he: 'ארמון פנה וארמונות ביער; ברכבת. להגיע מוקדם', en: 'Pena Palace and palaces in the forest; by train. Go early' } },
-      { name: { he: 'קשקאיש', en: 'Cascais' }, hours: 0.7, note: { he: 'עיירת חוף ברכבת לאורך הים', en: 'A seaside town by a coastal train' } },
-      { name: { he: 'אבורה', en: 'Évora' }, hours: 1.5, note: { he: 'עיר עתיקה מוקפת חומה באלנטז׳ו', en: 'A walled old town in the Alentejo' } }
+      { name: { he: 'סינטרה', en: 'Sintra' }, hours: 0.7, note: { he: 'ארמון פנה וארמונות ביער; ברכבת. להגיע מוקדם', en: 'Pena Palace and palaces in the forest; by train. Go early' }, priceIls: { low: 100, high: 400 }, kind: 'landmark' },
+      { name: { he: 'קשקאיש', en: 'Cascais' }, hours: 0.7, note: { he: 'עיירת חוף ברכבת לאורך הים', en: 'A seaside town by a coastal train' }, priceIls: { low: 20, high: 200 }, kind: 'beach' },
+      { name: { he: 'אבורה', en: 'Évora' }, hours: 1.5, note: { he: 'עיר עתיקה מוקפת חומה באלנטז׳ו', en: 'A walled old town in the Alentejo' }, priceIls: { low: 120, high: 400 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו, חשמליות, רכבות לסינטרה ולקשקאיש והרבה הליכה בעליות. מהשדה יש מטרו. רכב בעיר לא כדאי.', en: 'Metro, trams, trains to Sintra and Cascais, and lots of uphill walking. The metro reaches the airport. Don’t drive in the city.' } },
     practical: {
@@ -260,24 +262,24 @@ export default [
       { name: { he: 'פוז דו דורו', en: 'Foz do Douro' }, forWhom: { he: 'מי שרוצה ים וטיילת, קצת מחוץ למרכז', en: 'Those who want the sea and a promenade, a little out of the centre' } }
     ],
     attractions: [
-      { name: { he: 'רובע ריביירה', en: 'Ribeira' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'food'], area: 'Ribeira' },
-      { name: { he: 'גשר דום לואיש הראשון', en: 'Dom Luís I Bridge' }, kind: 'landmark', durationH: 1, tags: ['couple'], area: 'Ribeira' },
-      { name: { he: 'מרתפי הפורט בגאיה', en: 'Port wine cellars in Gaia' }, kind: 'experience', durationH: 1.5, tags: ['food', 'couple'], area: 'Vila Nova de Gaia' },
+      { name: { he: 'רובע ריביירה', en: 'Ribeira' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'food'], area: 'Ribeira', mustSee: true },
+      { name: { he: 'גשר דום לואיש הראשון', en: 'Dom Luís I Bridge' }, kind: 'landmark', durationH: 1, tags: ['couple'], area: 'Ribeira', mustSee: true },
+      { name: { he: 'מרתפי הפורט בגאיה', en: 'Port wine cellars in Gaia' }, kind: 'experience', durationH: 1.5, tags: ['food', 'couple', 'adults'], area: 'Vila Nova de Gaia', mustSee: true },
       { name: { he: 'תחנת הרכבת סאו בנטו', en: 'São Bento railway station' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Baixa' },
       { name: { he: 'ספריית ללו', en: 'Livraria Lello' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Baixa' },
       { name: { he: 'מגדל קלריגוש', en: 'Clérigos Tower' }, kind: 'viewpoint', durationH: 1, tags: ['culture'], area: 'Baixa' },
       { name: { he: 'ארמון הבורסה', en: 'Palácio da Bolsa' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Ribeira' },
-      { name: { he: 'שייט ששת הגשרים', en: 'Six Bridges river cruise' }, kind: 'experience', durationH: 1, tags: ['family', 'couple'] },
+      { name: { he: 'שייט ששת הגשרים', en: 'Six Bridges river cruise' }, kind: 'experience', durationH: 1, tags: ['family', 'couple'], area: 'Ribeira' },
       { name: { he: 'שוק בוליאו', en: 'Bolhão Market' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Baixa' },
-      { name: { he: 'מוזיאון ופארק סרלבש', en: 'Serralves Museum & Park' }, kind: 'museum', durationH: 2.5, tags: ['culture', 'family'] },
-      { name: { he: 'בית הכנסת קדורי מקור חיים', en: 'Kadoorie Mekor Haim Synagogue' }, kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'תצפית ממנזר סרה דו פילאר', en: 'Serra do Pilar viewpoint' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Vila Nova de Gaia' }
+      { name: { he: 'מוזיאון ופארק סרלבש', en: 'Serralves Museum & Park' }, kind: 'museum', durationH: 2.5, tags: ['culture', 'family'], area: 'Boavista' },
+      { name: { he: 'בית הכנסת קדורי מקור חיים', en: 'Kadoorie Mekor Haim Synagogue' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Boavista' },
+      { name: { he: 'תצפית ממנזר סרה דו פילאר', en: 'Serra do Pilar viewpoint' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'Vila Nova de Gaia' }
     ],
     dayTrips: [
-      { name: { he: 'עמק הדורו', en: 'Douro Valley' }, hours: 1.5, note: { he: 'טרסות כרמים ויקבים; ברכבת לפניאו או בסיור מאורגן', en: 'Terraced vineyards and wineries; by train to Pinhão or on a tour' } },
-      { name: { he: 'גימראיש', en: 'Guimarães' }, hours: 1, note: { he: 'עיר עתיקה וטירה — ״ערש פורטוגל״', en: 'An old town and castle — ‘the cradle of Portugal’' } },
-      { name: { he: 'ברגה', en: 'Braga' }, hours: 1, note: { he: 'כנסיות ומקדש בום ז׳זוס על הגבעה', en: 'Churches and the Bom Jesus sanctuary on the hill' } },
-      { name: { he: 'אביירו', en: 'Aveiro' }, hours: 1, note: { he: 'תעלות וסירות צבעוניות, ברכבת', en: 'Canals and colourful boats, by train' } }
+      { name: { he: 'עמק הדורו', en: 'Douro Valley' }, hours: 1.5, note: { he: 'טרסות כרמים ויקבים; ברכבת לפניאו או בסיור מאורגן', en: 'Terraced vineyards and wineries; by train to Pinhão or on a tour' }, priceIls: { low: 60, high: 450 }, kind: 'nature' },
+      { name: { he: 'גימראיש', en: 'Guimarães' }, hours: 1, note: { he: 'עיר עתיקה וטירה — ״ערש פורטוגל״', en: 'An old town and castle — ‘the cradle of Portugal’' }, priceIls: { low: 30, high: 200 }, kind: 'neighborhood' },
+      { name: { he: 'ברגה', en: 'Braga' }, hours: 1, note: { he: 'כנסיות ומקדש בום ז׳זוס על הגבעה', en: 'Churches and the Bom Jesus sanctuary on the hill' }, priceIls: { low: 30, high: 200 }, kind: 'religious' },
+      { name: { he: 'אביירו', en: 'Aveiro' }, hours: 1, note: { he: 'תעלות וסירות צבעוניות, ברכבת', en: 'Canals and colourful boats, by train' }, priceIls: { low: 40, high: 250 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'המרכז קומפקטי אבל תלול; יש מטרו (גם מהשדה) ורכבות לערים הסמוכות. רכב רק לעמק הדורו, אם בכלל.', en: 'The centre is compact but steep; a metro runs (including from the airport) and trains reach nearby towns. A car only for the Douro, if at all.' } },
     practical: {
@@ -308,22 +310,22 @@ export default [
       { name: { he: 'סנטנה והצפון', en: 'Santana & the north' }, forWhom: { he: 'מטיילים שרוצים להיות קרובים למסלולים', en: 'Walkers who want to be close to the trails' } }
     ],
     attractions: [
-      { name: { he: 'פיקו דו אריירו', en: 'Pico do Arieiro' }, kind: 'viewpoint', durationH: 2, tags: ['nature'] },
-      { name: { he: 'מסלול פיקו דו אריירו–פיקו רואיבו', en: 'Pico do Arieiro–Pico Ruivo hike' }, kind: 'nature', durationH: 6, tags: ['adventure', 'nature'] },
-      { name: { he: 'לבאדה 25 המעיינות', en: 'Levada das 25 Fontes' }, kind: 'nature', durationH: 4, tags: ['nature', 'adventure'], area: 'Calheta' },
+      { name: { he: 'פיקו דו אריירו', en: 'Pico do Arieiro' }, kind: 'viewpoint', durationH: 2, tags: ['nature'], area: 'Pico do Arieiro', mustSee: true },
+      { name: { he: 'מסלול פיקו דו אריירו–פיקו רואיבו', en: 'Pico do Arieiro–Pico Ruivo hike' }, kind: 'nature', durationH: 6, tags: ['adventure', 'nature', 'teens'], area: 'Pico do Arieiro' },
+      { name: { he: 'לבאדה 25 המעיינות', en: 'Levada das 25 Fontes' }, kind: 'nature', durationH: 4, tags: ['nature', 'adventure'], area: 'Calheta', mustSee: true },
       { name: { he: 'לבאדה קלדייראו ורדה', en: 'Levada do Caldeirão Verde' }, kind: 'nature', durationH: 5, tags: ['nature', 'adventure'], area: 'Santana & the north' },
-      { name: { he: 'חצי האי סאו לורנסו', en: 'Ponta de São Lourenço' }, kind: 'nature', durationH: 3, tags: ['nature'] },
-      { name: { he: 'בריכות הלבה בפורטו מוניז', en: 'Porto Moniz natural pools' }, kind: 'beach', durationH: 2, tags: ['family', 'beach'] },
-      { name: { he: 'קאבו ז׳יראו', en: 'Cabo Girão skywalk' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] },
+      { name: { he: 'חצי האי סאו לורנסו', en: 'Ponta de São Lourenço' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'Caniçal' },
+      { name: { he: 'בריכות הלבה בפורטו מוניז', en: 'Porto Moniz natural pools' }, kind: 'beach', durationH: 2, tags: ['family', 'beach'], area: 'Porto Moniz', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'קאבו ז׳יראו', en: 'Cabo Girão skywalk' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Câmara de Lobos' },
       { name: { he: 'גן מונטה פאלאס הטרופי', en: 'Monte Palace Tropical Garden' }, kind: 'park', durationH: 2, tags: ['couple', 'family'], area: 'Funchal' },
       { name: { he: 'מזחלות הנצרים של מונטה', en: 'Monte toboggan ride' }, kind: 'experience', durationH: 0.5, tags: ['family'], area: 'Funchal' },
       { name: { he: 'שוק לברדורש', en: 'Mercado dos Lavradores' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Funchal' },
-      { name: { he: 'העיר העתיקה של פונשל', en: 'Funchal old town' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'food'], area: 'Funchal' },
-      { name: { he: 'שייט לצפייה בדולפינים ולווייתנים', en: 'Dolphin & whale watching trip' }, kind: 'experience', durationH: 3, tags: ['family', 'nature'] },
+      { name: { he: 'העיר העתיקה של פונשל', en: 'Funchal old town' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'food'], area: 'Funchal', mustSee: true },
+      { name: { he: 'שייט לצפייה בדולפינים ולווייתנים', en: 'Dolphin & whale watching trip' }, kind: 'experience', durationH: 3, tags: ['family', 'nature'], area: 'Funchal' },
       { name: { he: 'בתי סנטנה המסורתיים', en: 'Santana traditional houses' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Santana & the north' }
     ],
     dayTrips: [
-      { name: { he: 'האי פורטו סנטו', en: 'Porto Santo' }, hours: 2.5, note: { he: 'מעבורת מפונשל לאי עם חוף זהוב ארוך — עדיף ללון לילה', en: 'Ferry from Funchal to an island with a long golden beach — better with an overnight' } }
+      { name: { he: 'האי פורטו סנטו', en: 'Porto Santo' }, hours: 2.5, note: { he: 'מעבורת מפונשל לאי עם חוף זהוב ארוך — עדיף ללון לילה', en: 'Ferry from Funchal to an island with a long golden beach — better with an overnight' }, priceIls: { low: 300, high: 450 }, kind: 'beach' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור הכי גמיש, אבל הכבישים תלולים ומתפתלים — לנהגים בטוחים. אפשר גם לבסס את הטיול על סיורים מאורגנים מפונשל.', en: 'A hire car is most flexible, but roads are steep and winding — for confident drivers. Organised tours from Funchal are a good alternative.' } },
     practical: {
@@ -355,24 +357,24 @@ export default [
       { name: { he: 'ריביירת מקרסקה', en: 'Makarska Riviera' }, forWhom: { he: 'חופשת חוף משפחתית בין שתי הערים', en: 'A family beach holiday between the two cities' } }
     ],
     attractions: [
-      { name: { he: 'חומות דוברובניק', en: 'Dubrovnik city walls' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Dubrovnik Old Town' },
+      { name: { he: 'חומות דוברובניק', en: 'Dubrovnik city walls' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Dubrovnik Old Town', mustSee: true },
       { name: { he: 'הרחוב הראשי סטרדון', en: 'Stradun' }, kind: 'neighborhood', durationH: 1, tags: ['culture', 'shopping'], area: 'Dubrovnik Old Town' },
-      { name: { he: 'רכבל דוברובניק להר סרג׳', en: 'Dubrovnik cable car to Mount Srđ' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple', 'family'] },
-      { name: { he: 'האי לוקרום', en: 'Lokrum island' }, kind: 'nature', durationH: 3, tags: ['nature', 'beach'] },
+      { name: { he: 'רכבל דוברובניק להר סרג׳', en: 'Dubrovnik cable car to Mount Srđ' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple', 'family', 'evening'], area: 'Dubrovnik Old Town' },
+      { name: { he: 'האי לוקרום', en: 'Lokrum island' }, kind: 'nature', durationH: 3, tags: ['nature', 'beach'], area: 'Lokrum', months: [4, 5, 6, 7, 8, 9, 10] },
       { name: { he: 'מבצר לובריינאץ', en: 'Fort Lovrijenac' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Dubrovnik Old Town' },
       { name: { he: 'בית הכנסת של דוברובניק', en: 'Dubrovnik Synagogue' }, kind: 'religious', durationH: 0.5, tags: ['culture'], area: 'Dubrovnik Old Town' },
-      { name: { he: 'חוף בנייה', en: 'Banje Beach' }, kind: 'beach', durationH: 3, tags: ['beach'] },
-      { name: { he: 'ארמון דיוקלטיאנוס', en: 'Diocletian’s Palace' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Split centre' },
+      { name: { he: 'חוף בנייה', en: 'Banje Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Dubrovnik Old Town', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'ארמון דיוקלטיאנוס', en: 'Diocletian’s Palace' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Split centre', mustSee: true },
       { name: { he: 'גבעת מריאן', en: 'Marjan Hill' }, kind: 'park', durationH: 2, tags: ['nature', 'family'], area: 'Split centre' },
-      { name: { he: 'הפארק הלאומי קרקה', en: 'Krka National Park' }, kind: 'nature', durationH: 5, tags: ['nature', 'family'] },
-      { name: { he: 'חוף זלטני ראט בבראץ׳', en: 'Zlatni Rat beach, Brač' }, kind: 'beach', durationH: 5, tags: ['beach'] },
-      { name: { he: 'טרוגיר', en: 'Trogir' }, kind: 'neighborhood', durationH: 2, tags: ['culture'] }
+      { name: { he: 'הפארק הלאומי קרקה', en: 'Krka National Park' }, kind: 'nature', durationH: 5, tags: ['nature', 'family'], area: 'Krka', mustSee: true },
+      { name: { he: 'חוף זלטני ראט בבראץ׳', en: 'Zlatni Rat beach, Brač' }, kind: 'beach', durationH: 5, tags: ['beach'], area: 'Brač', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'טרוגיר', en: 'Trogir' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Trogir' }
     ],
     dayTrips: [
-      { name: { he: 'האי הוואר', en: 'Hvar' }, hours: 1, note: { he: 'קטמרן מספליט; עיירה יפה וחופים', en: 'Catamaran from Split; a pretty town and beaches' } },
-      { name: { he: 'הפארק הלאומי פליטביצה', en: 'Plitvice Lakes National Park' }, hours: 2.5, note: { he: 'אגמים ומפלים מדהימים; יום ארוך מספליט', en: 'Stunning lakes and waterfalls; a long day from Split' } },
-      { name: { he: 'קוטור (מונטנגרו)', en: 'Kotor (Montenegro)' }, hours: 2, note: { he: 'מדוברובניק, כולל מעבר גבול — לקחת דרכון', en: 'From Dubrovnik, including a border crossing — bring your passport' } },
-      { name: { he: 'האי קורצ׳ולה', en: 'Korčula' }, hours: 2, note: { he: 'עיר עתיקה על אי, בקטמרן מדוברובניק או מספליט', en: 'An island old town, by catamaran from Dubrovnik or Split' } }
+      { name: { he: 'האי הוואר', en: 'Hvar' }, hours: 1, note: { he: 'קטמרן מספליט; עיירה יפה וחופים', en: 'Catamaran from Split; a pretty town and beaches' }, priceIls: { low: 170, high: 400 }, kind: 'beach' },
+      { name: { he: 'הפארק הלאומי פליטביצה', en: 'Plitvice Lakes National Park' }, hours: 2.5, note: { he: 'אגמים ומפלים מדהימים; יום ארוך מספליט', en: 'Stunning lakes and waterfalls; a long day from Split' }, priceIls: { low: 300, high: 600 }, kind: 'nature' },
+      { name: { he: 'קוטור (מונטנגרו)', en: 'Kotor (Montenegro)' }, hours: 2, note: { he: 'מדוברובניק, כולל מעבר גבול — לקחת דרכון', en: 'From Dubrovnik, including a border crossing — bring your passport' }, priceIls: { low: 200, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'האי קורצ׳ולה', en: 'Korčula' }, hours: 2, note: { he: 'עיר עתיקה על אי, בקטמרן מדוברובניק או מספליט', en: 'An island old town, by catamaran from Dubrovnik or Split' }, priceIls: { low: 170, high: 400 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב נוח בין דוברובניק לספליט ולפארקים; בעיר העתיקה ובקיץ החניה קשה ויקרה. בין האיים — קטמרנים ומעבורות. אפשר לטוס לאחת הערים ולחזור מהשנייה.', en: 'A car helps between Dubrovnik, Split and the parks; Old Town parking is hard and pricey in summer. Catamarans and ferries link the islands. You can fly into one city and out of the other.' } },
     practical: {
@@ -404,23 +406,23 @@ export default [
       { name: { he: 'פטרובאץ', en: 'Petrovac' }, forWhom: { he: 'משפחות — עיירת חוף שקטה יותר', en: 'Families — a quieter beach town' } }
     ],
     attractions: [
-      { name: { he: 'העיר העתיקה של קוטור', en: 'Kotor Old Town' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Kotor & the Bay of Kotor' },
-      { name: { he: 'חומות קוטור ומבצר סן ג׳ובאני', en: 'Kotor fortress walls (San Giovanni)' }, kind: 'viewpoint', durationH: 2, tags: ['adventure'], area: 'Kotor & the Bay of Kotor' },
-      { name: { he: 'פרסט', en: 'Perast' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture', 'couple'], area: 'Kotor & the Bay of Kotor' },
+      { name: { he: 'העיר העתיקה של קוטור', en: 'Kotor Old Town' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Kotor & the Bay of Kotor', mustSee: true },
+      { name: { he: 'חומות קוטור ומבצר סן ג׳ובאני', en: 'Kotor fortress walls (San Giovanni)' }, kind: 'viewpoint', durationH: 2, tags: ['adventure'], area: 'Kotor & the Bay of Kotor', mustSee: true },
+      { name: { he: 'פרסט', en: 'Perast' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture', 'couple'], area: 'Kotor & the Bay of Kotor', mustSee: true },
       { name: { he: 'גבירתנו של הסלעים', en: 'Our Lady of the Rocks' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Kotor & the Bay of Kotor' },
       { name: { he: 'העיר העתיקה של בודווה', en: 'Budva Old Town' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture', 'nightlife'], area: 'Budva' },
-      { name: { he: 'חוף מוגרן', en: 'Mogren Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Budva' },
-      { name: { he: 'חוף יאז', en: 'Jaz Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'], area: 'Budva' },
+      { name: { he: 'חוף מוגרן', en: 'Mogren Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Budva', months: [6, 7, 8, 9] },
+      { name: { he: 'חוף יאז', en: 'Jaz Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'], area: 'Budva', months: [6, 7, 8, 9] },
       { name: { he: 'תצפית על סבטי סטפן', en: 'Sveti Stefan viewpoint' }, kind: 'viewpoint', durationH: 0.5, tags: ['couple'], area: 'Budva' },
-      { name: { he: 'הפארק הלאומי לובצ׳ן ומאוזוליאום נייגוש', en: 'Lovćen National Park & Njegoš Mausoleum' }, kind: 'nature', durationH: 3, tags: ['nature'] },
-      { name: { he: 'הפארק הלאומי אגם סקאדר', en: 'Lake Skadar National Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'family'] },
-      { name: { he: 'מנזר אוסטרוג', en: 'Ostrog Monastery' }, kind: 'religious', durationH: 2, tags: ['culture'] },
+      { name: { he: 'הפארק הלאומי לובצ׳ן ומאוזוליאום נייגוש', en: 'Lovćen National Park & Njegoš Mausoleum' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'Lovćen' },
+      { name: { he: 'הפארק הלאומי אגם סקאדר', en: 'Lake Skadar National Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'family'], area: 'Virpazar' },
+      { name: { he: 'מנזר אוסטרוג', en: 'Ostrog Monastery' }, kind: 'religious', durationH: 2, tags: ['culture'], area: 'Ostrog' },
       { name: { he: 'פורטו מונטנגרו', en: 'Porto Montenegro' }, kind: 'neighborhood', durationH: 1.5, tags: ['luxury', 'food'], area: 'Tivat' }
     ],
     dayTrips: [
-      { name: { he: 'דורמיטור וקניון טארה', en: 'Durmitor & the Tara Canyon' }, hours: 3, note: { he: 'האגם השחור, גשר ג׳ורג׳ביץ׳ ורפטינג בעונה; יום ארוך או לילה בז׳בליאק', en: 'Black Lake, Đurđevića Tara Bridge and rafting in season; a long day or a night in Žabljak' } },
-      { name: { he: 'דוברובניק (קרואטיה)', en: 'Dubrovnik (Croatia)' }, hours: 2, note: { he: 'כולל מעבר גבול שיכול להתארך בקיץ — לקחת דרכון', en: 'Includes a border crossing that can be slow in summer — bring your passport' } },
-      { name: { he: 'צטיניה', en: 'Cetinje' }, hours: 1, note: { he: 'הבירה המלכותית הישנה, בדרך ללובצ׳ן', en: 'The old royal capital, on the way to Lovćen' } }
+      { name: { he: 'דורמיטור וקניון טארה', en: 'Durmitor & the Tara Canyon' }, hours: 3, note: { he: 'האגם השחור, גשר ג׳ורג׳ביץ׳ ורפטינג בעונה; יום ארוך או לילה בז׳בליאק', en: 'Black Lake, Đurđevića Tara Bridge and rafting in season; a long day or a night in Žabljak' }, priceIls: { low: 200, high: 450 }, kind: 'nature' },
+      { name: { he: 'דוברובניק (קרואטיה)', en: 'Dubrovnik (Croatia)' }, hours: 2, note: { he: 'כולל מעבר גבול שיכול להתארך בקיץ — לקחת דרכון', en: 'Includes a border crossing that can be slow in summer — bring your passport' }, priceIls: { low: 200, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'צטיניה', en: 'Cetinje' }, hours: 1, note: { he: 'הבירה המלכותית הישנה, בדרך ללובצ׳ן', en: 'The old royal capital, on the way to Lovćen' }, priceIls: { low: 30, high: 200 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור הכי נוח, במיוחד לפנים הארץ. בין עיירות החוף יש אוטובוסים, ובקיץ יש פקקים סביב המפרץ. כבישי ההרים צרים ומתפתלים.', en: 'A hire car is easiest, especially inland. Buses link the coastal towns, and summer traffic jams build around the bay. Mountain roads are narrow and winding.' } },
     practical: {
@@ -452,25 +454,25 @@ export default [
       { name: { he: 'בובץ ועמק הסוצ׳ה', en: 'Bovec & the Soča Valley' }, forWhom: { he: 'אקטיביים — רפטינג, הליכות ורכיבה', en: 'Active travellers — rafting, hiking and cycling' } }
     ],
     attractions: [
-      { name: { he: 'אגם בלד', en: 'Lake Bled' }, kind: 'nature', durationH: 3, tags: ['nature', 'couple', 'family'], area: 'Bled' },
-      { name: { he: 'סירת פלטנה לאי בלד', en: 'Pletna boat to Bled Island' }, kind: 'experience', durationH: 1.5, tags: ['couple'], area: 'Bled' },
+      { name: { he: 'אגם בלד', en: 'Lake Bled' }, kind: 'nature', durationH: 3, tags: ['nature', 'couple', 'family'], area: 'Bled', mustSee: true },
+      { name: { he: 'סירת פלטנה לאי בלד', en: 'Pletna boat to Bled Island' }, kind: 'experience', durationH: 1.5, tags: ['couple'], area: 'Bled', mustSee: true },
       { name: { he: 'טירת בלד', en: 'Bled Castle' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture'], area: 'Bled' },
-      { name: { he: 'ערוץ וינטגר', en: 'Vintgar Gorge' }, kind: 'nature', durationH: 2, tags: ['nature', 'family'], area: 'Bled' },
+      { name: { he: 'ערוץ וינטגר', en: 'Vintgar Gorge' }, kind: 'nature', durationH: 2, tags: ['nature', 'family'], area: 'Bled', months: [4, 5, 6, 7, 8, 9, 10] },
       { name: { he: 'אגם בוהיני', en: 'Lake Bohinj' }, kind: 'nature', durationH: 3, tags: ['nature', 'relaxation'], area: 'Bohinj' },
       { name: { he: 'מפל סביצה', en: 'Savica Waterfall' }, kind: 'nature', durationH: 1.5, tags: ['nature'], area: 'Bohinj' },
       { name: { he: 'רכבל ווגל', en: 'Vogel cable car' }, kind: 'viewpoint', durationH: 2, tags: ['nature', 'family'], area: 'Bohinj' },
       { name: { he: 'טירת ליובליאנה', en: 'Ljubljana Castle' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Ljubljana' },
-      { name: { he: 'הגשר המשולש וכיכר פרשרן', en: 'Triple Bridge & Prešeren Square' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Ljubljana' },
+      { name: { he: 'הגשר המשולש וכיכר פרשרן', en: 'Triple Bridge & Prešeren Square' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Ljubljana', mustSee: true },
       { name: { he: 'השוק המרכזי של ליובליאנה', en: 'Ljubljana Central Market' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Ljubljana' },
       { name: { he: 'פארק טיבולי', en: 'Tivoli Park' }, kind: 'park', durationH: 1.5, tags: ['family'], area: 'Ljubljana' },
-      { name: { he: 'מערות פוסטויינה', en: 'Postojna Cave' }, kind: 'nature', durationH: 2, tags: ['family', 'with_children'] },
-      { name: { he: 'טירת פרדיאמה', en: 'Predjama Castle' }, kind: 'landmark', durationH: 1, tags: ['culture', 'family'] }
+      { name: { he: 'מערות פוסטויינה', en: 'Postojna Cave' }, kind: 'nature', durationH: 2, tags: ['family', 'with_children'], area: 'Postojna' },
+      { name: { he: 'טירת פרדיאמה', en: 'Predjama Castle' }, kind: 'landmark', durationH: 1, tags: ['culture', 'family'], area: 'Postojna' }
     ],
     dayTrips: [
-      { name: { he: 'מערות פוסטויינה וטירת פרדיאמה', en: 'Postojna Cave & Predjama Castle' }, hours: 1, note: { he: 'שילוב קלאסי ליום אחד מליובליאנה', en: 'A classic one-day combo from Ljubljana' } },
-      { name: { he: 'פיראן', en: 'Piran' }, hours: 1.5, note: { he: 'עיירת חוף ונציאנית על האדריאטי', en: 'A Venetian-style town on the Adriatic' } },
-      { name: { he: 'עמק הסוצ׳ה דרך מעבר וורשיץ׳', en: 'Soča Valley via the Vršič Pass' }, hours: 2, note: { he: 'כביש הרים מרהיב, פתוח בעיקר בעונה החמה', en: 'A spectacular mountain road, open mainly in the warmer months' } },
-      { name: { he: 'מערות שקוציאן', en: 'Škocjan Caves' }, hours: 1, note: { he: 'קניון תת-קרקעי ענק, אתר מורשת עולמית', en: 'A huge underground canyon, a UNESCO World Heritage Site' } }
+      { name: { he: 'מערות פוסטויינה וטירת פרדיאמה', en: 'Postojna Cave & Predjama Castle' }, hours: 1, note: { he: 'שילוב קלאסי ליום אחד מליובליאנה', en: 'A classic one-day combo from Ljubljana' }, priceIls: { low: 200, high: 400 }, kind: 'nature' },
+      { name: { he: 'פיראן', en: 'Piran' }, hours: 1.5, note: { he: 'עיירת חוף ונציאנית על האדריאטי', en: 'A Venetian-style town on the Adriatic' }, priceIls: { low: 60, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'עמק הסוצ׳ה דרך מעבר וורשיץ׳', en: 'Soča Valley via the Vršič Pass' }, hours: 2, note: { he: 'כביש הרים מרהיב, פתוח בעיקר בעונה החמה', en: 'A spectacular mountain road, open mainly in the warmer months' }, priceIls: { low: 150, high: 450 }, kind: 'nature', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'מערות שקוציאן', en: 'Škocjan Caves' }, hours: 1, note: { he: 'קניון תת-קרקעי ענק, אתר מורשת עולמית', en: 'A huge underground canyon, a UNESCO World Heritage Site' }, priceIls: { low: 130, high: 300 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור נוח מאוד — המרחקים קצרים והכבישים טובים. בכבישים המהירים צריך מדבקת אגרה אלקטרונית (וינייטה). בין ליובליאנה לבלד יש גם אוטובוסים.', en: 'A hire car is very convenient — distances are short and roads are good. Motorways need an electronic vignette. Buses also link Ljubljana and Bled.' } },
     practical: {

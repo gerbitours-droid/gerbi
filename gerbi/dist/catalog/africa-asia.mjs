@@ -1,5 +1,7 @@
 // Catalog data (spec 23): Africa & Indian Ocean islands, Asia. Shape: dist/catalog.mjs.
 // Budget figures are rough per-person-per-day estimates in ₪ without flights.
+// dayTrips[].priceIls = rough ₪ per adult, ESTIMATES (Nov 2026): low ≈ do-it-yourself public transport + main entry fee,
+// high ≈ a typical organised group tour from the base; converted at about €1=₪4, $1=₪3.7, £1=₪4.7 and rounded. Show as estimates.
 export default [
   {
     id: 'maldives', trip: 'maldives', code: 'MLE', airports: ['MLE'],
@@ -23,19 +25,19 @@ export default [
       { name: { he: 'איים מקומיים (מאפושי ואחרים)', en: 'Local islands (Maafushi and others)' }, forWhom: { he: 'תקציב נמוך יותר — עם כללים מקומיים (למשל בלי אלכוהול)', en: 'Lower budgets — with local rules (e.g. no alcohol)' } }
     ],
     attractions: [
-      { name: { he: 'שנורקלינג בשונית הבית של הריזורט', en: 'Snorkelling the resort’s house reef' }, kind: 'nature', durationH: 2, tags: ['beach', 'nature'] },
-      { name: { he: 'שייט שקיעה עם דולפינים', en: 'Sunset dolphin cruise' }, kind: 'experience', durationH: 2, tags: ['couple'] },
+      { name: { he: 'שנורקלינג בשונית הבית של הריזורט', en: 'Snorkelling the resort’s house reef' }, kind: 'nature', durationH: 2, tags: ['beach', 'nature'], mustSee: true },
+      { name: { he: 'שייט שקיעה עם דולפינים', en: 'Sunset dolphin cruise' }, kind: 'experience', durationH: 2, tags: ['couple', 'evening'], mustSee: true },
       { name: { he: 'צלילה עם מנטות', en: 'Manta ray dive' }, kind: 'nature', durationH: 3, tags: ['adventure'] },
-      { name: { he: 'שנורקלינג עם כרישי לווייתן בדרום ארי', en: 'Whale-shark snorkelling in South Ari' }, kind: 'nature', durationH: 4, tags: ['adventure', 'nature'] },
-      { name: { he: 'גדת חול (Sandbank) לפיקניק', en: 'Sandbank picnic' }, kind: 'beach', durationH: 3, tags: ['couple', 'beach'] },
+      { name: { he: 'שנורקלינג עם כרישי לווייתן בדרום ארי', en: 'Whale-shark snorkelling in South Ari' }, kind: 'nature', durationH: 4, tags: ['adventure', 'nature'], area: 'Ari Atoll' },
+      { name: { he: 'גדת חול (Sandbank) לפיקניק', en: 'Sandbank picnic' }, kind: 'beach', durationH: 3, tags: ['couple', 'beach'], mustSee: true },
       { name: { he: 'טיסה נופית במטוס ימי', en: 'Scenic seaplane flight' }, kind: 'experience', durationH: 1, tags: ['luxury'] },
-      { name: { he: 'דיג לילי מסורתי', en: 'Traditional night fishing' }, kind: 'experience', durationH: 2.5, tags: ['family'] },
+      { name: { he: 'דיג לילי מסורתי', en: 'Traditional night fishing' }, kind: 'experience', durationH: 2.5, tags: ['family', 'evening'] },
       { name: { he: 'ספא מעל המים', en: 'Overwater spa' }, kind: 'experience', durationH: 2, tags: ['relaxation', 'luxury'] },
-      { name: { he: 'סיור בעיר מאלה ובשוק הדגים', en: 'Malé city & fish market tour' }, kind: 'market', durationH: 2, tags: ['culture'] },
+      { name: { he: 'סיור בעיר מאלה ובשוק הדגים', en: 'Malé city & fish market tour' }, kind: 'market', durationH: 2, tags: ['culture'], area: 'Malé' },
       { name: { he: 'קיאק ופאדל בלגונה', en: 'Kayak & paddleboard in the lagoon' }, kind: 'experience', durationH: 1.5, tags: ['adventure'] }
     ],
     dayTrips: [
-      { name: { he: 'ביקור באי מקומי', en: 'A local-island visit' }, hours: 0.5, note: { he: 'הצצה לחיי הכפר; לבוש צנוע', en: 'A glimpse of village life; dress modestly' } }
+      { name: { he: 'ביקור באי מקומי', en: 'A local-island visit' }, hours: 0.5, note: { he: 'הצצה לחיי הכפר; לבוש צנוע', en: 'A glimpse of village life; dress modestly' }, priceIls: { low: 180, high: 370 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'מהשדה בהולהולה לריזורט בסירה מהירה או במטוס ימי (בתשלום נפרד). המטוס הימי טס רק באור יום, ונחיתה מאוחרת עלולה לחייב לילה במאלה.', en: 'From the airport to the resort by speedboat or seaplane (paid separately). Seaplanes fly only in daylight, so a late arrival may mean a night in Malé.' } },
     practical: {
@@ -69,24 +71,24 @@ export default [
       { name: { he: 'סילום וסאתורן', en: 'Silom & Sathorn' }, forWhom: { he: 'אזור העסקים, עם פארק לומפיני ושוק לילה', en: 'The business district, with Lumphini Park and a night market' } }
     ],
     attractions: [
-      { name: { he: 'הארמון הגדול ו־וואט פרה קאו', en: 'Grand Palace & Wat Phra Kaew' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Banglamphu & Khao San' },
-      { name: { he: 'וואט פו — הבודהה השוכב', en: 'Wat Pho — the Reclining Buddha' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Banglamphu & Khao San' },
-      { name: { he: 'וואט ארון — מקדש השחר', en: 'Wat Arun — Temple of Dawn' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Riverside' },
-      { name: { he: 'שוק סוף השבוע צ׳טוצ׳אק', en: 'Chatuchak Weekend Market' }, kind: 'market', durationH: 3, tags: ['shopping', 'food'] },
-      { name: { he: 'צ׳יינה טאון — רחוב יאוורט', en: 'Chinatown — Yaowarat Road' }, kind: 'neighborhood', durationH: 2.5, tags: ['food', 'nightlife'] },
+      { name: { he: 'הארמון הגדול ו־וואט פרה קאו', en: 'Grand Palace & Wat Phra Kaew' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Banglamphu & Khao San', mustSee: true },
+      { name: { he: 'וואט פו — הבודהה השוכב', en: 'Wat Pho — the Reclining Buddha' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Banglamphu & Khao San', mustSee: true },
+      { name: { he: 'וואט ארון — מקדש השחר', en: 'Wat Arun — Temple of Dawn' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Riverside', mustSee: true },
+      { name: { he: 'שוק סוף השבוע צ׳טוצ׳אק', en: 'Chatuchak Weekend Market' }, kind: 'market', durationH: 3, tags: ['shopping', 'food'], area: 'Chatuchak' },
+      { name: { he: 'צ׳יינה טאון — רחוב יאוורט', en: 'Chinatown — Yaowarat Road' }, kind: 'neighborhood', durationH: 2.5, tags: ['food', 'nightlife', 'evening'], area: 'Chinatown (Yaowarat)' },
       { name: { he: 'שייט בסירת הנהר על הצ׳או פראיה', en: 'Chao Phraya river boat ride' }, kind: 'experience', durationH: 1.5, tags: ['family'], area: 'Riverside' },
       { name: { he: 'בית ג׳ים תומפסון', en: 'Jim Thompson House' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Siam' },
       { name: { he: 'פארק לומפיני', en: 'Lumphini Park' }, kind: 'park', durationH: 1.5, tags: ['family'], area: 'Silom & Sathorn' },
-      { name: { he: 'רחוב חאו סאן', en: 'Khao San Road' }, kind: 'neighborhood', durationH: 2, tags: ['nightlife', 'low_budget'], area: 'Banglamphu & Khao San' },
-      { name: { he: 'אסיאטיק — שוק לילה על הנהר', en: 'Asiatique The Riverfront night market' }, kind: 'market', durationH: 2.5, tags: ['shopping', 'family'], area: 'Riverside' },
+      { name: { he: 'רחוב חאו סאן', en: 'Khao San Road' }, kind: 'neighborhood', durationH: 2, tags: ['nightlife', 'low_budget', 'evening', 'adults'], area: 'Banglamphu & Khao San' },
+      { name: { he: 'אסיאטיק — שוק לילה על הנהר', en: 'Asiatique The Riverfront night market' }, kind: 'market', durationH: 2.5, tags: ['shopping', 'family', 'evening'], area: 'Riverside' },
       { name: { he: 'קניוני סיאם', en: 'The Siam shopping malls' }, kind: 'neighborhood', durationH: 3, tags: ['shopping', 'family'], area: 'Siam' },
-      { name: { he: 'בר על גג עם תצפית על העיר', en: 'A rooftop bar with a city view' }, kind: 'viewpoint', durationH: 2, tags: ['couple', 'nightlife'] },
+      { name: { he: 'בר על גג עם תצפית על העיר', en: 'A rooftop bar with a city view' }, kind: 'viewpoint', durationH: 2, tags: ['couple', 'nightlife', 'evening', 'adults'], area: 'Silom & Sathorn' },
       { name: { he: 'סדנת בישול תאילנדי', en: 'A Thai cooking class' }, kind: 'experience', durationH: 3, tags: ['food', 'couple'] }
     ],
     dayTrips: [
-      { name: { he: 'איוטאיה — הבירה העתיקה', en: 'Ayutthaya — the old capital' }, hours: 1.5, note: { he: 'חורבות מקדשים מאתר מורשת עולמית; ברכבת, במיניוואן או בסיור מאורגן', en: 'World Heritage temple ruins; by train, minivan or organised tour' } },
-      { name: { he: 'השוק הצף דמנואן סדואק ושוק המסילה מאקלונג', en: 'Damnoen Saduak floating market & Maeklong railway market' }, hours: 1.5, note: { he: 'כדאי לצאת מוקדם בבוקר; לרוב משולבים בסיור אחד', en: 'Go early in the morning; usually combined in one tour' } },
-      { name: { he: 'קנצ׳נבורי והגשר על נהר קוואי', en: 'Kanchanaburi & the Bridge on the River Kwai' }, hours: 2.5, note: { he: 'יום ארוך; היסטוריה של מלחמת העולם השנייה ומפלי אראוואן', en: 'A long day; WWII history and the Erawan Falls' } },
+      { name: { he: 'איוטאיה — הבירה העתיקה', en: 'Ayutthaya — the old capital' }, hours: 1.5, note: { he: 'חורבות מקדשים מאתר מורשת עולמית; ברכבת, במיניוואן או בסיור מאורגן', en: 'World Heritage temple ruins; by train, minivan or organised tour' }, priceIls: { low: 30, high: 250 }, kind: 'landmark' },
+      { name: { he: 'השוק הצף דמנואן סדואק ושוק המסילה מאקלונג', en: 'Damnoen Saduak floating market & Maeklong railway market' }, hours: 1.5, note: { he: 'כדאי לצאת מוקדם בבוקר; לרוב משולבים בסיור אחד', en: 'Go early in the morning; usually combined in one tour' }, priceIls: { low: 90, high: 250 }, kind: 'market' },
+      { name: { he: 'קנצ׳נבורי והגשר על נהר קוואי', en: 'Kanchanaburi & the Bridge on the River Kwai' }, hours: 2.5, note: { he: 'יום ארוך; היסטוריה של מלחמת העולם השנייה ומפלי אראוואן', en: 'A long day; WWII history and the Erawan Falls' }, priceIls: { low: 170, high: 350 }, kind: 'landmark' },
       { name: { he: 'המשך צפונה לצ׳יאנג מאי', en: 'Onward north to Chiang Mai' }, hours: 1.5, note: { he: 'לא טיול יום — טיסה פנימית או רכבת לילה, למי שמאריך את הטיול', en: 'Not a day trip — a domestic flight or night train for those extending the trip' } }
     ],
     transport: { carRecommended: false, note: { he: 'הרכבת העילית (BTS), המטרו וסירות הנהר עוקפים את הפקקים; מוניות ואפליקציית Grab זולות. נהיגה בעיר לא מומלצת — התנועה צפופה ונוהגים בצד שמאל.', en: 'The Skytrain (BTS), metro and river boats beat the traffic; taxis and the Grab app are cheap. Driving in the city is not advised — traffic is heavy and it drives on the left.' } },
@@ -120,24 +122,24 @@ export default [
       { name: { he: 'ראוואי וצ׳לונג', en: 'Rawai & Chalong' }, forWhom: { he: 'הדרום השקט, נקודת יציאה לסירות', en: 'The quiet south, a departure point for boats' } }
     ],
     attractions: [
-      { name: { he: 'הבודהה הגדול', en: 'The Big Buddha' }, kind: 'religious', durationH: 1.5, tags: ['culture'] },
+      { name: { he: 'הבודהה הגדול', en: 'The Big Buddha' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Rawai & Chalong', mustSee: true },
       { name: { he: 'וואט צ׳לונג', en: 'Wat Chalong' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Rawai & Chalong' },
-      { name: { he: 'העיר העתיקה של פוקט', en: 'Phuket Old Town' }, kind: 'neighborhood', durationH: 2.5, tags: ['culture', 'food'], area: 'Phuket Town & Old Town' },
-      { name: { he: 'כף פרומתפ בשקיעה', en: 'Promthep Cape at sunset' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Rawai & Chalong' },
-      { name: { he: 'תצפית קרון (שלושת המפרצים)', en: 'Karon Viewpoint' }, kind: 'viewpoint', durationH: 0.5, tags: [], area: 'Kata & Karon' },
-      { name: { he: 'חוף פטונג', en: 'Patong Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Patong' },
-      { name: { he: 'רחוב בנגלה בערב', en: 'Bangla Road at night' }, kind: 'neighborhood', durationH: 2, tags: ['nightlife'], area: 'Patong' },
-      { name: { he: 'חופי קטה וקטה נוי', en: 'Kata and Kata Noi beaches' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'], area: 'Kata & Karon' },
-      { name: { he: 'חוף באנג טאו', en: 'Bang Tao Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'Kamala & Bang Tao' },
-      { name: { he: 'שוק סוף השבוע (נאקה)', en: 'Phuket Weekend Market (Naka)' }, kind: 'market', durationH: 2, tags: ['shopping', 'food'] },
-      { name: { he: 'שייט לאיי פי פי ומפרץ מאיה', en: 'Phi Phi Islands & Maya Bay boat trip' }, kind: 'nature', durationH: 8, tags: ['beach', 'nature'] },
-      { name: { he: 'מפרץ פאנג נגה ואי ג׳יימס בונד בקיאקים', en: 'Phang Nga Bay & James Bond Island by kayak' }, kind: 'nature', durationH: 8, tags: ['nature', 'adventure'] },
-      { name: { he: 'שנורקלינג באיי הסימילן (בעונה)', en: 'Snorkelling in the Similan Islands (in season)' }, kind: 'nature', durationH: 10, tags: ['nature', 'adventure'] }
+      { name: { he: 'העיר העתיקה של פוקט', en: 'Phuket Old Town' }, kind: 'neighborhood', durationH: 2.5, tags: ['culture', 'food'], area: 'Phuket Town & Old Town', mustSee: true },
+      { name: { he: 'כף פרומתפ בשקיעה', en: 'Promthep Cape at sunset' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'Rawai & Chalong', mustSee: true },
+      { name: { he: 'תצפית קרון (שלושת המפרצים)', en: 'Karon Viewpoint' }, kind: 'viewpoint', durationH: 0.5, tags: ['nature'], area: 'Kata & Karon' },
+      { name: { he: 'חוף פטונג', en: 'Patong Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Patong', months: [1, 2, 3, 4, 11, 12] },
+      { name: { he: 'רחוב בנגלה בערב', en: 'Bangla Road at night' }, kind: 'neighborhood', durationH: 2, tags: ['nightlife', 'evening', 'adults'], area: 'Patong' },
+      { name: { he: 'חופי קטה וקטה נוי', en: 'Kata and Kata Noi beaches' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'], area: 'Kata & Karon', months: [1, 2, 3, 4, 11, 12] },
+      { name: { he: 'חוף באנג טאו', en: 'Bang Tao Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'Kamala & Bang Tao', months: [1, 2, 3, 4, 11, 12] },
+      { name: { he: 'שוק סוף השבוע (נאקה)', en: 'Phuket Weekend Market (Naka)' }, kind: 'market', durationH: 2, tags: ['shopping', 'food', 'evening'], area: 'Phuket Town & Old Town' },
+      { name: { he: 'שייט לאיי פי פי ומפרץ מאיה', en: 'Phi Phi Islands & Maya Bay boat trip' }, kind: 'nature', durationH: 8, tags: ['beach', 'nature', 'teens'], mustSee: true },
+      { name: { he: 'מפרץ פאנג נגה ואי ג׳יימס בונד בקיאקים', en: 'Phang Nga Bay & James Bond Island by kayak' }, kind: 'nature', durationH: 8, tags: ['nature', 'adventure', 'teens'] },
+      { name: { he: 'שנורקלינג באיי הסימילן (בעונה)', en: 'Snorkelling in the Similan Islands (in season)' }, kind: 'nature', durationH: 10, tags: ['nature', 'adventure', 'teens'], months: [1, 2, 3, 4, 11, 12] }
     ],
     dayTrips: [
-      { name: { he: 'איי פי פי', en: 'The Phi Phi Islands' }, hours: 1.5, note: { he: 'סירה מהירה; שנורקלינג וחופים — יום מלא', en: 'By speedboat; snorkelling and beaches — a full day' } },
-      { name: { he: 'מפרץ פאנג נגה', en: 'Phang Nga Bay' }, hours: 1, note: { he: 'צוקי גיר מהים, מערות וקיאקים', en: 'Limestone towers rising from the sea, caves and kayaking' } },
-      { name: { he: 'קראבי — ראיליי ואאו נאנג', en: 'Krabi — Railay & Ao Nang' }, hours: 2, note: { he: 'בסירה או ברכב; אפשר גם להעביר לשם כמה לילות', en: 'By boat or road; also worth a few nights of its own' } }
+      { name: { he: 'איי פי פי', en: 'The Phi Phi Islands' }, hours: 1.5, note: { he: 'סירה מהירה; שנורקלינג וחופים — יום מלא', en: 'By speedboat; snorkelling and beaches — a full day' }, priceIls: { low: 170, high: 350 }, kind: 'beach' },
+      { name: { he: 'מפרץ פאנג נגה', en: 'Phang Nga Bay' }, hours: 1, note: { he: 'צוקי גיר מהים, מערות וקיאקים', en: 'Limestone towers rising from the sea, caves and kayaking' }, priceIls: { low: 140, high: 300 }, kind: 'nature' },
+      { name: { he: 'קראבי — ראיליי ואאו נאנג', en: 'Krabi — Railay & Ao Nang' }, hours: 2, note: { he: 'בסירה או ברכב; אפשר גם להעביר לשם כמה לילות', en: 'By boat or road; also worth a few nights of its own' }, priceIls: { low: 170, high: 350 }, kind: 'beach' }
     ],
     transport: { carRecommended: false, note: { he: 'אין תחבורה ציבורית נוחה בין החופים; מוניות, Grab או נהג פרטי. רכב שכור אפשרי לנהגים מנוסים (נוהגים בצד שמאל). קטנועים — רק עם רישיון מתאים וביטוח שמכסה אותם.', en: 'There is little practical public transport between beaches; use taxis, Grab or a private driver. A rental car suits confident drivers (it drives on the left). Scooters only with the right licence and insurance that covers them.' } },
     practical: {
@@ -169,25 +171,25 @@ export default [
       { name: { he: 'הו צ׳י מין סיטי (סייגון)', en: 'Ho Chi Minh City (Saigon)' }, forWhom: { he: 'עיר תוססת, קניות וחיי לילה; יציאה לדלתת המקונג', en: 'A lively city, shopping and nightlife; the gateway to the Mekong Delta' } }
     ],
     attractions: [
-      { name: { he: 'אגם הואן קיאם והרובע העתיק', en: 'Hoan Kiem Lake & the Old Quarter' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'food'], area: 'Hanoi' },
+      { name: { he: 'אגם הואן קיאם והרובע העתיק', en: 'Hoan Kiem Lake & the Old Quarter' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'food', 'evening'], area: 'Hanoi', mustSee: true },
       { name: { he: 'מקדש הספרות', en: 'Temple of Literature' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Hanoi' },
       { name: { he: 'מוזוליאום הו צ׳י מין ומקדש העמוד האחד', en: 'Ho Chi Minh Mausoleum & One Pillar Pagoda' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Hanoi' },
-      { name: { he: 'שייט לילה במפרץ הא לונג', en: 'Overnight cruise in Ha Long Bay' }, kind: 'nature', durationH: 24, tags: ['nature', 'couple'] },
-      { name: { he: 'טראנג אן וטאם קוק בנין בין', en: 'Trang An & Tam Coc in Ninh Binh' }, kind: 'nature', durationH: 8, tags: ['nature'] },
-      { name: { he: 'העיר העתיקה של הוי אן', en: 'Hoi An Ancient Town' }, kind: 'neighborhood', durationH: 4, tags: ['culture', 'couple', 'shopping'], area: 'Hoi An' },
-      { name: { he: 'חוף אן באנג', en: 'An Bang Beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'relaxation'], area: 'Hoi An' },
+      { name: { he: 'שייט לילה במפרץ הא לונג', en: 'Overnight cruise in Ha Long Bay' }, kind: 'nature', durationH: 24, tags: ['nature', 'couple'], area: 'Hanoi', mustSee: true },
+      { name: { he: 'טראנג אן וטאם קוק בנין בין', en: 'Trang An & Tam Coc in Ninh Binh' }, kind: 'nature', durationH: 8, tags: ['nature'], area: 'Hanoi' },
+      { name: { he: 'העיר העתיקה של הוי אן', en: 'Hoi An Ancient Town' }, kind: 'neighborhood', durationH: 4, tags: ['culture', 'couple', 'shopping'], area: 'Hoi An', mustSee: true },
+      { name: { he: 'חוף אן באנג', en: 'An Bang Beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'relaxation'], area: 'Hoi An', months: [3, 4, 5, 6, 7, 8] },
       { name: { he: 'הרי השיש', en: 'The Marble Mountains' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'Da Nang' },
       { name: { he: 'בה נה הילס והגשר המוזהב', en: 'Ba Na Hills & the Golden Bridge' }, kind: 'viewpoint', durationH: 6, tags: ['family'], area: 'Da Nang' },
-      { name: { he: 'חוף מי קה', en: 'My Khe Beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Da Nang' },
+      { name: { he: 'חוף מי קה', en: 'My Khe Beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Da Nang', months: [3, 4, 5, 6, 7, 8] },
       { name: { he: 'מוזיאון שרידי המלחמה', en: 'War Remnants Museum' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Ho Chi Minh City (Saigon)' },
       { name: { he: 'שוק בן טאן', en: 'Ben Thanh Market' }, kind: 'market', durationH: 1.5, tags: ['shopping', 'food'], area: 'Ho Chi Minh City (Saigon)' },
-      { name: { he: 'מנהרות קו צ׳י', en: 'Cu Chi Tunnels' }, kind: 'landmark', durationH: 5, tags: ['culture', 'adventure'] }
+      { name: { he: 'מנהרות קו צ׳י', en: 'Cu Chi Tunnels' }, kind: 'landmark', durationH: 5, tags: ['culture', 'adventure'], area: 'Ho Chi Minh City (Saigon)' }
     ],
     dayTrips: [
-      { name: { he: 'נין בין מהאנוי', en: 'Ninh Binh from Hanoi' }, hours: 2, note: { he: 'שיט בסירות חתירה בין צוקי גיר ומקדשים; אפשר גם ללון', en: 'Rowing boats among limestone karsts and temples; also good for an overnight' } },
-      { name: { he: 'מקדשי מי סון', en: 'My Son Sanctuary' }, hours: 1, note: { he: 'חורבות מקדשי צ׳אם מהוי אן; כדאי בשעות הבוקר', en: 'Cham temple ruins from Hoi An; best in the morning' } },
-      { name: { he: 'דלתת המקונג', en: 'The Mekong Delta' }, hours: 2, note: { he: 'סירות, מטעים וחיי כפר מהו צ׳י מין סיטי', en: 'Boats, orchards and village life from Ho Chi Minh City' } },
-      { name: { he: 'מעבר האי ואן', en: 'Hai Van Pass' }, hours: 1, note: { he: 'כביש הררי נופי בין דה נאנג להואה', en: 'A scenic mountain road between Da Nang and Hue' } }
+      { name: { he: 'נין בין מהאנוי', en: 'Ninh Binh from Hanoi' }, hours: 2, note: { he: 'שיט בסירות חתירה בין צוקי גיר ומקדשים; אפשר גם ללון', en: 'Rowing boats among limestone karsts and temples; also good for an overnight' }, priceIls: { low: 110, high: 220 }, kind: 'nature' },
+      { name: { he: 'מקדשי מי סון', en: 'My Son Sanctuary' }, hours: 1, note: { he: 'חורבות מקדשי צ׳אם מהוי אן; כדאי בשעות הבוקר', en: 'Cham temple ruins from Hoi An; best in the morning' }, priceIls: { low: 50, high: 150 }, kind: 'landmark' },
+      { name: { he: 'דלתת המקונג', en: 'The Mekong Delta' }, hours: 2, note: { he: 'סירות, מטעים וחיי כפר מהו צ׳י מין סיטי', en: 'Boats, orchards and village life from Ho Chi Minh City' }, priceIls: { low: 75, high: 250 }, kind: 'nature' },
+      { name: { he: 'מעבר האי ואן', en: 'Hai Van Pass' }, hours: 1, note: { he: 'כביש הררי נופי בין דה נאנג להואה', en: 'A scenic mountain road between Da Nang and Hue' }, priceIls: { low: 110, high: 250 }, kind: 'viewpoint' }
     ],
     transport: { carRecommended: false, note: { he: 'בין הצפון, המרכז והדרום טסים בטיסות פנים קצרות; בערים — Grab ומוניות. נהיגה עצמית לא מומלצת; לטיולים — נהג פרטי או סיור מאורגן.', en: 'Short domestic flights link the north, centre and south; in cities use Grab and taxis. Self-driving is not advised; for excursions use a private driver or tour.' } },
     practical: {
@@ -220,25 +222,25 @@ export default [
       { name: { he: 'אזור פוג׳י והאקונה', en: 'Fuji & Hakone' }, forWhom: { he: 'נוף להר, אגמים ומעיינות חמים — לילה או שניים', en: 'Mountain views, lakes and hot springs — a night or two' } }
     ],
     attractions: [
-      { name: { he: 'מקדש סנסו־ג׳י באסאקוסה', en: 'Senso-ji Temple, Asakusa' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Tokyo' },
+      { name: { he: 'מקדש סנסו־ג׳י באסאקוסה', en: 'Senso-ji Temple, Asakusa' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Tokyo', mustSee: true },
       { name: { he: 'צומת שיבויה', en: 'Shibuya Crossing' }, kind: 'landmark', durationH: 1, tags: ['city'], area: 'Tokyo' },
-      { name: { he: 'מקדש מייג׳י', en: 'Meiji Jingu Shrine' }, kind: 'religious', durationH: 1.5, tags: ['culture', 'nature'], area: 'Tokyo' },
+      { name: { he: 'מקדש מייג׳י', en: 'Meiji Jingu Shrine' }, kind: 'religious', durationH: 1.5, tags: ['culture', 'nature'], area: 'Tokyo', mustSee: true },
       { name: { he: 'השוק החיצוני של צוקיג׳י', en: 'Tsukiji Outer Market' }, kind: 'market', durationH: 2, tags: ['food'], area: 'Tokyo' },
       { name: { he: 'טוקיו סקייטרי', en: 'Tokyo Skytree' }, kind: 'viewpoint', durationH: 1.5, tags: ['family'], area: 'Tokyo' },
       { name: { he: 'teamLab Planets', en: 'teamLab Planets' }, kind: 'museum', durationH: 2, tags: ['family', 'couple'], area: 'Tokyo' },
-      { name: { he: 'פושימי אינארי', en: 'Fushimi Inari Taisha' }, kind: 'religious', durationH: 2.5, tags: ['culture'], area: 'Kyoto' },
-      { name: { he: 'קינקאקו־ג׳י — מקדש ביתן הזהב', en: 'Kinkaku-ji — the Golden Pavilion' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Kyoto' },
+      { name: { he: 'פושימי אינארי', en: 'Fushimi Inari Taisha' }, kind: 'religious', durationH: 2.5, tags: ['culture'], area: 'Kyoto', mustSee: true },
+      { name: { he: 'קינקאקו־ג׳י — מקדש ביתן הזהב', en: 'Kinkaku-ji — the Golden Pavilion' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Kyoto', mustSee: true },
       { name: { he: 'יער הבמבוק בארשיאמה', en: 'Arashiyama Bamboo Grove' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'Kyoto' },
       { name: { he: 'רובע גיון', en: 'Gion district' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'couple'], area: 'Kyoto' },
-      { name: { he: 'דוטונבורי', en: 'Dotonbori' }, kind: 'neighborhood', durationH: 2.5, tags: ['food', 'nightlife'], area: 'Osaka' },
+      { name: { he: 'דוטונבורי', en: 'Dotonbori' }, kind: 'neighborhood', durationH: 2.5, tags: ['food', 'nightlife', 'evening'], area: 'Osaka' },
       { name: { he: 'טירת אוסקה', en: 'Osaka Castle' }, kind: 'landmark', durationH: 2, tags: ['culture', 'family'], area: 'Osaka' },
       { name: { he: 'אגם קוואגוצ׳י ותצפית על הר פוג׳י', en: 'Lake Kawaguchi & Mt Fuji views' }, kind: 'nature', durationH: 5, tags: ['nature'], area: 'Fuji & Hakone' }
     ],
     dayTrips: [
-      { name: { he: 'נארה', en: 'Nara' }, hours: 0.75, note: { he: 'מקדש טודאי־ג׳י והאיילות בפארק; ברכבת מקיוטו או מאוסקה', en: 'Todai-ji Temple and the deer park; by train from Kyoto or Osaka' } },
-      { name: { he: 'האקונה', en: 'Hakone' }, hours: 1.5, note: { he: 'רכבל, שייט באגם אשי ומעיינות חמים; מטוקיו', en: 'Cable car, a Lake Ashi cruise and hot springs; from Tokyo' } },
-      { name: { he: 'קמאקורה', en: 'Kamakura' }, hours: 1, note: { he: 'הבודהה הגדול ומקדשים ליד הים; מטוקיו', en: 'The Great Buddha and seaside temples; from Tokyo' } },
-      { name: { he: 'הירושימה ומיאג׳ימה', en: 'Hiroshima & Miyajima' }, hours: 1.5, note: { he: 'בשינקנסן מאוסקה; יום ארוך', en: 'By Shinkansen from Osaka; a long day' } }
+      { name: { he: 'נארה', en: 'Nara' }, hours: 0.75, note: { he: 'מקדש טודאי־ג׳י והאיילות בפארק; ברכבת מקיוטו או מאוסקה', en: 'Todai-ji Temple and the deer park; by train from Kyoto or Osaka' }, priceIls: { low: 40, high: 300 }, kind: 'religious' },
+      { name: { he: 'האקונה', en: 'Hakone' }, hours: 1.5, note: { he: 'רכבל, שייט באגם אשי ומעיינות חמים; מטוקיו', en: 'Cable car, a Lake Ashi cruise and hot springs; from Tokyo' }, priceIls: { low: 170, high: 450 }, kind: 'nature' },
+      { name: { he: 'קמאקורה', en: 'Kamakura' }, hours: 1, note: { he: 'הבודהה הגדול ומקדשים ליד הים; מטוקיו', en: 'The Great Buddha and seaside temples; from Tokyo' }, priceIls: { low: 40, high: 300 }, kind: 'religious' },
+      { name: { he: 'הירושימה ומיאג׳ימה', en: 'Hiroshima & Miyajima' }, hours: 1.5, note: { he: 'בשינקנסן מאוסקה; יום ארוך', en: 'By Shinkansen from Osaka; a long day' }, priceIls: { low: 550, high: 900 }, kind: 'landmark' }
     ],
     transport: { carRecommended: false, note: { he: 'הרכבות מצוינות: מטרו בערים ושינקנסן ביניהן. כדאי לבדוק מראש אם כרטיס JR Pass משתלם למסלול שלכם. רכב רק לאזורים כפריים, ונדרש רישיון בינלאומי מתאים.', en: 'Trains are excellent: metros in the cities and the Shinkansen between them. Check in advance whether a JR Pass pays off for your route. A car only for rural areas, with a suitable international permit.' } },
     practical: {
@@ -272,22 +274,22 @@ export default [
     ],
     attractions: [
       { name: { he: 'יער הקופים הקדוש באובוד', en: 'Sacred Monkey Forest Sanctuary, Ubud' }, kind: 'park', durationH: 1.5, tags: ['nature', 'family'], area: 'Ubud' },
-      { name: { he: 'טרסות האורז של טגללאנג', en: 'Tegallalang Rice Terraces' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'Ubud' },
+      { name: { he: 'טרסות האורז של טגללאנג', en: 'Tegallalang Rice Terraces' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'Ubud', mustSee: true },
       { name: { he: 'שביל הרכס קמפוהאן', en: 'Campuhan Ridge Walk' }, kind: 'nature', durationH: 1.5, tags: ['nature'], area: 'Ubud' },
       { name: { he: 'שוק האמנות של אובוד', en: 'Ubud Art Market' }, kind: 'market', durationH: 1.5, tags: ['shopping'], area: 'Ubud' },
-      { name: { he: 'מקדש המים טירטה אמפול', en: 'Tirta Empul water temple' }, kind: 'religious', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'טיפוס זריחה על הר בטור', en: 'Mount Batur sunrise trek' }, kind: 'nature', durationH: 6, tags: ['adventure', 'nature'] },
-      { name: { he: 'מקדש טאנה לוט', en: 'Tanah Lot Temple' }, kind: 'religious', durationH: 2, tags: ['culture', 'couple'] },
-      { name: { he: 'מקדש אולואוואטו וריקוד קצ׳אק בשקיעה', en: 'Uluwatu Temple & sunset Kecak dance' }, kind: 'religious', durationH: 3, tags: ['culture', 'couple'], area: 'Uluwatu' },
+      { name: { he: 'מקדש המים טירטה אמפול', en: 'Tirta Empul water temple' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Ubud' },
+      { name: { he: 'טיפוס זריחה על הר בטור', en: 'Mount Batur sunrise trek' }, kind: 'nature', durationH: 6, tags: ['adventure', 'nature', 'teens'], area: 'Ubud' },
+      { name: { he: 'מקדש טאנה לוט', en: 'Tanah Lot Temple' }, kind: 'religious', durationH: 2, tags: ['culture', 'couple', 'evening'], area: 'Canggu', mustSee: true },
+      { name: { he: 'מקדש אולואוואטו וריקוד קצ׳אק בשקיעה', en: 'Uluwatu Temple & sunset Kecak dance' }, kind: 'religious', durationH: 3, tags: ['culture', 'couple', 'evening'], area: 'Uluwatu', mustSee: true },
       { name: { he: 'חוף פדנג פדנג', en: 'Padang Padang Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Uluwatu' },
-      { name: { he: 'חוף סמיניאק בשקיעה', en: 'Seminyak Beach at sunset' }, kind: 'beach', durationH: 2, tags: ['beach', 'couple'], area: 'Seminyak' },
-      { name: { he: 'שיעור גלישה בצ׳אנגו', en: 'Surf lesson in Canggu' }, kind: 'experience', durationH: 2, tags: ['adventure', 'beach'], area: 'Canggu' },
+      { name: { he: 'חוף סמיניאק בשקיעה', en: 'Seminyak Beach at sunset' }, kind: 'beach', durationH: 2, tags: ['beach', 'couple', 'evening'], area: 'Seminyak' },
+      { name: { he: 'שיעור גלישה בצ׳אנגו', en: 'Surf lesson in Canggu' }, kind: 'experience', durationH: 2, tags: ['adventure', 'beach', 'teens'], area: 'Canggu' },
       { name: { he: 'טרסות האורז של ג׳טילואיה', en: 'Jatiluwih Rice Terraces' }, kind: 'nature', durationH: 3, tags: ['nature'] }
     ],
     dayTrips: [
-      { name: { he: 'נוסה פנידה', en: 'Nusa Penida' }, hours: 1, note: { he: 'סירה מהירה מסאנור; חוף קלינגקינג וצוקים — דרכים קשות, יום ארוך', en: 'Fast boat from Sanur; Kelingking Beach and cliffs — rough roads, a long day' } },
-      { name: { he: 'נוסה למבונגן', en: 'Nusa Lembongan' }, hours: 0.75, note: { he: 'אי רגוע לשנורקלינג; מתאים גם ללילה', en: 'A relaxed island for snorkelling; also good for a night' } },
-      { name: { he: 'מקדשי בסאקיה ולמפויאנג במזרח', en: 'Besakih and Lempuyang temples in the east' }, hours: 2, note: { he: 'נסיעה ארוכה עם נהג; בלמפויאנג יש תורים לצילום', en: 'A long drive with a driver; expect queues for photos at Lempuyang' } }
+      { name: { he: 'נוסה פנידה', en: 'Nusa Penida' }, hours: 1, note: { he: 'סירה מהירה מסאנור; חוף קלינגקינג וצוקים — דרכים קשות, יום ארוך', en: 'Fast boat from Sanur; Kelingking Beach and cliffs — rough roads, a long day' }, priceIls: { low: 180, high: 330 }, kind: 'beach' },
+      { name: { he: 'נוסה למבונגן', en: 'Nusa Lembongan' }, hours: 0.75, note: { he: 'אי רגוע לשנורקלינג; מתאים גם ללילה', en: 'A relaxed island for snorkelling; also good for a night' }, priceIls: { low: 150, high: 260 }, kind: 'beach' },
+      { name: { he: 'מקדשי בסאקיה ולמפויאנג במזרח', en: 'Besakih and Lempuyang temples in the east' }, hours: 2, note: { he: 'נסיעה ארוכה עם נהג; בלמפויאנג יש תורים לצילום', en: 'A long drive with a driver; expect queues for photos at Lempuyang' }, priceIls: { low: 100, high: 300 }, kind: 'religious' }
     ],
     transport: { carRecommended: false, note: { he: 'הדרכים צפופות ואיטיות. הכי נוח לשכור נהג ליום; בערים — Grab או Gojek. קטנוע רק עם רישיון מתאים וביטוח שמכסה אותו. באלי גובה מס תיירות מהמבקרים.', en: 'Roads are congested and slow. Hiring a driver for the day is easiest; in towns use Grab or Gojek. A scooter only with the right licence and insurance that covers it. Bali charges visitors a tourist levy.' } },
     practical: {
@@ -320,24 +322,24 @@ export default [
       { name: { he: 'החוף הדרומי (גאלה ומיריסה)', en: 'The south coast (Galle & Mirissa)' }, forWhom: { he: 'חופים, מבצר קולוניאלי ולווייתנים — לסיום רגוע', en: 'Beaches, a colonial fort and whales — for a relaxed finish' } }
     ],
     attractions: [
-      { name: { he: 'סלע סיגיריה', en: 'Sigiriya Rock Fortress' }, kind: 'landmark', durationH: 3, tags: ['culture', 'adventure'], area: 'The Cultural Triangle' },
+      { name: { he: 'סלע סיגיריה', en: 'Sigiriya Rock Fortress' }, kind: 'landmark', durationH: 3, tags: ['culture', 'adventure'], area: 'The Cultural Triangle', mustSee: true },
       { name: { he: 'מקדש המערות בדמבולה', en: 'Dambulla Cave Temple' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'The Cultural Triangle' },
       { name: { he: 'העיר העתיקה פולונארווה', en: 'Ancient City of Polonnaruwa' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'The Cultural Triangle' },
-      { name: { he: 'מקדש השן בקנדי', en: 'Temple of the Tooth, Kandy' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Kandy' },
+      { name: { he: 'מקדש השן בקנדי', en: 'Temple of the Tooth, Kandy' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Kandy', mustSee: true },
       { name: { he: 'הגנים הבוטניים בפרדניה', en: 'Peradeniya Royal Botanical Gardens' }, kind: 'park', durationH: 2, tags: ['nature', 'family'], area: 'Kandy' },
-      { name: { he: 'גשר תשע הקשתות', en: 'Nine Arch Bridge' }, kind: 'landmark', durationH: 1, tags: [], area: 'Ella & the tea hills' },
+      { name: { he: 'גשר תשע הקשתות', en: 'Nine Arch Bridge' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Ella & the tea hills' },
       { name: { he: 'פסגת אדם הקטנה', en: 'Little Adam’s Peak' }, kind: 'viewpoint', durationH: 2, tags: ['nature'], area: 'Ella & the tea hills' },
-      { name: { he: 'הרכבת הנופית קנדי–אלה', en: 'Kandy–Ella scenic train' }, kind: 'experience', durationH: 7, tags: ['nature', 'couple'] },
-      { name: { he: 'מישורי הורטון וקצה העולם', en: 'Horton Plains & World’s End' }, kind: 'nature', durationH: 4, tags: ['nature', 'adventure'] },
-      { name: { he: 'ספארי בפארק הלאומי יאלה', en: 'Yala National Park safari' }, kind: 'nature', durationH: 5, tags: ['nature', 'adventure'] },
-      { name: { he: 'פארק הפילים אודאוואלאווה', en: 'Udawalawe National Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'family'] },
-      { name: { he: 'מבצר גאלה', en: 'Galle Fort' }, kind: 'neighborhood', durationH: 3, tags: ['culture'], area: 'The south coast (Galle & Mirissa)' },
-      { name: { he: 'שייט לצפייה בלווייתנים במיריסה', en: 'Whale-watching cruise from Mirissa' }, kind: 'experience', durationH: 4, tags: ['nature'], area: 'The south coast (Galle & Mirissa)' }
+      { name: { he: 'הרכבת הנופית קנדי–אלה', en: 'Kandy–Ella scenic train' }, kind: 'experience', durationH: 7, tags: ['nature', 'couple'], area: 'Kandy', mustSee: true },
+      { name: { he: 'מישורי הורטון וקצה העולם', en: 'Horton Plains & World’s End' }, kind: 'nature', durationH: 4, tags: ['nature', 'adventure'], area: 'Ella & the tea hills' },
+      { name: { he: 'ספארי בפארק הלאומי יאלה', en: 'Yala National Park safari' }, kind: 'nature', durationH: 5, tags: ['nature', 'adventure'], area: 'Yala (Tissamaharama)' },
+      { name: { he: 'פארק הפילים אודאוואלאווה', en: 'Udawalawe National Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'family'], area: 'Udawalawe' },
+      { name: { he: 'מבצר גאלה', en: 'Galle Fort' }, kind: 'neighborhood', durationH: 3, tags: ['culture'], area: 'The south coast (Galle & Mirissa)', mustSee: true },
+      { name: { he: 'שייט לצפייה בלווייתנים במיריסה', en: 'Whale-watching cruise from Mirissa' }, kind: 'experience', durationH: 4, tags: ['nature'], area: 'The south coast (Galle & Mirissa)', months: [1, 2, 3, 4, 11, 12] }
     ],
     dayTrips: [
-      { name: { he: 'פולונארווה מהמשולש התרבותי', en: 'Polonnaruwa from the Cultural Triangle' }, hours: 1.5, note: { he: 'מומלץ באופניים בין החורבות, בשעות הבוקר', en: 'Best by bicycle among the ruins, in the morning' } },
-      { name: { he: 'מישורי הורטון', en: 'Horton Plains' }, hours: 2, note: { he: 'יציאה לפני הזריחה כדי לראות את הנוף לפני העננים', en: 'Leave before dawn to see the view before the clouds roll in' } },
-      { name: { he: 'גאלה מהחוף הדרומי', en: 'Galle from the south coast' }, hours: 1, note: { he: 'סיור רגלי על חומות המבצר בשעות אחר הצהריים', en: 'A walk on the fort walls in the late afternoon' } }
+      { name: { he: 'פולונארווה מהמשולש התרבותי', en: 'Polonnaruwa from the Cultural Triangle' }, hours: 1.5, note: { he: 'מומלץ באופניים בין החורבות, בשעות הבוקר', en: 'Best by bicycle among the ruins, in the morning' }, priceIls: { low: 150, high: 300 }, kind: 'landmark' },
+      { name: { he: 'מישורי הורטון', en: 'Horton Plains' }, hours: 2, note: { he: 'יציאה לפני הזריחה כדי לראות את הנוף לפני העננים', en: 'Leave before dawn to see the view before the clouds roll in' }, priceIls: { low: 150, high: 350 }, kind: 'nature' },
+      { name: { he: 'גאלה מהחוף הדרומי', en: 'Galle from the south coast' }, hours: 1, note: { he: 'סיור רגלי על חומות המבצר בשעות אחר הצהריים', en: 'A walk on the fort walls in the late afternoon' }, priceIls: { low: 20, high: 150 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'הדרך הנפוצה היא רכב עם נהג לכל הטיול; הרכבות נופיות אבל איטיות ועמוסות — כדאי לשריין מקום מראש. נוהגים בצד שמאל ונהיגה עצמית לא מומלצת.', en: 'The usual way is a car with driver for the whole trip; trains are scenic but slow and crowded — reserve seats in advance. Traffic drives on the left and self-driving is not advised.' } },
     practical: {
@@ -369,23 +371,23 @@ export default [
       { name: { he: 'דרום גואה (פאלולם, אגונדה)', en: 'South Goa (Palolem, Agonda)' }, forWhom: { he: 'חופים שקטים ומנוחה — לזוגות ולמשפחות', en: 'Quiet beaches and rest — for couples and families' } }
     ],
     attractions: [
-      { name: { he: 'בזיליקת בום ג׳יזוס', en: 'Basilica of Bom Jesus' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Panaji & Old Goa' },
+      { name: { he: 'בזיליקת בום ג׳יזוס', en: 'Basilica of Bom Jesus' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Panaji & Old Goa', mustSee: true },
       { name: { he: 'קתדרלת סה', en: 'Se Cathedral' }, kind: 'religious', durationH: 0.75, tags: ['culture'], area: 'Panaji & Old Goa' },
-      { name: { he: 'פונטיינאס — הרובע הלטיני', en: 'Fontainhas — the Latin Quarter' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'couple'], area: 'Panaji & Old Goa' },
-      { name: { he: 'שוק הפשפשים של אנג׳ונה (ימי רביעי)', en: 'Anjuna Flea Market (Wednesdays)' }, kind: 'market', durationH: 2.5, tags: ['shopping'], area: 'North Goa (Anjuna, Vagator, Arambol)' },
-      { name: { he: 'שוק הלילה של ארפורה (מוצאי שבת)', en: 'Arpora Saturday Night Market' }, kind: 'market', durationH: 3, tags: ['shopping', 'food', 'nightlife'], area: 'Calangute & Baga' },
-      { name: { he: 'מבצר צ׳פורה', en: 'Chapora Fort' }, kind: 'viewpoint', durationH: 1, tags: [], area: 'North Goa (Anjuna, Vagator, Arambol)' },
-      { name: { he: 'חוף ארמבול', en: 'Arambol Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'North Goa (Anjuna, Vagator, Arambol)' },
-      { name: { he: 'מבצר אגואדה', en: 'Fort Aguada' }, kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'חוף פאלולם', en: 'Palolem Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'], area: 'South Goa (Palolem, Agonda)' },
-      { name: { he: 'חוף אגונדה', en: 'Agonda Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'South Goa (Palolem, Agonda)' },
-      { name: { he: 'חוף הפרפרים בשייט מפאלולם', en: 'Butterfly Beach by boat from Palolem' }, kind: 'beach', durationH: 3, tags: ['beach', 'nature'], area: 'South Goa (Palolem, Agonda)' },
-      { name: { he: 'מטע תבלינים באזור פונדה', en: 'A spice plantation near Ponda' }, kind: 'experience', durationH: 3, tags: ['food', 'nature'] },
-      { name: { he: 'מקדש מנגשי', en: 'Shri Mangueshi Temple' }, kind: 'religious', durationH: 1, tags: ['culture'] }
+      { name: { he: 'פונטיינאס — הרובע הלטיני', en: 'Fontainhas — the Latin Quarter' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'couple'], area: 'Panaji & Old Goa', mustSee: true },
+      { name: { he: 'שוק הפשפשים של אנג׳ונה (ימי רביעי)', en: 'Anjuna Flea Market (Wednesdays)' }, kind: 'market', durationH: 2.5, tags: ['shopping'], area: 'North Goa (Anjuna, Vagator, Arambol)', months: [1, 2, 3, 4, 11, 12] },
+      { name: { he: 'שוק הלילה של ארפורה (מוצאי שבת)', en: 'Arpora Saturday Night Market' }, kind: 'market', durationH: 3, tags: ['shopping', 'food', 'nightlife', 'evening'], area: 'Calangute & Baga', months: [1, 2, 3, 4, 11, 12] },
+      { name: { he: 'מבצר צ׳פורה', en: 'Chapora Fort' }, kind: 'viewpoint', durationH: 1, tags: ['culture', 'evening'], area: 'North Goa (Anjuna, Vagator, Arambol)' },
+      { name: { he: 'חוף ארמבול', en: 'Arambol Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'North Goa (Anjuna, Vagator, Arambol)', months: [1, 2, 3, 4, 5, 10, 11, 12] },
+      { name: { he: 'מבצר אגואדה', en: 'Fort Aguada' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Calangute & Baga' },
+      { name: { he: 'חוף פאלולם', en: 'Palolem Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'], area: 'South Goa (Palolem, Agonda)', mustSee: true, months: [1, 2, 3, 4, 5, 10, 11, 12] },
+      { name: { he: 'חוף אגונדה', en: 'Agonda Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'South Goa (Palolem, Agonda)', months: [1, 2, 3, 4, 5, 10, 11, 12] },
+      { name: { he: 'חוף הפרפרים בשייט מפאלולם', en: 'Butterfly Beach by boat from Palolem' }, kind: 'beach', durationH: 3, tags: ['beach', 'nature'], area: 'South Goa (Palolem, Agonda)', months: [1, 2, 3, 4, 5, 10, 11, 12] },
+      { name: { he: 'מטע תבלינים באזור פונדה', en: 'A spice plantation near Ponda' }, kind: 'experience', durationH: 3, tags: ['food', 'nature'], area: 'Ponda' },
+      { name: { he: 'מקדש מנגשי', en: 'Shri Mangueshi Temple' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Ponda' }
     ],
     dayTrips: [
-      { name: { he: 'מפלי דודסאגר', en: 'Dudhsagar Falls' }, hours: 2.5, note: { he: 'בג׳יפ דרך שמורת טבע; במונסון הגישה לעיתים סגורה', en: 'By jeep through a nature reserve; access is sometimes closed in the monsoon' } },
-      { name: { he: 'גוקרנה', en: 'Gokarna' }, hours: 3, note: { he: 'חופים שקטים ועיר מקדשים במדינת קרנטקה; עדיף ללון', en: 'Quiet beaches and a temple town in Karnataka; better as an overnight' } },
+      { name: { he: 'מפלי דודסאגר', en: 'Dudhsagar Falls' }, hours: 2.5, note: { he: 'בג׳יפ דרך שמורת טבע; במונסון הגישה לעיתים סגורה', en: 'By jeep through a nature reserve; access is sometimes closed in the monsoon' }, priceIls: { low: 110, high: 250 }, kind: 'nature', months: [1, 2, 3, 4, 5, 10, 11, 12] },
+      { name: { he: 'גוקרנה', en: 'Gokarna' }, hours: 3, note: { he: 'חופים שקטים ועיר מקדשים במדינת קרנטקה; עדיף ללון', en: 'Quiet beaches and a temple town in Karnataka; better as an overnight' }, priceIls: { low: 80, high: 300 }, kind: 'beach' },
       { name: { he: 'האמפי', en: 'Hampi' }, hours: 8, note: { he: 'לא טיול יום — נוף סלעים ומקדשים עתיקים, דורש יומיים לפחות', en: 'Not a day trip — boulder landscapes and ancient temples, needs at least two days' } }
     ],
     transport: { carRecommended: false, note: { he: 'מוניות ונהגים פרטיים לנסיעות ארוכות; בין חופים סמוכים — ריקשה או מונית. קטנוע רק עם רישיון מתאים וביטוח שמכסה אותו. נוהגים בצד שמאל.', en: 'Taxis and private drivers for longer journeys; between nearby beaches, a rickshaw or taxi. A scooter only with the right licence and insurance that covers it. Traffic drives on the left.' } },

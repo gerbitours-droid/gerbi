@@ -102,3 +102,17 @@ test('CMS guides and favorites accept every catalog destination', () => {
   assert.ok(normalizeSite({ guides: { nowhere: { fit: 'x' } } }).errors['guides.nowhere']);
   assert.deepEqual(cleanSaved({ favorites: ['japan', 'rome', 'nowhere'] }).favorites, ['japan', 'rome']);
 });
+
+test('spec 28 §ד data: areas on (almost) every attraction, 2–4 mustSee per destination, priced day trips', () => {
+  const all = destinations.flatMap((d) => d.attractions);
+  assert.ok(all.filter((a) => a.area).length / all.length >= 0.95, 'area coverage');
+  for (const d of destinations) {
+    const n = d.attractions.filter((a) => a.mustSee).length;
+    assert.ok(n >= 2 && n <= 4, `${d.id}: ${n} mustSee`);
+  }
+  const trips = destinations.flatMap((d) => d.dayTrips);
+  assert.ok(trips.filter((t) => t.priceIls).length / trips.length >= 0.95, 'priced day trips');
+  assert.ok(byId('japan').attractions.every((a) => ['Tokyo', 'Kyoto', 'Osaka', 'Fuji & Hakone'].includes(a.area)));
+  const bad = { ...byId('rome'), dayTrips: [{ ...byId('rome').dayTrips[0], priceIls: { low: 0, high: 1 } }] };
+  assert.equal(validateDestination(bad).length, 1);
+});

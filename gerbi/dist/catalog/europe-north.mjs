@@ -1,5 +1,7 @@
 // Catalog data (spec 23): France, the UK, the Netherlands, Germany, Czechia. Shape: dist/catalog.mjs.
 // Budget figures are rough per-person-per-day estimates in ₪ without flights.
+// dayTrips[].priceIls = rough ₪ per adult, ESTIMATES (Nov 2026): low ≈ do-it-yourself public transport + main entry fee,
+// high ≈ a typical organised group tour from the base; converted at about €1=₪4, $1=₪3.7, £1=₪4.7 and rounded. Show as estimates.
 const SCHENGEN_VISA = { he: 'בדרך כלל אין צורך בוויזה לביקור קצר באזור שנגן; יש לבדוק את דרישות הכניסה העדכניות (כולל ETIAS) במקורות הרשמיים.', en: 'Usually no visa is needed for a short Schengen visit; check current entry rules (including ETIAS) with official sources.' };
 const UK_VISA = { he: 'אין צורך בוויזה לביקור קצר, אבל בעלי דרכון ישראלי צריכים אישור נסיעה אלקטרוני (ETA) לפני הטיסה לבריטניה. הכללים משתנים — יש לבדוק במקורות הרשמיים.', en: 'No visa is needed for a short visit, but Israeli passport holders need an Electronic Travel Authorisation (ETA) before flying to the UK. Rules change — check official sources.' };
 
@@ -27,24 +29,24 @@ export default [
       { name: { he: 'מונמרטר', en: 'Montmartre' }, forWhom: { he: 'אווירה של כפר בתוך העיר ומחירים נוחים יותר, עם עליות', en: 'A village feel within the city and lower prices, with hills' } }
     ],
     attractions: [
-      { name: { he: 'מגדל אייפל', en: 'The Eiffel Tower' }, area: '7th arrondissement (near the Eiffel Tower)', kind: 'landmark', durationH: 2, tags: ['couple', 'family'] },
-      { name: { he: 'מוזיאון הלובר', en: 'The Louvre' }, kind: 'museum', durationH: 3.5, tags: ['culture'] },
+      { name: { he: 'מגדל אייפל', en: 'The Eiffel Tower' }, area: '7th arrondissement (near the Eiffel Tower)', kind: 'landmark', durationH: 2, tags: ['couple', 'family'], mustSee: true },
+      { name: { he: 'מוזיאון הלובר', en: 'The Louvre' }, kind: 'museum', durationH: 3.5, tags: ['culture'], area: 'Louvre & Tuileries', mustSee: true },
       { name: { he: 'מוזיאון ד׳אורסיי', en: 'Musée d’Orsay' }, area: '7th arrondissement (near the Eiffel Tower)', kind: 'museum', durationH: 2.5, tags: ['culture'] },
-      { name: { he: 'קתדרלת נוטרדאם', en: 'Notre-Dame Cathedral' }, kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'סנט שאפל', en: 'Sainte-Chapelle' }, kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'מונמרטר והסקרה קר', en: 'Montmartre & Sacré-Cœur' }, area: 'Montmartre', kind: 'neighborhood', durationH: 2.5, tags: ['culture', 'couple'] },
-      { name: { he: 'שער הניצחון ושאנז אליזה', en: 'Arc de Triomphe & Champs-Élysées' }, kind: 'landmark', durationH: 2, tags: ['shopping'] },
-      { name: { he: 'שייט על הסן', en: 'Seine river cruise' }, kind: 'experience', durationH: 1, tags: ['couple', 'family'] },
+      { name: { he: 'קתדרלת נוטרדאם', en: 'Notre-Dame Cathedral' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Île de la Cité', mustSee: true },
+      { name: { he: 'סנט שאפל', en: 'Sainte-Chapelle' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Île de la Cité' },
+      { name: { he: 'מונמרטר והסקרה קר', en: 'Montmartre & Sacré-Cœur' }, area: 'Montmartre', kind: 'neighborhood', durationH: 2.5, tags: ['culture', 'couple'], mustSee: true },
+      { name: { he: 'שער הניצחון ושאנז אליזה', en: 'Arc de Triomphe & Champs-Élysées' }, kind: 'landmark', durationH: 2, tags: ['shopping'], area: 'Champs-Élysées' },
+      { name: { he: 'שייט על הסן', en: 'Seine river cruise' }, kind: 'experience', durationH: 1, tags: ['couple', 'family'], area: '7th arrondissement (near the Eiffel Tower)' },
       { name: { he: 'גני לוקסמבורג', en: 'Luxembourg Gardens' }, area: 'Saint-Germain & the Latin Quarter', kind: 'park', durationH: 1.5, tags: ['family', 'relaxation'] },
       { name: { he: 'המארה ורחוב רוזייה', en: 'Le Marais & rue des Rosiers' }, area: 'Le Marais', kind: 'neighborhood', durationH: 2, tags: ['culture', 'food', 'kosher'] },
-      { name: { he: 'מוזיאון האורנז׳רי', en: 'Musée de l’Orangerie' }, kind: 'museum', durationH: 1.5, tags: ['culture'] },
+      { name: { he: 'מוזיאון האורנז׳רי', en: 'Musée de l’Orangerie' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Louvre & Tuileries' },
       { name: { he: 'גג גלרי לאפייט', en: 'Galeries Lafayette rooftop' }, area: 'Opéra & the Grands Boulevards', kind: 'viewpoint', durationH: 1, tags: ['shopping'] }
     ],
     dayTrips: [
-      { name: { he: 'ארמון ורסאי', en: 'Palace of Versailles' }, hours: 0.75, note: { he: 'ברכבת RER; כדאי להזמין כרטיסים מראש ולהקדיש יום שלם עם הגנים', en: 'By RER train; book tickets ahead and give it a full day with the gardens' } },
-      { name: { he: 'דיסנילנד פריז', en: 'Disneyland Paris' }, hours: 0.75, note: { he: 'ברכבת RER — יום מושלם עם ילדים', en: 'By RER train — a perfect day with children' } },
-      { name: { he: 'ז׳יברני — הגנים של מונה', en: 'Giverny — Monet’s gardens' }, hours: 1.25, note: { he: 'רכבת לוורנון ומשם שאטל; פתוח מאפריל עד אוקטובר בלבד', en: 'Train to Vernon, then a shuttle; open April to October only' } },
-      { name: { he: 'ריימס ואזור השמפניה', en: 'Reims & the Champagne region' }, hours: 0.75, note: { he: 'רכבת מהירה; קתדרלה ומרתפי שמפניה', en: 'High-speed train; a cathedral and champagne cellars' } }
+      { name: { he: 'ארמון ורסאי', en: 'Palace of Versailles' }, hours: 0.75, note: { he: 'ברכבת RER; כדאי להזמין כרטיסים מראש ולהקדיש יום שלם עם הגנים', en: 'By RER train; book tickets ahead and give it a full day with the gardens' }, priceIls: { low: 150, high: 420 }, kind: 'landmark' },
+      { name: { he: 'דיסנילנד פריז', en: 'Disneyland Paris' }, hours: 0.75, note: { he: 'ברכבת RER — יום מושלם עם ילדים', en: 'By RER train — a perfect day with children' }, priceIls: { low: 300, high: 600 }, kind: 'experience' },
+      { name: { he: 'ז׳יברני — הגנים של מונה', en: 'Giverny — Monet’s gardens' }, hours: 1.25, note: { he: 'רכבת לוורנון ומשם שאטל; פתוח מאפריל עד אוקטובר בלבד', en: 'Train to Vernon, then a shuttle; open April to October only' }, priceIls: { low: 220, high: 500 }, kind: 'park', months: [4, 5, 6, 7, 8, 9, 10] },
+      { name: { he: 'ריימס ואזור השמפניה', en: 'Reims & the Champagne region' }, hours: 0.75, note: { he: 'רכבת מהירה; קתדרלה ומרתפי שמפניה', en: 'High-speed train; a cathedral and champagne cellars' }, priceIls: { low: 280, high: 800 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'המטרו מגיע כמעט לכל מקום, והרבה הולכים ברגל. משארל דה גול יש רכבת RER למרכז. רכב בעיר — לא כדאי.', en: 'The metro reaches almost everywhere and much is walkable. The RER train links Charles de Gaulle to the centre. Don’t drive in the city.' } },
     practical: {
@@ -76,23 +78,23 @@ export default [
       { name: { he: 'הנמל', en: 'The Port' }, forWhom: { he: 'שכונה מקומית ושקטה יותר, עם מסעדות דגים', en: 'A quieter local area with seafood restaurants' } }
     ],
     attractions: [
-      { name: { he: 'הטיילת של האנגלים', en: 'Promenade des Anglais' }, area: 'Along the Promenade', kind: 'landmark', durationH: 1.5, tags: ['couple', 'family'] },
-      { name: { he: 'העיר העתיקה של ניס', en: 'Vieux Nice' }, area: 'Vieux Nice', kind: 'neighborhood', durationH: 2, tags: ['culture', 'food'] },
+      { name: { he: 'הטיילת של האנגלים', en: 'Promenade des Anglais' }, area: 'Along the Promenade', kind: 'landmark', durationH: 1.5, tags: ['couple', 'family'], mustSee: true },
+      { name: { he: 'העיר העתיקה של ניס', en: 'Vieux Nice' }, area: 'Vieux Nice', kind: 'neighborhood', durationH: 2, tags: ['culture', 'food'], mustSee: true },
       { name: { he: 'שוק קור סלאיה', en: 'Cours Saleya market' }, area: 'Vieux Nice', kind: 'market', durationH: 1, tags: ['food'] },
-      { name: { he: 'גבעת הטירה', en: 'Castle Hill (Colline du Château)' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple', 'family'] },
+      { name: { he: 'גבעת הטירה', en: 'Castle Hill (Colline du Château)' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple', 'family'], area: 'Vieux Nice', mustSee: true },
       { name: { he: 'כיכר מסנה', en: 'Place Masséna' }, area: 'Place Masséna & the Carré d’Or', kind: 'landmark', durationH: 0.5, tags: ['city'] },
-      { name: { he: 'מוזיאון מארק שאגאל', en: 'Musée national Marc Chagall' }, kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'מוזיאון מאטיס', en: 'Musée Matisse' }, kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'החופים של ניס', en: 'Nice’s beaches' }, area: 'Along the Promenade', kind: 'beach', durationH: 3, tags: ['beach', 'relaxation'] },
-      { name: { he: 'וילפרנש סור מר', en: 'Villefranche-sur-Mer' }, kind: 'neighborhood', durationH: 2.5, tags: ['beach', 'couple'] },
-      { name: { he: 'מסלול ההליכה בכף פרה', en: 'Cap Ferrat coastal path' }, kind: 'nature', durationH: 2.5, tags: ['nature'] },
+      { name: { he: 'מוזיאון מארק שאגאל', en: 'Musée national Marc Chagall' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Cimiez' },
+      { name: { he: 'מוזיאון מאטיס', en: 'Musée Matisse' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Cimiez' },
+      { name: { he: 'החופים של ניס', en: 'Nice’s beaches' }, area: 'Along the Promenade', kind: 'beach', durationH: 3, tags: ['beach', 'relaxation'], months: [6, 7, 8, 9] },
+      { name: { he: 'וילפרנש סור מר', en: 'Villefranche-sur-Mer' }, kind: 'neighborhood', durationH: 2.5, tags: ['beach', 'couple'], area: 'Villefranche-sur-Mer' },
+      { name: { he: 'מסלול ההליכה בכף פרה', en: 'Cap Ferrat coastal path' }, kind: 'nature', durationH: 2.5, tags: ['nature'], area: 'Saint-Jean-Cap-Ferrat' },
       { name: { he: 'נמל לימפיה', en: 'Port Lympia' }, area: 'The Port', kind: 'neighborhood', durationH: 1.5, tags: ['food'] }
     ],
     dayTrips: [
-      { name: { he: 'מונקו ומונטה קרלו', en: 'Monaco & Monte Carlo' }, hours: 0.5, note: { he: 'רכבת לאורך החוף; הקזינו, הנמל וארמון הנסיך', en: 'Coastal train; the casino, the harbour and the Prince’s Palace' } },
-      { name: { he: 'אז', en: 'Èze' }, hours: 0.5, note: { he: 'אוטובוס מניס; כפר מימי הביניים על צוק מעל הים', en: 'Bus from Nice; a medieval village perched above the sea' } },
-      { name: { he: 'אנטיב וקאן', en: 'Antibes & Cannes' }, hours: 0.5, note: { he: 'רכבת לאורך החוף; עיר עתיקה, נמל יאכטות והקרואזט', en: 'Coastal train; an old town, a yacht harbour and La Croisette' } },
-      { name: { he: 'סן פול דה ונס', en: 'Saint-Paul-de-Vence' }, hours: 1, note: { he: 'כפר אמנים מוקף חומה; קל יותר ברכב', en: 'A walled artists’ village; easier by car' } }
+      { name: { he: 'מונקו ומונטה קרלו', en: 'Monaco & Monte Carlo' }, hours: 0.5, note: { he: 'רכבת לאורך החוף; הקזינו, הנמל וארמון הנסיך', en: 'Coastal train; the casino, the harbour and the Prince’s Palace' }, priceIls: { low: 40, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'אז', en: 'Èze' }, hours: 0.5, note: { he: 'אוטובוס מניס; כפר מימי הביניים על צוק מעל הים', en: 'Bus from Nice; a medieval village perched above the sea' }, priceIls: { low: 20, high: 250 }, kind: 'neighborhood' },
+      { name: { he: 'אנטיב וקאן', en: 'Antibes & Cannes' }, hours: 0.5, note: { he: 'רכבת לאורך החוף; עיר עתיקה, נמל יאכטות והקרואזט', en: 'Coastal train; an old town, a yacht harbour and La Croisette' }, priceIls: { low: 60, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'סן פול דה ונס', en: 'Saint-Paul-de-Vence' }, hours: 1, note: { he: 'כפר אמנים מוקף חומה; קל יותר ברכב', en: 'A walled artists’ village; easier by car' }, priceIls: { low: 20, high: 300 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'טראם מהשדה למרכז, ורכבות ואוטובוסים לאורך החוף למונקו, לקאן ולאנטיב. רכב נוח לכפרי ההרים, אבל החניה בעיר יקרה וקשה.', en: 'A tram runs from the airport to the centre, with trains and buses along the coast to Monaco, Cannes and Antibes. A car helps for the hill villages, but city parking is costly and scarce.' } },
     practical: {
@@ -126,25 +128,25 @@ export default [
       { name: { he: 'שורדיץ׳', en: 'Shoreditch' }, forWhom: { he: 'צעירים — חיי לילה, אמנות רחוב ואוכל', en: 'Younger travellers — nightlife, street art and food' } }
     ],
     attractions: [
-      { name: { he: 'המוזיאון הבריטי', en: 'The British Museum' }, kind: 'museum', durationH: 3, tags: ['culture'] },
-      { name: { he: 'מגדל לונדון', en: 'Tower of London' }, kind: 'landmark', durationH: 2.5, tags: ['culture', 'family'] },
-      { name: { he: 'גשר המגדל', en: 'Tower Bridge' }, kind: 'landmark', durationH: 1, tags: ['family'] },
-      { name: { he: 'מנזר וסטמינסטר וביג בן', en: 'Westminster Abbey & Big Ben' }, kind: 'religious', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'ארמון בקינגהאם וחילופי המשמרות', en: 'Buckingham Palace & Changing of the Guard' }, kind: 'landmark', durationH: 1.5, tags: ['family'] },
+      { name: { he: 'המוזיאון הבריטי', en: 'The British Museum' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Bloomsbury', mustSee: true },
+      { name: { he: 'מגדל לונדון', en: 'Tower of London' }, kind: 'landmark', durationH: 2.5, tags: ['culture', 'family'], area: 'Tower Hill', mustSee: true },
+      { name: { he: 'גשר המגדל', en: 'Tower Bridge' }, kind: 'landmark', durationH: 1, tags: ['family'], area: 'Tower Hill' },
+      { name: { he: 'מנזר וסטמינסטר וביג בן', en: 'Westminster Abbey & Big Ben' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Westminster', mustSee: true },
+      { name: { he: 'ארמון בקינגהאם וחילופי המשמרות', en: 'Buckingham Palace & Changing of the Guard' }, kind: 'landmark', durationH: 1.5, tags: ['family'], area: 'Westminster' },
       { name: { he: 'מוזיאון הטבע', en: 'Natural History Museum' }, area: 'South Kensington', kind: 'museum', durationH: 2.5, tags: ['family', 'with_children'] },
       { name: { he: 'הנשיונל גלרי וכיכר טרפלגר', en: 'National Gallery & Trafalgar Square' }, area: 'West End & Covent Garden', kind: 'museum', durationH: 2, tags: ['culture'] },
       { name: { he: 'טייט מודרן', en: 'Tate Modern' }, area: 'South Bank', kind: 'museum', durationH: 2, tags: ['culture'] },
       { name: { he: 'הלונדון איי', en: 'The London Eye' }, area: 'South Bank', kind: 'viewpoint', durationH: 1, tags: ['family', 'couple'] },
       { name: { he: 'שוק בורו', en: 'Borough Market' }, area: 'South Bank', kind: 'market', durationH: 1.5, tags: ['food'] },
-      { name: { he: 'שוק קמדן', en: 'Camden Market' }, kind: 'market', durationH: 2, tags: ['shopping', 'food'] },
-      { name: { he: 'הייד פארק וגני קנזינגטון', en: 'Hyde Park & Kensington Gardens' }, kind: 'park', durationH: 2, tags: ['family', 'relaxation'] },
-      { name: { he: 'סיור אולפני וורנר בראדרס — הארי פוטר', en: 'Warner Bros. Studio Tour — The Making of Harry Potter' }, kind: 'experience', durationH: 4, tags: ['family', 'with_children'] }
+      { name: { he: 'שוק קמדן', en: 'Camden Market' }, kind: 'market', durationH: 2, tags: ['shopping', 'food'], area: 'Camden' },
+      { name: { he: 'הייד פארק וגני קנזינגטון', en: 'Hyde Park & Kensington Gardens' }, kind: 'park', durationH: 2, tags: ['family', 'relaxation'], area: 'South Kensington' },
+      { name: { he: 'סיור אולפני וורנר בראדרס — הארי פוטר', en: 'Warner Bros. Studio Tour — The Making of Harry Potter' }, kind: 'experience', durationH: 4, tags: ['family', 'with_children', 'teens'], area: 'Leavesden (Watford)' }
     ],
     dayTrips: [
-      { name: { he: 'אוקספורד', en: 'Oxford' }, hours: 1, note: { he: 'רכבת מפדינגטון או ממרילבון; קולג׳ים וספריות היסטוריות', en: 'Train from Paddington or Marylebone; historic colleges and libraries' } },
-      { name: { he: 'טירת וינדזור', en: 'Windsor Castle' }, hours: 0.75, note: { he: 'רכבת; טירה מלכותית פעילה ועיירה נעימה', en: 'By train; a working royal castle and a pleasant town' } },
-      { name: { he: 'סטונהנג׳ ובאת׳', en: 'Stonehenge & Bath' }, hours: 2, note: { he: 'יום ארוך — הכי נוח בסיור מאורגן', en: 'A long day — easiest on an organised tour' } },
-      { name: { he: 'קיימברידג׳', en: 'Cambridge' }, hours: 1, note: { he: 'רכבת מקינגס קרוס; שיט בסירות על נהר הקאם', en: 'Train from King’s Cross; punting on the River Cam' } }
+      { name: { he: 'אוקספורד', en: 'Oxford' }, hours: 1, note: { he: 'רכבת מפדינגטון או ממרילבון; קולג׳ים וספריות היסטוריות', en: 'Train from Paddington or Marylebone; historic colleges and libraries' }, priceIls: { low: 110, high: 420 }, kind: 'neighborhood' },
+      { name: { he: 'טירת וינדזור', en: 'Windsor Castle' }, hours: 0.75, note: { he: 'רכבת; טירה מלכותית פעילה ועיירה נעימה', en: 'By train; a working royal castle and a pleasant town' }, priceIls: { low: 220, high: 420 }, kind: 'landmark' },
+      { name: { he: 'סטונהנג׳ ובאת׳', en: 'Stonehenge & Bath' }, hours: 2, note: { he: 'יום ארוך — הכי נוח בסיור מאורגן', en: 'A long day — easiest on an organised tour' }, priceIls: { low: 420, high: 600 }, kind: 'landmark' },
+      { name: { he: 'קיימברידג׳', en: 'Cambridge' }, hours: 1, note: { he: 'רכבת מקינגס קרוס; שיט בסירות על נהר הקאם', en: 'Train from King’s Cross; punting on the River Cam' }, priceIls: { low: 110, high: 380 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'רכבת תחתית ואוטובוסים — משלמים בכרטיס אשראי ללא מגע. מהית׳רו יש קו אליזבת׳ ורכבת מהירה, ומגטוויק רכבת. נהיגה בצד שמאל ואגרת גודש — רכב לא כדאי.', en: 'The Underground and buses — pay with a contactless card. Heathrow has the Elizabeth line and an express train; Gatwick has trains. Left-hand driving and a congestion charge — skip the car.' } },
     practical: {
@@ -175,24 +177,24 @@ export default [
       { name: { he: 'ליית׳', en: 'Leith' }, forWhom: { he: 'אוכל טוב ליד המים ומחירים נוחים יותר', en: 'Good food by the water and better prices' } }
     ],
     attractions: [
-      { name: { he: 'טירת אדינבורו', en: 'Edinburgh Castle' }, area: 'Old Town', kind: 'landmark', durationH: 2.5, tags: ['culture', 'family'] },
-      { name: { he: 'הרויאל מייל', en: 'The Royal Mile' }, area: 'Old Town', kind: 'neighborhood', durationH: 2, tags: ['culture', 'shopping'] },
+      { name: { he: 'טירת אדינבורו', en: 'Edinburgh Castle' }, area: 'Old Town', kind: 'landmark', durationH: 2.5, tags: ['culture', 'family'], mustSee: true },
+      { name: { he: 'הרויאל מייל', en: 'The Royal Mile' }, area: 'Old Town', kind: 'neighborhood', durationH: 2, tags: ['culture', 'shopping'], mustSee: true },
       { name: { he: 'ארמון הולירודהאוס', en: 'Palace of Holyroodhouse' }, area: 'Old Town', kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'הכיסא של ארתור', en: 'Arthur’s Seat' }, kind: 'nature', durationH: 2, tags: ['nature', 'adventure'] },
+      { name: { he: 'הכיסא של ארתור', en: 'Arthur’s Seat' }, kind: 'nature', durationH: 2, tags: ['nature', 'adventure'], area: 'Old Town', mustSee: true },
       { name: { he: 'גבעת קלטון', en: 'Calton Hill' }, area: 'New Town', kind: 'viewpoint', durationH: 1, tags: ['couple'] },
       { name: { he: 'המוזיאון הלאומי של סקוטלנד', en: 'National Museum of Scotland' }, area: 'Old Town', kind: 'museum', durationH: 2, tags: ['culture', 'family'] },
-      { name: { he: 'כפר דין', en: 'Dean Village' }, kind: 'neighborhood', durationH: 1, tags: ['couple'] },
+      { name: { he: 'כפר דין', en: 'Dean Village' }, kind: 'neighborhood', durationH: 1, tags: ['couple'], area: 'West End' },
       { name: { he: 'גני פרינסס סטריט', en: 'Princes Street Gardens' }, area: 'New Town', kind: 'park', durationH: 1, tags: ['family'] },
-      { name: { he: 'רחוב ויקטוריה וגראסמרקט', en: 'Victoria Street & the Grassmarket' }, area: 'Old Town', kind: 'neighborhood', durationH: 1.5, tags: ['food', 'nightlife'] },
+      { name: { he: 'רחוב ויקטוריה וגראסמרקט', en: 'Victoria Street & the Grassmarket' }, area: 'Old Town', kind: 'neighborhood', durationH: 1.5, tags: ['food', 'nightlife', 'evening'] },
       { name: { he: 'קמרה אובסקורה ועולם האשליות', en: 'Camera Obscura & World of Illusions' }, area: 'Old Town', kind: 'experience', durationH: 1.5, tags: ['family', 'with_children'] },
-      { name: { he: 'חוויית הוויסקי הסקוטי', en: 'The Scotch Whisky Experience' }, area: 'Old Town', kind: 'experience', durationH: 1, tags: ['food'] },
+      { name: { he: 'חוויית הוויסקי הסקוטי', en: 'The Scotch Whisky Experience' }, area: 'Old Town', kind: 'experience', durationH: 1, tags: ['food', 'adults'] },
       { name: { he: 'היאכטה המלכותית בריטניה', en: 'The Royal Yacht Britannia' }, area: 'Leith', kind: 'museum', durationH: 1.5, tags: ['culture'] }
     ],
     dayTrips: [
-      { name: { he: 'הרמות הסקוטיות ולוך נס', en: 'The Highlands & Loch Ness' }, hours: 3.5, note: { he: 'יום ארוך מאוד בסיור מאורגן; עדיף לישון לילה או שניים באזור', en: 'A very long day on an organised tour; better with a night or two in the area' } },
-      { name: { he: 'טירת סטירלינג', en: 'Stirling Castle' }, hours: 1, note: { he: 'רכבת או רכב; טירה היסטורית עם נוף רחב', en: 'By train or car; a historic castle with wide views' } },
-      { name: { he: 'סנט אנדרוז', en: 'St Andrews' }, hours: 1.5, note: { he: 'עיירת חוף, אוניברסיטה עתיקה ומגרש הגולף המפורסם', en: 'A seaside town, an ancient university and the famous golf course' } },
-      { name: { he: 'גלזגו', en: 'Glasgow' }, hours: 1, note: { he: 'רכבת תכופה; מוזיאונים, אדריכלות וקניות', en: 'Frequent trains; museums, architecture and shopping' } }
+      { name: { he: 'הרמות הסקוטיות ולוך נס', en: 'The Highlands & Loch Ness' }, hours: 3.5, note: { he: 'יום ארוך מאוד בסיור מאורגן; עדיף לישון לילה או שניים באזור', en: 'A very long day on an organised tour; better with a night or two in the area' }, priceIls: { low: 280, high: 400 }, kind: 'nature' },
+      { name: { he: 'טירת סטירלינג', en: 'Stirling Castle' }, hours: 1, note: { he: 'רכבת או רכב; טירה היסטורית עם נוף רחב', en: 'By train or car; a historic castle with wide views' }, priceIls: { low: 170, high: 350 }, kind: 'landmark' },
+      { name: { he: 'סנט אנדרוז', en: 'St Andrews' }, hours: 1.5, note: { he: 'עיירת חוף, אוניברסיטה עתיקה ומגרש הגולף המפורסם', en: 'A seaside town, an ancient university and the famous golf course' }, priceIls: { low: 100, high: 350 }, kind: 'neighborhood' },
+      { name: { he: 'גלזגו', en: 'Glasgow' }, hours: 1, note: { he: 'רכבת תכופה; מוזיאונים, אדריכלות וקניות', en: 'Frequent trains; museums, architecture and shopping' }, priceIls: { low: 70, high: 250 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'בעיר הולכים ברגל ובאוטובוסים, ויש טראם מהשדה. לרמות הסקוטיות רכב נותן הכי הרבה חופש — נהיגה בצד שמאל ובכבישים צרים.', en: 'In the city walk and take buses; a tram runs from the airport. For the Highlands a car gives the most freedom — left-hand driving on narrow roads.' } },
     practical: {
@@ -224,24 +226,24 @@ export default [
       { name: { he: 'דה פייפ', en: 'De Pijp' }, forWhom: { he: 'אוכל, שוק ומחירים נוחים יותר', en: 'Food, a market and better prices' } }
     ],
     attractions: [
-      { name: { he: 'הרייקסמוזיאום', en: 'Rijksmuseum' }, area: 'Museum Quarter', kind: 'museum', durationH: 3, tags: ['culture'] },
-      { name: { he: 'מוזיאון ואן גוך', en: 'Van Gogh Museum' }, area: 'Museum Quarter', kind: 'museum', durationH: 2, tags: ['culture'] },
-      { name: { he: 'בית אנה פרנק', en: 'Anne Frank House' }, area: 'Canal Ring (Grachtengordel)', kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'שייט בתעלות', en: 'Canal cruise' }, kind: 'experience', durationH: 1, tags: ['couple', 'family'] },
-      { name: { he: 'הרובע התרבותי היהודי ובית הכנסת הפורטוגזי', en: 'Jewish Cultural Quarter & Portuguese Synagogue' }, kind: 'religious', durationH: 2, tags: ['culture'] },
+      { name: { he: 'הרייקסמוזיאום', en: 'Rijksmuseum' }, area: 'Museum Quarter', kind: 'museum', durationH: 3, tags: ['culture'], mustSee: true },
+      { name: { he: 'מוזיאון ואן גוך', en: 'Van Gogh Museum' }, area: 'Museum Quarter', kind: 'museum', durationH: 2, tags: ['culture'], mustSee: true },
+      { name: { he: 'בית אנה פרנק', en: 'Anne Frank House' }, area: 'Canal Ring (Grachtengordel)', kind: 'museum', durationH: 1.5, tags: ['culture'], mustSee: true },
+      { name: { he: 'שייט בתעלות', en: 'Canal cruise' }, kind: 'experience', durationH: 1, tags: ['couple', 'family'], area: 'Canal Ring (Grachtengordel)', mustSee: true },
+      { name: { he: 'הרובע התרבותי היהודי ובית הכנסת הפורטוגזי', en: 'Jewish Cultural Quarter & Portuguese Synagogue' }, kind: 'religious', durationH: 2, tags: ['culture'], area: 'Plantage' },
       { name: { he: 'יורדאן', en: 'Jordaan' }, area: 'Jordaan', kind: 'neighborhood', durationH: 2, tags: ['food', 'couple'] },
       { name: { he: 'הוונדלפארק', en: 'Vondelpark' }, area: 'Museum Quarter', kind: 'park', durationH: 1.5, tags: ['family', 'relaxation'] },
       { name: { he: 'שוק אלברט קאופ', en: 'Albert Cuyp Market' }, area: 'De Pijp', kind: 'market', durationH: 1, tags: ['food'] },
       { name: { he: 'שוק הפרחים', en: 'Bloemenmarkt (flower market)' }, area: 'Canal Ring (Grachtengordel)', kind: 'market', durationH: 0.5, tags: ['shopping'] },
-      { name: { he: 'מוזיאון המדע נמו', en: 'NEMO Science Museum' }, kind: 'museum', durationH: 2.5, tags: ['family', 'with_children'] },
-      { name: { he: 'תצפית A’DAM Lookout', en: 'A’DAM Lookout' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] },
-      { name: { he: 'חוויית הייניקן', en: 'Heineken Experience' }, area: 'De Pijp', kind: 'experience', durationH: 1.5, tags: ['nightlife'] }
+      { name: { he: 'מוזיאון המדע נמו', en: 'NEMO Science Museum' }, kind: 'museum', durationH: 2.5, tags: ['family', 'with_children', 'teens'], area: 'Oosterdok' },
+      { name: { he: 'תצפית A’DAM Lookout', en: 'A’DAM Lookout' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Amsterdam-Noord' },
+      { name: { he: 'חוויית הייניקן', en: 'Heineken Experience' }, area: 'De Pijp', kind: 'experience', durationH: 1.5, tags: ['nightlife', 'adults'] }
     ],
     dayTrips: [
-      { name: { he: 'זאנסה סכאנס', en: 'Zaanse Schans' }, hours: 0.5, note: { he: 'טחנות רוח ובתי עץ ירוקים — קצר וקל ברכבת או באוטובוס', en: 'Windmills and green wooden houses — short and easy by train or bus' } },
-      { name: { he: 'קויקנהוף', en: 'Keukenhof' }, hours: 0.75, note: { he: 'גן הצבעונים פתוח רק באביב, בערך מאמצע מרץ עד אמצע מאי', en: 'The tulip gardens open only in spring, roughly mid-March to mid-May' } },
-      { name: { he: 'הארלם', en: 'Haarlem' }, hours: 0.25, note: { he: 'עיר עתיקה ורגועה, רבע שעה ברכבת', en: 'A calm historic town, 15 minutes by train' } },
-      { name: { he: 'פולנדם ומרקן', en: 'Volendam & Marken' }, hours: 0.75, note: { he: 'כפרי דייגים על האייסלמר, באוטובוס', en: 'Fishing villages on the IJsselmeer, by bus' } }
+      { name: { he: 'זאנסה סכאנס', en: 'Zaanse Schans' }, hours: 0.5, note: { he: 'טחנות רוח ובתי עץ ירוקים — קצר וקל ברכבת או באוטובוס', en: 'Windmills and green wooden houses — short and easy by train or bus' }, priceIls: { low: 30, high: 200 }, kind: 'neighborhood' },
+      { name: { he: 'קויקנהוף', en: 'Keukenhof' }, hours: 0.75, note: { he: 'גן הצבעונים פתוח רק באביב, בערך מאמצע מרץ עד אמצע מאי', en: 'The tulip gardens open only in spring, roughly mid-March to mid-May' }, priceIls: { low: 130, high: 300 }, kind: 'park', months: [3, 4, 5] },
+      { name: { he: 'הארלם', en: 'Haarlem' }, hours: 0.25, note: { he: 'עיר עתיקה ורגועה, רבע שעה ברכבת', en: 'A calm historic town, 15 minutes by train' }, priceIls: { low: 30, high: 150 }, kind: 'neighborhood' },
+      { name: { he: 'פולנדם ומרקן', en: 'Volendam & Marken' }, hours: 0.75, note: { he: 'כפרי דייגים על האייסלמר, באוטובוס', en: 'Fishing villages on the IJsselmeer, by bus' }, priceIls: { low: 50, high: 250 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'רכבת ישירה משיפהול לתחנה המרכזית בכרבע שעה; טראמים, הליכה ואופניים להשכרה. רכב בעיר — ממש לא כדאי (חניה יקרה מאוד).', en: 'A direct train runs from Schiphol to Centraal in about 15 minutes; then trams, walking and rental bikes. Don’t drive in the city (parking is very expensive).' } },
     practical: {
@@ -273,25 +275,25 @@ export default [
       { name: { he: 'שרלוטנבורג', en: 'Charlottenburg' }, forWhom: { he: 'קניות בקורפירסטנדאם ואווירה מעודנת יותר', en: 'Shopping on the Kurfürstendamm and a more refined feel' } }
     ],
     attractions: [
-      { name: { he: 'שער ברנדנבורג', en: 'Brandenburg Gate' }, area: 'Mitte', kind: 'landmark', durationH: 0.5, tags: ['culture'] },
+      { name: { he: 'שער ברנדנבורג', en: 'Brandenburg Gate' }, area: 'Mitte', kind: 'landmark', durationH: 0.5, tags: ['culture'], mustSee: true },
       { name: { he: 'כיפת הרייכסטאג', en: 'Reichstag dome' }, area: 'Mitte', kind: 'viewpoint', durationH: 1, tags: ['culture'] },
-      { name: { he: 'האנדרטה לזכר יהודי אירופה שנרצחו', en: 'Memorial to the Murdered Jews of Europe' }, area: 'Mitte', kind: 'landmark', durationH: 1, tags: ['culture'] },
+      { name: { he: 'האנדרטה לזכר יהודי אירופה שנרצחו', en: 'Memorial to the Murdered Jews of Europe' }, area: 'Mitte', kind: 'landmark', durationH: 1, tags: ['culture'], mustSee: true },
       { name: { he: 'המוזיאון היהודי של ברלין', en: 'Jewish Museum Berlin' }, area: 'Kreuzberg & Friedrichshain', kind: 'museum', durationH: 2.5, tags: ['culture'] },
-      { name: { he: 'אי המוזיאונים', en: 'Museum Island' }, area: 'Mitte', kind: 'museum', durationH: 3, tags: ['culture'] },
+      { name: { he: 'אי המוזיאונים', en: 'Museum Island' }, area: 'Mitte', kind: 'museum', durationH: 3, tags: ['culture'], mustSee: true },
       { name: { he: 'גלריית איסט סייד', en: 'East Side Gallery' }, area: 'Kreuzberg & Friedrichshain', kind: 'landmark', durationH: 1, tags: ['culture'] },
-      { name: { he: 'אתר הזיכרון לחומת ברלין בברנאואר שטראסה', en: 'Berlin Wall Memorial (Bernauer Strasse)' }, area: 'Mitte', kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'טופוגרפיה של הטרור', en: 'Topography of Terror' }, kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'צ׳קפוינט צ׳רלי', en: 'Checkpoint Charlie' }, kind: 'landmark', durationH: 0.5, tags: ['culture'] },
+      { name: { he: 'אתר הזיכרון לחומת ברלין בברנאואר שטראסה', en: 'Berlin Wall Memorial (Bernauer Strasse)' }, area: 'Mitte', kind: 'landmark', durationH: 1.5, tags: ['culture'], mustSee: true },
+      { name: { he: 'טופוגרפיה של הטרור', en: 'Topography of Terror' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Kreuzberg & Friedrichshain' },
+      { name: { he: 'צ׳קפוינט צ׳רלי', en: 'Checkpoint Charlie' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Mitte' },
       { name: { he: 'מגדל הטלוויזיה', en: 'TV Tower (Fernsehturm)' }, area: 'Mitte', kind: 'viewpoint', durationH: 1, tags: ['family'] },
-      { name: { he: 'פארק טירגרטן', en: 'Tiergarten' }, kind: 'park', durationH: 1.5, tags: ['family', 'relaxation'] },
+      { name: { he: 'פארק טירגרטן', en: 'Tiergarten' }, kind: 'park', durationH: 1.5, tags: ['family', 'relaxation'], area: 'Mitte' },
       { name: { he: 'שוק הפשפשים במאוארפארק (בימי ראשון)', en: 'Mauerpark flea market (Sundays)' }, area: 'Prenzlauer Berg', kind: 'market', durationH: 1.5, tags: ['shopping'] },
-      { name: { he: 'כלבו KaDeWe', en: 'KaDeWe department store' }, kind: 'experience', durationH: 1.5, tags: ['shopping', 'food'] }
+      { name: { he: 'כלבו KaDeWe', en: 'KaDeWe department store' }, kind: 'experience', durationH: 1.5, tags: ['shopping', 'food'], area: 'Schöneberg' }
     ],
     dayTrips: [
-      { name: { he: 'פוטסדאם וארמון סנסוסי', en: 'Potsdam & Sanssouci Palace' }, hours: 0.75, note: { he: 'רכבת S-Bahn או אזורית; ארמונות וגנים', en: 'S-Bahn or regional train; palaces and gardens' } },
-      { name: { he: 'בית ועידת ואנזה', en: 'House of the Wannsee Conference' }, hours: 0.75, note: { he: 'אתר הנצחה וחינוך על שפת האגם; אפשר לשלב עם פוטסדאם', en: 'A memorial and education site by the lake; combine with Potsdam' } },
-      { name: { he: 'אתר הזיכרון זקסנהאוזן', en: 'Sachsenhausen Memorial' }, hours: 1, note: { he: 'מחנה ריכוז לשעבר באורנינבורג; ביקור כבד ומשמעותי', en: 'A former concentration camp in Oranienburg; a heavy, meaningful visit' } },
-      { name: { he: 'דרזדן', en: 'Dresden' }, hours: 2, note: { he: 'ברכבת; עיר בארוק משוקמת על האלבה', en: 'By train; a restored baroque city on the Elbe' } }
+      { name: { he: 'פוטסדאם וארמון סנסוסי', en: 'Potsdam & Sanssouci Palace' }, hours: 0.75, note: { he: 'רכבת S-Bahn או אזורית; ארמונות וגנים', en: 'S-Bahn or regional train; palaces and gardens' }, priceIls: { low: 100, high: 300 }, kind: 'landmark' },
+      { name: { he: 'בית ועידת ואנזה', en: 'House of the Wannsee Conference' }, hours: 0.75, note: { he: 'אתר הנצחה וחינוך על שפת האגם; אפשר לשלב עם פוטסדאם', en: 'A memorial and education site by the lake; combine with Potsdam' }, priceIls: { low: 20, high: 50 }, kind: 'museum' },
+      { name: { he: 'אתר הזיכרון זקסנהאוזן', en: 'Sachsenhausen Memorial' }, hours: 1, note: { he: 'מחנה ריכוז לשעבר באורנינבורג; ביקור כבד ומשמעותי', en: 'A former concentration camp in Oranienburg; a heavy, meaningful visit' }, priceIls: { low: 20, high: 160 }, kind: 'museum' },
+      { name: { he: 'דרזדן', en: 'Dresden' }, hours: 2, note: { he: 'ברכבת; עיר בארוק משוקמת על האלבה', en: 'By train; a restored baroque city on the Elbe' }, priceIls: { low: 100, high: 400 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'רשת U-Bahn, S-Bahn, טראמים ואוטובוסים מצוינת; מהשדה יש רכבת למרכז. העיר גדולה — כדאי כרטיס תחבורה יומי או שבועי.', en: 'An excellent U-Bahn, S-Bahn, tram and bus network; trains link the airport to the centre. The city is spread out — get a day or weekly pass.' } },
     practical: {
@@ -323,24 +325,24 @@ export default [
       { name: { he: 'פוסן', en: 'Füssen' }, forWhom: { he: 'לינה ליד נוישוונשטיין ואגמי האלגוי', en: 'Stay near Neuschwanstein and the Allgäu lakes' } }
     ],
     attractions: [
-      { name: { he: 'מריינפלאץ והגלוקנשפיל', en: 'Marienplatz & the Glockenspiel' }, area: 'Munich Altstadt', kind: 'landmark', durationH: 1, tags: ['family', 'culture'] },
+      { name: { he: 'מריינפלאץ והגלוקנשפיל', en: 'Marienplatz & the Glockenspiel' }, area: 'Munich Altstadt', kind: 'landmark', durationH: 1, tags: ['family', 'culture'], mustSee: true },
       { name: { he: 'שוק ויקטואליין', en: 'Viktualienmarkt' }, area: 'Munich Altstadt', kind: 'market', durationH: 1, tags: ['food'] },
-      { name: { he: 'הגן האנגלי', en: 'English Garden (Englischer Garten)' }, area: 'Schwabing & Maxvorstadt', kind: 'park', durationH: 2, tags: ['family', 'relaxation'] },
-      { name: { he: 'ארמון נימפנבורג', en: 'Nymphenburg Palace' }, kind: 'landmark', durationH: 2, tags: ['culture'] },
+      { name: { he: 'הגן האנגלי', en: 'English Garden (Englischer Garten)' }, area: 'Schwabing & Maxvorstadt', kind: 'park', durationH: 2, tags: ['family', 'relaxation'], mustSee: true },
+      { name: { he: 'ארמון נימפנבורג', en: 'Nymphenburg Palace' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Nymphenburg' },
       { name: { he: 'הרזידנץ', en: 'Munich Residenz' }, area: 'Munich Altstadt', kind: 'museum', durationH: 2, tags: ['culture'] },
-      { name: { he: 'המוזיאון הגרמני', en: 'Deutsches Museum' }, kind: 'museum', durationH: 3, tags: ['family', 'with_children'] },
-      { name: { he: 'BMW Welt ומוזיאון BMW', en: 'BMW Welt & BMW Museum' }, kind: 'museum', durationH: 2, tags: ['family'] },
-      { name: { he: 'פארק האולימפיאדה', en: 'Olympiapark' }, kind: 'park', durationH: 1.5, tags: ['family'] },
-      { name: { he: 'אתר הזיכרון דכאו', en: 'Dachau Concentration Camp Memorial Site' }, kind: 'landmark', durationH: 3, tags: ['culture'] },
-      { name: { he: 'טירת נוישוונשטיין', en: 'Neuschwanstein Castle' }, area: 'Füssen', kind: 'landmark', durationH: 3, tags: ['family', 'couple'] },
-      { name: { he: 'אגם קניגסזה', en: 'Lake Königssee' }, kind: 'nature', durationH: 4, tags: ['nature', 'family'] },
+      { name: { he: 'המוזיאון הגרמני', en: 'Deutsches Museum' }, kind: 'museum', durationH: 3, tags: ['family', 'with_children'], area: 'Isarvorstadt' },
+      { name: { he: 'BMW Welt ומוזיאון BMW', en: 'BMW Welt & BMW Museum' }, kind: 'museum', durationH: 2, tags: ['family'], area: 'Olympiapark' },
+      { name: { he: 'פארק האולימפיאדה', en: 'Olympiapark' }, kind: 'park', durationH: 1.5, tags: ['family'], area: 'Olympiapark' },
+      { name: { he: 'אתר הזיכרון דכאו', en: 'Dachau Concentration Camp Memorial Site' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'Dachau' },
+      { name: { he: 'טירת נוישוונשטיין', en: 'Neuschwanstein Castle' }, area: 'Füssen', kind: 'landmark', durationH: 3, tags: ['family', 'couple'], mustSee: true },
+      { name: { he: 'אגם קניגסזה', en: 'Lake Königssee' }, kind: 'nature', durationH: 4, tags: ['nature', 'family'], area: 'Berchtesgaden' },
       { name: { he: 'הצוגשפיצה', en: 'Zugspitze' }, area: 'Garmisch-Partenkirchen', kind: 'viewpoint', durationH: 4, tags: ['nature', 'adventure'] }
     ],
     dayTrips: [
-      { name: { he: 'נוישוונשטיין והוהנשוונגאו', en: 'Neuschwanstein & Hohenschwangau' }, hours: 2, note: { he: 'כרטיסים לכניסה לטירה כדאי להזמין הרבה מראש', en: 'Book castle tickets well in advance' } },
-      { name: { he: 'זלצבורג', en: 'Salzburg' }, hours: 1.5, note: { he: 'ברכבת, מעבר לגבול באוסטריה; העיר של מוצרט', en: 'By train, just over the border in Austria; Mozart’s city' } },
-      { name: { he: 'גרמיש־פרטנקירכן והצוגשפיצה', en: 'Garmisch-Partenkirchen & the Zugspitze' }, hours: 1.5, note: { he: 'רכבת רכס או רכבל לפסגה; נוף לארבע מדינות ביום בהיר', en: 'Cog railway or cable car to the top; views into four countries on a clear day' } },
-      { name: { he: 'אגם כימזה וארמון הרנכימזה', en: 'Lake Chiemsee & Herrenchiemsee Palace' }, hours: 1, note: { he: 'רכבת לפרין ומשם סירה לאי', en: 'Train to Prien, then a boat to the island' } }
+      { name: { he: 'נוישוונשטיין והוהנשוונגאו', en: 'Neuschwanstein & Hohenschwangau' }, hours: 2, note: { he: 'כרטיסים לכניסה לטירה כדאי להזמין הרבה מראש', en: 'Book castle tickets well in advance' }, priceIls: { low: 200, high: 450 }, kind: 'landmark' },
+      { name: { he: 'זלצבורג', en: 'Salzburg' }, hours: 1.5, note: { he: 'ברכבת, מעבר לגבול באוסטריה; העיר של מוצרט', en: 'By train, just over the border in Austria; Mozart’s city' }, priceIls: { low: 120, high: 400 }, kind: 'neighborhood' },
+      { name: { he: 'גרמיש־פרטנקירכן והצוגשפיצה', en: 'Garmisch-Partenkirchen & the Zugspitze' }, hours: 1.5, note: { he: 'רכבת רכס או רכבל לפסגה; נוף לארבע מדינות ביום בהיר', en: 'Cog railway or cable car to the top; views into four countries on a clear day' }, priceIls: { low: 360, high: 550 }, kind: 'viewpoint' },
+      { name: { he: 'אגם כימזה וארמון הרנכימזה', en: 'Lake Chiemsee & Herrenchiemsee Palace' }, hours: 1, note: { he: 'רכבת לפרין ומשם סירה לאי', en: 'Train to Prien, then a boat to the island' }, priceIls: { low: 170, high: 350 }, kind: 'landmark' }
     ],
     transport: { carRecommended: true, note: { he: 'במינכן עצמה — U-Bahn, S-Bahn וטראמים, ומהשדה S-Bahn למרכז. לאלפים, לאגמים ולטירות רכב נותן הכי הרבה חופש; הכבישים מצוינים.', en: 'Within Munich use the U-Bahn, S-Bahn and trams; an S-Bahn line links the airport. For the Alps, lakes and castles a car gives the most freedom; roads are excellent.' } },
     practical: {
@@ -372,25 +374,25 @@ export default [
       { name: { he: 'וינוהראדי', en: 'Vinohrady' }, forWhom: { he: 'שכונה מקומית ושקטה עם בתי קפה, קצת מחוץ למרכז', en: 'A quiet local area with cafés, a little out of the centre' } }
     ],
     attractions: [
-      { name: { he: 'מצודת פראג', en: 'Prague Castle' }, kind: 'landmark', durationH: 3, tags: ['culture'] },
-      { name: { he: 'קתדרלת ויטוס הקדוש', en: 'St Vitus Cathedral' }, kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'גשר קארל', en: 'Charles Bridge' }, kind: 'landmark', durationH: 1, tags: ['couple'] },
-      { name: { he: 'כיכר העיר העתיקה והשעון האסטרונומי', en: 'Old Town Square & the Astronomical Clock' }, area: 'Old Town (Staré Město)', kind: 'landmark', durationH: 1, tags: ['culture', 'family'] },
-      { name: { he: 'המוזיאון היהודי בפראג (בתי הכנסת ובית הקברות העתיק)', en: 'Jewish Museum in Prague (synagogues & Old Jewish Cemetery)' }, area: 'Old Town (Staré Město)', kind: 'museum', durationH: 3, tags: ['culture'] },
+      { name: { he: 'מצודת פראג', en: 'Prague Castle' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'Hradčany', mustSee: true },
+      { name: { he: 'קתדרלת ויטוס הקדוש', en: 'St Vitus Cathedral' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Hradčany' },
+      { name: { he: 'גשר קארל', en: 'Charles Bridge' }, kind: 'landmark', durationH: 1, tags: ['couple'], area: 'Malá Strana (Lesser Town)', mustSee: true },
+      { name: { he: 'כיכר העיר העתיקה והשעון האסטרונומי', en: 'Old Town Square & the Astronomical Clock' }, area: 'Old Town (Staré Město)', kind: 'landmark', durationH: 1, tags: ['culture', 'family'], mustSee: true },
+      { name: { he: 'המוזיאון היהודי בפראג (בתי הכנסת ובית הקברות העתיק)', en: 'Jewish Museum in Prague (synagogues & Old Jewish Cemetery)' }, area: 'Old Town (Staré Město)', kind: 'museum', durationH: 3, tags: ['culture'], mustSee: true },
       { name: { he: 'בית הכנסת אלטנוי', en: 'Old-New Synagogue' }, area: 'Old Town (Staré Město)', kind: 'religious', durationH: 0.5, tags: ['culture'] },
       { name: { he: 'מאלה סטראנה', en: 'Malá Strana' }, area: 'Malá Strana (Lesser Town)', kind: 'neighborhood', durationH: 2, tags: ['couple'] },
       { name: { he: 'גבעת פטרשין ומגדל התצפית', en: 'Petřín Hill & Lookout Tower' }, area: 'Malá Strana (Lesser Town)', kind: 'viewpoint', durationH: 2, tags: ['family', 'couple'] },
-      { name: { he: 'ויששהראד', en: 'Vyšehrad' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture'] },
+      { name: { he: 'ויששהראד', en: 'Vyšehrad' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture'], area: 'Vyšehrad' },
       { name: { he: 'הבית הרוקד', en: 'The Dancing House' }, area: 'New Town (Nové Město)', kind: 'landmark', durationH: 0.5, tags: ['city'] },
-      { name: { he: 'שייט על הוולטבה', en: 'Vltava river cruise' }, kind: 'experience', durationH: 1, tags: ['couple', 'family'] },
-      { name: { he: 'פארק לטנה', en: 'Letná Park' }, kind: 'park', durationH: 1.5, tags: ['relaxation', 'food'] },
-      { name: { he: 'גן החיות של פראג', en: 'Prague Zoo' }, kind: 'park', durationH: 4, tags: ['family', 'with_children'] }
+      { name: { he: 'שייט על הוולטבה', en: 'Vltava river cruise' }, kind: 'experience', durationH: 1, tags: ['couple', 'family'], area: 'Old Town (Staré Město)' },
+      { name: { he: 'פארק לטנה', en: 'Letná Park' }, kind: 'park', durationH: 1.5, tags: ['relaxation', 'food'], area: 'Letná' },
+      { name: { he: 'גן החיות של פראג', en: 'Prague Zoo' }, kind: 'park', durationH: 4, tags: ['family', 'with_children'], area: 'Troja' }
     ],
     dayTrips: [
-      { name: { he: 'צ׳סקי קרומלוב', en: 'Český Krumlov' }, hours: 3, note: { he: 'עיירה מימי הביניים עם טירה; יום ארוך, אפשר גם ללון', en: 'A medieval town with a castle; a long day, or stay the night' } },
-      { name: { he: 'קוטנה הורה', en: 'Kutná Hora' }, hours: 1, note: { he: 'ברכבת; קתדרלת ברברה הקדושה וכנסיית העצמות', en: 'By train; St Barbara’s Cathedral and the Bone Church' } },
-      { name: { he: 'טרזין', en: 'Terezín' }, hours: 1, note: { he: 'גטו ומחנה מעבר לשעבר; ביקור חשוב לישראלים', en: 'A former ghetto and transit camp; an important visit for Israelis' } },
-      { name: { he: 'קרלובי וארי', en: 'Karlovy Vary' }, hours: 2, note: { he: 'עיר מרחצאות עם מעיינות חמים ושדרות', en: 'A spa town with hot springs and colonnades' } }
+      { name: { he: 'צ׳סקי קרומלוב', en: 'Český Krumlov' }, hours: 3, note: { he: 'עיירה מימי הביניים עם טירה; יום ארוך, אפשר גם ללון', en: 'A medieval town with a castle; a long day, or stay the night' }, priceIls: { low: 100, high: 450 }, kind: 'neighborhood' },
+      { name: { he: 'קוטנה הורה', en: 'Kutná Hora' }, hours: 1, note: { he: 'ברכבת; קתדרלת ברברה הקדושה וכנסיית העצמות', en: 'By train; St Barbara’s Cathedral and the Bone Church' }, priceIls: { low: 60, high: 300 }, kind: 'religious' },
+      { name: { he: 'טרזין', en: 'Terezín' }, hours: 1, note: { he: 'גטו ומחנה מעבר לשעבר; ביקור חשוב לישראלים', en: 'A former ghetto and transit camp; an important visit for Israelis' }, priceIls: { low: 70, high: 280 }, kind: 'landmark' },
+      { name: { he: 'קרלובי וארי', en: 'Karlovy Vary' }, hours: 2, note: { he: 'עיר מרחצאות עם מעיינות חמים ושדרות', en: 'A spa town with hot springs and colonnades' }, priceIls: { low: 70, high: 320 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'המרכז קומפקטי וטוב להליכה; מטרו וטראמים זולים ויעילים. מהשדה יש אוטובוס למטרו או לתחנת הרכבת. רכב רק לטיולים מחוץ לעיר.', en: 'The centre is compact and walkable; the metro and trams are cheap and efficient. Buses link the airport to the metro and the main station. A car only for trips outside the city.' } },
     practical: {

@@ -1,5 +1,7 @@
 // Catalog data (spec 23): Americas & Oceania. Shape and editorial rules: dist/catalog.mjs + docs/specs/23-destinations-catalog-he.md.
 // Budget figures are rough per-person-per-day estimates in ₪ on the ground (food, sights, local transport) — without flights or lodging.
+// dayTrips[].priceIls = rough ₪ per adult, ESTIMATES (Nov 2026): low ≈ do-it-yourself public transport + main entry fee,
+// high ≈ a typical organised group tour from the base; converted at about €1=₪4, $1=₪3.7, £1=₪4.7 and rounded. Show as estimates.
 const ESTA = { he: 'ישראל נכללת בתוכנית הפטור מוויזה של ארה״ב מאז 2023, ולכן ברוב המקרים מספיק אישור ESTA שמגישים מראש באינטרנט; יש לבדוק את התנאים העדכניים במקורות הרשמיים.', en: 'Israel joined the US Visa Waiver Program in 2023, so in most cases an ESTA approval, applied for online in advance, is enough; check current conditions with official sources.' };
 
 export default [
@@ -26,24 +28,24 @@ export default [
       { name: { he: 'ברוקלין (ויליאמסבורג ודאמבו)', en: 'Brooklyn (Williamsburg & DUMBO)' }, forWhom: { he: 'צעירים, אוכל וחיי לילה, נוף למנהטן', en: 'Younger travellers, food and nightlife, Manhattan views' } }
     ],
     attractions: [
-      { name: { he: 'סנטרל פארק', en: 'Central Park' }, kind: 'park', durationH: 3, tags: ['family', 'nature'] },
-      { name: { he: 'פסל החירות ואליס איילנד', en: 'Statue of Liberty & Ellis Island' }, kind: 'landmark', durationH: 4, tags: ['culture', 'family'], area: 'Lower Manhattan' },
-      { name: { he: 'מוזיאון המטרופוליטן לאמנות', en: 'The Metropolitan Museum of Art' }, kind: 'museum', durationH: 3, tags: ['culture'] },
+      { name: { he: 'סנטרל פארק', en: 'Central Park' }, kind: 'park', durationH: 3, tags: ['family', 'nature'], area: 'Central Park', mustSee: true },
+      { name: { he: 'פסל החירות ואליס איילנד', en: 'Statue of Liberty & Ellis Island' }, kind: 'landmark', durationH: 4, tags: ['culture', 'family'], area: 'Lower Manhattan', mustSee: true },
+      { name: { he: 'מוזיאון המטרופוליטן לאמנות', en: 'The Metropolitan Museum of Art' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Upper East Side' },
       { name: { he: 'המוזיאון האמריקאי לתולדות הטבע', en: 'American Museum of Natural History' }, kind: 'museum', durationH: 3, tags: ['family', 'with_children'], area: 'Upper West Side' },
       { name: { he: 'מוזיאון לאמנות מודרנית (MoMA)', en: 'Museum of Modern Art (MoMA)' }, kind: 'museum', durationH: 2.5, tags: ['culture'], area: 'Midtown' },
       { name: { he: 'טופ אוף דה רוק', en: 'Top of the Rock' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple'], area: 'Midtown' },
-      { name: { he: 'טיימס סקוור ומופע בברודוויי', en: 'Times Square & a Broadway show' }, kind: 'experience', durationH: 3.5, tags: ['nightlife', 'culture'], area: 'Midtown' },
-      { name: { he: 'האנדרטה והמוזיאון של 11 בספטמבר', en: '9/11 Memorial & Museum' }, kind: 'museum', durationH: 2.5, tags: ['culture'], area: 'Lower Manhattan' },
+      { name: { he: 'טיימס סקוור ומופע בברודוויי', en: 'Times Square & a Broadway show' }, kind: 'experience', durationH: 3.5, tags: ['nightlife', 'culture', 'evening'], area: 'Midtown', mustSee: true },
+      { name: { he: 'האנדרטה והמוזיאון של 11 בספטמבר', en: '9/11 Memorial & Museum' }, kind: 'museum', durationH: 2.5, tags: ['culture'], area: 'Lower Manhattan', mustSee: true },
       { name: { he: 'גשר ברוקלין ודאמבו', en: 'Brooklyn Bridge & DUMBO' }, kind: 'landmark', durationH: 2, tags: ['couple'], area: 'Brooklyn (Williamsburg & DUMBO)' },
-      { name: { he: 'ההיי ליין וצ׳לסי מרקט', en: 'The High Line & Chelsea Market' }, kind: 'park', durationH: 2, tags: ['food'] },
-      { name: { he: 'ויליאמסבורג', en: 'Williamsburg' }, kind: 'neighborhood', durationH: 2.5, tags: ['food', 'nightlife'], area: 'Brooklyn (Williamsburg & DUMBO)' },
+      { name: { he: 'ההיי ליין וצ׳לסי מרקט', en: 'The High Line & Chelsea Market' }, kind: 'park', durationH: 2, tags: ['food'], area: 'Chelsea' },
+      { name: { he: 'ויליאמסבורג', en: 'Williamsburg' }, kind: 'neighborhood', durationH: 2.5, tags: ['food', 'nightlife', 'evening'], area: 'Brooklyn (Williamsburg & DUMBO)' },
       { name: { he: 'השדרה החמישית', en: 'Fifth Avenue' }, kind: 'neighborhood', durationH: 2, tags: ['shopping'], area: 'Midtown' },
       { name: { he: 'המעבורת לסטטן איילנד', en: 'Staten Island Ferry' }, kind: 'experience', durationH: 1, tags: ['family', 'low_budget'], area: 'Lower Manhattan' }
     ],
     dayTrips: [
-      { name: { he: 'פילדלפיה', en: 'Philadelphia' }, hours: 1.5, note: { he: 'ברכבת — היכל העצמאות ופעמון החירות', en: 'By train — Independence Hall and the Liberty Bell' } },
-      { name: { he: 'וושינגטון', en: 'Washington, D.C.' }, hours: 3, note: { he: 'ברכבת מהירה; יום ארוך, עדיף ללון לילה', en: 'By fast train; a long day, better with an overnight' } },
-      { name: { he: 'אאוטלט וודברי קומון', en: 'Woodbury Common Premium Outlets' }, hours: 1, note: { he: 'אוטובוס ממנהטן — יום שופינג', en: 'Bus from Manhattan — a shopping day' } }
+      { name: { he: 'פילדלפיה', en: 'Philadelphia' }, hours: 1.5, note: { he: 'ברכבת — היכל העצמאות ופעמון החירות', en: 'By train — Independence Hall and the Liberty Bell' }, priceIls: { low: 160, high: 750 }, kind: 'landmark' },
+      { name: { he: 'וושינגטון', en: 'Washington, D.C.' }, hours: 3, note: { he: 'ברכבת מהירה; יום ארוך, עדיף ללון לילה', en: 'By fast train; a long day, better with an overnight' }, priceIls: { low: 550, high: 1100 }, kind: 'landmark' },
+      { name: { he: 'אאוטלט וודברי קומון', en: 'Woodbury Common Premium Outlets' }, hours: 1, note: { he: 'אוטובוס ממנהטן — יום שופינג', en: 'Bus from Manhattan — a shopping day' }, priceIls: { low: 160, high: 200 }, kind: 'experience' }
     ],
     transport: { carRecommended: false, note: { he: 'הרכבת התחתית פועלת מסביב לשעון, ורוב מנהטן נוחה ברגל. מהשדות יש רכבות ומוניות. רכב בעיר — ממש לא כדאי (פקקים וחניה יקרה).', en: 'The subway runs around the clock and most of Manhattan is walkable. Trains and taxis link the airports. Don’t drive in the city (traffic and costly parking).' } },
     practical: {
@@ -75,23 +77,23 @@ export default [
       { name: { he: 'אורלנדו (אזור הפארקים)', en: 'Orlando (theme-park area)' }, forWhom: { he: 'משפחות עם ילדים — כמה ימים של פארקים', en: 'Families with children — several days of parks' } }
     ],
     attractions: [
-      { name: { he: 'סאות׳ ביץ׳ ואושן דרייב', en: 'South Beach & Ocean Drive' }, kind: 'beach', durationH: 3, tags: ['beach', 'nightlife'], area: 'Miami Beach (South Beach)' },
+      { name: { he: 'סאות׳ ביץ׳ ואושן דרייב', en: 'South Beach & Ocean Drive' }, kind: 'beach', durationH: 3, tags: ['beach', 'nightlife', 'evening'], area: 'Miami Beach (South Beach)', mustSee: true },
       { name: { he: 'רובע האר דקו ההיסטורי', en: 'Art Deco Historic District' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'], area: 'Miami Beach (South Beach)' },
       { name: { he: 'וינווד וולס', en: 'Wynwood Walls' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Central Miami' },
       { name: { he: 'ליטל הוואנה (קאז׳ה אוצ׳ו)', en: 'Little Havana (Calle Ocho)' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'culture'], area: 'Central Miami' },
       { name: { he: 'וילה ויזקאיה וגניה', en: 'Vizcaya Museum & Gardens' }, kind: 'museum', durationH: 2, tags: ['culture', 'couple'], area: 'Central Miami' },
-      { name: { he: 'קי ביסקיין — פארק ביל באגס', en: 'Key Biscayne — Bill Baggs Cape Florida State Park' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'] },
-      { name: { he: 'גן החיות של מיאמי', en: 'Zoo Miami' }, kind: 'park', durationH: 3, tags: ['family', 'with_children'] },
-      { name: { he: 'אאוטלט סוגראס מילס', en: 'Sawgrass Mills outlets' }, kind: 'experience', durationH: 4, tags: ['shopping'] },
-      { name: { he: 'מג׳יק קינגדום (וולט דיסני וורלד)', en: 'Magic Kingdom (Walt Disney World)' }, kind: 'experience', durationH: 10, tags: ['family', 'with_children'], area: 'Orlando (theme-park area)' },
+      { name: { he: 'קי ביסקיין — פארק ביל באגס', en: 'Key Biscayne — Bill Baggs Cape Florida State Park' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Central Miami' },
+      { name: { he: 'גן החיות של מיאמי', en: 'Zoo Miami' }, kind: 'park', durationH: 3, tags: ['family', 'with_children'], area: 'Central Miami' },
+      { name: { he: 'אאוטלט סוגראס מילס', en: 'Sawgrass Mills outlets' }, kind: 'experience', durationH: 4, tags: ['shopping'], area: 'Sunrise (Fort Lauderdale)' },
+      { name: { he: 'מג׳יק קינגדום (וולט דיסני וורלד)', en: 'Magic Kingdom (Walt Disney World)' }, kind: 'experience', durationH: 10, tags: ['family', 'with_children'], area: 'Orlando (theme-park area)', mustSee: true },
       { name: { he: 'EPCOT (וולט דיסני וורלד)', en: 'EPCOT (Walt Disney World)' }, kind: 'experience', durationH: 8, tags: ['family'], area: 'Orlando (theme-park area)' },
-      { name: { he: 'יוניברסל אורלנדו', en: 'Universal Orlando Resort' }, kind: 'experience', durationH: 10, tags: ['family', 'with_children'], area: 'Orlando (theme-park area)' },
-      { name: { he: 'פארק המים וולקנו ביי', en: 'Volcano Bay water park' }, kind: 'experience', durationH: 6, tags: ['water_slides', 'family', 'with_children'], area: 'Orlando (theme-park area)' }
+      { name: { he: 'יוניברסל אורלנדו', en: 'Universal Orlando Resort' }, kind: 'experience', durationH: 10, tags: ['family', 'with_children', 'teens'], area: 'Orlando (theme-park area)', mustSee: true },
+      { name: { he: 'פארק המים וולקנו ביי', en: 'Volcano Bay water park' }, kind: 'experience', durationH: 6, tags: ['water_slides', 'family', 'with_children', 'teens'], area: 'Orlando (theme-park area)' }
     ],
     dayTrips: [
-      { name: { he: 'פארק האוורגליידס', en: 'Everglades National Park' }, hours: 1, note: { he: 'ממיאמי — שייט בסירת מדחף, תנינים ושבילי טבע', en: 'From Miami — airboat rides, alligators and nature trails' } },
-      { name: { he: 'קי ווסט', en: 'Key West' }, hours: 4, note: { he: 'נסיעה מרהיבה על גשרים מעל הים; עדיף ללון לילה', en: 'A spectacular drive over sea bridges; better with an overnight' } },
-      { name: { he: 'מרכז החלל קנדי', en: 'Kennedy Space Center' }, hours: 1, note: { he: 'מאורלנדו — חוויה מעולה לילדים ולמבוגרים', en: 'From Orlando — great for kids and adults alike' } }
+      { name: { he: 'פארק האוורגליידס', en: 'Everglades National Park' }, hours: 1, note: { he: 'ממיאמי — שייט בסירת מדחף, תנינים ושבילי טבע', en: 'From Miami — airboat rides, alligators and nature trails' }, priceIls: { low: 120, high: 450 }, kind: 'nature' },
+      { name: { he: 'קי ווסט', en: 'Key West' }, hours: 4, note: { he: 'נסיעה מרהיבה על גשרים מעל הים; עדיף ללון לילה', en: 'A spectacular drive over sea bridges; better with an overnight' }, priceIls: { low: 330, high: 560 }, kind: 'neighborhood' },
+      { name: { he: 'מרכז החלל קנדי', en: 'Kennedy Space Center' }, hours: 1, note: { he: 'מאורלנדו — חוויה מעולה לילדים ולמבוגרים', en: 'From Orlando — great for kids and adults alike' }, priceIls: { low: 300, high: 550 }, kind: 'museum' }
     ],
     transport: { carRecommended: true, note: { he: 'מחוץ למיאמי ביץ׳ הכול ברכב. בין מיאמי לאורלנדו יש כ־4 שעות נסיעה, או רכבת Brightline. בפארקים של אורלנדו יש הסעות מהמלונות.', en: 'Outside Miami Beach you need a car. Miami to Orlando is about 4 hours by road, or take the Brightline train. Orlando hotels run park shuttles.' } },
     practical: {
@@ -123,24 +125,24 @@ export default [
       { name: { he: 'אנהיים', en: 'Anaheim' }, forWhom: { he: 'משפחות שבאות בעיקר לדיסנילנד', en: 'Families coming mainly for Disneyland' } }
     ],
     attractions: [
-      { name: { he: 'מצפה גריפית׳', en: 'Griffith Observatory' }, kind: 'viewpoint', durationH: 2, tags: ['family', 'couple'] },
-      { name: { he: 'שדרת הכוכבים ותיאטרון TCL הסיני', en: 'Hollywood Walk of Fame & TCL Chinese Theatre' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Hollywood & West Hollywood' },
-      { name: { he: 'אולפני יוניברסל הוליווד', en: 'Universal Studios Hollywood' }, kind: 'experience', durationH: 8, tags: ['family', 'with_children'] },
-      { name: { he: 'דיסנילנד', en: 'Disneyland Resort' }, kind: 'experience', durationH: 10, tags: ['family', 'with_children'], area: 'Anaheim' },
-      { name: { he: 'סיור באולפני וורנר ברוס', en: 'Warner Bros. Studio Tour Hollywood' }, kind: 'experience', durationH: 3, tags: ['family'] },
-      { name: { he: 'מרכז גטי', en: 'The Getty Center' }, kind: 'museum', durationH: 3, tags: ['culture'] },
-      { name: { he: 'מוזיאון ה־Broad', en: 'The Broad' }, kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'המזח והחוף של סנטה מוניקה', en: 'Santa Monica Pier & beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Santa Monica & Venice' },
+      { name: { he: 'מצפה גריפית׳', en: 'Griffith Observatory' }, kind: 'viewpoint', durationH: 2, tags: ['family', 'couple', 'evening'], area: 'Hollywood & West Hollywood', mustSee: true },
+      { name: { he: 'שדרת הכוכבים ותיאטרון TCL הסיני', en: 'Hollywood Walk of Fame & TCL Chinese Theatre' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Hollywood & West Hollywood', mustSee: true },
+      { name: { he: 'אולפני יוניברסל הוליווד', en: 'Universal Studios Hollywood' }, kind: 'experience', durationH: 8, tags: ['family', 'with_children', 'teens'], area: 'Universal City', mustSee: true },
+      { name: { he: 'דיסנילנד', en: 'Disneyland Resort' }, kind: 'experience', durationH: 10, tags: ['family', 'with_children', 'teens'], area: 'Anaheim' },
+      { name: { he: 'סיור באולפני וורנר ברוס', en: 'Warner Bros. Studio Tour Hollywood' }, kind: 'experience', durationH: 3, tags: ['family'], area: 'Burbank' },
+      { name: { he: 'מרכז גטי', en: 'The Getty Center' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Brentwood' },
+      { name: { he: 'מוזיאון ה־Broad', en: 'The Broad' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Downtown LA' },
+      { name: { he: 'המזח והחוף של סנטה מוניקה', en: 'Santa Monica Pier & beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Santa Monica & Venice', mustSee: true },
       { name: { he: 'טיילת ונציה ביץ׳ והתעלות', en: 'Venice Beach boardwalk & canals' }, kind: 'neighborhood', durationH: 2, tags: ['beach'], area: 'Santa Monica & Venice' },
-      { name: { he: 'מאליבו — חוף אל מטדור', en: 'Malibu — El Matador State Beach' }, kind: 'beach', durationH: 2.5, tags: ['couple', 'nature'] },
+      { name: { he: 'מאליבו — חוף אל מטדור', en: 'Malibu — El Matador State Beach' }, kind: 'beach', durationH: 2.5, tags: ['couple', 'nature'], area: 'Malibu' },
       { name: { he: 'רודיאו דרייב', en: 'Rodeo Drive' }, kind: 'neighborhood', durationH: 1.5, tags: ['shopping', 'luxury'], area: 'Beverly Hills & Pico-Robertson' },
-      { name: { he: 'גרנד סנטרל מרקט', en: 'Grand Central Market' }, kind: 'market', durationH: 1, tags: ['food'] },
+      { name: { he: 'גרנד סנטרל מרקט', en: 'Grand Central Market' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Downtown LA' },
       { name: { he: 'תצפית לשלט הוליווד מלייק הוליווד פארק', en: 'Hollywood Sign view from Lake Hollywood Park' }, kind: 'viewpoint', durationH: 1, tags: ['family'], area: 'Hollywood & West Hollywood' }
     ],
     dayTrips: [
-      { name: { he: 'סן דייגו', en: 'San Diego' }, hours: 2.5, note: { he: 'חופים, העיר העתיקה וגן החיות המפורסם', en: 'Beaches, Old Town and the famous zoo' } },
-      { name: { he: 'סנטה ברברה', en: 'Santa Barbara' }, hours: 2, note: { he: 'עיירת חוף ספרדית ויקבים בסביבה', en: 'A Spanish-style coastal town with wineries nearby' } },
-      { name: { he: 'פארק ג׳ושוע טרי', en: 'Joshua Tree National Park' }, hours: 2.5, note: { he: 'מדבר, סלעים ועצי יהושע; לצאת מוקדם ולהצטייד במים', en: 'Desert, boulders and Joshua trees; start early and carry water' } }
+      { name: { he: 'סן דייגו', en: 'San Diego' }, hours: 2.5, note: { he: 'חופים, העיר העתיקה וגן החיות המפורסם', en: 'Beaches, Old Town and the famous zoo' }, priceIls: { low: 250, high: 650 }, kind: 'neighborhood' },
+      { name: { he: 'סנטה ברברה', en: 'Santa Barbara' }, hours: 2, note: { he: 'עיירת חוף ספרדית ויקבים בסביבה', en: 'A Spanish-style coastal town with wineries nearby' }, priceIls: { low: 230, high: 600 }, kind: 'neighborhood' },
+      { name: { he: 'פארק ג׳ושוע טרי', en: 'Joshua Tree National Park' }, hours: 2.5, note: { he: 'מדבר, סלעים ועצי יהושע; לצאת מוקדם ולהצטייד במים', en: 'Desert, boulders and Joshua trees; start early and carry water' }, priceIls: { low: 150, high: 900 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'העיר ענקית ופרוסה — כמעט הכול ברכב או באפליקציות נסיעה. יש פקקים כבדים, אז כדאי לחלק את הימים לפי אזורים.', en: 'The city is huge and spread out — almost everything is by car or ride app. Traffic is heavy, so plan each day around one area.' } },
     practical: {
@@ -171,24 +173,24 @@ export default [
       { name: { he: 'הנדרסון וסאמרליין', en: 'Henderson & Summerlin' }, forWhom: { he: 'משפחות ומי שמגיע עם רכב ומעדיף שקט', en: 'Families and drivers who prefer quiet' } }
     ],
     attractions: [
-      { name: { he: 'הסטריפ בלילה', en: 'The Strip at night' }, kind: 'experience', durationH: 3, tags: ['nightlife'], area: 'The Strip' },
-      { name: { he: 'מזרקות הבלאג׳יו', en: 'Fountains of Bellagio' }, kind: 'landmark', durationH: 0.5, tags: ['couple'], area: 'The Strip' },
-      { name: { he: 'מופע של סירק דו סוליי', en: 'A Cirque du Soleil show' }, kind: 'experience', durationH: 2, tags: ['nightlife', 'couple'], area: 'The Strip' },
-      { name: { he: 'מופע בספירה (Sphere)', en: 'A show at Sphere' }, kind: 'experience', durationH: 2, tags: ['nightlife'] },
+      { name: { he: 'הסטריפ בלילה', en: 'The Strip at night' }, kind: 'experience', durationH: 3, tags: ['nightlife', 'evening'], area: 'The Strip', mustSee: true },
+      { name: { he: 'מזרקות הבלאג׳יו', en: 'Fountains of Bellagio' }, kind: 'landmark', durationH: 0.5, tags: ['couple', 'evening'], area: 'The Strip', mustSee: true },
+      { name: { he: 'מופע של סירק דו סוליי', en: 'A Cirque du Soleil show' }, kind: 'experience', durationH: 2, tags: ['nightlife', 'couple', 'evening'], area: 'The Strip' },
+      { name: { he: 'מופע בספירה (Sphere)', en: 'A show at Sphere' }, kind: 'experience', durationH: 2, tags: ['nightlife', 'evening'], area: 'The Strip' },
       { name: { he: 'גלגל הענק היי רולר', en: 'High Roller observation wheel' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'The Strip' },
-      { name: { he: 'פרימונט סטריט אקספיריינס', en: 'Fremont Street Experience' }, kind: 'experience', durationH: 2, tags: ['nightlife'], area: 'Downtown (Fremont Street)' },
+      { name: { he: 'פרימונט סטריט אקספיריינס', en: 'Fremont Street Experience' }, kind: 'experience', durationH: 2, tags: ['nightlife', 'evening'], area: 'Downtown (Fremont Street)', mustSee: true },
       { name: { he: 'מוזיאון הניאון', en: 'The Neon Museum' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Downtown (Fremont Street)' },
       { name: { he: 'מוזיאון המאפיה', en: 'The Mob Museum' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Downtown (Fremont Street)' },
       { name: { he: 'פורום שופס בסיזרס פאלאס', en: 'The Forum Shops at Caesars' }, kind: 'experience', durationH: 2, tags: ['shopping', 'luxury'], area: 'The Strip' },
-      { name: { he: 'שלט ״Welcome to Fabulous Las Vegas״', en: 'Welcome to Fabulous Las Vegas sign' }, kind: 'landmark', durationH: 0.5, tags: [], area: 'The Strip' },
-      { name: { he: 'קניון הסלע האדום', en: 'Red Rock Canyon National Conservation Area' }, kind: 'nature', durationH: 3, tags: ['nature', 'adventure'] },
-      { name: { he: 'שבעת ההרים הקסומים', en: 'Seven Magic Mountains' }, kind: 'landmark', durationH: 1.5, tags: ['culture'] }
+      { name: { he: 'שלט ״Welcome to Fabulous Las Vegas״', en: 'Welcome to Fabulous Las Vegas sign' }, kind: 'landmark', durationH: 0.5, tags: ['city'], area: 'The Strip' },
+      { name: { he: 'קניון הסלע האדום', en: 'Red Rock Canyon National Conservation Area' }, kind: 'nature', durationH: 3, tags: ['nature', 'adventure'], area: 'Henderson & Summerlin' },
+      { name: { he: 'שבעת ההרים הקסומים', en: 'Seven Magic Mountains' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Jean' }
     ],
     dayTrips: [
-      { name: { he: 'סכר הובר', en: 'Hoover Dam' }, hours: 0.75, note: { he: 'סכר ענק על נהר הקולורדו; אפשר לשלב בדרך לגרנד קניון', en: 'A huge dam on the Colorado River; easy to combine with the Grand Canyon' } },
-      { name: { he: 'עמק האש', en: 'Valley of Fire State Park' }, hours: 1, note: { he: 'סלעים אדומים וכתובות סלע; לא בצהרי הקיץ', en: 'Red rock and petroglyphs; avoid summer middays' } },
-      { name: { he: 'הגרנד קניון — השוליים המערביים והסקייווק', en: 'Grand Canyon West & Skywalk' }, hours: 2.5, note: { he: 'הקרוב ביותר לווגאס; מסלול שמנוהל בנפרד מהפארק הלאומי', en: 'The closest rim to Vegas; run separately from the national park' } },
-      { name: { he: 'הגרנד קניון — השוליים הדרומיים', en: 'Grand Canyon South Rim' }, hours: 4.5, note: { he: 'הנופים הקלאסיים של הפארק הלאומי; יום ארוך מאוד — עדיף ללון לילה או לטוס בטיסת נוף', en: 'The classic national-park views; a very long day — better with an overnight or a scenic flight' } }
+      { name: { he: 'סכר הובר', en: 'Hoover Dam' }, hours: 0.75, note: { he: 'סכר ענק על נהר הקולורדו; אפשר לשלב בדרך לגרנד קניון', en: 'A huge dam on the Colorado River; easy to combine with the Grand Canyon' }, priceIls: { low: 220, high: 400 }, kind: 'landmark' },
+      { name: { he: 'עמק האש', en: 'Valley of Fire State Park' }, hours: 1, note: { he: 'סלעים אדומים וכתובות סלע; לא בצהרי הקיץ', en: 'Red rock and petroglyphs; avoid summer middays' }, priceIls: { low: 100, high: 750 }, kind: 'nature' },
+      { name: { he: 'הגרנד קניון — השוליים המערביים והסקייווק', en: 'Grand Canyon West & Skywalk' }, hours: 2.5, note: { he: 'הקרוב ביותר לווגאס; מסלול שמנוהל בנפרד מהפארק הלאומי', en: 'The closest rim to Vegas; run separately from the national park' }, priceIls: { low: 550, high: 1100 }, kind: 'viewpoint' },
+      { name: { he: 'הגרנד קניון — השוליים הדרומיים', en: 'Grand Canyon South Rim' }, hours: 4.5, note: { he: 'הנופים הקלאסיים של הפארק הלאומי; יום ארוך מאוד — עדיף ללון לילה או לטוס בטיסת נוף', en: 'The classic national-park views; a very long day — better with an overnight or a scenic flight' }, priceIls: { low: 670, high: 1000 }, kind: 'viewpoint' }
     ],
     transport: { carRecommended: false, note: { he: 'על הסטריפ זזים ברגל, במונורייל ובאפליקציות נסיעה — המרחקים בין המלונות גדולים ממה שנראה. לטיולי היום כדאי לשכור רכב או להצטרף לסיור מאורגן.', en: 'On the Strip you get around on foot, by monorail and ride apps — distances between resorts are longer than they look. Rent a car or join a tour for day trips.' } },
     practical: {
@@ -220,23 +222,23 @@ export default [
       { name: { he: 'פוארטו מורלוס', en: 'Puerto Morelos' }, forWhom: { he: 'משפחות שמחפשות שקט קרוב לשדה', en: 'Families wanting quiet near the airport' } }
     ],
     attractions: [
-      { name: { he: 'חוף דלפינס', en: 'Playa Delfines' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Cancún Hotel Zone' },
-      { name: { he: 'המוזיאון התת־ימי MUSA', en: 'MUSA Underwater Museum of Art' }, kind: 'experience', durationH: 2, tags: ['adventure'] },
-      { name: { he: 'מרקדו 28', en: 'Mercado 28' }, kind: 'market', durationH: 1, tags: ['shopping'] },
+      { name: { he: 'חוף דלפינס', en: 'Playa Delfines' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Cancún Hotel Zone', mustSee: true },
+      { name: { he: 'המוזיאון התת־ימי MUSA', en: 'MUSA Underwater Museum of Art' }, kind: 'experience', durationH: 2, tags: ['adventure'], area: 'Cancún Hotel Zone' },
+      { name: { he: 'מרקדו 28', en: 'Mercado 28' }, kind: 'market', durationH: 1, tags: ['shopping'], area: 'Downtown Cancún' },
       { name: { he: 'השדרה החמישית בפלאיה דל כרמן', en: 'Quinta Avenida, Playa del Carmen' }, kind: 'neighborhood', durationH: 2, tags: ['shopping', 'nightlife'], area: 'Playa del Carmen' },
-      { name: { he: 'פארק שקסרט', en: 'Xcaret Park' }, kind: 'experience', durationH: 8, tags: ['family', 'with_children', 'nature'] },
-      { name: { he: 'פארק של־הא', en: 'Xel-Há Park' }, kind: 'experience', durationH: 6, tags: ['family', 'with_children'] },
-      { name: { he: 'אקומל — שחייה עם צבי ים', en: 'Akumal — swimming with sea turtles' }, kind: 'beach', durationH: 3, tags: ['nature', 'family'] },
-      { name: { he: 'האתר הארכאולוגי בטולום', en: 'Tulum archaeological site' }, kind: 'landmark', durationH: 2, tags: ['culture', 'beach'], area: 'Tulum' },
+      { name: { he: 'פארק שקסרט', en: 'Xcaret Park' }, kind: 'experience', durationH: 8, tags: ['family', 'with_children', 'nature', 'teens'], area: 'Playa del Carmen', mustSee: true },
+      { name: { he: 'פארק של־הא', en: 'Xel-Há Park' }, kind: 'experience', durationH: 6, tags: ['family', 'with_children', 'teens'], area: 'Akumal' },
+      { name: { he: 'אקומל — שחייה עם צבי ים', en: 'Akumal — swimming with sea turtles' }, kind: 'beach', durationH: 3, tags: ['nature', 'family'], area: 'Akumal' },
+      { name: { he: 'האתר הארכאולוגי בטולום', en: 'Tulum archaeological site' }, kind: 'landmark', durationH: 2, tags: ['culture', 'beach'], area: 'Tulum', mustSee: true },
       { name: { he: 'הגראן סנוטה', en: 'Gran Cenote' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'Tulum' },
-      { name: { he: 'סנוטה דוס אוחוס', en: 'Cenote Dos Ojos' }, kind: 'nature', durationH: 2, tags: ['adventure', 'nature'] },
-      { name: { he: 'חורבות קובה', en: 'Cobá ruins' }, kind: 'landmark', durationH: 2.5, tags: ['culture'] }
+      { name: { he: 'סנוטה דוס אוחוס', en: 'Cenote Dos Ojos' }, kind: 'nature', durationH: 2, tags: ['adventure', 'nature', 'teens'], area: 'Tulum' },
+      { name: { he: 'חורבות קובה', en: 'Cobá ruins' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Tulum' }
     ],
     dayTrips: [
-      { name: { he: 'צ׳יצ׳ן איצה', en: 'Chichén Itzá' }, hours: 2.5, note: { he: 'לצאת מוקדם לפני החום וההמונים; משלבים לרוב עם סנוטה איק קיל', en: 'Leave early to beat heat and crowds; usually combined with Cenote Ik Kil' } },
-      { name: { he: 'איסלה מוחרס', en: 'Isla Mujeres' }, hours: 0.5, note: { he: 'מעבורת מקנקון; מסתובבים באי בעגלת גולף', en: 'Ferry from Cancún; get around the island by golf cart' } },
-      { name: { he: 'קוסומל', en: 'Cozumel' }, hours: 0.75, note: { he: 'מעבורת מפלאיה דל כרמן; צלילה ושנורקל בשוניות', en: 'Ferry from Playa del Carmen; reef diving and snorkelling' } },
-      { name: { he: 'האי הולבוש', en: 'Holbox' }, hours: 3, note: { he: 'נסיעה ומעבורת; עדיף לפחות לילה אחד', en: 'Drive plus ferry; better with at least one night' } }
+      { name: { he: 'צ׳יצ׳ן איצה', en: 'Chichén Itzá' }, hours: 2.5, note: { he: 'לצאת מוקדם לפני החום וההמונים; משלבים לרוב עם סנוטה איק קיל', en: 'Leave early to beat heat and crowds; usually combined with Cenote Ik Kil' }, priceIls: { low: 260, high: 480 }, kind: 'landmark' },
+      { name: { he: 'איסלה מוחרס', en: 'Isla Mujeres' }, hours: 0.5, note: { he: 'מעבורת מקנקון; מסתובבים באי בעגלת גולף', en: 'Ferry from Cancún; get around the island by golf cart' }, priceIls: { low: 80, high: 300 }, kind: 'beach' },
+      { name: { he: 'קוסומל', en: 'Cozumel' }, hours: 0.75, note: { he: 'מעבורת מפלאיה דל כרמן; צלילה ושנורקל בשוניות', en: 'Ferry from Playa del Carmen; reef diving and snorkelling' }, priceIls: { low: 200, high: 400 }, kind: 'beach' },
+      { name: { he: 'האי הולבוש', en: 'Holbox' }, hours: 3, note: { he: 'נסיעה ומעבורת; עדיף לפחות לילה אחד', en: 'Drive plus ferry; better with at least one night' }, priceIls: { low: 200, high: 400 }, kind: 'beach' }
     ],
     transport: { carRecommended: true, note: { he: 'מי שנשאר בריזורט מסתדר בהסעות. כדי לטייל בין סנוטים, טולום וחורבות — רכב שכור נוח, ויש גם אוטובוסי ADO נוחים בין הערים.', en: 'Resort stays work fine with transfers. To explore cenotes, Tulum and ruins a rental car is handy; comfortable ADO buses also link the towns.' } },
     practical: {
@@ -269,23 +271,23 @@ export default [
       { name: { he: 'החוף הקריבי (פוארטו ויחו)', en: 'Caribbean coast (Puerto Viejo)' }, forWhom: { he: 'אווירה קריבית רגועה ותקציב נמוך יותר', en: 'A laid-back Caribbean feel and lower budgets' } }
     ],
     attractions: [
-      { name: { he: 'הפארק הלאומי הר הגעש ארנל', en: 'Arenal Volcano National Park' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'La Fortuna & Arenal' },
+      { name: { he: 'הפארק הלאומי הר הגעש ארנל', en: 'Arenal Volcano National Park' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'La Fortuna & Arenal', mustSee: true },
       { name: { he: 'מעיינות חמים בלה פורטונה', en: 'Hot springs in La Fortuna' }, kind: 'experience', durationH: 3, tags: ['relaxation', 'couple'], area: 'La Fortuna & Arenal' },
       { name: { he: 'מפל לה פורטונה', en: 'La Fortuna Waterfall' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'La Fortuna & Arenal' },
       { name: { he: 'הגשרים התלויים של ארנל', en: 'Arenal Hanging Bridges' }, kind: 'nature', durationH: 2.5, tags: ['family', 'nature'], area: 'La Fortuna & Arenal' },
-      { name: { he: 'שמורת יער הענן מונטוורדה', en: 'Monteverde Cloud Forest Reserve' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'Monteverde' },
-      { name: { he: 'אומגות במונטוורדה', en: 'Ziplining in Monteverde' }, kind: 'experience', durationH: 2.5, tags: ['adventure'], area: 'Monteverde' },
-      { name: { he: 'סיור לילה ביער', en: 'A guided night walk in the forest' }, kind: 'experience', durationH: 2, tags: ['family', 'nature'] },
-      { name: { he: 'הפארק הלאומי מנואל אנטוניו', en: 'Manuel Antonio National Park' }, kind: 'nature', durationH: 4, tags: ['beach', 'family', 'nature'], area: 'Manuel Antonio' },
-      { name: { he: 'ריו סלסטה והפארק הלאומי טנוריו', en: 'Río Celeste & Tenorio Volcano National Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'adventure'] },
-      { name: { he: 'רפטינג בנהר פקוארה', en: 'Whitewater rafting on the Pacuare River' }, kind: 'experience', durationH: 6, tags: ['adventure'] },
+      { name: { he: 'שמורת יער הענן מונטוורדה', en: 'Monteverde Cloud Forest Reserve' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'Monteverde', mustSee: true },
+      { name: { he: 'אומגות במונטוורדה', en: 'Ziplining in Monteverde' }, kind: 'experience', durationH: 2.5, tags: ['adventure', 'teens'], area: 'Monteverde' },
+      { name: { he: 'סיור לילה ביער', en: 'A guided night walk in the forest' }, kind: 'experience', durationH: 2, tags: ['family', 'nature', 'evening'] },
+      { name: { he: 'הפארק הלאומי מנואל אנטוניו', en: 'Manuel Antonio National Park' }, kind: 'nature', durationH: 4, tags: ['beach', 'family', 'nature'], area: 'Manuel Antonio', mustSee: true },
+      { name: { he: 'ריו סלסטה והפארק הלאומי טנוריו', en: 'Río Celeste & Tenorio Volcano National Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'adventure'], area: 'La Fortuna & Arenal' },
+      { name: { he: 'רפטינג בנהר פקוארה', en: 'Whitewater rafting on the Pacuare River' }, kind: 'experience', durationH: 6, tags: ['adventure', 'teens'], area: 'Turrialba' },
       { name: { he: 'חוף טמרינדו', en: 'Tamarindo Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Guanacaste (Tamarindo)' },
       { name: { he: 'הפארק הלאומי קאוויטה', en: 'Cahuita National Park' }, kind: 'nature', durationH: 3, tags: ['beach', 'nature'], area: 'Caribbean coast (Puerto Viejo)' }
     ],
     dayTrips: [
-      { name: { he: 'הר הגעש פואס', en: 'Poás Volcano' }, hours: 1.5, note: { he: 'מסן חוסה; לוע פעיל — להגיע בבוקר לפני העננים, ולבדוק מראש שהפארק פתוח', en: 'From San José; an active crater — go early before the clouds, and check the park is open' } },
-      { name: { he: 'גני המפלים לה פאס', en: 'La Paz Waterfall Gardens' }, hours: 1.5, note: { he: 'מפלים ובעלי חיים — טוב לילדים', en: 'Waterfalls and wildlife — good for kids' } },
-      { name: { he: 'הר הגעש אירסו', en: 'Irazú Volcano' }, hours: 1.5, note: { he: 'הגבוה בהרי הגעש במדינה; קר למעלה', en: 'The country’s highest volcano; cold at the top' } }
+      { name: { he: 'הר הגעש פואס', en: 'Poás Volcano' }, hours: 1.5, note: { he: 'מסן חוסה; לוע פעיל — להגיע בבוקר לפני העננים, ולבדוק מראש שהפארק פתוח', en: 'From San José; an active crater — go early before the clouds, and check the park is open' }, priceIls: { low: 220, high: 450 }, kind: 'nature' },
+      { name: { he: 'גני המפלים לה פאס', en: 'La Paz Waterfall Gardens' }, hours: 1.5, note: { he: 'מפלים ובעלי חיים — טוב לילדים', en: 'Waterfalls and wildlife — good for kids' }, priceIls: { low: 200, high: 450 }, kind: 'park' },
+      { name: { he: 'הר הגעש אירסו', en: 'Irazú Volcano' }, hours: 1.5, note: { he: 'הגבוה בהרי הגעש במדינה; קר למעלה', en: 'The country’s highest volcano; cold at the top' }, priceIls: { low: 100, high: 400 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור (עדיף 4X4) הוא הדרך הנוחה לטייל; הכבישים איטיים, אז לתכנן פחות קילומטרים ביום. יש גם שאטלים בין אזורי התיירות.', en: 'A rental car (ideally 4x4) is the easiest way around; roads are slow, so plan short daily distances. Shuttles also link the tourist areas.' } },
     practical: {
@@ -317,24 +319,24 @@ export default [
       { name: { he: 'העמק הקדוש', en: 'Sacred Valley' }, forWhom: { he: 'נמוך יותר מקוסקו — טוב להתאקלמות ולמשפחות', en: 'Lower than Cusco — good for acclimatising and for families' } }
     ],
     attractions: [
-      { name: { he: 'מאצ׳ו פיצ׳ו', en: 'Machu Picchu' }, kind: 'landmark', durationH: 4, tags: ['culture', 'adventure'] },
-      { name: { he: 'פלאסה דה ארמס והקתדרלה של קוסקו', en: 'Plaza de Armas & Cusco Cathedral' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Cusco' },
+      { name: { he: 'מאצ׳ו פיצ׳ו', en: 'Machu Picchu' }, kind: 'landmark', durationH: 4, tags: ['culture', 'adventure'], area: 'Aguas Calientes', mustSee: true },
+      { name: { he: 'פלאסה דה ארמס והקתדרלה של קוסקו', en: 'Plaza de Armas & Cusco Cathedral' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Cusco', mustSee: true },
       { name: { he: 'קוריקנצ׳ה', en: 'Qorikancha' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Cusco' },
       { name: { he: 'סקסאיוואמן', en: 'Sacsayhuamán' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Cusco' },
       { name: { he: 'שוק סן פדרו', en: 'San Pedro Market' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Cusco' },
       { name: { he: 'פיסאק — השוק והחורבות', en: 'Pisac market & ruins' }, kind: 'landmark', durationH: 3, tags: ['culture', 'shopping'], area: 'Sacred Valley' },
-      { name: { he: 'המבצר באויאנטאיטמבו', en: 'Ollantaytambo fortress' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Sacred Valley' },
+      { name: { he: 'המבצר באויאנטאיטמבו', en: 'Ollantaytambo fortress' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Sacred Valley', mustSee: true },
       { name: { he: 'מוראי ובריכות המלח של מאראס', en: 'Moray & the Maras salt pans' }, kind: 'landmark', durationH: 3, tags: ['culture', 'nature'], area: 'Sacred Valley' },
-      { name: { he: 'המרכז ההיסטורי של לימה', en: 'Lima historic centre' }, kind: 'landmark', durationH: 2, tags: ['culture'] },
-      { name: { he: 'מוזיאון לארקו', en: 'Larco Museum' }, kind: 'museum', durationH: 2, tags: ['culture'] },
+      { name: { he: 'המרכז ההיסטורי של לימה', en: 'Lima historic centre' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Lima Centro' },
+      { name: { he: 'מוזיאון לארקו', en: 'Larco Museum' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Pueblo Libre (Lima)' },
       { name: { he: 'וואקה פוקיאנה', en: 'Huaca Pucllana' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Miraflores (Lima)' },
       { name: { he: 'המלקון של מירפלורס ופארק האהבה', en: 'Miraflores Malecón & Parque del Amor' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple'], area: 'Miraflores (Lima)' },
       { name: { he: 'בארנקו', en: 'Barranco' }, kind: 'neighborhood', durationH: 2, tags: ['nightlife', 'food'], area: 'Barranco (Lima)' }
     ],
     dayTrips: [
-      { name: { he: 'הר הקשת (ויניקונקה)', en: 'Rainbow Mountain (Vinicunca)' }, hours: 3, note: { he: 'מקוסקו; יציאה לפני עלות השחר והליכה בגובה של כ־5,000 מטר — רק אחרי התאקלמות', en: 'From Cusco; a pre-dawn start and a walk at about 5,000 m — only once acclimatised' } },
-      { name: { he: 'אגם הומנטאי', en: 'Humantay Lake' }, hours: 3, note: { he: 'מקוסקו; עלייה תלולה לאגם טורקיז בגובה רב', en: 'From Cusco; a steep climb to a turquoise high-altitude lake' } },
-      { name: { he: 'פראקס ואיי בייסטס', en: 'Paracas & the Ballestas Islands' }, hours: 3.5, note: { he: 'מלימה; שייט לאריות ים ולציפורים — יום ארוך, עדיף ללון', en: 'From Lima; a boat trip to sea lions and birds — a long day, better with an overnight' } }
+      { name: { he: 'הר הקשת (ויניקונקה)', en: 'Rainbow Mountain (Vinicunca)' }, hours: 3, note: { he: 'מקוסקו; יציאה לפני עלות השחר והליכה בגובה של כ־5,000 מטר — רק אחרי התאקלמות', en: 'From Cusco; a pre-dawn start and a walk at about 5,000 m — only once acclimatised' }, priceIls: { low: 110, high: 230 }, kind: 'nature' },
+      { name: { he: 'אגם הומנטאי', en: 'Humantay Lake' }, hours: 3, note: { he: 'מקוסקו; עלייה תלולה לאגם טורקיז בגובה רב', en: 'From Cusco; a steep climb to a turquoise high-altitude lake' }, priceIls: { low: 110, high: 230 }, kind: 'nature' },
+      { name: { he: 'פראקס ואיי בייסטס', en: 'Paracas & the Ballestas Islands' }, hours: 3.5, note: { he: 'מלימה; שייט לאריות ים ולציפורים — יום ארוך, עדיף ללון', en: 'From Lima; a boat trip to sea lions and birds — a long day, better with an overnight' }, priceIls: { low: 220, high: 450 }, kind: 'nature' }
     ],
     transport: { carRecommended: false, note: { he: 'בין לימה לקוסקו טסים (כשעה ורבע). למאצ׳ו פיצ׳ו מגיעים ברכבת לאגואס קליינטס ומשם באוטובוס. כרטיסי הכניסה והרכבת מוגבלים — להזמין הרבה זמן מראש.', en: 'Fly between Lima and Cusco (about 1¼ hours). Reach Machu Picchu by train to Aguas Calientes, then a bus. Entry and train tickets are limited — book well ahead.' } },
     practical: {
@@ -367,23 +369,23 @@ export default [
       { name: { he: 'פוארטו מדרו', en: 'Puerto Madero' }, forWhom: { he: 'מודרני, שקט ויוקרתי ליד המים', en: 'Modern, quiet and upmarket by the water' } }
     ],
     attractions: [
-      { name: { he: 'בית הקברות רקולטה', en: 'Recoleta Cemetery' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Recoleta' },
+      { name: { he: 'בית הקברות רקולטה', en: 'Recoleta Cemetery' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Recoleta', mustSee: true },
       { name: { he: 'חנות הספרים אל אתנאו גרנד ספלנדיד', en: 'El Ateneo Grand Splendid bookshop' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Recoleta' },
-      { name: { he: 'לה בוקה וקמיניטו', en: 'La Boca & Caminito' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'] },
+      { name: { he: 'לה בוקה וקמיניטו', en: 'La Boca & Caminito' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'], area: 'La Boca', mustSee: true },
       { name: { he: 'יריד סן טלמו', en: 'San Telmo Sunday fair' }, kind: 'market', durationH: 2, tags: ['shopping', 'culture'], area: 'San Telmo' },
-      { name: { he: 'פלאסה דה מאיו והקאסה רוסדה', en: 'Plaza de Mayo & Casa Rosada' }, kind: 'landmark', durationH: 1, tags: ['culture'] },
-      { name: { he: 'תיאטרון קולון', en: 'Teatro Colón' }, kind: 'landmark', durationH: 1, tags: ['culture'] },
-      { name: { he: 'קפה טורטוני', en: 'Café Tortoni' }, kind: 'landmark', durationH: 0.5, tags: ['food'] },
-      { name: { he: 'מופע טנגו', en: 'A tango show' }, kind: 'experience', durationH: 3, tags: ['nightlife', 'couple'] },
-      { name: { he: 'ארוחה בפרייה (מסעדת בשרים)', en: 'Dinner at a parrilla (steakhouse)' }, kind: 'experience', durationH: 2, tags: ['food'] },
+      { name: { he: 'פלאסה דה מאיו והקאסה רוסדה', en: 'Plaza de Mayo & Casa Rosada' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Centro (Microcentro)', mustSee: true },
+      { name: { he: 'תיאטרון קולון', en: 'Teatro Colón' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Centro (Microcentro)' },
+      { name: { he: 'קפה טורטוני', en: 'Café Tortoni' }, kind: 'landmark', durationH: 0.5, tags: ['food'], area: 'Centro (Microcentro)' },
+      { name: { he: 'מופע טנגו', en: 'A tango show' }, kind: 'experience', durationH: 3, tags: ['nightlife', 'couple', 'evening'] },
+      { name: { he: 'ארוחה בפרייה (מסעדת בשרים)', en: 'Dinner at a parrilla (steakhouse)' }, kind: 'experience', durationH: 2, tags: ['food', 'evening'] },
       { name: { he: 'מוזיאון MALBA', en: 'MALBA museum' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Palermo' },
       { name: { he: 'פארקי פלרמו וגן הוורדים', en: 'Bosques de Palermo & the Rose Garden' }, kind: 'park', durationH: 2, tags: ['family'], area: 'Palermo' },
       { name: { he: 'פוארטו מדרו וגשר האישה', en: 'Puerto Madero & Puente de la Mujer' }, kind: 'neighborhood', durationH: 1.5, tags: ['couple'], area: 'Puerto Madero' },
-      { name: { he: 'שכונת אונסה והחיים היהודיים', en: 'Once and Jewish Buenos Aires' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture', 'kosher'] }
+      { name: { he: 'שכונת אונסה והחיים היהודיים', en: 'Once and Jewish Buenos Aires' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture', 'kosher'], area: 'Once (Balvanera)' }
     ],
     dayTrips: [
-      { name: { he: 'טיגרה והדלתא', en: 'Tigre & the Paraná Delta' }, hours: 1, note: { he: 'ברכבת; שייט בתעלות ושוק', en: 'By train; canal boat rides and a market' } },
-      { name: { he: 'קולוניה דל סקרמנטו (אורוגוואי)', en: 'Colonia del Sacramento (Uruguay)' }, hours: 1.25, note: { he: 'מעבורת מהירה; עיירה קולוניאלית — לקחת דרכון', en: 'Fast ferry; a colonial town — bring your passport' } },
+      { name: { he: 'טיגרה והדלתא', en: 'Tigre & the Paraná Delta' }, hours: 1, note: { he: 'ברכבת; שייט בתעלות ושוק', en: 'By train; canal boat rides and a market' }, priceIls: { low: 40, high: 300 }, kind: 'nature' },
+      { name: { he: 'קולוניה דל סקרמנטו (אורוגוואי)', en: 'Colonia del Sacramento (Uruguay)' }, hours: 1.25, note: { he: 'מעבורת מהירה; עיירה קולוניאלית — לקחת דרכון', en: 'Fast ferry; a colonial town — bring your passport' }, priceIls: { low: 250, high: 450 }, kind: 'neighborhood' },
       { name: { he: 'מפלי איגואסו', en: 'Iguazú Falls' }, hours: 2, note: { he: 'טיסה פנימית; לא מתאים כיום אחד — כדאי לפחות שני לילות כדי לראות את הצד הארגנטינאי והברזילאי', en: 'A domestic flight; not a day trip — allow at least two nights to see the Argentine and Brazilian sides' } },
       { name: { he: 'פטגוניה — אל קלפטה וקרחון פריטו מורנו', en: 'Patagonia — El Calafate & Perito Moreno Glacier' }, hours: 3.5, note: { he: 'טיסה פנימית; צריך לפחות 3–4 ימים, בעיקר באוקטובר–אפריל', en: 'A domestic flight; needs at least 3–4 days, best October–April' } }
     ],
@@ -417,24 +419,24 @@ export default [
       { name: { he: 'סנטה תרזה', en: 'Santa Teresa' }, forWhom: { he: 'אמנות ואווירה בוהמיינית על הגבעה; זהירות בשעות הלילה', en: 'Art and a bohemian hilltop vibe; take care at night' } }
     ],
     attractions: [
-      { name: { he: 'ישו הגואל (קורקובדו)', en: 'Christ the Redeemer (Corcovado)' }, kind: 'landmark', durationH: 3, tags: ['culture'] },
-      { name: { he: 'הר הסוכר', en: 'Sugarloaf Mountain' }, kind: 'viewpoint', durationH: 2.5, tags: ['couple'] },
+      { name: { he: 'ישו הגואל (קורקובדו)', en: 'Christ the Redeemer (Corcovado)' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'Cosme Velho', mustSee: true },
+      { name: { he: 'הר הסוכר', en: 'Sugarloaf Mountain' }, kind: 'viewpoint', durationH: 2.5, tags: ['couple'], area: 'Urca', mustSee: true },
       { name: { he: 'חוף קופקבנה', en: 'Copacabana Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Copacabana' },
-      { name: { he: 'חוף איפנמה ושקיעה בארפואדור', en: 'Ipanema Beach & sunset at Arpoador' }, kind: 'beach', durationH: 3, tags: ['beach', 'couple'], area: 'Ipanema & Leblon' },
-      { name: { he: 'מדרגות סלרון', en: 'Selarón Steps' }, kind: 'landmark', durationH: 0.5, tags: ['culture'] },
+      { name: { he: 'חוף איפנמה ושקיעה בארפואדור', en: 'Ipanema Beach & sunset at Arpoador' }, kind: 'beach', durationH: 3, tags: ['beach', 'couple', 'evening'], area: 'Ipanema & Leblon', mustSee: true },
+      { name: { he: 'מדרגות סלרון', en: 'Selarón Steps' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Lapa' },
       { name: { he: 'סנטה תרזה והחשמלית', en: 'Santa Teresa & its tram' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Santa Teresa' },
-      { name: { he: 'לאפה — סמבה וחיי לילה', en: 'Lapa — samba & nightlife' }, kind: 'neighborhood', durationH: 3, tags: ['nightlife'] },
-      { name: { he: 'הפארק הלאומי טיז׳וקה', en: 'Tijuca National Park' }, kind: 'nature', durationH: 3, tags: ['nature'] },
-      { name: { he: 'הגן הבוטני', en: 'Rio Botanical Garden' }, kind: 'park', durationH: 2, tags: ['family', 'nature'] },
-      { name: { he: 'לגונת רודריגו דה פרייטס', en: 'Rodrigo de Freitas Lagoon' }, kind: 'park', durationH: 1.5, tags: ['family'] },
-      { name: { he: 'מוזיאון המחר', en: 'Museum of Tomorrow' }, kind: 'museum', durationH: 2, tags: ['culture'] },
-      { name: { he: 'סיור באצטדיון מרקנה', en: 'Maracanã Stadium tour' }, kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'רחיפה מפדרה בוניטה', en: 'Hang-gliding from Pedra Bonita' }, kind: 'experience', durationH: 2, tags: ['adventure'] }
+      { name: { he: 'לאפה — סמבה וחיי לילה', en: 'Lapa — samba & nightlife' }, kind: 'neighborhood', durationH: 3, tags: ['nightlife', 'evening', 'adults'], area: 'Lapa' },
+      { name: { he: 'הפארק הלאומי טיז׳וקה', en: 'Tijuca National Park' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'Tijuca Forest' },
+      { name: { he: 'הגן הבוטני', en: 'Rio Botanical Garden' }, kind: 'park', durationH: 2, tags: ['family', 'nature'], area: 'Jardim Botânico' },
+      { name: { he: 'לגונת רודריגו דה פרייטס', en: 'Rodrigo de Freitas Lagoon' }, kind: 'park', durationH: 1.5, tags: ['family'], area: 'Lagoa' },
+      { name: { he: 'מוזיאון המחר', en: 'Museum of Tomorrow' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Centro' },
+      { name: { he: 'סיור באצטדיון מרקנה', en: 'Maracanã Stadium tour' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Maracanã' },
+      { name: { he: 'רחיפה מפדרה בוניטה', en: 'Hang-gliding from Pedra Bonita' }, kind: 'experience', durationH: 2, tags: ['adventure', 'teens'], area: 'São Conrado' }
     ],
     dayTrips: [
-      { name: { he: 'פטרופוליס', en: 'Petrópolis' }, hours: 1.5, note: { he: 'עיר הקיסרות בהרים — ארמונות ואקלים קריר', en: 'The imperial city in the hills — palaces and cooler air' } },
-      { name: { he: 'אילה גרנדה', en: 'Ilha Grande' }, hours: 3, note: { he: 'נסיעה וסירה לאי ללא מכוניות; עדיף ללון לילה או שניים', en: 'Road plus boat to a car-free island; better with a night or two' } },
-      { name: { he: 'בוזיוס', en: 'Búzios' }, hours: 3, note: { he: 'עיירת נופש עם מפרצים וחופים; יום ארוך', en: 'A resort town of coves and beaches; a long day' } }
+      { name: { he: 'פטרופוליס', en: 'Petrópolis' }, hours: 1.5, note: { he: 'עיר הקיסרות בהרים — ארמונות ואקלים קריר', en: 'The imperial city in the hills — palaces and cooler air' }, priceIls: { low: 40, high: 400 }, kind: 'neighborhood' },
+      { name: { he: 'אילה גרנדה', en: 'Ilha Grande' }, hours: 3, note: { he: 'נסיעה וסירה לאי ללא מכוניות; עדיף ללון לילה או שניים', en: 'Road plus boat to a car-free island; better with a night or two' }, priceIls: { low: 200, high: 500 }, kind: 'beach' },
+      { name: { he: 'בוזיוס', en: 'Búzios' }, hours: 3, note: { he: 'עיירת נופש עם מפרצים וחופים; יום ארוך', en: 'A resort town of coves and beaches; a long day' }, priceIls: { low: 130, high: 350 }, kind: 'beach' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו בין אזורי החוף והמרכז, ומוניות באפליקציה. כדאי לא להסתובב עם חפצי ערך על החוף, ולהעדיף נסיעה על פני הליכה ברחובות ריקים בלילה.', en: 'The metro links the beach districts and centre, plus app taxis. Don’t carry valuables on the beach, and prefer a ride over walking empty streets at night.' } },
     practical: {
@@ -467,25 +469,25 @@ export default [
       { name: { he: 'סארי הילס', en: 'Surry Hills' }, forWhom: { he: 'אוהבי אוכל, בתי קפה וברים', en: 'Food lovers — cafés and bars' } }
     ],
     attractions: [
-      { name: { he: 'בית האופרה של סידני', en: 'Sydney Opera House' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'The Rocks & Circular Quay' },
+      { name: { he: 'בית האופרה של סידני', en: 'Sydney Opera House' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'The Rocks & Circular Quay', mustSee: true },
       { name: { he: 'טיפוס על גשר הנמל (BridgeClimb)', en: 'Sydney Harbour BridgeClimb' }, kind: 'experience', durationH: 3.5, tags: ['adventure'], area: 'The Rocks & Circular Quay' },
       { name: { he: 'הרוקס', en: 'The Rocks' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture', 'food'], area: 'The Rocks & Circular Quay' },
-      { name: { he: 'הגן הבוטני המלכותי וכיסא גברת מקווארי', en: 'Royal Botanic Garden & Mrs Macquarie’s Chair' }, kind: 'park', durationH: 2, tags: ['family', 'couple'] },
-      { name: { he: 'הגלריה לאמנות של ניו סאות׳ ויילס', en: 'Art Gallery of New South Wales' }, kind: 'museum', durationH: 2, tags: ['culture'] },
-      { name: { he: 'חוף בונדיי', en: 'Bondi Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Bondi' },
+      { name: { he: 'הגן הבוטני המלכותי וכיסא גברת מקווארי', en: 'Royal Botanic Garden & Mrs Macquarie’s Chair' }, kind: 'park', durationH: 2, tags: ['family', 'couple'], area: 'The Rocks & Circular Quay' },
+      { name: { he: 'הגלריה לאמנות של ניו סאות׳ ויילס', en: 'Art Gallery of New South Wales' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'The Domain' },
+      { name: { he: 'חוף בונדיי', en: 'Bondi Beach' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Bondi', mustSee: true, months: [1, 2, 3, 4, 11, 12] },
       { name: { he: 'מסלול החוף בונדיי–קוג׳י', en: 'Bondi to Coogee coastal walk' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'Bondi' },
-      { name: { he: 'מעבורת וחוף מנלי', en: 'Manly ferry & beach' }, kind: 'experience', durationH: 4, tags: ['beach', 'family'], area: 'Manly' },
-      { name: { he: 'גן החיות טרונגה', en: 'Taronga Zoo' }, kind: 'park', durationH: 4, tags: ['family', 'with_children'] },
+      { name: { he: 'מעבורת וחוף מנלי', en: 'Manly ferry & beach' }, kind: 'experience', durationH: 4, tags: ['beach', 'family'], area: 'Manly', mustSee: true },
+      { name: { he: 'גן החיות טרונגה', en: 'Taronga Zoo' }, kind: 'park', durationH: 4, tags: ['family', 'with_children'], area: 'Mosman' },
       { name: { he: 'אקווריום סי לייף סידני', en: 'SEA LIFE Sydney Aquarium' }, kind: 'experience', durationH: 2, tags: ['family', 'with_children'], area: 'Darling Harbour' },
-      { name: { he: 'שוק הדגים של סידני', en: 'Sydney Fish Market' }, kind: 'market', durationH: 1.5, tags: ['food'] },
-      { name: { he: 'המוזיאון היהודי של סידני', en: 'Sydney Jewish Museum' }, kind: 'museum', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'ווטסונס ביי ותצפית הגאפ', en: 'Watsons Bay & The Gap' }, kind: 'viewpoint', durationH: 2, tags: ['couple'] }
+      { name: { he: 'שוק הדגים של סידני', en: 'Sydney Fish Market' }, kind: 'market', durationH: 1.5, tags: ['food'], area: 'Pyrmont' },
+      { name: { he: 'המוזיאון היהודי של סידני', en: 'Sydney Jewish Museum' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Darlinghurst' },
+      { name: { he: 'ווטסונס ביי ותצפית הגאפ', en: 'Watsons Bay & The Gap' }, kind: 'viewpoint', durationH: 2, tags: ['couple'], area: 'Watsons Bay' }
     ],
     dayTrips: [
-      { name: { he: 'ההרים הכחולים', en: 'Blue Mountains' }, hours: 2, note: { he: 'ברכבת או ברכב — תצפית שלוש האחיות ומסלולי הליכה', en: 'By train or car — the Three Sisters lookout and walking trails' } },
-      { name: { he: 'עמק האנטר', en: 'Hunter Valley' }, hours: 2.5, note: { he: 'אזור יין וגבינות; עדיף בסיור מאורגן', en: 'Wine and cheese country; best on an organised tour' } },
-      { name: { he: 'פורט סטיבנס', en: 'Port Stephens' }, hours: 2.5, note: { he: 'דיונות חול ותצפית דולפינים', en: 'Sand dunes and dolphin watching' } },
-      { name: { he: 'הפארק הלאומי המלכותי', en: 'Royal National Park' }, hours: 1, note: { he: 'צוקים, חופים ומסלולי חוף', en: 'Cliffs, beaches and coastal trails' } }
+      { name: { he: 'ההרים הכחולים', en: 'Blue Mountains' }, hours: 2, note: { he: 'ברכבת או ברכב — תצפית שלוש האחיות ומסלולי הליכה', en: 'By train or car — the Three Sisters lookout and walking trails' }, priceIls: { low: 30, high: 450 }, kind: 'nature' },
+      { name: { he: 'עמק האנטר', en: 'Hunter Valley' }, hours: 2.5, note: { he: 'אזור יין וגבינות; עדיף בסיור מאורגן', en: 'Wine and cheese country; best on an organised tour' }, priceIls: { low: 360, high: 600 }, kind: 'experience' },
+      { name: { he: 'פורט סטיבנס', en: 'Port Stephens' }, hours: 2.5, note: { he: 'דיונות חול ותצפית דולפינים', en: 'Sand dunes and dolphin watching' }, priceIls: { low: 360, high: 600 }, kind: 'nature' },
+      { name: { he: 'הפארק הלאומי המלכותי', en: 'Royal National Park' }, hours: 1, note: { he: 'צוקים, חופים ומסלולי חוף', en: 'Cliffs, beaches and coastal trails' }, priceIls: { low: 20, high: 350 }, kind: 'nature' }
     ],
     transport: { carRecommended: false, note: { he: 'רכבות, אוטובוסים ומעבורות — משלמים בכרטיס אשראי ללא מגע. בעיר לא צריך רכב; לטיולי יום רכב שכור נוח (נהיגה בצד שמאל).', en: 'Trains, buses and ferries — pay by contactless card. No car needed in the city; a rental helps for day trips (driving on the left).' } },
     practical: {
@@ -520,23 +522,23 @@ export default [
     attractions: [
       { name: { he: 'מגדל הסקיי טאוור', en: 'Sky Tower' }, kind: 'viewpoint', durationH: 1, tags: ['family'], area: 'Auckland' },
       { name: { he: 'הר אידן', en: 'Mount Eden (Maungawhau)' }, kind: 'viewpoint', durationH: 1, tags: ['nature'], area: 'Auckland' },
-      { name: { he: 'טה פויה — גייזרים ותרבות מאורית', en: 'Te Puia — geysers & Māori culture' }, kind: 'experience', durationH: 3, tags: ['culture', 'family'], area: 'Rotorua' },
+      { name: { he: 'טה פויה — גייזרים ותרבות מאורית', en: 'Te Puia — geysers & Māori culture' }, kind: 'experience', durationH: 3, tags: ['culture', 'family'], area: 'Rotorua', mustSee: true },
       { name: { he: 'וואי־או־טאפו', en: 'Wai-O-Tapu Thermal Wonderland' }, kind: 'nature', durationH: 2, tags: ['nature'], area: 'Rotorua' },
-      { name: { he: 'מעבר טונגרירו', en: 'Tongariro Alpine Crossing' }, kind: 'nature', durationH: 8, tags: ['adventure', 'nature'] },
-      { name: { he: 'הרכבל והמגלשה של סקייליין קווינסטאון', en: 'Skyline Queenstown gondola & luge' }, kind: 'viewpoint', durationH: 2, tags: ['family'], area: 'Queenstown' },
-      { name: { he: 'סירת הסילון בנהר שוטובר', en: 'Shotover Jet' }, kind: 'experience', durationH: 1, tags: ['adventure'], area: 'Queenstown' },
-      { name: { he: 'באנג׳י מגשר קוואראו', en: 'Kawarau Bridge bungy' }, kind: 'experience', durationH: 2, tags: ['adventure'], area: 'Queenstown' },
-      { name: { he: 'סקי ברמרקבלס או בקורונט פיק', en: 'Skiing at The Remarkables or Coronet Peak' }, kind: 'experience', durationH: 6, tags: ['ski'], area: 'Queenstown' },
+      { name: { he: 'מעבר טונגרירו', en: 'Tongariro Alpine Crossing' }, kind: 'nature', durationH: 8, tags: ['adventure', 'nature'], area: 'Tongariro National Park', months: [1, 2, 3, 4, 11, 12] },
+      { name: { he: 'הרכבל והמגלשה של סקייליין קווינסטאון', en: 'Skyline Queenstown gondola & luge' }, kind: 'viewpoint', durationH: 2, tags: ['family'], area: 'Queenstown', mustSee: true },
+      { name: { he: 'סירת הסילון בנהר שוטובר', en: 'Shotover Jet' }, kind: 'experience', durationH: 1, tags: ['adventure', 'teens'], area: 'Queenstown' },
+      { name: { he: 'באנג׳י מגשר קוואראו', en: 'Kawarau Bridge bungy' }, kind: 'experience', durationH: 2, tags: ['adventure', 'teens'], area: 'Queenstown' },
+      { name: { he: 'סקי ברמרקבלס או בקורונט פיק', en: 'Skiing at The Remarkables or Coronet Peak' }, kind: 'experience', durationH: 6, tags: ['ski'], area: 'Queenstown', months: [6, 7, 8, 9, 10] },
       { name: { he: 'אגם וואנקה ו״העץ של וואנקה״', en: 'Lake Wanaka & That Wanaka Tree' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Wanaka & Mount Cook' },
       { name: { he: 'מסלול רויס פיק', en: 'Roys Peak Track' }, kind: 'nature', durationH: 6, tags: ['adventure', 'nature'], area: 'Wanaka & Mount Cook' },
-      { name: { he: 'מסלול עמק הוקר בהר קוק', en: 'Hooker Valley Track, Aoraki/Mount Cook' }, kind: 'nature', durationH: 3, tags: ['nature', 'family'], area: 'Wanaka & Mount Cook' },
-      { name: { he: 'אגם טקאפו וכנסיית הרועה הטוב', en: 'Lake Tekapo & Church of the Good Shepherd' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] }
+      { name: { he: 'מסלול עמק הוקר בהר קוק', en: 'Hooker Valley Track, Aoraki/Mount Cook' }, kind: 'nature', durationH: 3, tags: ['nature', 'family'], area: 'Wanaka & Mount Cook', mustSee: true },
+      { name: { he: 'אגם טקאפו וכנסיית הרועה הטוב', en: 'Lake Tekapo & Church of the Good Shepherd' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Wanaka & Mount Cook' }
     ],
     dayTrips: [
-      { name: { he: 'הוביטון', en: 'Hobbiton Movie Set' }, hours: 2, note: { he: 'מאוקלנד; סיור מודרך בלבד — להזמין מראש', en: 'From Auckland; guided tours only — book ahead' } },
-      { name: { he: 'מערות ויטומו', en: 'Waitomo Glowworm Caves' }, hours: 2.5, note: { he: 'מאוקלנד; אפשר לשלב עם הוביטון בדרך לרוטורואה', en: 'From Auckland; combine with Hobbiton on the way to Rotorua' } },
-      { name: { he: 'האי וואיהקה', en: 'Waiheke Island' }, hours: 0.75, note: { he: 'מעבורת מאוקלנד — יקבים וחופים', en: 'Ferry from Auckland — wineries and beaches' } },
-      { name: { he: 'מילפורד סאונד', en: 'Milford Sound' }, hours: 4, note: { he: 'מקווינסטאון בכביש — יום ארוך מאוד; אפשר גם טיסת נוף. הכביש נסגר לפעמים בחורף', en: 'From Queenstown by road — a very long day; scenic flights also run. The road sometimes closes in winter' } }
+      { name: { he: 'הוביטון', en: 'Hobbiton Movie Set' }, hours: 2, note: { he: 'מאוקלנד; סיור מודרך בלבד — להזמין מראש', en: 'From Auckland; guided tours only — book ahead' }, priceIls: { low: 260, high: 550 }, kind: 'experience' },
+      { name: { he: 'מערות ויטומו', en: 'Waitomo Glowworm Caves' }, hours: 2.5, note: { he: 'מאוקלנד; אפשר לשלב עם הוביטון בדרך לרוטורואה', en: 'From Auckland; combine with Hobbiton on the way to Rotorua' }, priceIls: { low: 130, high: 450 }, kind: 'nature' },
+      { name: { he: 'האי וואיהקה', en: 'Waiheke Island' }, hours: 0.75, note: { he: 'מעבורת מאוקלנד — יקבים וחופים', en: 'Ferry from Auckland — wineries and beaches' }, priceIls: { low: 130, high: 450 }, kind: 'beach' },
+      { name: { he: 'מילפורד סאונד', en: 'Milford Sound' }, hours: 4, note: { he: 'מקווינסטאון בכביש — יום ארוך מאוד; אפשר גם טיסת נוף. הכביש נסגר לפעמים בחורף', en: 'From Queenstown by road — a very long day; scenic flights also run. The road sometimes closes in winter' }, priceIls: { low: 440, high: 700 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'רכב שכור או קרוואן הם הדרך הטבעית לטייל; נוהגים בצד שמאל, והדרכים מפותלות — המרחקים לוקחים יותר זמן ממה שנראה. בין האיים טסים או לוקחים מעבורת.', en: 'A rental car or campervan is the natural way to travel; driving is on the left and roads wind, so distances take longer than they look. Fly or ferry between the islands.' } },
     practical: {

@@ -5,7 +5,12 @@
 // Text fields are { he, en }. dailyBudgetIls {low,mid,high} = ₪ per person per day ON THE GROUND, excluding flights AND
 // lodging (food, attractions, local transport) — rough estimates, always shown as such.
 // `code` is an IATA city/airport code usable for flight search; optional `hotelCity` is the IATA city code to search hotels
-// under when it differs from `code`. Attractions may carry `area` = the English name of one of `areas[].name.en`.
+// under when it differs from `code`. Spec 28 §ד (every field optional — code must cope without it):
+//   attraction `area` = where it is, in English: one of `areas[].name.en` when it fits, otherwise a short real
+//     neighbourhood/town; in country-sized destinations it is the city/base, so a day can stay in one base.
+//   attraction `mustSee: true` = the 2–4 essentials of the destination; `months: [1..12]` only on seasonal activities.
+//   attraction tags may also use ATTRACTION_EXTRA_TAGS (teens, evening, adults) on top of ALLOWED_TAGS.
+//   dayTrip `priceIls: { low, high }` = rough ₪ per adult (estimate — see the data files), optional `kind`, `months`.
 import greeceItaly from './catalog/greece-cyprus-italy.mjs';
 import iberiaBalkans from './catalog/iberia-balkans.mjs';
 import europeNorth from './catalog/europe-north.mjs';
@@ -32,6 +37,9 @@ export const TAG_LABELS = {
 };
 // Every tag a destination may carry: ids of backend/tag-catalog.mjs (kept in sync by tests/catalog.test.mjs).
 export const ALLOWED_TAGS = ['beach', 'city', 'couple', 'family', 'relaxation', 'adventure', 'short_break', 'week_long', 'flexible_dates', 'direct_flight', 'late_departure', 'low_budget', 'all_inclusive', 'kosher', 'shabbat', 'accessible', 'water_slides', 'family_room', 'solo', 'with_children', 'adults_only', 'nature', 'culture', 'food', 'nightlife', 'shopping', 'ski', 'luxury'];
+// Attraction-only tags (not visitor-pickable, so not in backend/tag-catalog.mjs, which ALLOWED_TAGS must mirror).
+export const ATTRACTION_EXTRA_TAGS = ['teens', 'evening', 'adults'];
+export const ATTRACTION_TAGS = [...ALLOWED_TAGS, ...ATTRACTION_EXTRA_TAGS];
 export const ATTRACTION_KINDS = ['landmark', 'museum', 'nature', 'beach', 'neighborhood', 'market', 'viewpoint', 'park', 'experience', 'religious'];
 
 const imageOf = (id) => {
@@ -203,7 +211,13 @@ export function validateDestination(d) {
   need(text(d.seasonsNote), 'seasonsNote');
   need(!d.advisory || text(d.advisory), 'advisory');
   need(d.hotelCity === undefined || /^[A-Z]{3}$/.test(d.hotelCity), 'hotelCity');
-  const areaNames = (d.areas || []).map((a) => a.name?.en);
-  need((d.attractions || []).every((a) => a.area === undefined || areaNames.includes(a.area)), `attraction area ${(d.attractions || []).filter((a) => a.area !== undefined && !areaNames.includes(a.area)).map((a) => a.area)}`);
+  const att = d.attractions || [], trips = d.dayTrips || [];
+  const okMonths = (m) => m === undefined || (Array.isArray(m) && m.length && m.length === new Set(m).size && m.every((x) => Number.isInteger(x) && x >= 1 && x <= 12));
+  need(att.every((a) => a.area === undefined || (typeof a.area === 'string' && a.area.trim() && a.area.length <= 60)), 'attraction area');
+  need(att.every((a) => (a.tags || []).every((t) => ATTRACTION_TAGS.includes(t))), `attraction tags ${att.flatMap((a) => a.tags || []).filter((t) => !ATTRACTION_TAGS.includes(t))}`);
+  need(att.every((a) => a.mustSee === undefined || a.mustSee === true) && att.filter((a) => a.mustSee).length <= 4, 'attraction mustSee (true, at most 4)');
+  need(att.every((a) => okMonths(a.months)) && trips.every((t) => okMonths(t.months)), 'months');
+  need(trips.every((t) => t.priceIls === undefined || (t.priceIls.low > 0 && t.priceIls.high >= t.priceIls.low)), 'dayTrip priceIls');
+  need(trips.every((t) => t.kind === undefined || ATTRACTION_KINDS.includes(t.kind)), 'dayTrip kind');
   return problems;
 }

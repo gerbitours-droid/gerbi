@@ -1,5 +1,7 @@
 // Catalog data (spec 23): Turkey, Georgia, Bulgaria, the Gulf, Israel, Morocco. Shape: dist/catalog.mjs.
 // Budget figures are rough per-person-per-day estimates in ₪ without flights.
+// dayTrips[].priceIls = rough ₪ per adult, ESTIMATES (Nov 2026): low ≈ do-it-yourself public transport + main entry fee,
+// high ≈ a typical organised group tour from the base; converted at about €1=₪4, $1=₪3.7, £1=₪4.7 and rounded. Show as estimates.
 export default [
   {
     id: 'dubai', trip: 'dubai', code: 'DXB', airports: ['DXB'],
@@ -22,22 +24,22 @@ export default [
       { name: { he: 'דיירה ובור דובאי', en: 'Deira & Bur Dubai' }, forWhom: { he: 'תקציב, שווקים ואווירה מקומית', en: 'Budget stays, souks and local feel' } }
     ],
     attractions: [
-      { name: { he: 'בורג׳ ח׳ליפה — At the Top', en: 'Burj Khalifa — At the Top' }, kind: 'viewpoint', durationH: 1.5, tags: ['city', 'family'] },
-      { name: { he: 'דובאי מול והאקווריום', en: 'Dubai Mall & Aquarium' }, kind: 'experience', durationH: 3, tags: ['shopping', 'family'] },
-      { name: { he: 'מופע המזרקות של דובאי', en: 'The Dubai Fountain show' }, kind: 'experience', durationH: 0.5, tags: ['family', 'couple'] },
-      { name: { he: 'פארק המים אקוונטורה', en: 'Aquaventure Waterpark' }, kind: 'experience', durationH: 5, tags: ['water_slides', 'family'] },
-      { name: { he: 'פארק המים ווילד וואדי', en: 'Wild Wadi Waterpark' }, kind: 'experience', durationH: 4, tags: ['water_slides', 'family'] },
-      { name: { he: 'חוף JBR והטיילת', en: 'JBR Beach & The Walk' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'] },
-      { name: { he: 'שוק הזהב ושוק התבלינים', en: 'Gold Souk & Spice Souk' }, kind: 'market', durationH: 2, tags: ['shopping', 'culture'] },
-      { name: { he: 'רובע אל פהידי ההיסטורי', en: 'Al Fahidi Historical District' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'מוזיאון העתיד', en: 'Museum of the Future' }, kind: 'museum', durationH: 2, tags: ['family'] },
-      { name: { he: 'ספארי מדבר', en: 'Desert safari' }, kind: 'experience', durationH: 6, tags: ['adventure', 'family'] },
-      { name: { he: 'מסגרת דובאי (Dubai Frame)', en: 'Dubai Frame' }, kind: 'viewpoint', durationH: 1, tags: ['family'] },
-      { name: { he: 'גן הפרחים מירקל גארדן', en: 'Dubai Miracle Garden' }, kind: 'park', durationH: 2, tags: ['family'] }
+      { name: { he: 'בורג׳ ח׳ליפה — At the Top', en: 'Burj Khalifa — At the Top' }, kind: 'viewpoint', durationH: 1.5, tags: ['city', 'family'], area: 'Downtown', mustSee: true },
+      { name: { he: 'דובאי מול והאקווריום', en: 'Dubai Mall & Aquarium' }, kind: 'experience', durationH: 3, tags: ['shopping', 'family'], area: 'Downtown' },
+      { name: { he: 'מופע המזרקות של דובאי', en: 'The Dubai Fountain show' }, kind: 'experience', durationH: 0.5, tags: ['family', 'couple', 'evening'], area: 'Downtown', mustSee: true },
+      { name: { he: 'פארק המים אקוונטורה', en: 'Aquaventure Waterpark' }, kind: 'experience', durationH: 5, tags: ['water_slides', 'family', 'teens'], area: 'Palm Jumeirah' },
+      { name: { he: 'פארק המים ווילד וואדי', en: 'Wild Wadi Waterpark' }, kind: 'experience', durationH: 4, tags: ['water_slides', 'family', 'teens'], area: 'Jumeirah' },
+      { name: { he: 'חוף JBR והטיילת', en: 'JBR Beach & The Walk' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Dubai Marina & JBR' },
+      { name: { he: 'שוק הזהב ושוק התבלינים', en: 'Gold Souk & Spice Souk' }, kind: 'market', durationH: 2, tags: ['shopping', 'culture'], area: 'Deira & Bur Dubai' },
+      { name: { he: 'רובע אל פהידי ההיסטורי', en: 'Al Fahidi Historical District' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'], area: 'Deira & Bur Dubai' },
+      { name: { he: 'מוזיאון העתיד', en: 'Museum of the Future' }, kind: 'museum', durationH: 2, tags: ['family'], area: 'Trade Centre' },
+      { name: { he: 'ספארי מדבר', en: 'Desert safari' }, kind: 'experience', durationH: 6, tags: ['adventure', 'family', 'teens', 'evening'], mustSee: true },
+      { name: { he: 'מסגרת דובאי (Dubai Frame)', en: 'Dubai Frame' }, kind: 'viewpoint', durationH: 1, tags: ['family'], area: 'Deira & Bur Dubai' },
+      { name: { he: 'גן הפרחים מירקל גארדן', en: 'Dubai Miracle Garden' }, kind: 'park', durationH: 2, tags: ['family'], area: 'Al Barsha', months: [1, 2, 3, 4, 5, 11, 12] }
     ],
     dayTrips: [
-      { name: { he: 'אבו דאבי — המסגד הגדול והלובר', en: 'Abu Dhabi — Grand Mosque & Louvre' }, hours: 1.5, note: { he: 'נסיעה ברכב או באוטובוס; אפשר לשלב פארק שעשועים באי יאס', en: 'By car or bus; can be combined with a Yas Island theme park' } },
-      { name: { he: 'חתא בהרי חג׳ר', en: 'Hatta in the Hajar Mountains' }, hours: 1.5, note: { he: 'סכר, קיאקים ומסלולי טבע', en: 'A dam, kayaking and nature trails' } }
+      { name: { he: 'אבו דאבי — המסגד הגדול והלובר', en: 'Abu Dhabi — Grand Mosque & Louvre' }, hours: 1.5, note: { he: 'נסיעה ברכב או באוטובוס; אפשר לשלב פארק שעשועים באי יאס', en: 'By car or bus; can be combined with a Yas Island theme park' }, priceIls: { low: 120, high: 400 }, kind: 'religious' },
+      { name: { he: 'חתא בהרי חג׳ר', en: 'Hatta in the Hajar Mountains' }, hours: 1.5, note: { he: 'סכר, קיאקים ומסלולי טבע', en: 'A dam, kayaking and nature trails' }, priceIls: { low: 60, high: 450 }, kind: 'nature' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו מהשדה לרוב האזורים; מוניות ואפליקציות נסיעה זולות יחסית. רכב שכור נוח לטיולי יום.', en: 'The metro runs from the airport to most areas; taxis and ride apps are fairly cheap. A rental car helps for day trips.' } },
     practical: {
@@ -69,23 +71,23 @@ export default [
       { name: { he: 'בשיקטאש ונישנטאשי', en: 'Beşiktaş & Nişantaşı' }, forWhom: { he: 'קניות, מסעדות וקרבה לבוספורוס', en: 'Shopping, restaurants and close to the Bosphorus' } }
     ],
     attractions: [
-      { name: { he: 'איה סופיה', en: 'Hagia Sophia' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Sultanahmet' },
-      { name: { he: 'המסגד הכחול (מסגד סולטן אחמט)', en: 'Blue Mosque (Sultan Ahmed Mosque)' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Sultanahmet' },
-      { name: { he: 'ארמון טופקפי', en: 'Topkapı Palace' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Sultanahmet' },
+      { name: { he: 'איה סופיה', en: 'Hagia Sophia' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Sultanahmet', mustSee: true },
+      { name: { he: 'המסגד הכחול (מסגד סולטן אחמט)', en: 'Blue Mosque (Sultan Ahmed Mosque)' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Sultanahmet', mustSee: true },
+      { name: { he: 'ארמון טופקפי', en: 'Topkapı Palace' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Sultanahmet', mustSee: true },
       { name: { he: 'בור המים של הבזיליקה', en: 'Basilica Cistern' }, kind: 'landmark', durationH: 1, tags: ['culture', 'family'], area: 'Sultanahmet' },
-      { name: { he: 'השוק הגדול (גרנד בזאר)', en: 'Grand Bazaar' }, kind: 'market', durationH: 2.5, tags: ['shopping', 'culture'] },
-      { name: { he: 'שוק התבלינים', en: 'Spice Bazaar' }, kind: 'market', durationH: 1.5, tags: ['food', 'shopping'] },
+      { name: { he: 'השוק הגדול (גרנד בזאר)', en: 'Grand Bazaar' }, kind: 'market', durationH: 2.5, tags: ['shopping', 'culture'], area: 'Bazaar Quarter', mustSee: true },
+      { name: { he: 'שוק התבלינים', en: 'Spice Bazaar' }, kind: 'market', durationH: 1.5, tags: ['food', 'shopping'], area: 'Bazaar Quarter' },
       { name: { he: 'מגדל גלאטה', en: 'Galata Tower' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Beyoğlu, Galata & Karaköy' },
-      { name: { he: 'רחוב איסטיקלאל וכיכר טקסים', en: 'İstiklal Avenue & Taksim Square' }, kind: 'neighborhood', durationH: 2, tags: ['shopping', 'nightlife'], area: 'Beyoğlu, Galata & Karaköy' },
-      { name: { he: 'שייט בבוספורוס', en: 'Bosphorus cruise' }, kind: 'experience', durationH: 2, tags: ['couple', 'family'] },
+      { name: { he: 'רחוב איסטיקלאל וכיכר טקסים', en: 'İstiklal Avenue & Taksim Square' }, kind: 'neighborhood', durationH: 2, tags: ['shopping', 'nightlife', 'evening'], area: 'Beyoğlu, Galata & Karaköy' },
+      { name: { he: 'שייט בבוספורוס', en: 'Bosphorus cruise' }, kind: 'experience', durationH: 2, tags: ['couple', 'family'], area: 'Bazaar Quarter' },
       { name: { he: 'ארמון דולמבהצ׳ה', en: 'Dolmabahçe Palace' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Beşiktaş & Nişantaşı' },
-      { name: { he: 'מסגד סולימאניה', en: 'Süleymaniye Mosque' }, kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'שכונות בלאט ופנר', en: 'Balat & Fener' }, kind: 'neighborhood', durationH: 2.5, tags: ['culture'] },
+      { name: { he: 'מסגד סולימאניה', en: 'Süleymaniye Mosque' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Bazaar Quarter' },
+      { name: { he: 'שכונות בלאט ופנר', en: 'Balat & Fener' }, kind: 'neighborhood', durationH: 2.5, tags: ['culture'], area: 'Balat' },
       { name: { he: 'קאדיקוי ושוק האוכל', en: 'Kadıköy and its food market' }, kind: 'neighborhood', durationH: 3, tags: ['food'], area: 'Kadıköy (Asian side)' }
     ],
     dayTrips: [
-      { name: { he: 'איי הנסיכים — ביואקאדה', en: 'Princes’ Islands — Büyükada' }, hours: 1.5, note: { he: 'מעבורת מהעיר; אי בלי מכוניות, אופניים ווילות עץ', en: 'A ferry from the city; a car-free island of bikes and wooden villas' } },
-      { name: { he: 'בורסה', en: 'Bursa' }, hours: 2.5, note: { he: 'מעבורת מהירה ואוטובוס; הבירה העות׳מאנית הראשונה ומעיינות חמים', en: 'Fast ferry and bus; the first Ottoman capital, with hot springs' } }
+      { name: { he: 'איי הנסיכים — ביואקאדה', en: 'Princes’ Islands — Büyükada' }, hours: 1.5, note: { he: 'מעבורת מהעיר; אי בלי מכוניות, אופניים ווילות עץ', en: 'A ferry from the city; a car-free island of bikes and wooden villas' }, priceIls: { low: 20, high: 250 }, kind: 'neighborhood' },
+      { name: { he: 'בורסה', en: 'Bursa' }, hours: 2.5, note: { he: 'מעבורת מהירה ואוטובוס; הבירה העות׳מאנית הראשונה ומעיינות חמים', en: 'Fast ferry and bus; the first Ottoman capital, with hot springs' }, priceIls: { low: 100, high: 400 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו, חשמליות ומעבורות עם כרטיס איסטנבולקרט; פקקים כבדים — רכב שכור לא כדאי בעיר.', en: 'Metro, trams and ferries with an Istanbulkart; traffic is heavy — a rental car is not worth it in the city.' } },
     practical: {
@@ -118,24 +120,24 @@ export default [
       { name: { he: 'בטומי', en: 'Batumi' }, forWhom: { he: 'ים, טיילת וחיי לילה בקיץ', en: 'Sea, promenade and summer nightlife' } }
     ],
     attractions: [
-      { name: { he: 'העיר העתיקה של טביליסי', en: 'Tbilisi Old Town' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'food'], area: 'Tbilisi — Old Town' },
-      { name: { he: 'מבצר נאריקלה', en: 'Narikala Fortress' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture'], area: 'Tbilisi — Old Town' },
+      { name: { he: 'העיר העתיקה של טביליסי', en: 'Tbilisi Old Town' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'food'], area: 'Tbilisi — Old Town', mustSee: true },
+      { name: { he: 'מבצר נאריקלה', en: 'Narikala Fortress' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture'], area: 'Tbilisi — Old Town', mustSee: true },
       { name: { he: 'מרחצאות הגופרית באבנוטובני', en: 'Abanotubani sulphur baths' }, kind: 'experience', durationH: 1.5, tags: ['relaxation', 'couple'], area: 'Tbilisi — Old Town' },
       { name: { he: 'גשר השלום ופארק ריקה', en: 'Bridge of Peace & Rike Park' }, kind: 'park', durationH: 1, tags: ['family'], area: 'Tbilisi — Old Town' },
-      { name: { he: 'פארק מטצמינדה', en: 'Mtatsminda Park' }, kind: 'viewpoint', durationH: 2, tags: ['family'] },
-      { name: { he: 'שוק הגשר היבש', en: 'Dry Bridge Market' }, kind: 'market', durationH: 1.5, tags: ['shopping'] },
-      { name: { he: 'כנסיית השילוש הקדוש בגרגטי', en: 'Gergeti Trinity Church' }, kind: 'religious', durationH: 2.5, tags: ['nature', 'adventure'], area: 'Kazbegi (Stepantsminda)' },
-      { name: { he: 'מבצר אנאנורי', en: 'Ananuri Fortress' }, kind: 'landmark', durationH: 1, tags: ['culture'] },
-      { name: { he: 'סיגנאחי', en: 'Sighnaghi' }, kind: 'neighborhood', durationH: 3, tags: ['couple', 'food'], area: 'Kakheti — Sighnaghi & Telavi' },
-      { name: { he: 'עיר המערות אופליסציחה', en: 'Uplistsikhe cave town' }, kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'מערת פרומתאוס', en: 'Prometheus Cave' }, kind: 'nature', durationH: 1.5, tags: ['nature', 'family'] },
-      { name: { he: 'קניון מרטווילי', en: 'Martvili Canyon' }, kind: 'nature', durationH: 2, tags: ['nature', 'adventure'] },
-      { name: { he: 'טיילת בטומי', en: 'Batumi Boulevard' }, kind: 'beach', durationH: 2, tags: ['beach', 'family'], area: 'Batumi' }
+      { name: { he: 'פארק מטצמינדה', en: 'Mtatsminda Park' }, kind: 'viewpoint', durationH: 2, tags: ['family'], area: 'Tbilisi — Old Town' },
+      { name: { he: 'שוק הגשר היבש', en: 'Dry Bridge Market' }, kind: 'market', durationH: 1.5, tags: ['shopping'], area: 'Tbilisi — Old Town' },
+      { name: { he: 'כנסיית השילוש הקדוש בגרגטי', en: 'Gergeti Trinity Church' }, kind: 'religious', durationH: 2.5, tags: ['nature', 'adventure'], area: 'Kazbegi (Stepantsminda)', mustSee: true },
+      { name: { he: 'מבצר אנאנורי', en: 'Ananuri Fortress' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'Kazbegi (Stepantsminda)' },
+      { name: { he: 'סיגנאחי', en: 'Sighnaghi' }, kind: 'neighborhood', durationH: 3, tags: ['couple', 'food'], area: 'Kakheti — Sighnaghi & Telavi', mustSee: true },
+      { name: { he: 'עיר המערות אופליסציחה', en: 'Uplistsikhe cave town' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Tbilisi — Old Town' },
+      { name: { he: 'מערת פרומתאוס', en: 'Prometheus Cave' }, kind: 'nature', durationH: 1.5, tags: ['nature', 'family'], area: 'Kutaisi' },
+      { name: { he: 'קניון מרטווילי', en: 'Martvili Canyon' }, kind: 'nature', durationH: 2, tags: ['nature', 'adventure'], area: 'Kutaisi' },
+      { name: { he: 'טיילת בטומי', en: 'Batumi Boulevard' }, kind: 'beach', durationH: 2, tags: ['beach', 'family'], area: 'Batumi', months: [6, 7, 8, 9] }
     ],
     dayTrips: [
-      { name: { he: 'מצחטה', en: 'Mtskheta' }, hours: 0.5, note: { he: 'הבירה העתיקה — מנזר ג׳ווארי וקתדרלת סווטיצחובלי', en: 'The ancient capital — Jvari Monastery and Svetitskhoveli Cathedral' } },
-      { name: { he: 'קזבגי בכביש הצבא הגאורגי', en: 'Kazbegi via the Georgian Military Road' }, hours: 3, note: { he: 'יום ארוך; עדיף לישון לילה בהרים', en: 'A long day; better with a night in the mountains' } },
-      { name: { he: 'קחטי ויקבים', en: 'Kakheti and its wineries' }, hours: 2, note: { he: 'סיגנאחי, מנזר בודבה וטעימות יין', en: 'Sighnaghi, Bodbe Monastery and wine tastings' } }
+      { name: { he: 'מצחטה', en: 'Mtskheta' }, hours: 0.5, note: { he: 'הבירה העתיקה — מנזר ג׳ווארי וקתדרלת סווטיצחובלי', en: 'The ancient capital — Jvari Monastery and Svetitskhoveli Cathedral' }, priceIls: { low: 10, high: 150 }, kind: 'religious' },
+      { name: { he: 'קזבגי בכביש הצבא הגאורגי', en: 'Kazbegi via the Georgian Military Road' }, hours: 3, note: { he: 'יום ארוך; עדיף לישון לילה בהרים', en: 'A long day; better with a night in the mountains' }, priceIls: { low: 80, high: 250 }, kind: 'nature' },
+      { name: { he: 'קחטי ויקבים', en: 'Kakheti and its wineries' }, hours: 2, note: { he: 'סיגנאחי, מנזר בודבה וטעימות יין', en: 'Sighnaghi, Bodbe Monastery and wine tastings' }, priceIls: { low: 120, high: 300 }, kind: 'experience' }
     ],
     transport: { carRecommended: false, note: { he: 'בטביליסי מטרו ואפליקציות נסיעה זולות. לטיולים מחוץ לעיר נהוג לשכור נהג או סיור מאורגן; כבישי ההרים מאתגרים.', en: 'Tbilisi has a metro and cheap ride apps. For trips out of town most people hire a driver or join a tour; mountain roads are demanding.' } },
     practical: {
@@ -166,23 +168,23 @@ export default [
       { name: { he: 'באניה ורזלוג', en: 'Banya & Razlog' }, forWhom: { he: 'תקציב ומעיינות חמים, עם הסעה למסלולים', en: 'Budget stays and hot springs, with a shuttle to the slopes' } }
     ],
     attractions: [
-      { name: { he: 'רכבל בנסקו', en: 'Bansko gondola' }, kind: 'experience', durationH: 0.5, tags: ['ski', 'family'], area: 'Near the gondola station' },
-      { name: { he: 'מסלולי שילינגרניקה ופלאטו', en: 'Shiligarnika & Plato ski areas' }, kind: 'nature', durationH: 5, tags: ['ski', 'family'] },
-      { name: { he: 'אזור פסגת טודורקה', en: 'Todorka peak area' }, kind: 'viewpoint', durationH: 2, tags: ['ski', 'adventure'] },
-      { name: { he: 'בית ספר לסקי ולסנובורד', en: 'Ski and snowboard school' }, kind: 'experience', durationH: 4, tags: ['ski', 'with_children'] },
-      { name: { he: 'העיירה העתיקה של בנסקו', en: 'Bansko Old Town' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Old Town' },
+      { name: { he: 'רכבל בנסקו', en: 'Bansko gondola' }, kind: 'experience', durationH: 0.5, tags: ['ski', 'family'], area: 'Near the gondola station', mustSee: true },
+      { name: { he: 'מסלולי שילינגרניקה ופלאטו', en: 'Shiligarnika & Plato ski areas' }, kind: 'nature', durationH: 5, tags: ['ski', 'family', 'teens'], area: 'Near the gondola station', mustSee: true, months: [1, 2, 3, 4, 12] },
+      { name: { he: 'אזור פסגת טודורקה', en: 'Todorka peak area' }, kind: 'viewpoint', durationH: 2, tags: ['ski', 'adventure'], area: 'Near the gondola station', months: [1, 2, 3, 4, 12] },
+      { name: { he: 'בית ספר לסקי ולסנובורד', en: 'Ski and snowboard school' }, kind: 'experience', durationH: 4, tags: ['ski', 'with_children'], area: 'Near the gondola station', months: [1, 2, 3, 4, 12] },
+      { name: { he: 'העיירה העתיקה של בנסקו', en: 'Bansko Old Town' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Old Town', mustSee: true },
       { name: { he: 'כנסיית השילוש הקדוש', en: 'Holy Trinity Church' }, kind: 'religious', durationH: 0.5, tags: ['culture'], area: 'Old Town' },
       { name: { he: 'בית ווליאנוב', en: 'Velyanova House' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Old Town' },
       { name: { he: 'בית־מוזיאון ניאופיט רילסקי', en: 'Neofit Rilski House-Museum' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Old Town' },
       { name: { he: 'בית־מוזיאון ניקולה ופצרוב', en: 'Nikola Vaptsarov House-Museum' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Old Town' },
-      { name: { he: 'הליכה בנעלי שלג בפארק הלאומי פירין', en: 'Snowshoeing in Pirin National Park' }, kind: 'nature', durationH: 3, tags: ['nature', 'adventure'] },
+      { name: { he: 'הליכה בנעלי שלג בפארק הלאומי פירין', en: 'Snowshoeing in Pirin National Park' }, kind: 'nature', durationH: 3, tags: ['nature', 'adventure'], area: 'Pirin National Park', months: [1, 2, 3, 12] },
       { name: { he: 'מעיינות חמים בבאניה', en: 'Banya hot springs' }, kind: 'experience', durationH: 2, tags: ['relaxation', 'family'], area: 'Banya & Razlog' },
-      { name: { he: 'ערב בטברנה מסורתית', en: 'An evening in a traditional mehana' }, kind: 'experience', durationH: 2.5, tags: ['food', 'nightlife'] }
+      { name: { he: 'ערב בטברנה מסורתית', en: 'An evening in a traditional mehana' }, kind: 'experience', durationH: 2.5, tags: ['food', 'nightlife', 'evening'], area: 'Old Town' }
     ],
     dayTrips: [
-      { name: { he: 'מנזר רילה', en: 'Rila Monastery' }, hours: 2, note: { he: 'המנזר המפורסם של בולגריה, בלב ההרים', en: 'Bulgaria’s most famous monastery, deep in the mountains' } },
-      { name: { he: 'מלניק', en: 'Melnik' }, hours: 2, note: { he: 'עיירת יין קטנה ופירמידות החול סביבה', en: 'A small wine town surrounded by sand pyramids' } },
-      { name: { he: 'אתר הסקי דוברינישטה', en: 'Dobrinishte ski area' }, hours: 0.5, note: { he: 'אתר קטן ושקט יותר ליום של שינוי', en: 'A smaller, quieter area for a change of scene' } }
+      { name: { he: 'מנזר רילה', en: 'Rila Monastery' }, hours: 2, note: { he: 'המנזר המפורסם של בולגריה, בלב ההרים', en: 'Bulgaria’s most famous monastery, deep in the mountains' }, priceIls: { low: 150, high: 300 }, kind: 'religious' },
+      { name: { he: 'מלניק', en: 'Melnik' }, hours: 2, note: { he: 'עיירת יין קטנה ופירמידות החול סביבה', en: 'A small wine town surrounded by sand pyramids' }, priceIls: { low: 150, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'אתר הסקי דוברינישטה', en: 'Dobrinishte ski area' }, hours: 0.5, note: { he: 'אתר קטן ושקט יותר ליום של שינוי', en: 'A smaller, quieter area for a change of scene' }, priceIls: { low: 100, high: 180 }, kind: 'nature', months: [1, 2, 3, 12] }
     ],
     transport: { carRecommended: false, note: { he: 'העברה מסופיה כשעתיים וחצי עד שלוש שעות. העיירה הליכתית, ויש הסעות למסלולים — רכב לא נדרש.', en: 'The transfer from Sofia takes about 2.5–3 hours. The town is walkable and there are shuttles to the slopes — no car needed.' } },
     practical: {
@@ -213,23 +215,23 @@ export default [
       { name: { he: 'הקורניש ומרכז העיר', en: 'The Corniche & city centre' }, forWhom: { he: 'מחירים נוחים יותר, טיילת וקרבה לאתרים', en: 'Better prices, a promenade and close to the sights' } }
     ],
     attractions: [
-      { name: { he: 'המסגד הגדול של שייח׳ זאיד', en: 'Sheikh Zayed Grand Mosque' }, kind: 'religious', durationH: 2, tags: ['culture', 'family'] },
-      { name: { he: 'הלובר אבו דאבי', en: 'Louvre Abu Dhabi' }, kind: 'museum', durationH: 3, tags: ['culture', 'couple'], area: 'Saadiyat Island' },
-      { name: { he: 'פרארי וורלד', en: 'Ferrari World' }, kind: 'experience', durationH: 5, tags: ['family', 'adventure'], area: 'Yas Island' },
-      { name: { he: 'פארק המים יאס ווטרוורלד', en: 'Yas Waterworld' }, kind: 'experience', durationH: 5, tags: ['water_slides', 'family'], area: 'Yas Island' },
+      { name: { he: 'המסגד הגדול של שייח׳ זאיד', en: 'Sheikh Zayed Grand Mosque' }, kind: 'religious', durationH: 2, tags: ['culture', 'family'], area: 'Al Rawdah', mustSee: true },
+      { name: { he: 'הלובר אבו דאבי', en: 'Louvre Abu Dhabi' }, kind: 'museum', durationH: 3, tags: ['culture', 'couple'], area: 'Saadiyat Island', mustSee: true },
+      { name: { he: 'פרארי וורלד', en: 'Ferrari World' }, kind: 'experience', durationH: 5, tags: ['family', 'adventure', 'teens'], area: 'Yas Island', mustSee: true },
+      { name: { he: 'פארק המים יאס ווטרוורלד', en: 'Yas Waterworld' }, kind: 'experience', durationH: 5, tags: ['water_slides', 'family', 'teens'], area: 'Yas Island' },
       { name: { he: 'וורנר ברדרס וורלד', en: 'Warner Bros. World' }, kind: 'experience', durationH: 5, tags: ['family', 'with_children'], area: 'Yas Island' },
       { name: { he: 'סי וורלד אבו דאבי', en: 'SeaWorld Abu Dhabi' }, kind: 'experience', durationH: 5, tags: ['family', 'with_children'], area: 'Yas Island' },
-      { name: { he: 'ארמון קסר אל וטן', en: 'Qasr Al Watan' }, kind: 'landmark', durationH: 2, tags: ['culture'] },
+      { name: { he: 'ארמון קסר אל וטן', en: 'Qasr Al Watan' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'The Corniche & city centre' },
       { name: { he: 'קסר אל חוסן', en: 'Qasr Al Hosn' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'The Corniche & city centre' },
       { name: { he: 'בית המשפחה האברהמית', en: 'Abrahamic Family House' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Saadiyat Island' },
       { name: { he: 'חוף הקורניש והטיילת', en: 'Corniche Beach & promenade' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'The Corniche & city centre' },
       { name: { he: 'חוף סעדיית', en: 'Saadiyat Beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'relaxation'], area: 'Saadiyat Island' },
-      { name: { he: 'הפארק הלאומי מנגרובים — קיאקים', en: 'Mangrove National Park — kayaking' }, kind: 'nature', durationH: 2, tags: ['nature', 'family'] },
+      { name: { he: 'הפארק הלאומי מנגרובים — קיאקים', en: 'Mangrove National Park — kayaking' }, kind: 'nature', durationH: 2, tags: ['nature', 'family'], area: 'Eastern Mangroves' },
       { name: { he: 'כפר המורשת', en: 'Heritage Village' }, kind: 'museum', durationH: 1, tags: ['culture', 'family'], area: 'The Corniche & city centre' }
     ],
     dayTrips: [
-      { name: { he: 'דובאי', en: 'Dubai' }, hours: 1.5, note: { he: 'נסיעה ברכב או באוטובוס; בורג׳ ח׳ליפה ודובאי מול', en: 'By car or bus; the Burj Khalifa and Dubai Mall' } },
-      { name: { he: 'אל עין', en: 'Al Ain' }, hours: 1.5, note: { he: 'עיר נווה מדבר, מטעי תמרים והר ג׳בל חפית', en: 'An oasis city, date groves and Jebel Hafeet' } }
+      { name: { he: 'דובאי', en: 'Dubai' }, hours: 1.5, note: { he: 'נסיעה ברכב או באוטובוס; בורג׳ ח׳ליפה ודובאי מול', en: 'By car or bus; the Burj Khalifa and Dubai Mall' }, priceIls: { low: 60, high: 350 }, kind: 'landmark' },
+      { name: { he: 'אל עין', en: 'Al Ain' }, hours: 1.5, note: { he: 'עיר נווה מדבר, מטעי תמרים והר ג׳בל חפית', en: 'An oasis city, date groves and Jebel Hafeet' }, priceIls: { low: 130, high: 400 }, kind: 'nature' }
     ],
     transport: { carRecommended: false, note: { he: 'מוניות ואפליקציות נסיעה נוחות; יש אוטובוסים בין האיים לאתרים. רכב שכור עוזר לטיולי יום.', en: 'Taxis and ride apps are easy; buses link the islands and sights. A rental car helps for day trips.' } },
     practical: {
@@ -260,22 +262,22 @@ export default [
       { name: { he: 'מרכז העיר', en: 'Town centre' }, forWhom: { he: 'תקציב — דירות ואכסניות קרוב לקניונים', en: 'Budget — apartments and guesthouses near the malls' } }
     ],
     attractions: [
-      { name: { he: 'המצפה התת־ימי (קורל וורלד)', en: 'Coral World Underwater Observatory' }, kind: 'experience', durationH: 3, tags: ['family', 'with_children'], area: 'South coast (Coral Beach)' },
-      { name: { he: 'שמורת חוף האלמוגים', en: 'Coral Beach Nature Reserve' }, kind: 'beach', durationH: 3, tags: ['beach', 'nature'], area: 'South coast (Coral Beach)' },
+      { name: { he: 'המצפה התת־ימי (קורל וורלד)', en: 'Coral World Underwater Observatory' }, kind: 'experience', durationH: 3, tags: ['family', 'with_children'], area: 'South coast (Coral Beach)', mustSee: true },
+      { name: { he: 'שמורת חוף האלמוגים', en: 'Coral Beach Nature Reserve' }, kind: 'beach', durationH: 3, tags: ['beach', 'nature'], area: 'South coast (Coral Beach)', mustSee: true },
       { name: { he: 'ריף הדולפינים', en: 'Dolphin Reef' }, kind: 'experience', durationH: 2.5, tags: ['family', 'nature'], area: 'South coast (Coral Beach)' },
       { name: { he: 'החוף הצפוני והטיילת', en: 'North Beach & promenade' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'North Beach & the promenade' },
-      { name: { he: 'צלילת היכרות או שנורקלינג', en: 'Intro dive or snorkelling' }, kind: 'experience', durationH: 2, tags: ['adventure'] },
-      { name: { he: 'פארק תמנע', en: 'Timna Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'family'] },
-      { name: { he: 'הקניון האדום', en: 'Red Canyon' }, kind: 'nature', durationH: 2.5, tags: ['nature', 'adventure'] },
-      { name: { he: 'שמורת חי־בר יטבתה', en: 'Hai-Bar Yotvata Nature Reserve' }, kind: 'park', durationH: 2, tags: ['nature', 'with_children'] },
-      { name: { he: 'הר צפחות', en: 'Mount Tzfahot' }, kind: 'viewpoint', durationH: 2, tags: ['nature'] },
+      { name: { he: 'צלילת היכרות או שנורקלינג', en: 'Intro dive or snorkelling' }, kind: 'experience', durationH: 2, tags: ['adventure', 'teens'], area: 'South coast (Coral Beach)' },
+      { name: { he: 'פארק תמנע', en: 'Timna Park' }, kind: 'nature', durationH: 4, tags: ['nature', 'family'], area: 'Arava (Timna & Yotvata)', mustSee: true },
+      { name: { he: 'הקניון האדום', en: 'Red Canyon' }, kind: 'nature', durationH: 2.5, tags: ['nature', 'adventure', 'teens'], area: 'Eilat Mountains' },
+      { name: { he: 'שמורת חי־בר יטבתה', en: 'Hai-Bar Yotvata Nature Reserve' }, kind: 'park', durationH: 2, tags: ['nature', 'with_children'], area: 'Arava (Timna & Yotvata)' },
+      { name: { he: 'הר צפחות', en: 'Mount Tzfahot' }, kind: 'viewpoint', durationH: 2, tags: ['nature'], area: 'Eilat Mountains' },
       { name: { he: 'הגן הבוטני אילת', en: 'Eilat Botanical Garden' }, kind: 'park', durationH: 1, tags: ['family'] },
-      { name: { he: 'חוות הגמלים', en: 'Camel Ranch' }, kind: 'experience', durationH: 2, tags: ['family', 'with_children'] },
+      { name: { he: 'חוות הגמלים', en: 'Camel Ranch' }, kind: 'experience', durationH: 2, tags: ['family', 'with_children'], area: 'South coast (Coral Beach)' },
       { name: { he: 'קניון הקרח', en: 'Ice Mall' }, kind: 'experience', durationH: 2, tags: ['shopping', 'family'], area: 'North Beach & the promenade' }
     ],
     dayTrips: [
-      { name: { he: 'מצפה רמון', en: 'Mitzpe Ramon' }, hours: 2, note: { he: 'תצפית על המכתש וטיולי ג׳יפים', en: 'Views over the crater and jeep tours' } },
-      { name: { he: 'פטרה (ירדן)', en: 'Petra (Jordan)' }, hours: 2, note: { he: 'דרך מעבר יצחק רבין, בסיור מאורגן; לבדוק מראש תנאי כניסה והנחיות ביטחוניות', en: 'Via the Yitzhak Rabin crossing on an organised tour; check entry rules and security guidance first' } }
+      { name: { he: 'מצפה רמון', en: 'Mitzpe Ramon' }, hours: 2, note: { he: 'תצפית על המכתש וטיולי ג׳יפים', en: 'Views over the crater and jeep tours' }, priceIls: { low: 200, high: 450 }, kind: 'nature' },
+      { name: { he: 'פטרה (ירדן)', en: 'Petra (Jordan)' }, hours: 2, note: { he: 'דרך מעבר יצחק רבין, בסיור מאורגן; לבדוק מראש תנאי כניסה והנחיות ביטחוניות', en: 'Via the Yitzhak Rabin crossing on an organised tour; check entry rules and security guidance first' }, priceIls: { low: 850, high: 1300 }, kind: 'landmark' }
     ],
     transport: { carRecommended: false, note: { he: 'טיסה של כשעה לנמל רמון, או נסיעה של ארבע–חמש שעות מהמרכז. בעיר מוניות ואוטובוסים; רכב עוזר לתמנע ולאתרי המדבר.', en: 'About an hour’s flight to Ramon Airport, or a four-to-five-hour drive from the centre. Taxis and buses in town; a car helps for Timna and the desert sites.' } },
     practical: {
@@ -305,21 +307,21 @@ export default [
       { name: { he: 'ערד', en: 'Arad' }, forWhom: { he: 'תקציב, מעל הים — עשרים דקות נסיעה למטה', en: 'Budget stays above the sea — a 20-minute drive down' } }
     ],
     attractions: [
-      { name: { he: 'מצדה', en: 'Masada' }, kind: 'landmark', durationH: 3, tags: ['culture', 'family'] },
-      { name: { he: 'עלייה בשביל הנחש לזריחה', en: 'Snake Path climb at sunrise' }, kind: 'experience', durationH: 3, tags: ['adventure', 'nature'] },
-      { name: { he: 'שמורת עין גדי — נחל דוד', en: 'Ein Gedi Reserve — Nahal David' }, kind: 'nature', durationH: 2.5, tags: ['nature', 'family'], area: 'Ein Gedi' },
+      { name: { he: 'מצדה', en: 'Masada' }, kind: 'landmark', durationH: 3, tags: ['culture', 'family'], area: 'Masada', mustSee: true },
+      { name: { he: 'עלייה בשביל הנחש לזריחה', en: 'Snake Path climb at sunrise' }, kind: 'experience', durationH: 3, tags: ['adventure', 'nature', 'teens'], area: 'Masada' },
+      { name: { he: 'שמורת עין גדי — נחל דוד', en: 'Ein Gedi Reserve — Nahal David' }, kind: 'nature', durationH: 2.5, tags: ['nature', 'family'], area: 'Ein Gedi', mustSee: true },
       { name: { he: 'נחל ערוגות', en: 'Nahal Arugot' }, kind: 'nature', durationH: 3, tags: ['nature', 'adventure'], area: 'Ein Gedi' },
       { name: { he: 'הגן הבוטני בקיבוץ עין גדי', en: 'Kibbutz Ein Gedi Botanical Garden' }, kind: 'park', durationH: 1.5, tags: ['nature'], area: 'Ein Gedi' },
-      { name: { he: 'החוף הציבורי בעין בוקק', en: 'Ein Bokek public beach' }, kind: 'beach', durationH: 2, tags: ['beach', 'family'], area: 'Ein Bokek' },
+      { name: { he: 'החוף הציבורי בעין בוקק', en: 'Ein Bokek public beach' }, kind: 'beach', durationH: 2, tags: ['beach', 'family'], area: 'Ein Bokek', mustSee: true },
       { name: { he: 'נחל בוקק', en: 'Nahal Bokek' }, kind: 'nature', durationH: 1.5, tags: ['nature', 'family'], area: 'Ein Bokek' },
-      { name: { he: 'הגן הלאומי קומראן', en: 'Qumran National Park' }, kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'שמורת עינות צוקים', en: 'Einot Tzukim Nature Reserve' }, kind: 'nature', durationH: 2, tags: ['nature', 'family'] },
-      { name: { he: 'הר סדום', en: 'Mount Sodom' }, kind: 'viewpoint', durationH: 1.5, tags: ['nature'] },
-      { name: { he: 'טיפולי בוץ וספא', en: 'Mud treatments and spa' }, kind: 'experience', durationH: 2, tags: ['relaxation', 'couple'] }
+      { name: { he: 'הגן הלאומי קומראן', en: 'Qumran National Park' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'North Dead Sea' },
+      { name: { he: 'שמורת עינות צוקים', en: 'Einot Tzukim Nature Reserve' }, kind: 'nature', durationH: 2, tags: ['nature', 'family'], area: 'North Dead Sea' },
+      { name: { he: 'הר סדום', en: 'Mount Sodom' }, kind: 'viewpoint', durationH: 1.5, tags: ['nature'], area: 'Mount Sodom' },
+      { name: { he: 'טיפולי בוץ וספא', en: 'Mud treatments and spa' }, kind: 'experience', durationH: 2, tags: ['relaxation', 'couple'], area: 'Ein Bokek' }
     ],
     dayTrips: [
-      { name: { he: 'ירושלים', en: 'Jerusalem' }, hours: 1.5, note: { he: 'העיר העתיקה והכותל; אפשר לשלב בדרך הלוך או חזור', en: 'The Old City and the Western Wall; easy to combine on the way in or out' } },
-      { name: { he: 'ערד ותל ערד', en: 'Arad & Tel Arad' }, hours: 0.5, note: { he: 'עיר כנענית עתיקה ותצפית על המדבר', en: 'An ancient Canaanite city and desert views' } }
+      { name: { he: 'ירושלים', en: 'Jerusalem' }, hours: 1.5, note: { he: 'העיר העתיקה והכותל; אפשר לשלב בדרך הלוך או חזור', en: 'The Old City and the Western Wall; easy to combine on the way in or out' }, priceIls: { low: 80, high: 400 }, kind: 'religious' },
+      { name: { he: 'ערד ותל ערד', en: 'Arad & Tel Arad' }, hours: 0.5, note: { he: 'עיר כנענית עתיקה ותצפית על המדבר', en: 'An ancient Canaanite city and desert views' }, priceIls: { low: 40, high: 120 }, kind: 'landmark' }
     ],
     transport: { carRecommended: true, note: { he: 'נסיעה של שעה וחצי–שעתיים מתל אביב או מירושלים. יש אוטובוסים מירושלים, אבל רכב נוח בהרבה בין האתרים.', en: 'A 1.5–2 hour drive from Tel Aviv or Jerusalem. There are buses from Jerusalem, but a car is far easier between the sites.' } },
     practical: {
@@ -350,25 +352,25 @@ export default [
       { name: { he: 'הפלמרייה', en: 'The Palmeraie' }, forWhom: { he: 'ריזורטים עם בריכות מחוץ לעיר — משפחות ומנוחה', en: 'Resorts with pools outside town — families and rest' } }
     ],
     attractions: [
-      { name: { he: 'כיכר ג׳מע אל פנא', en: 'Jemaa el-Fnaa' }, kind: 'landmark', durationH: 2, tags: ['culture', 'food'], area: 'The Medina' },
-      { name: { he: 'השווקים של המדינה', en: 'The medina souks' }, kind: 'market', durationH: 3, tags: ['shopping', 'culture'], area: 'The Medina' },
+      { name: { he: 'כיכר ג׳מע אל פנא', en: 'Jemaa el-Fnaa' }, kind: 'landmark', durationH: 2, tags: ['culture', 'food', 'evening'], area: 'The Medina', mustSee: true },
+      { name: { he: 'השווקים של המדינה', en: 'The medina souks' }, kind: 'market', durationH: 3, tags: ['shopping', 'culture'], area: 'The Medina', mustSee: true },
       { name: { he: 'מסגד הכותוביה (מבחוץ)', en: 'Koutoubia Mosque (from outside)' }, kind: 'religious', durationH: 0.5, tags: ['culture'], area: 'The Medina' },
       { name: { he: 'ארמון באהייה', en: 'Bahia Palace' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'The Medina' },
       { name: { he: 'קברי הסעדים', en: 'Saadian Tombs' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'The Medina' },
       { name: { he: 'ארמון אל באדי', en: 'El Badi Palace' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'The Medina' },
       { name: { he: 'מדרסת בן יוסף', en: 'Ben Youssef Madrasa' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'The Medina' },
-      { name: { he: 'גן מז׳ורל', en: 'Jardin Majorelle' }, kind: 'park', durationH: 1.5, tags: ['couple'], area: 'Gueliz' },
+      { name: { he: 'גן מז׳ורל', en: 'Jardin Majorelle' }, kind: 'park', durationH: 1.5, tags: ['couple'], area: 'Gueliz', mustSee: true },
       { name: { he: 'מוזיאון איב סן לורן', en: 'Yves Saint Laurent Museum' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Gueliz' },
       { name: { he: 'הגן הסודי (לה ז׳רדן סקרה)', en: 'Le Jardin Secret' }, kind: 'park', durationH: 1, tags: ['couple'], area: 'The Medina' },
       { name: { he: 'המלאח ובית הכנסת לזמה', en: 'The Mellah & Lazama Synagogue' }, kind: 'religious', durationH: 2, tags: ['culture'], area: 'The Medina' },
       { name: { he: 'בית הקברות היהודי מיערה', en: 'Miaara Jewish Cemetery' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'The Medina' },
-      { name: { he: 'חמאם מסורתי', en: 'A traditional hammam' }, kind: 'experience', durationH: 2, tags: ['relaxation', 'couple'] }
+      { name: { he: 'חמאם מסורתי', en: 'A traditional hammam' }, kind: 'experience', durationH: 2, tags: ['relaxation', 'couple'], area: 'The Medina' }
     ],
     dayTrips: [
-      { name: { he: 'מדבר אגפאי', en: 'Agafay Desert' }, hours: 1, note: { he: 'מדבר אבנים עם רכיבה על גמלים וארוחת ערב במחנה', en: 'A stony desert with camel rides and dinner at a camp' } },
-      { name: { he: 'עמק אוריקה', en: 'Ourika Valley' }, hours: 1, note: { he: 'כפרים ברברים ומפלים למרגלות האטלס', en: 'Berber villages and waterfalls at the foot of the Atlas' } },
-      { name: { he: 'אימליל והרי האטלס', en: 'Imlil & the Atlas mountains' }, hours: 1.5, note: { he: 'מסלולי הליכה ונופים לעבר הר טובקל', en: 'Walking trails and views towards Mount Toubkal' } },
-      { name: { he: 'אסווירה', en: 'Essaouira' }, hours: 3, note: { he: 'עיירת חוף מבוצרת על האוקיינוס האטלנטי; יום ארוך', en: 'A walled seaside town on the Atlantic; a long day' } }
+      { name: { he: 'מדבר אגפאי', en: 'Agafay Desert' }, hours: 1, note: { he: 'מדבר אבנים עם רכיבה על גמלים וארוחת ערב במחנה', en: 'A stony desert with camel rides and dinner at a camp' }, priceIls: { low: 120, high: 300 }, kind: 'experience' },
+      { name: { he: 'עמק אוריקה', en: 'Ourika Valley' }, hours: 1, note: { he: 'כפרים ברברים ומפלים למרגלות האטלס', en: 'Berber villages and waterfalls at the foot of the Atlas' }, priceIls: { low: 80, high: 250 }, kind: 'nature' },
+      { name: { he: 'אימליל והרי האטלס', en: 'Imlil & the Atlas mountains' }, hours: 1.5, note: { he: 'מסלולי הליכה ונופים לעבר הר טובקל', en: 'Walking trails and views towards Mount Toubkal' }, priceIls: { low: 120, high: 300 }, kind: 'nature' },
+      { name: { he: 'אסווירה', en: 'Essaouira' }, hours: 3, note: { he: 'עיירת חוף מבוצרת על האוקיינוס האטלנטי; יום ארוך', en: 'A walled seaside town on the Atlantic; a long day' }, priceIls: { low: 90, high: 250 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'המדינה הליכתית; מוניות קטנות לשאר העיר (לסכם מחיר מראש). לטיולי יום — נהג או סיור מאורגן.', en: 'The medina is walkable; petit taxis for the rest of the city (agree the fare first). For day trips — a driver or an organised tour.' } },
     practical: {

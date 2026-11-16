@@ -1,5 +1,7 @@
 // Catalog data (spec 23): Greece, Cyprus, Italy. Shape and editorial rules: dist/catalog.mjs + docs/specs/23-destinations-catalog-he.md.
 // Budget figures are rough per-person-per-day estimates in ₪ without flights.
+// dayTrips[].priceIls = rough ₪ per adult, ESTIMATES (Nov 2026): low ≈ do-it-yourself public transport + main entry fee,
+// high ≈ a typical organised group tour from the base; converted at about €1=₪4, $1=₪3.7, £1=₪4.7 and rounded. Show as estimates.
 export default [
   {
     id: 'santorini', trip: 'santorini', code: 'JTR', airports: ['JTR'],
@@ -22,21 +24,21 @@ export default [
       { name: { he: 'קמארי ופריסה', en: 'Kamari & Perissa' }, forWhom: { he: 'משפחות ומי שמעדיף חוף, בלי מדרגות ובמחיר נמוך יותר', en: 'Families and beach lovers — no steps and lower prices' } }
     ],
     attractions: [
-      { name: { he: 'תצפית השקיעה בטירת אויה', en: 'Oia Castle sunset viewpoint' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple'] },
-      { name: { he: 'מסלול פירה–אויה', en: 'Fira–Oia hiking trail' }, kind: 'nature', durationH: 3.5, tags: ['adventure', 'nature'] },
-      { name: { he: 'אקרוטירי', en: 'Akrotiri archaeological site' }, kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'החוף האדום', en: 'Red Beach' }, kind: 'beach', durationH: 2, tags: ['beach'] },
-      { name: { he: 'חוף פריסה', en: 'Perissa Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'] },
-      { name: { he: 'הכפר פירגוס', en: 'Pyrgos village' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'שייט לנאה קמני ולמעיינות החמים', en: 'Nea Kameni volcano & hot springs cruise' }, kind: 'experience', durationH: 5, tags: ['adventure'] },
-      { name: { he: 'מוזיאון תרה הפרהיסטורית', en: 'Museum of Prehistoric Thera' }, kind: 'museum', durationH: 1, tags: ['culture'] },
-      { name: { he: 'יקב ותצפית בסנטו', en: 'Santo Wines winery' }, kind: 'experience', durationH: 1.5, tags: ['food', 'couple'] },
-      { name: { he: 'מגדלור אקרוטירי', en: 'Akrotiri Lighthouse' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] },
-      { name: { he: 'העתיקות של תרה העתיקה', en: 'Ancient Thera' }, kind: 'landmark', durationH: 2, tags: ['culture'] }
+      { name: { he: 'תצפית השקיעה בטירת אויה', en: 'Oia Castle sunset viewpoint' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple', 'evening'], area: 'Oia', mustSee: true },
+      { name: { he: 'מסלול פירה–אויה', en: 'Fira–Oia hiking trail' }, kind: 'nature', durationH: 3.5, tags: ['adventure', 'nature'], area: 'Fira & Firostefani', mustSee: true },
+      { name: { he: 'אקרוטירי', en: 'Akrotiri archaeological site' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Akrotiri', mustSee: true },
+      { name: { he: 'החוף האדום', en: 'Red Beach' }, kind: 'beach', durationH: 2, tags: ['beach'], area: 'Akrotiri', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'חוף פריסה', en: 'Perissa Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'], area: 'Kamari & Perissa', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'הכפר פירגוס', en: 'Pyrgos village' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'], area: 'Pyrgos' },
+      { name: { he: 'שייט לנאה קמני ולמעיינות החמים', en: 'Nea Kameni volcano & hot springs cruise' }, kind: 'experience', durationH: 5, tags: ['adventure'], area: 'Fira & Firostefani', mustSee: true, months: [4, 5, 6, 7, 8, 9, 10] },
+      { name: { he: 'מוזיאון תרה הפרהיסטורית', en: 'Museum of Prehistoric Thera' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Fira & Firostefani' },
+      { name: { he: 'יקב ותצפית בסנטו', en: 'Santo Wines winery' }, kind: 'experience', durationH: 1.5, tags: ['food', 'couple', 'adults'], area: 'Pyrgos' },
+      { name: { he: 'מגדלור אקרוטירי', en: 'Akrotiri Lighthouse' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'Akrotiri' },
+      { name: { he: 'העתיקות של תרה העתיקה', en: 'Ancient Thera' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Kamari & Perissa' }
     ],
     dayTrips: [
-      { name: { he: 'האי תרסיה', en: 'Thirasia island' }, hours: 0.5, note: { he: 'סירה מאמודי — כפר שקט עם נוף הפוך לקלדרה', en: 'A boat from Ammoudi — a quiet village looking back at the caldera' } },
-      { name: { he: 'יום באיוס', en: 'A day on Ios' }, hours: 1, note: { he: 'מעבורת מהירה; חופים רחבים', en: 'Fast ferry; wide sandy beaches' } }
+      { name: { he: 'האי תרסיה', en: 'Thirasia island' }, hours: 0.5, note: { he: 'סירה מאמודי — כפר שקט עם נוף הפוך לקלדרה', en: 'A boat from Ammoudi — a quiet village looking back at the caldera' }, priceIls: { low: 40, high: 240 }, kind: 'neighborhood' },
+      { name: { he: 'יום באיוס', en: 'A day on Ios' }, hours: 1, note: { he: 'מעבורת מהירה; חופים רחבים', en: 'Fast ferry; wide sandy beaches' }, priceIls: { low: 300, high: 500 }, kind: 'beach' }
     ],
     transport: { carRecommended: false, note: { he: 'אוטובוסים יוצאים מפירה לכל הכפרים; רכב או טרקטורון נוחים לחופים, אבל החניה בכפרי המצוק קשה בקיץ.', en: 'Buses run from Fira to every village; a car or quad helps for beaches, but parking in the cliff villages is hard in summer.' } },
     practical: {
@@ -69,25 +71,25 @@ export default [
       { name: { he: 'ליד טרמיני', en: 'Around Termini' }, forWhom: { he: 'תקציב ונוחות תחבורה, פחות אווירה', en: 'Budget and transport links, less charm' } }
     ],
     attractions: [
-      { name: { he: 'הקולוסיאום', en: 'The Colosseum' }, kind: 'landmark', durationH: 2, tags: ['culture'] },
-      { name: { he: 'הפורום הרומי והפלטינו', en: 'Roman Forum & Palatine Hill' }, kind: 'landmark', durationH: 2.5, tags: ['culture'] },
-      { name: { he: 'מוזיאוני הוותיקן והקפלה הסיסטינית', en: 'Vatican Museums & Sistine Chapel' }, kind: 'museum', durationH: 3.5, tags: ['culture'] },
-      { name: { he: 'בזיליקת פטרוס הקדוש', en: 'St Peter’s Basilica' }, kind: 'religious', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'הפנתאון', en: 'The Pantheon' }, kind: 'landmark', durationH: 0.5, tags: ['culture'] },
-      { name: { he: 'מזרקת טרווי', en: 'Trevi Fountain' }, kind: 'landmark', durationH: 0.5, tags: ['couple'] },
-      { name: { he: 'המדרגות הספרדיות', en: 'Spanish Steps' }, kind: 'landmark', durationH: 0.5, tags: ['shopping'] },
-      { name: { he: 'הגטו היהודי והמוזיאון היהודי', en: 'Jewish Ghetto & Jewish Museum of Rome' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'kosher'] },
-      { name: { he: 'גלריה בורגזה', en: 'Galleria Borghese' }, kind: 'museum', durationH: 2, tags: ['culture'] },
-      { name: { he: 'גני וילה בורגזה', en: 'Villa Borghese gardens' }, kind: 'park', durationH: 2, tags: ['family'] },
-      { name: { he: 'טרסטוורה', en: 'Trastevere' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'nightlife'] },
-      { name: { he: 'שוק קמפו דה פיורי', en: 'Campo de’ Fiori market' }, kind: 'market', durationH: 1, tags: ['food'] },
-      { name: { he: 'תצפית ג׳יאניקולו', en: 'Gianicolo viewpoint' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] }
+      { name: { he: 'הקולוסיאום', en: 'The Colosseum' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Monti', mustSee: true },
+      { name: { he: 'הפורום הרומי והפלטינו', en: 'Roman Forum & Palatine Hill' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Monti', mustSee: true },
+      { name: { he: 'מוזיאוני הוותיקן והקפלה הסיסטינית', en: 'Vatican Museums & Sistine Chapel' }, kind: 'museum', durationH: 3.5, tags: ['culture'], area: 'Vatican', mustSee: true },
+      { name: { he: 'בזיליקת פטרוס הקדוש', en: 'St Peter’s Basilica' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Vatican' },
+      { name: { he: 'הפנתאון', en: 'The Pantheon' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Centro Storico (Pantheon–Navona)', mustSee: true },
+      { name: { he: 'מזרקת טרווי', en: 'Trevi Fountain' }, kind: 'landmark', durationH: 0.5, tags: ['couple'], area: 'Centro Storico (Pantheon–Navona)' },
+      { name: { he: 'המדרגות הספרדיות', en: 'Spanish Steps' }, kind: 'landmark', durationH: 0.5, tags: ['shopping'], area: 'Centro Storico (Pantheon–Navona)' },
+      { name: { he: 'הגטו היהודי והמוזיאון היהודי', en: 'Jewish Ghetto & Jewish Museum of Rome' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'kosher'], area: 'Centro Storico (Pantheon–Navona)' },
+      { name: { he: 'גלריה בורגזה', en: 'Galleria Borghese' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Villa Borghese' },
+      { name: { he: 'גני וילה בורגזה', en: 'Villa Borghese gardens' }, kind: 'park', durationH: 2, tags: ['family'], area: 'Villa Borghese' },
+      { name: { he: 'טרסטוורה', en: 'Trastevere' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'nightlife', 'evening'], area: 'Trastevere' },
+      { name: { he: 'שוק קמפו דה פיורי', en: 'Campo de’ Fiori market' }, kind: 'market', durationH: 1, tags: ['food'], area: 'Centro Storico (Pantheon–Navona)' },
+      { name: { he: 'תצפית ג׳יאניקולו', en: 'Gianicolo viewpoint' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'Trastevere' }
     ],
     dayTrips: [
-      { name: { he: 'פומפיי', en: 'Pompeii' }, hours: 2.5, note: { he: 'רכבת מהירה לנאפולי ומשם רכבת מקומית; יום ארוך', en: 'High-speed train to Naples, then a local train; a long day' } },
-      { name: { he: 'טיבולי — וילה ד׳אסטה ווילה אדריאנה', en: 'Tivoli — Villa d’Este & Hadrian’s Villa' }, hours: 1, note: { he: 'גנים ומזרקות מרהיבים', en: 'Spectacular gardens and fountains' } },
-      { name: { he: 'אוסטיה אנטיקה', en: 'Ostia Antica' }, hours: 0.7, note: { he: 'עיר נמל רומית שמורה, ברכבת מקומית', en: 'A preserved Roman port town, by local train' } },
-      { name: { he: 'פירנצה', en: 'Florence' }, hours: 1.5, note: { he: 'ברכבת מהירה — אפשרי כיום אחד', en: 'By high-speed train — doable in a day' } }
+      { name: { he: 'פומפיי', en: 'Pompeii' }, hours: 2.5, note: { he: 'רכבת מהירה לנאפולי ומשם רכבת מקומית; יום ארוך', en: 'High-speed train to Naples, then a local train; a long day' }, priceIls: { low: 400, high: 720 }, kind: 'landmark' },
+      { name: { he: 'טיבולי — וילה ד׳אסטה ווילה אדריאנה', en: 'Tivoli — Villa d’Este & Hadrian’s Villa' }, hours: 1, note: { he: 'גנים ומזרקות מרהיבים', en: 'Spectacular gardens and fountains' }, priceIls: { low: 150, high: 360 }, kind: 'landmark' },
+      { name: { he: 'אוסטיה אנטיקה', en: 'Ostia Antica' }, hours: 0.7, note: { he: 'עיר נמל רומית שמורה, ברכבת מקומית', en: 'A preserved Roman port town, by local train' }, priceIls: { low: 90, high: 250 }, kind: 'landmark' },
+      { name: { he: 'פירנצה', en: 'Florence' }, hours: 1.5, note: { he: 'ברכבת מהירה — אפשרי כיום אחד', en: 'By high-speed train — doable in a day' }, priceIls: { low: 240, high: 600 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'הרבה הליכה, מטרו ואוטובוסים. מהשדה יש רכבת ישירה לטרמיני. רכב בעיר — לא כדאי (אזורי תנועה מוגבלת).', en: 'Lots of walking, metro and buses. A direct train links the airport to Termini. Don’t drive in the city (restricted traffic zones).' } },
     practical: {
@@ -121,25 +123,25 @@ export default [
       { name: { he: 'הריביירה — גליפדה וואולאגמני', en: 'The Riviera — Glyfada & Vouliagmeni' }, forWhom: { he: 'מי שרוצה ים ומלון חוף, עם חשמלית או מונית לעיר', en: 'Those who want the sea and a beach hotel, with a tram or taxi into town' } }
     ],
     attractions: [
-      { name: { he: 'האקרופוליס', en: 'The Acropolis' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Plaka' },
-      { name: { he: 'מוזיאון האקרופוליס', en: 'Acropolis Museum' }, kind: 'museum', durationH: 2, tags: ['culture', 'family'], area: 'Koukaki' },
+      { name: { he: 'האקרופוליס', en: 'The Acropolis' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Plaka', mustSee: true },
+      { name: { he: 'מוזיאון האקרופוליס', en: 'Acropolis Museum' }, kind: 'museum', durationH: 2, tags: ['culture', 'family'], area: 'Koukaki', mustSee: true },
       { name: { he: 'האגורה העתיקה', en: 'Ancient Agora' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Monastiraki & Psyrri' },
-      { name: { he: 'המוזיאון הארכאולוגי הלאומי', en: 'National Archaeological Museum' }, kind: 'museum', durationH: 2.5, tags: ['culture'] },
-      { name: { he: 'פלאקה ואנאפיוטיקה', en: 'Plaka & Anafiotika' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'food'], area: 'Plaka' },
+      { name: { he: 'המוזיאון הארכאולוגי הלאומי', en: 'National Archaeological Museum' }, kind: 'museum', durationH: 2.5, tags: ['culture'], area: 'Exarchia' },
+      { name: { he: 'פלאקה ואנאפיוטיקה', en: 'Plaka & Anafiotika' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'food', 'evening'], area: 'Plaka', mustSee: true },
       { name: { he: 'שוק הפשפשים במונסטירקי', en: 'Monastiraki Flea Market' }, kind: 'market', durationH: 1.5, tags: ['shopping'], area: 'Monastiraki & Psyrri' },
-      { name: { he: 'גבעת ליקבטוס', en: 'Lycabettus Hill' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple'], area: 'Kolonaki' },
+      { name: { he: 'גבעת ליקבטוס', en: 'Lycabettus Hill' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple', 'evening'], area: 'Kolonaki' },
       { name: { he: 'גבעת פילופאפוס', en: 'Philopappos Hill' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'nature'], area: 'Koukaki' },
-      { name: { he: 'החלפת המשמר בכיכר סינטגמה', en: 'Changing of the guard at Syntagma Square' }, kind: 'experience', durationH: 0.5, tags: ['family'] },
-      { name: { he: 'הגן הלאומי', en: 'National Garden' }, kind: 'park', durationH: 1, tags: ['family'] },
-      { name: { he: 'האצטדיון הפנאתנאי', en: 'Panathenaic Stadium' }, kind: 'landmark', durationH: 1, tags: ['culture', 'family'] },
+      { name: { he: 'החלפת המשמר בכיכר סינטגמה', en: 'Changing of the guard at Syntagma Square' }, kind: 'experience', durationH: 0.5, tags: ['family'], area: 'Syntagma' },
+      { name: { he: 'הגן הלאומי', en: 'National Garden' }, kind: 'park', durationH: 1, tags: ['family'], area: 'Syntagma' },
+      { name: { he: 'האצטדיון הפנאתנאי', en: 'Panathenaic Stadium' }, kind: 'landmark', durationH: 1, tags: ['culture', 'family'], area: 'Pangrati' },
       { name: { he: 'המוזיאון היהודי של יוון', en: 'Jewish Museum of Greece' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Plaka' },
-      { name: { he: 'אגם וואולאגמני', en: 'Lake Vouliagmeni' }, kind: 'nature', durationH: 2.5, tags: ['relaxation', 'nature'], area: 'The Riviera — Glyfada & Vouliagmeni' }
+      { name: { he: 'אגם וואולאגמני', en: 'Lake Vouliagmeni' }, kind: 'nature', durationH: 2.5, tags: ['relaxation', 'nature'], area: 'The Riviera — Glyfada & Vouliagmeni', months: [5, 6, 7, 8, 9, 10] }
     ],
     dayTrips: [
-      { name: { he: 'כף סוניון — מקדש פוסידון', en: 'Cape Sounion — Temple of Poseidon' }, hours: 1.5, note: { he: 'נסיעה לאורך החוף; הכי יפה בשקיעה', en: 'A coastal drive; best at sunset' } },
-      { name: { he: 'האי איגינה', en: 'Aegina island' }, hours: 1, note: { he: 'מעבורת מפיראוס; פיסטוקים, מקדש אפאיה וחופים קטנים', en: 'Ferry from Piraeus; pistachios, the Temple of Aphaia and small beaches' } },
-      { name: { he: 'האי הידרה', en: 'Hydra island' }, hours: 2, note: { he: 'מעבורת מהירה; אי בלי מכוניות, נמל ציורי', en: 'Fast ferry; a car-free island with a picturesque harbour' } },
-      { name: { he: 'דלפי', en: 'Delphi' }, hours: 2.5, note: { he: 'אתר האורקל בהרים; יום ארוך, עדיף בסיור מאורגן או ברכב', en: 'The oracle site in the mountains; a long day, best on a tour or by car' } }
+      { name: { he: 'כף סוניון — מקדש פוסידון', en: 'Cape Sounion — Temple of Poseidon' }, hours: 1.5, note: { he: 'נסיעה לאורך החוף; הכי יפה בשקיעה', en: 'A coastal drive; best at sunset' }, priceIls: { low: 90, high: 260 }, kind: 'landmark' },
+      { name: { he: 'האי איגינה', en: 'Aegina island' }, hours: 1, note: { he: 'מעבורת מפיראוס; פיסטוקים, מקדש אפאיה וחופים קטנים', en: 'Ferry from Piraeus; pistachios, the Temple of Aphaia and small beaches' }, priceIls: { low: 90, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'האי הידרה', en: 'Hydra island' }, hours: 2, note: { he: 'מעבורת מהירה; אי בלי מכוניות, נמל ציורי', en: 'Fast ferry; a car-free island with a picturesque harbour' }, priceIls: { low: 280, high: 550 }, kind: 'neighborhood' },
+      { name: { he: 'דלפי', en: 'Delphi' }, hours: 2.5, note: { he: 'אתר האורקל בהרים; יום ארוך, עדיף בסיור מאורגן או ברכב', en: 'The oracle site in the mountains; a long day, best on a tour or by car' }, priceIls: { low: 240, high: 600 }, kind: 'landmark' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו ישיר מהשדה למרכז (קו 3). במרכז הולכים ברגל; לריביירה יש חשמלית ואוטובוסים. רכב שווה רק לטיולי יום.', en: 'The metro runs straight from the airport to the centre (line 3). The centre is walkable; trams and buses reach the Riviera. A car is only worth it for day trips.' } },
     practical: {
@@ -172,23 +174,23 @@ export default [
       { name: { he: 'חרסוניסוס ומאליה', en: 'Hersonissos & Malia' }, forWhom: { he: 'צעירים, חיי לילה ומלונות הכול כלול', en: 'Young travellers, nightlife and all-inclusive hotels' } }
     ],
     attractions: [
-      { name: { he: 'ארמון קנוסוס', en: 'Palace of Knossos' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Heraklion' },
+      { name: { he: 'ארמון קנוסוס', en: 'Palace of Knossos' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Heraklion', mustSee: true },
       { name: { he: 'המוזיאון הארכאולוגי של הרקליון', en: 'Heraklion Archaeological Museum' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Heraklion' },
-      { name: { he: 'הנמל הוונציאני בחאניה', en: 'Chania Venetian harbour' }, kind: 'neighborhood', durationH: 2, tags: ['couple', 'food'], area: 'Chania' },
+      { name: { he: 'הנמל הוונציאני בחאניה', en: 'Chania Venetian harbour' }, kind: 'neighborhood', durationH: 2, tags: ['couple', 'food', 'evening'], area: 'Chania', mustSee: true },
       { name: { he: 'בית הכנסת עץ חיים בחאניה', en: 'Etz Hayyim Synagogue, Chania' }, kind: 'religious', durationH: 0.5, tags: ['culture'], area: 'Chania' },
-      { name: { he: 'ערוץ סמריה', en: 'Samaria Gorge' }, kind: 'nature', durationH: 7, tags: ['adventure', 'nature'] },
-      { name: { he: 'לגונת בלוס', en: 'Balos Lagoon' }, kind: 'beach', durationH: 5, tags: ['beach', 'nature'] },
-      { name: { he: 'חוף אלאפוניסי', en: 'Elafonisi beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'] },
+      { name: { he: 'ערוץ סמריה', en: 'Samaria Gorge' }, kind: 'nature', durationH: 7, tags: ['adventure', 'nature', 'teens'], area: 'Chania', mustSee: true, months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'לגונת בלוס', en: 'Balos Lagoon' }, kind: 'beach', durationH: 5, tags: ['beach', 'nature'], area: 'Chania', mustSee: true, months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'חוף אלאפוניסי', en: 'Elafonisi beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'family'], area: 'Chania', months: [5, 6, 7, 8, 9, 10] },
       { name: { he: 'האי ספינלונגה', en: 'Spinalonga island' }, kind: 'landmark', durationH: 2.5, tags: ['culture', 'family'], area: 'Agios Nikolaos & Elounda' },
       { name: { he: 'העיר העתיקה של רתימנו ומבצר הפורטצה', en: 'Rethymno old town & Fortezza' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Rethymno' },
-      { name: { he: 'חוף פרבלי', en: 'Preveli beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'nature'] },
-      { name: { he: 'מנזר ארקדי', en: 'Arkadi Monastery' }, kind: 'religious', durationH: 1, tags: ['culture'] },
-      { name: { he: 'אגם קורנס', en: 'Lake Kournas' }, kind: 'nature', durationH: 1.5, tags: ['family', 'nature'] },
-      { name: { he: 'האקווריום של כרתים', en: 'CretAquarium' }, kind: 'experience', durationH: 2, tags: ['family', 'with_children'] }
+      { name: { he: 'חוף פרבלי', en: 'Preveli beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'nature'], area: 'Rethymno', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'מנזר ארקדי', en: 'Arkadi Monastery' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Rethymno' },
+      { name: { he: 'אגם קורנס', en: 'Lake Kournas' }, kind: 'nature', durationH: 1.5, tags: ['family', 'nature'], area: 'Chania' },
+      { name: { he: 'האקווריום של כרתים', en: 'CretAquarium' }, kind: 'experience', durationH: 2, tags: ['family', 'with_children'], area: 'Hersonissos & Malia' }
     ],
     dayTrips: [
-      { name: { he: 'סנטוריני', en: 'Santorini' }, hours: 2, note: { he: 'מעבורת מהירה מהרקליון; יום ארוך אבל אפשרי', en: 'Fast ferry from Heraklion; a long but doable day' } },
-      { name: { he: 'מטאלה והחוף הדרומי', en: 'Matala & the south coast' }, hours: 1.5, note: { he: 'מערות בצוק מעל מפרץ, ובדרך האתר העתיק פייסטוס', en: 'Cliff caves above a bay, with ancient Phaistos on the way' } }
+      { name: { he: 'סנטוריני', en: 'Santorini' }, hours: 2, note: { he: 'מעבורת מהירה מהרקליון; יום ארוך אבל אפשרי', en: 'Fast ferry from Heraklion; a long but doable day' }, priceIls: { low: 600, high: 760 }, kind: 'neighborhood' },
+      { name: { he: 'מטאלה והחוף הדרומי', en: 'Matala & the south coast' }, hours: 1.5, note: { he: 'מערות בצוק מעל מפרץ, ובדרך האתר העתיק פייסטוס', en: 'Cliff caves above a bay, with ancient Phaistos on the way' }, priceIls: { low: 80, high: 320 }, kind: 'beach' }
     ],
     transport: { carRecommended: true, note: { he: 'האי גדול (בין הרקליון לחאניה כשעתיים וחצי נסיעה) והחופים היפים מרוחקים — רכב שכור הוא הדרך הנוחה. יש אוטובוסים בין הערים.', en: 'The island is big (about two and a half hours from Heraklion to Chania) and the best beaches are remote — a rental car is the easy option. Buses link the towns.' } },
     practical: {
@@ -221,23 +223,23 @@ export default [
       { name: { he: 'איקסיה ויאליסוס', en: 'Ixia & Ialysos' }, forWhom: { he: 'גלישת רוח ומלונות קרובים לעיר ולשדה', en: 'Windsurfing and hotels close to town and the airport' } }
     ],
     attractions: [
-      { name: { he: 'העיר העתיקה של רודוס', en: 'Rhodes Old Town' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'shopping'], area: 'Rhodes Town' },
-      { name: { he: 'ארמון המאסטר הגדול', en: 'Palace of the Grand Master' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Rhodes Town' },
+      { name: { he: 'העיר העתיקה של רודוס', en: 'Rhodes Old Town' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'shopping'], area: 'Rhodes Town', mustSee: true },
+      { name: { he: 'ארמון המאסטר הגדול', en: 'Palace of the Grand Master' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Rhodes Town', mustSee: true },
       { name: { he: 'רחוב האבירים', en: 'Street of the Knights' }, kind: 'landmark', durationH: 0.5, tags: ['culture'], area: 'Rhodes Town' },
       { name: { he: 'בית הכנסת קהל שלום והמוזיאון היהודי', en: 'Kahal Shalom Synagogue & Jewish Museum of Rhodes' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Rhodes Town' },
-      { name: { he: 'האקרופוליס של לינדוס', en: 'Acropolis of Lindos' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Lindos' },
-      { name: { he: 'מפרץ פאולוס הקדוש', en: 'St Paul’s Bay' }, kind: 'beach', durationH: 3, tags: ['beach', 'couple'], area: 'Lindos' },
-      { name: { he: 'מפרץ אנתוני קווין', en: 'Anthony Quinn Bay' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Faliraki' },
-      { name: { he: 'חוף צמביקה', en: 'Tsambika beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Kolymbia' },
-      { name: { he: 'פארק המים פלירקי', en: 'Faliraki Water Park' }, kind: 'experience', durationH: 4, tags: ['water_slides', 'family', 'with_children'], area: 'Faliraki' },
-      { name: { he: 'עמק הפרפרים', en: 'Valley of the Butterflies' }, kind: 'nature', durationH: 1.5, tags: ['nature', 'family'] },
+      { name: { he: 'האקרופוליס של לינדוס', en: 'Acropolis of Lindos' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Lindos', mustSee: true },
+      { name: { he: 'מפרץ פאולוס הקדוש', en: 'St Paul’s Bay' }, kind: 'beach', durationH: 3, tags: ['beach', 'couple'], area: 'Lindos', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'מפרץ אנתוני קווין', en: 'Anthony Quinn Bay' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Faliraki', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'חוף צמביקה', en: 'Tsambika beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Kolymbia', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'פארק המים פלירקי', en: 'Faliraki Water Park' }, kind: 'experience', durationH: 4, tags: ['water_slides', 'family', 'with_children', 'teens'], area: 'Faliraki', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'עמק הפרפרים', en: 'Valley of the Butterflies' }, kind: 'nature', durationH: 1.5, tags: ['nature', 'family'], area: 'Petaloudes' },
       { name: { he: 'שבעת המעיינות', en: 'Seven Springs' }, kind: 'nature', durationH: 1.5, tags: ['nature', 'family'], area: 'Kolymbia' },
       { name: { he: 'מעיינות קליתאה', en: 'Kallithea Springs' }, kind: 'landmark', durationH: 2, tags: ['beach', 'couple'], area: 'Faliraki' },
       { name: { he: 'גבעת פילרימוס', en: 'Filerimos Hill' }, kind: 'viewpoint', durationH: 1.5, tags: ['culture'], area: 'Ixia & Ialysos' }
     ],
     dayTrips: [
-      { name: { he: 'האי סימי', en: 'Symi island' }, hours: 1.5, note: { he: 'מעבורת מהעיר רודוס; נמל צבעוני ומנזר פנורמיטיס', en: 'Ferry from Rhodes Town; a colourful harbour and Panormitis Monastery' } },
-      { name: { he: 'טירת מונוליתוס והחוף המערבי', en: 'Monolithos Castle & the west coast' }, hours: 1.5, note: { he: 'ברכב; כפרים שקטים וטירה על סלע מעל הים', en: 'By car; quiet villages and a castle on a rock above the sea' } }
+      { name: { he: 'האי סימי', en: 'Symi island' }, hours: 1.5, note: { he: 'מעבורת מהעיר רודוס; נמל צבעוני ומנזר פנורמיטיס', en: 'Ferry from Rhodes Town; a colourful harbour and Panormitis Monastery' }, priceIls: { low: 100, high: 260 }, kind: 'neighborhood' },
+      { name: { he: 'טירת מונוליתוס והחוף המערבי', en: 'Monolithos Castle & the west coast' }, hours: 1.5, note: { he: 'ברכב; כפרים שקטים וטירה על סלע מעל הים', en: 'By car; quiet villages and a castle on a rock above the sea' }, priceIls: { low: 70, high: 180 }, kind: 'landmark' }
     ],
     transport: { carRecommended: true, note: { he: 'אוטובוסים מחברים את העיר ללינדוס ולחוף המזרחי, אבל רכב שכור לכמה ימים נותן חופש להגיע לחופים ולמפרצים.', en: 'Buses link the town with Lindos and the east coast, but a rental car for a few days frees you to reach the beaches and coves.' } },
     practical: {
@@ -269,22 +271,22 @@ export default [
       { name: { he: 'אליה וקלפאס', en: 'Elia & Kalafatis' }, forWhom: { he: 'שקט יחסי וחופים ארוכים, צריך רכב', en: 'Relative quiet and long beaches; you need a car' } }
     ],
     attractions: [
-      { name: { he: 'ונציה הקטנה', en: 'Little Venice' }, kind: 'neighborhood', durationH: 1.5, tags: ['couple', 'nightlife'], area: 'Chora (Mykonos Town)' },
-      { name: { he: 'טחנות הרוח קאטו מילי', en: 'Kato Mili windmills' }, kind: 'landmark', durationH: 0.5, tags: ['couple'], area: 'Chora (Mykonos Town)' },
+      { name: { he: 'ונציה הקטנה', en: 'Little Venice' }, kind: 'neighborhood', durationH: 1.5, tags: ['couple', 'nightlife', 'evening'], area: 'Chora (Mykonos Town)', mustSee: true },
+      { name: { he: 'טחנות הרוח קאטו מילי', en: 'Kato Mili windmills' }, kind: 'landmark', durationH: 0.5, tags: ['couple'], area: 'Chora (Mykonos Town)', mustSee: true },
       { name: { he: 'כנסיית פרפורטיאני', en: 'Panagia Paraportiani church' }, kind: 'religious', durationH: 0.5, tags: ['culture'], area: 'Chora (Mykonos Town)' },
-      { name: { he: 'האי דלוס', en: 'Delos archaeological site' }, kind: 'landmark', durationH: 4, tags: ['culture'] },
-      { name: { he: 'חוף פרדייס', en: 'Paradise Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'nightlife'] },
-      { name: { he: 'חוף סופר פרדייס', en: 'Super Paradise Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'nightlife'] },
-      { name: { he: 'חוף פסרו', en: 'Psarou Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'luxury'], area: 'Platys Gialos & Psarou' },
-      { name: { he: 'חוף אליה', en: 'Elia Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'Elia & Kalafatis' },
-      { name: { he: 'חוף אורנוס', en: 'Ornos Beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Ornos' },
-      { name: { he: 'מגדלור ארמניסטיס', en: 'Armenistis Lighthouse' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] },
-      { name: { he: 'הכפר אנו מרה ומנזר טורליאני', en: 'Ano Mera village & Tourliani Monastery' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'] },
+      { name: { he: 'האי דלוס', en: 'Delos archaeological site' }, kind: 'landmark', durationH: 4, tags: ['culture'], area: 'Delos', mustSee: true },
+      { name: { he: 'חוף פרדייס', en: 'Paradise Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'nightlife', 'adults'], area: 'Paradise & Super Paradise', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'חוף סופר פרדייס', en: 'Super Paradise Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'nightlife', 'adults'], area: 'Paradise & Super Paradise', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'חוף פסרו', en: 'Psarou Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'luxury'], area: 'Platys Gialos & Psarou', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'חוף אליה', en: 'Elia Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'relaxation'], area: 'Elia & Kalafatis', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'חוף אורנוס', en: 'Ornos Beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Ornos', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'מגדלור ארמניסטיס', en: 'Armenistis Lighthouse' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'Armenistis' },
+      { name: { he: 'הכפר אנו מרה ומנזר טורליאני', en: 'Ano Mera village & Tourliani Monastery' }, kind: 'neighborhood', durationH: 1.5, tags: ['culture'], area: 'Ano Mera' },
       { name: { he: 'המוזיאון הימי של הים האגאי', en: 'Aegean Maritime Museum' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Chora (Mykonos Town)' }
     ],
     dayTrips: [
-      { name: { he: 'האי טינוס', en: 'Tinos island' }, hours: 0.5, note: { he: 'מעבורת קצרה; כפרי שיש, יונים וכנסייה מפורסמת', en: 'A short ferry; marble villages, dovecotes and a famous church' } },
-      { name: { he: 'האי פארוס', en: 'Paros island' }, hours: 1, note: { he: 'מעבורת מהירה; נאוסה ונמל דייגים', en: 'Fast ferry; Naoussa and its fishing harbour' } }
+      { name: { he: 'האי טינוס', en: 'Tinos island' }, hours: 0.5, note: { he: 'מעבורת קצרה; כפרי שיש, יונים וכנסייה מפורסמת', en: 'A short ferry; marble villages, dovecotes and a famous church' }, priceIls: { low: 250, high: 450 }, kind: 'neighborhood' },
+      { name: { he: 'האי פארוס', en: 'Paros island' }, hours: 1, note: { he: 'מעבורת מהירה; נאוסה ונמל דייגים', en: 'Fast ferry; Naoussa and its fishing harbour' }, priceIls: { low: 350, high: 600 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'אוטובוסים מהעיר לחופים הדרומיים ומוניות ים בין המפרצים. רכב קטן או טרקטורון עוזרים לחופים הצפוניים; החניה בעיר קשה.', en: 'Buses run from town to the southern beaches, and sea taxis link the bays. A small car or quad helps for the northern beaches; parking in town is hard.' } },
     practical: {
@@ -318,24 +320,24 @@ export default [
       { name: { he: 'פאפוס', en: 'Paphos' }, forWhom: { he: 'תרבות, עתיקות וטבע, קצב רגוע', en: 'Culture, antiquities and nature at a slower pace' } }
     ],
     attractions: [
-      { name: { he: 'חוף ניסי', en: 'Nissi Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'nightlife'], area: 'Ayia Napa' },
-      { name: { he: 'כף גרקו', en: 'Cape Greco' }, kind: 'nature', durationH: 2, tags: ['nature', 'adventure'] },
-      { name: { he: 'מפרץ פיג טרי', en: 'Fig Tree Bay' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Protaras' },
-      { name: { he: 'פארק המים ווטרוורלד באיה נאפה', en: 'WaterWorld Ayia Napa' }, kind: 'experience', durationH: 5, tags: ['water_slides', 'family', 'with_children'], area: 'Ayia Napa' },
+      { name: { he: 'חוף ניסי', en: 'Nissi Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'nightlife', 'teens'], area: 'Ayia Napa', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'כף גרקו', en: 'Cape Greco' }, kind: 'nature', durationH: 2, tags: ['nature', 'adventure'], area: 'Ayia Napa', mustSee: true },
+      { name: { he: 'מפרץ פיג טרי', en: 'Fig Tree Bay' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Protaras', months: [5, 6, 7, 8, 9, 10] },
+      { name: { he: 'פארק המים ווטרוורלד באיה נאפה', en: 'WaterWorld Ayia Napa' }, kind: 'experience', durationH: 5, tags: ['water_slides', 'family', 'with_children', 'teens'], area: 'Ayia Napa', months: [4, 5, 6, 7, 8, 9, 10] },
       { name: { he: 'טיילת פיניקודס', en: 'Finikoudes promenade' }, kind: 'neighborhood', durationH: 1.5, tags: ['food', 'family'], area: 'Larnaca' },
       { name: { he: 'כנסיית לזרוס הקדוש', en: 'Church of Saint Lazarus' }, kind: 'religious', durationH: 0.5, tags: ['culture'], area: 'Larnaca' },
       { name: { he: 'האגם המלוח של לרנקה והלה סולטן טקה', en: 'Larnaca Salt Lake & Hala Sultan Tekke' }, kind: 'nature', durationH: 1.5, tags: ['nature', 'culture'], area: 'Larnaca' },
       { name: { he: 'מרינת לימסול והנמל הישן', en: 'Limassol Marina & Old Port' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'couple'], area: 'Limassol' },
-      { name: { he: 'קוריון העתיקה', en: 'Ancient Kourion' }, kind: 'landmark', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'סלע אפרודיטה', en: 'Aphrodite’s Rock (Petra tou Romiou)' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] },
-      { name: { he: 'הפארק הארכאולוגי של פאפוס', en: 'Paphos Archaeological Park' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Paphos' },
+      { name: { he: 'קוריון העתיקה', en: 'Ancient Kourion' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Limassol', mustSee: true },
+      { name: { he: 'סלע אפרודיטה', en: 'Aphrodite’s Rock (Petra tou Romiou)' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Paphos' },
+      { name: { he: 'הפארק הארכאולוגי של פאפוס', en: 'Paphos Archaeological Park' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Paphos', mustSee: true },
       { name: { he: 'קברי המלכים', en: 'Tombs of the Kings' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Paphos' },
-      { name: { he: 'מפרץ האלמוגים', en: 'Coral Bay' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Paphos' }
+      { name: { he: 'מפרץ האלמוגים', en: 'Coral Bay' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Paphos', months: [5, 6, 7, 8, 9, 10] }
     ],
     dayTrips: [
-      { name: { he: 'הרי טרודוס', en: 'Troodos Mountains' }, hours: 1.5, note: { he: 'ברכב; כפרי הרים, מנזר קיקוס וטבע — ובחורף לפעמים שלג', en: 'By car; mountain villages, Kykkos Monastery and nature — sometimes snow in winter' } },
-      { name: { he: 'חצי האי אקאמס והלגונה הכחולה', en: 'Akamas Peninsula & the Blue Lagoon' }, hours: 1, note: { he: 'מפאפוס או מפוליס; שייט או ג׳יפים', en: 'From Paphos or Polis; by boat or jeep' } },
-      { name: { he: 'ניקוסיה', en: 'Nicosia' }, hours: 1, note: { he: 'הבירה — עיר עתיקה בתוך חומות ונציאניות', en: 'The capital — an old town inside Venetian walls' } }
+      { name: { he: 'הרי טרודוס', en: 'Troodos Mountains' }, hours: 1.5, note: { he: 'ברכב; כפרי הרים, מנזר קיקוס וטבע — ובחורף לפעמים שלג', en: 'By car; mountain villages, Kykkos Monastery and nature — sometimes snow in winter' }, priceIls: { low: 100, high: 320 }, kind: 'nature' },
+      { name: { he: 'חצי האי אקאמס והלגונה הכחולה', en: 'Akamas Peninsula & the Blue Lagoon' }, hours: 1, note: { he: 'מפאפוס או מפוליס; שייט או ג׳יפים', en: 'From Paphos or Polis; by boat or jeep' }, priceIls: { low: 100, high: 300 }, kind: 'beach' },
+      { name: { he: 'ניקוסיה', en: 'Nicosia' }, hours: 1, note: { he: 'הבירה — עיר עתיקה בתוך חומות ונציאניות', en: 'The capital — an old town inside Venetian walls' }, priceIls: { low: 40, high: 220 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: true, note: { he: 'נוהגים בצד שמאל. יש אוטובוסים בין הערים, אבל לחופים, לכף גרקו ולטרודוס הכי נוח ברכב שכור.', en: 'Driving is on the left. Intercity buses run, but a rental car is easiest for beaches, Cape Greco and Troodos.' } },
     practical: {
@@ -369,26 +371,26 @@ export default [
       { name: { he: 'אגם קומו — בלאג׳ו, ורנה או העיר קומו', en: 'Lake Como — Bellagio, Varenna or Como town' }, forWhom: { he: 'זוגות שרוצים לילה־שניים של נוף ושקט', en: 'Couples wanting a night or two of views and quiet' } }
     ],
     attractions: [
-      { name: { he: 'הדואומו של מילאנו והגג', en: 'Milan Cathedral & rooftop' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Centro — Duomo' },
+      { name: { he: 'הדואומו של מילאנו והגג', en: 'Milan Cathedral & rooftop' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Centro — Duomo', mustSee: true },
       { name: { he: 'הגלריה ויטוריו אמנואלה השני', en: 'Galleria Vittorio Emanuele II' }, kind: 'landmark', durationH: 1, tags: ['shopping'], area: 'Centro — Duomo' },
-      { name: { he: '״הסעודה האחרונה״ — סנטה מריה דלה גרציה', en: 'The Last Supper — Santa Maria delle Grazie' }, kind: 'museum', durationH: 0.5, tags: ['culture'] },
-      { name: { he: 'טירת ספורצה', en: 'Sforza Castle' }, kind: 'museum', durationH: 2, tags: ['culture', 'family'] },
-      { name: { he: 'פארק סמפיונה', en: 'Parco Sempione' }, kind: 'park', durationH: 1.5, tags: ['family'] },
+      { name: { he: '״הסעודה האחרונה״ — סנטה מריה דלה גרציה', en: 'The Last Supper — Santa Maria delle Grazie' }, kind: 'museum', durationH: 0.5, tags: ['culture'], area: 'Magenta', mustSee: true },
+      { name: { he: 'טירת ספורצה', en: 'Sforza Castle' }, kind: 'museum', durationH: 2, tags: ['culture', 'family'], area: 'Sempione' },
+      { name: { he: 'פארק סמפיונה', en: 'Parco Sempione' }, kind: 'park', durationH: 1.5, tags: ['family'], area: 'Sempione' },
       { name: { he: 'פינקוטקה די ברה', en: 'Pinacoteca di Brera' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Brera' },
       { name: { he: 'תיאטרון לה סקאלה והמוזיאון', en: 'La Scala theatre & museum' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'Centro — Duomo' },
       { name: { he: 'רובע האופנה', en: 'Quadrilatero della Moda' }, kind: 'neighborhood', durationH: 2, tags: ['shopping', 'luxury'], area: 'Centro — Duomo' },
-      { name: { he: 'תעלות הנבילי', en: 'Navigli canals' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'nightlife'], area: 'Navigli' },
+      { name: { he: 'תעלות הנבילי', en: 'Navigli canals' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'nightlife', 'evening'], area: 'Navigli' },
       { name: { he: 'בוסקו ורטיקלה ופורטה נואובה', en: 'Bosco Verticale & Porta Nuova' }, kind: 'landmark', durationH: 1, tags: ['city'], area: 'Porta Nuova & Isola' },
       { name: { he: 'העיר קומו והרכבל לברונטה', en: 'Como town & the Brunate funicular' }, kind: 'viewpoint', durationH: 3, tags: ['nature', 'couple'], area: 'Lake Como — Bellagio, Varenna or Como town' },
-      { name: { he: 'בלאג׳ו', en: 'Bellagio' }, kind: 'neighborhood', durationH: 3, tags: ['couple'], area: 'Lake Como — Bellagio, Varenna or Como town' },
+      { name: { he: 'בלאג׳ו', en: 'Bellagio' }, kind: 'neighborhood', durationH: 3, tags: ['couple'], area: 'Lake Como — Bellagio, Varenna or Como town', mustSee: true },
       { name: { he: 'וילה דל בלביאנלו', en: 'Villa del Balbianello' }, kind: 'landmark', durationH: 1.5, tags: ['couple', 'culture'], area: 'Lake Como — Bellagio, Varenna or Como town' },
       { name: { he: 'ורנה', en: 'Varenna' }, kind: 'neighborhood', durationH: 2, tags: ['couple', 'nature'], area: 'Lake Como — Bellagio, Varenna or Como town' }
     ],
     dayTrips: [
-      { name: { he: 'ברגמו העתיקה', en: 'Bergamo Città Alta' }, hours: 1, note: { he: 'ברכבת; עיר עליונה מוקפת חומות, עולים ברכבל', en: 'By train; a walled upper town reached by funicular' } },
-      { name: { he: 'אגם גארדה — סירמיונה', en: 'Lake Garda — Sirmione' }, hours: 1.5, note: { he: 'רכבת לדזנצאנו ומשם אוטובוס או סירה', en: 'Train to Desenzano, then a bus or boat' } },
-      { name: { he: 'אגם מאג׳ורה — סטרזה והאיים הבורומאים', en: 'Lake Maggiore — Stresa & the Borromean Islands' }, hours: 1, note: { he: 'ברכבת; ארמונות וגנים על איים', en: 'By train; palaces and gardens on islands' } },
-      { name: { he: 'אאוטלט סרוואלה', en: 'Serravalle Designer Outlet' }, hours: 1, note: { he: 'לחובבי שופינג; יש שאטלים ממרכז העיר', en: 'For shoppers; shuttles run from the city centre' } }
+      { name: { he: 'ברגמו העתיקה', en: 'Bergamo Città Alta' }, hours: 1, note: { he: 'ברכבת; עיר עליונה מוקפת חומות, עולים ברכבל', en: 'By train; a walled upper town reached by funicular' }, priceIls: { low: 50, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'אגם גארדה — סירמיונה', en: 'Lake Garda — Sirmione' }, hours: 1.5, note: { he: 'רכבת לדזנצאנו ומשם אוטובוס או סירה', en: 'Train to Desenzano, then a bus or boat' }, priceIls: { low: 100, high: 400 }, kind: 'neighborhood' },
+      { name: { he: 'אגם מאג׳ורה — סטרזה והאיים הבורומאים', en: 'Lake Maggiore — Stresa & the Borromean Islands' }, hours: 1, note: { he: 'ברכבת; ארמונות וגנים על איים', en: 'By train; palaces and gardens on islands' }, priceIls: { low: 150, high: 450 }, kind: 'park' },
+      { name: { he: 'אאוטלט סרוואלה', en: 'Serravalle Designer Outlet' }, hours: 1, note: { he: 'לחובבי שופינג; יש שאטלים ממרכז העיר', en: 'For shoppers; shuttles run from the city centre' }, priceIls: { low: 80, high: 130 }, kind: 'experience' }
     ],
     transport: { carRecommended: false, note: { he: 'מטרו וחשמליות טובים בעיר; רכבת מהירה ממלפנסה למרכז. לאגם קומו מגיעים ברכבת ומשם במעבורות — רכב על כבישי האגם הצרים לא כדאי.', en: 'The metro and trams work well; an express train runs from Malpensa to the centre. Reach Lake Como by train and use the ferries — driving the narrow lake roads isn’t worth it.' } },
     practical: {
@@ -421,24 +423,24 @@ export default [
       { name: { he: 'מסטרה', en: 'Mestre' }, forWhom: { he: 'תקציב — ביבשה, עשר דקות ברכבת לעיר', en: 'Budget — on the mainland, ten minutes by train' } }
     ],
     attractions: [
-      { name: { he: 'כיכר סן מרקו', en: 'St Mark’s Square' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'San Marco' },
-      { name: { he: 'בזיליקת סן מרקו', en: 'St Mark’s Basilica' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'San Marco' },
-      { name: { he: 'ארמון הדוג׳ים', en: 'Doge’s Palace' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'San Marco' },
+      { name: { he: 'כיכר סן מרקו', en: 'St Mark’s Square' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'San Marco', mustSee: true },
+      { name: { he: 'בזיליקת סן מרקו', en: 'St Mark’s Basilica' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'San Marco', mustSee: true },
+      { name: { he: 'ארמון הדוג׳ים', en: 'Doge’s Palace' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'San Marco', mustSee: true },
       { name: { he: 'מגדל הפעמונים של סן מרקו', en: 'St Mark’s Campanile' }, kind: 'viewpoint', durationH: 0.5, tags: ['couple'], area: 'San Marco' },
-      { name: { he: 'גשר ריאלטו והשוק', en: 'Rialto Bridge & Market' }, kind: 'market', durationH: 1, tags: ['food'] },
+      { name: { he: 'גשר ריאלטו והשוק', en: 'Rialto Bridge & Market' }, kind: 'market', durationH: 1, tags: ['food'], area: 'San Polo' },
       { name: { he: 'הגטו היהודי', en: 'The Jewish Ghetto' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'kosher'], area: 'Cannaregio' },
       { name: { he: 'גלריה האקדמיה', en: 'Gallerie dell’Accademia' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Dorsoduro' },
       { name: { he: 'אוסף פגי גוגנהיים', en: 'Peggy Guggenheim Collection' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Dorsoduro' },
       { name: { he: 'בזיליקת סנטה מריה דלה סלוטה', en: 'Santa Maria della Salute' }, kind: 'religious', durationH: 0.5, tags: ['culture'], area: 'Dorsoduro' },
-      { name: { he: 'סקואולה גרנדה די סן רוקו', en: 'Scuola Grande di San Rocco' }, kind: 'museum', durationH: 1, tags: ['culture'] },
-      { name: { he: 'סן ג׳ורג׳ו מאג׳ורה והמגדל', en: 'San Giorgio Maggiore & bell tower' }, kind: 'viewpoint', durationH: 1, tags: ['couple'] },
+      { name: { he: 'סקואולה גרנדה די סן רוקו', en: 'Scuola Grande di San Rocco' }, kind: 'museum', durationH: 1, tags: ['culture'], area: 'San Polo' },
+      { name: { he: 'סן ג׳ורג׳ו מאג׳ורה והמגדל', en: 'San Giorgio Maggiore & bell tower' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'San Giorgio Maggiore' },
       { name: { he: 'שייט בגונדולה', en: 'Gondola ride' }, kind: 'experience', durationH: 0.5, tags: ['couple'] },
       { name: { he: 'קו וופורטו 1 בתעלה הגדולה', en: 'Vaporetto line 1 on the Grand Canal' }, kind: 'experience', durationH: 1, tags: ['family'] }
     ],
     dayTrips: [
-      { name: { he: 'מוראנו ובוראנו', en: 'Murano & Burano' }, hours: 0.75, note: { he: 'בוופורטו; זכוכית במוראנו ובתים צבעוניים בבוראנו', en: 'By vaporetto; glassmaking on Murano, colourful houses on Burano' } },
-      { name: { he: 'ורונה', en: 'Verona' }, hours: 1.25, note: { he: 'ברכבת; הארנה הרומית ו״המרפסת של ג׳ולייט״', en: 'By train; the Roman Arena and “Juliet’s balcony”' } },
-      { name: { he: 'פדובה', en: 'Padua' }, hours: 0.5, note: { he: 'ברכבת; קפלת סקרובני ועיר אוניברסיטה', en: 'By train; the Scrovegni Chapel and a university town' } }
+      { name: { he: 'מוראנו ובוראנו', en: 'Murano & Burano' }, hours: 0.75, note: { he: 'בוופורטו; זכוכית במוראנו ובתים צבעוניים בבוראנו', en: 'By vaporetto; glassmaking on Murano, colourful houses on Burano' }, priceIls: { low: 100, high: 250 }, kind: 'neighborhood' },
+      { name: { he: 'ורונה', en: 'Verona' }, hours: 1.25, note: { he: 'ברכבת; הארנה הרומית ו״המרפסת של ג׳ולייט״', en: 'By train; the Roman Arena and “Juliet’s balcony”' }, priceIls: { low: 100, high: 400 }, kind: 'neighborhood' },
+      { name: { he: 'פדובה', en: 'Padua' }, hours: 0.5, note: { he: 'ברכבת; קפלת סקרובני ועיר אוניברסיטה', en: 'By train; the Scrovegni Chapel and a university town' }, priceIls: { low: 80, high: 300 }, kind: 'neighborhood' }
     ],
     transport: { carRecommended: false, note: { he: 'אין מכוניות — הולכים ברגל ונוסעים בוופורטו. מהשדה יש אוטובוס לפיאצלה רומא או סירה. כדאי מזוודה קלה: הרבה גשרים ומדרגות.', en: 'There are no cars — you walk and take the vaporetto. From the airport, take a bus to Piazzale Roma or a boat. Pack light: lots of bridges and steps.' } },
     practical: {
@@ -472,25 +474,25 @@ export default [
       { name: { he: 'לוקה', en: 'Lucca' }, forWhom: { he: 'בסיס שקט בתוך חומות, קרוב לפיזה', en: 'A quiet walled base close to Pisa' } }
     ],
     attractions: [
-      { name: { he: 'הדואומו והעלייה לכיפה', en: 'Florence Cathedral & dome climb' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Historic centre' },
-      { name: { he: 'גלריית אופיצי', en: 'Uffizi Gallery' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Historic centre' },
-      { name: { he: 'גלריה האקדמיה — דוד', en: 'Galleria dell’Accademia — David' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Historic centre' },
+      { name: { he: 'הדואומו והעלייה לכיפה', en: 'Florence Cathedral & dome climb' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Historic centre', mustSee: true },
+      { name: { he: 'גלריית אופיצי', en: 'Uffizi Gallery' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Historic centre', mustSee: true },
+      { name: { he: 'גלריה האקדמיה — דוד', en: 'Galleria dell’Accademia — David' }, kind: 'museum', durationH: 1.5, tags: ['culture'], area: 'Historic centre', mustSee: true },
       { name: { he: 'פונטה וקיו', en: 'Ponte Vecchio' }, kind: 'landmark', durationH: 0.5, tags: ['shopping'], area: 'Historic centre' },
       { name: { he: 'פיאצה דלה סיניוריה ופלאצו וקיו', en: 'Piazza della Signoria & Palazzo Vecchio' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Historic centre' },
-      { name: { he: 'פיאצלה מיכלאנג׳לו', en: 'Piazzale Michelangelo' }, kind: 'viewpoint', durationH: 1, tags: ['couple'], area: 'Oltrarno & Santo Spirito' },
+      { name: { he: 'פיאצלה מיכלאנג׳לו', en: 'Piazzale Michelangelo' }, kind: 'viewpoint', durationH: 1, tags: ['couple', 'evening'], area: 'Oltrarno & Santo Spirito' },
       { name: { he: 'ארמון פיטי וגני בובולי', en: 'Palazzo Pitti & Boboli Gardens' }, kind: 'park', durationH: 2.5, tags: ['culture', 'family'], area: 'Oltrarno & Santo Spirito' },
       { name: { he: 'בזיליקת סנטה קרוצ׳ה', en: 'Basilica of Santa Croce' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Santa Croce & Sant’Ambrogio' },
       { name: { he: 'בית הכנסת הגדול והמוזיאון היהודי', en: 'Great Synagogue & Jewish Museum' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Santa Croce & Sant’Ambrogio' },
       { name: { he: 'השוק המרכזי וסן לורנצו', en: 'Mercato Centrale & San Lorenzo market' }, kind: 'market', durationH: 1.5, tags: ['food', 'shopping'], area: 'Historic centre' },
-      { name: { he: 'פיאצה דל קמפו בסיינה', en: 'Piazza del Campo, Siena' }, kind: 'landmark', durationH: 3, tags: ['culture'] },
-      { name: { he: 'סן ג׳ימיניאנו', en: 'San Gimignano' }, kind: 'neighborhood', durationH: 2.5, tags: ['culture', 'couple'] },
-      { name: { he: 'סיור יין בקיאנטי', en: 'Chianti wine tour' }, kind: 'experience', durationH: 5, tags: ['food', 'couple', 'nature'], area: 'An agriturismo in Chianti' }
+      { name: { he: 'פיאצה דל קמפו בסיינה', en: 'Piazza del Campo, Siena' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'Siena' },
+      { name: { he: 'סן ג׳ימיניאנו', en: 'San Gimignano' }, kind: 'neighborhood', durationH: 2.5, tags: ['culture', 'couple'], area: 'San Gimignano' },
+      { name: { he: 'סיור יין בקיאנטי', en: 'Chianti wine tour' }, kind: 'experience', durationH: 5, tags: ['food', 'couple', 'nature', 'adults'], area: 'An agriturismo in Chianti' }
     ],
     dayTrips: [
-      { name: { he: 'פיזה ולוקה', en: 'Pisa & Lucca' }, hours: 1, note: { he: 'ברכבת; המגדל הנטוי וחומות לוקה באותו יום', en: 'By train; the Leaning Tower and Lucca’s walls in one day' } },
-      { name: { he: 'סיינה', en: 'Siena' }, hours: 1.25, note: { he: 'אוטובוס ישיר; עיר מדיוואלית שלמה', en: 'Direct bus; an intact medieval city' } },
-      { name: { he: 'צ׳ינקווה טרה', en: 'Cinque Terre' }, hours: 2.5, note: { he: 'ברכבת; חמישה כפרים צבעוניים על הצוק — יום ארוך', en: 'By train; five colourful cliffside villages — a long day' } },
-      { name: { he: 'ואל ד׳אורצ׳ה', en: 'Val d’Orcia' }, hours: 2, note: { he: 'ברכב; הנופים המפורסמים של טוסקנה, פיינצה ומונטלצ׳ינו', en: 'By car; Tuscany’s famous landscapes, Pienza and Montalcino' } }
+      { name: { he: 'פיזה ולוקה', en: 'Pisa & Lucca' }, hours: 1, note: { he: 'ברכבת; המגדל הנטוי וחומות לוקה באותו יום', en: 'By train; the Leaning Tower and Lucca’s walls in one day' }, priceIls: { low: 80, high: 400 }, kind: 'landmark' },
+      { name: { he: 'סיינה', en: 'Siena' }, hours: 1.25, note: { he: 'אוטובוס ישיר; עיר מדיוואלית שלמה', en: 'Direct bus; an intact medieval city' }, priceIls: { low: 80, high: 350 }, kind: 'neighborhood' },
+      { name: { he: 'צ׳ינקווה טרה', en: 'Cinque Terre' }, hours: 2.5, note: { he: 'ברכבת; חמישה כפרים צבעוניים על הצוק — יום ארוך', en: 'By train; five colourful cliffside villages — a long day' }, priceIls: { low: 150, high: 600 }, kind: 'neighborhood' },
+      { name: { he: 'ואל ד׳אורצ׳ה', en: 'Val d’Orcia' }, hours: 2, note: { he: 'ברכב; הנופים המפורסמים של טוסקנה, פיינצה ומונטלצ׳ינו', en: 'By car; Tuscany’s famous landscapes, Pienza and Montalcino' }, priceIls: { low: 150, high: 650 }, kind: 'nature' }
     ],
     transport: { carRecommended: true, note: { he: 'בפירנצה הולכים ברגל, ורכב בעיר אסור באזורי תנועה מוגבלת. לכפרי טוסקנה רכב שכור הוא הדרך הנוחה; לפיזה, לוקה וסיינה יש גם רכבות ואוטובוסים.', en: 'Florence is for walking, and cars are barred from its restricted traffic zones. For the Tuscan countryside a rental car is easiest; trains and buses also reach Pisa, Lucca and Siena.' } },
     practical: {
@@ -524,25 +526,25 @@ export default [
       { name: { he: 'קאפרי', en: 'Capri' }, forWhom: { he: 'לילה על האי, אחרי שהמבקרים היומיים עוזבים', en: 'A night on the island after the day-trippers leave' } }
     ],
     attractions: [
-      { name: { he: 'פומפיי', en: 'Pompeii' }, kind: 'landmark', durationH: 4, tags: ['culture'] },
-      { name: { he: 'הרקולנאום', en: 'Herculaneum' }, kind: 'landmark', durationH: 2.5, tags: ['culture'] },
-      { name: { he: 'הר הווזוב', en: 'Mount Vesuvius' }, kind: 'nature', durationH: 2.5, tags: ['adventure', 'nature'] },
+      { name: { he: 'פומפיי', en: 'Pompeii' }, kind: 'landmark', durationH: 4, tags: ['culture'], area: 'Pompeii', mustSee: true },
+      { name: { he: 'הרקולנאום', en: 'Herculaneum' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Ercolano' },
+      { name: { he: 'הר הווזוב', en: 'Mount Vesuvius' }, kind: 'nature', durationH: 2.5, tags: ['adventure', 'nature', 'teens'], area: 'Vesuvius' },
       { name: { he: 'המוזיאון הארכאולוגי הלאומי של נאפולי', en: 'Naples National Archaeological Museum' }, kind: 'museum', durationH: 2, tags: ['culture'], area: 'Naples — historic centre' },
-      { name: { he: 'ספקה־נאפולי והמרכז ההיסטורי', en: 'Spaccanapoli & the historic centre' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'culture'], area: 'Naples — historic centre' },
+      { name: { he: 'ספקה־נאפולי והמרכז ההיסטורי', en: 'Spaccanapoli & the historic centre' }, kind: 'neighborhood', durationH: 2, tags: ['food', 'culture'], area: 'Naples — historic centre', mustSee: true },
       { name: { he: 'נאפולי התת־קרקעית', en: 'Napoli Sotterranea' }, kind: 'experience', durationH: 1.5, tags: ['culture', 'family'], area: 'Naples — historic centre' },
-      { name: { he: 'קסטל דל אובו והטיילת', en: 'Castel dell’Ovo & the seafront' }, kind: 'landmark', durationH: 1, tags: ['couple'] },
-      { name: { he: 'המערה הכחולה בקאפרי', en: 'Blue Grotto, Capri' }, kind: 'nature', durationH: 1, tags: ['nature'], area: 'Capri' },
+      { name: { he: 'קסטל דל אובו והטיילת', en: 'Castel dell’Ovo & the seafront' }, kind: 'landmark', durationH: 1, tags: ['couple', 'evening'], area: 'Naples — Chiaia seafront' },
+      { name: { he: 'המערה הכחולה בקאפרי', en: 'Blue Grotto, Capri' }, kind: 'nature', durationH: 1, tags: ['nature'], area: 'Capri', months: [4, 5, 6, 7, 8, 9, 10] },
       { name: { he: 'אנאקפרי והרכבל להר סולארו', en: 'Anacapri & the Monte Solaro chairlift' }, kind: 'viewpoint', durationH: 2, tags: ['couple', 'nature'], area: 'Capri' },
-      { name: { he: 'שביל האלים', en: 'Path of the Gods' }, kind: 'nature', durationH: 3.5, tags: ['adventure', 'nature'] },
-      { name: { he: 'פוזיטנו', en: 'Positano' }, kind: 'neighborhood', durationH: 2, tags: ['beach', 'couple'], area: 'Positano' },
+      { name: { he: 'שביל האלים', en: 'Path of the Gods' }, kind: 'nature', durationH: 3.5, tags: ['adventure', 'nature', 'teens'], area: 'Positano' },
+      { name: { he: 'פוזיטנו', en: 'Positano' }, kind: 'neighborhood', durationH: 2, tags: ['beach', 'couple'], area: 'Positano', mustSee: true },
       { name: { he: 'ראוולו — וילה רופולו ווילה צ׳ימברונה', en: 'Ravello — Villa Rufolo & Villa Cimbrone' }, kind: 'viewpoint', durationH: 2, tags: ['couple'], area: 'Amalfi & Ravello' },
       { name: { he: 'הקתדרלה של אמאלפי', en: 'Amalfi Cathedral' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Amalfi & Ravello' },
-      { name: { he: 'הפיורד של פורורה', en: 'Fiordo di Furore' }, kind: 'nature', durationH: 0.5, tags: ['nature'] }
+      { name: { he: 'הפיורד של פורורה', en: 'Fiordo di Furore' }, kind: 'nature', durationH: 0.5, tags: ['nature'], area: 'Furore' }
     ],
     dayTrips: [
-      { name: { he: 'האי איסקיה', en: 'Ischia island' }, hours: 1, note: { he: 'מעבורת מנאפולי; מעיינות תרמיים וחופים', en: 'Ferry from Naples; thermal springs and beaches' } },
-      { name: { he: 'האי פרוצ׳ידה', en: 'Procida island' }, hours: 0.75, note: { he: 'מעבורת מנאפולי; אי קטן עם נמל צבעוני', en: 'Ferry from Naples; a small island with a colourful harbour' } },
-      { name: { he: 'פאסטום', en: 'Paestum' }, hours: 1.5, note: { he: 'מקדשים יווניים שמורים, ברכבת או ברכב', en: 'Well-preserved Greek temples, by train or car' } }
+      { name: { he: 'האי איסקיה', en: 'Ischia island' }, hours: 1, note: { he: 'מעבורת מנאפולי; מעיינות תרמיים וחופים', en: 'Ferry from Naples; thermal springs and beaches' }, priceIls: { low: 170, high: 400 }, kind: 'beach' },
+      { name: { he: 'האי פרוצ׳ידה', en: 'Procida island' }, hours: 0.75, note: { he: 'מעבורת מנאפולי; אי קטן עם נמל צבעוני', en: 'Ferry from Naples; a small island with a colourful harbour' }, priceIls: { low: 130, high: 300 }, kind: 'neighborhood' },
+      { name: { he: 'פאסטום', en: 'Paestum' }, hours: 1.5, note: { he: 'מקדשים יווניים שמורים, ברכבת או ברכב', en: 'Well-preserved Greek temples, by train or car' }, priceIls: { low: 80, high: 400 }, kind: 'landmark' }
     ],
     transport: { carRecommended: false, note: { he: 'בנאפולי מטרו וכבלית; רכבת סירקומווזוביאנה לפומפיי ולסורנטו. על חוף אמאלפי אוטובוסים ומעבורות — הנהיגה בכביש הצר מלחיצה והחניה יקרה ונדירה.', en: 'Naples has a metro and funiculars; the Circumvesuviana train runs to Pompeii and Sorrento. On the Amalfi Coast use buses and ferries — driving the narrow road is stressful and parking scarce and costly.' } },
     practical: {
@@ -575,25 +577,25 @@ export default [
       { name: { he: 'צ׳פאלו', en: 'Cefalù' }, forWhom: { he: 'משפחות — עיירת חוף עם חוף עירוני', en: 'Families — a seaside town with a town beach' } }
     ],
     attractions: [
-      { name: { he: 'הר האטנה', en: 'Mount Etna' }, kind: 'nature', durationH: 5, tags: ['adventure', 'nature'] },
-      { name: { he: 'התיאטרון היווני של טאורמינה', en: 'Teatro Antico di Taormina' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Taormina' },
-      { name: { he: 'איזולה בלה', en: 'Isola Bella' }, kind: 'beach', durationH: 2, tags: ['beach', 'couple'], area: 'Taormina' },
-      { name: { he: 'ערוצי אלקנטרה', en: 'Alcantara Gorges' }, kind: 'nature', durationH: 2, tags: ['nature', 'family'] },
+      { name: { he: 'הר האטנה', en: 'Mount Etna' }, kind: 'nature', durationH: 5, tags: ['adventure', 'nature', 'teens'], area: 'Catania', mustSee: true },
+      { name: { he: 'התיאטרון היווני של טאורמינה', en: 'Teatro Antico di Taormina' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Taormina', mustSee: true },
+      { name: { he: 'איזולה בלה', en: 'Isola Bella' }, kind: 'beach', durationH: 2, tags: ['beach', 'couple'], area: 'Taormina', months: [6, 7, 8, 9, 10] },
+      { name: { he: 'ערוצי אלקנטרה', en: 'Alcantara Gorges' }, kind: 'nature', durationH: 2, tags: ['nature', 'family'], area: 'Taormina' },
       { name: { he: 'שוק הדגים וכיכר הדואומו בקטניה', en: 'Catania fish market & Piazza del Duomo' }, kind: 'market', durationH: 1.5, tags: ['food'], area: 'Catania' },
-      { name: { he: 'אורטיג׳ה', en: 'Ortigia' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'food'], area: 'Syracuse — Ortigia' },
+      { name: { he: 'אורטיג׳ה', en: 'Ortigia' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'food'], area: 'Syracuse — Ortigia', mustSee: true },
       { name: { he: 'הפארק הארכאולוגי נאפוליס בסירקוזה', en: 'Neapolis Archaeological Park, Syracuse' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Syracuse — Ortigia' },
-      { name: { he: 'נוטו', en: 'Noto' }, kind: 'neighborhood', durationH: 2, tags: ['culture'] },
-      { name: { he: 'עמק המקדשים', en: 'Valley of the Temples' }, kind: 'landmark', durationH: 3, tags: ['culture'] },
-      { name: { he: 'סקאלה די טורקי', en: 'Scala dei Turchi' }, kind: 'viewpoint', durationH: 1, tags: ['nature'] },
+      { name: { he: 'נוטו', en: 'Noto' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Noto' },
+      { name: { he: 'עמק המקדשים', en: 'Valley of the Temples' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'Agrigento', mustSee: true },
+      { name: { he: 'סקאלה די טורקי', en: 'Scala dei Turchi' }, kind: 'viewpoint', durationH: 1, tags: ['nature'], area: 'Agrigento' },
       { name: { he: 'שוק באלארו בפלרמו', en: 'Ballarò market, Palermo' }, kind: 'market', durationH: 1.5, tags: ['food'], area: 'Palermo' },
       { name: { he: 'הקתדרלה של פלרמו', en: 'Palermo Cathedral' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Palermo' },
-      { name: { he: 'הקתדרלה של מונריאלה', en: 'Monreale Cathedral' }, kind: 'religious', durationH: 1.5, tags: ['culture'] },
-      { name: { he: 'צ׳פאלו — העיר העתיקה והחוף', en: 'Cefalù old town & beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Cefalù' }
+      { name: { he: 'הקתדרלה של מונריאלה', en: 'Monreale Cathedral' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Palermo' },
+      { name: { he: 'צ׳פאלו — העיר העתיקה והחוף', en: 'Cefalù old town & beach' }, kind: 'beach', durationH: 3, tags: ['beach', 'family'], area: 'Cefalù', months: [6, 7, 8, 9, 10] }
     ],
     dayTrips: [
-      { name: { he: 'האיים האאוליים — ליפארי וּוולקנו', en: 'Aeolian Islands — Lipari & Vulcano' }, hours: 2, note: { he: 'נסיעה למילאצו ומשם מעבורת; איים געשיים ובוץ חם', en: 'Drive to Milazzo, then a ferry; volcanic islands and hot mud' } },
-      { name: { he: 'אריצ׳ה', en: 'Erice' }, hours: 1.5, note: { he: 'מפלרמו; עיירה מדיוואלית על הר מעל טרפאני', en: 'From Palermo; a medieval hilltop town above Trapani' } },
-      { name: { he: 'שמורת צינגרו', en: 'Zingaro Nature Reserve' }, hours: 1.5, note: { he: 'מפלרמו; מסלול חוף ומפרצונים לרחצה', en: 'From Palermo; a coastal trail and coves for swimming' } }
+      { name: { he: 'האיים האאוליים — ליפארי וּוולקנו', en: 'Aeolian Islands — Lipari & Vulcano' }, hours: 2, note: { he: 'נסיעה למילאצו ומשם מעבורת; איים געשיים ובוץ חם', en: 'Drive to Milazzo, then a ferry; volcanic islands and hot mud' }, priceIls: { low: 250, high: 450 }, kind: 'nature' },
+      { name: { he: 'אריצ׳ה', en: 'Erice' }, hours: 1.5, note: { he: 'מפלרמו; עיירה מדיוואלית על הר מעל טרפאני', en: 'From Palermo; a medieval hilltop town above Trapani' }, priceIls: { low: 80, high: 350 }, kind: 'neighborhood' },
+      { name: { he: 'שמורת צינגרו', en: 'Zingaro Nature Reserve' }, hours: 1.5, note: { he: 'מפלרמו; מסלול חוף ומפרצונים לרחצה', en: 'From Palermo; a coastal trail and coves for swimming' }, priceIls: { low: 60, high: 300 }, kind: 'nature', months: [5, 6, 7, 8, 9, 10] }
     ],
     transport: { carRecommended: true, note: { he: 'האי גדול (מקטניה לפלרמו כשעתיים וחצי) והתחבורה הציבורית איטית — רכב שכור הוא הדרך הנוחה. בערים עצמן לא כדאי לנהוג.', en: 'The island is big (about two and a half hours from Catania to Palermo) and public transport is slow — a rental car is the easy option. Avoid driving inside the cities.' } },
     practical: {
