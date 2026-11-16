@@ -11,6 +11,7 @@ import { account, ready as accountReady } from './account.mjs';
 import { bookingConfig, startBooking } from './booking-client.mjs';
 import { asciiBackground } from './ascii-bg.mjs';
 import { slingTop } from './sling-top.mjs';
+import { brochureHtml } from './brochure.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const L = (v) => (v && typeof v === 'object' ? v[lang] || v.he || v.en || '' : v ?? '');
@@ -427,6 +428,26 @@ function page({ view: host, footer, bread }) {
   }
 }
 
+// Spec 27: print/PDF = a designed brochure, not the screen. Also catches ⌘P while a package is shown.
+function mountBrochure() {
+  if (!pkg?.destination || !view?.isConnected) return false;
+  document.getElementById('bk-brochure')?.remove();
+  const box = document.createElement('div'); box.id = 'bk-brochure'; box.className = 'br'; box.setAttribute('aria-hidden', 'true');
+  box.innerHTML = brochureHtml(pkg, { esc, L, longDay, fare, formatIls, totals: () => pricePackage(pkg, getFx()), hotelGroups });
+  document.body.append(box); document.documentElement.classList.add('printing-brochure'); return box;
+}
+function unmountBrochure() { document.getElementById('bk-brochure')?.remove(); document.documentElement.classList.remove('printing-brochure'); }
+async function printBrochure() {
+  const box = mountBrochure(); if (!box) return window.print();
+  // Wait for the photos, or the PDF comes out with empty frames.
+  await Promise.all([...box.querySelectorAll('img')].map((img) => img.complete ? null : new Promise((ok) => { img.onload = img.onerror = ok; setTimeout(ok, 4000); })));
+  window.print();
+}
+if (typeof window !== 'undefined') {
+  addEventListener('beforeprint', () => { if (!document.getElementById('bk-brochure')) mountBrochure(); });
+  addEventListener('afterprint', unmountBrochure);
+}
+
 let wired = false;
 function wire() {
   bookingConfig().then((c) => { bookingEnabled = c.enabled === true; if (pkg?.flights?.status === 'live' && view?.isConnected) paint('flights'); }).catch(() => {});
@@ -476,7 +497,7 @@ function wire() {
       if (act === 'lead') { leadOpen = true; paintLead(); $('#bc-lead h3', view).focus(); }
       else if (act === 'save') await save(status);
       else if (act === 'share') await share(status);
-      else if (act === 'print') window.print();
+      else if (act === 'print') printBrochure();
       else if (act === 'rebuild') build(lastInput || { text: $('#build-text').value });
       else if (act === 'refresh') refreshFromSnapshot();
     } catch (error) { status.textContent = error.message || t('build.err.generic'); }

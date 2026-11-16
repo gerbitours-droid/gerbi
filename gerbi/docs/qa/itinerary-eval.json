@@ -1,0 +1,6206 @@
+{
+  "today": "2026-11-16",
+  "fx": {
+    "rates": {
+      "USD": 3.65,
+      "EUR": 3.95,
+      "ILS": 1
+    }
+  },
+  "assumptions": {
+    "flightModelIlsPerTraveller": "350 + 230×flightHours (×1.15 non-direct), high = ×1.7",
+    "hotelModel3StarPerRoomNight": {
+      "1": 300,
+      "2": 450,
+      "3": 650,
+      "4": 950
+    },
+    "starMult": {
+      "4": 1.4,
+      "5": 2.3
+    },
+    "boardMult": {
+      "AI": 1.8,
+      "FB": 1.5,
+      "HB": 1.3
+    },
+    "hotelHigh": "×1.35",
+    "carPerDay": {
+      "low": 170,
+      "high": 300
+    },
+    "insurancePerPersonDay": {
+      "low": 30,
+      "high": 50
+    },
+    "transfersPerStopPerVanEachWay": {
+      "low": 150,
+      "high": 400
+    },
+    "fixtures": "Rome couple cases use the recorded flight answer tests/fixtures/build/flights.json (USD to ILS 3.65) as the live flight; the hotel fixture only for the ranking roles"
+  },
+  "summary": {
+    "cases": 55,
+    "errors": [],
+    "avgStyleShare": 0.49644223700827467,
+    "avgAvailableShare": 0.40326736156924825,
+    "avgMustCoverage": 0.8097186147186144,
+    "avgKnownArea": 0.5174391769846316,
+    "casesWithUnsuitable": 16,
+    "casesOverloaded": 16,
+    "casesWithEmptyFullDays": 9,
+    "emptyFullDays": 25,
+    "casesThinDays": 13,
+    "casesMultiAreaDays": 28,
+    "backAndForth": 16,
+    "casesWithDuplicates": 3,
+    "casesMustSeeInversion": 31,
+    "casesDayTripUnderused": 10,
+    "casesDayTripTooLongForKids": 9,
+    "casesMonotoneDays": 31,
+    "casesSpareInversions": 9,
+    "casesSeasonIssues": 10,
+    "casesShabbatIssues": 1,
+    "casesLongHaulArrivalActivity": 9,
+    "nightlifeAskedNotPlanned": 1,
+    "named": {
+      "cases": 45,
+      "honoured": 43,
+      "misses": [
+        "28: crete",
+        "45: santorini+athens+crete+rhodes"
+      ]
+    },
+    "suggest": {
+      "cases": 10,
+      "fitting": 7,
+      "misses": [
+        "31: swiss-alps",
+        "32: cyprus",
+        "54: sri-lanka"
+      ]
+    },
+    "budget": {
+      "cases": 13,
+      "budgetParsed": 11,
+      "notParsed": [
+        47,
+        49
+      ],
+      "overByFullHigh": 10,
+      "systemSaysWithinOrTightButOver": 3,
+      "verdicts": {
+        "over": 7,
+        "within": 3,
+        "tight": 1,
+        "no-budget": 2
+      },
+      "firstOverAt": {
+        "hotel": 5,
+        "transfers": 2,
+        "ground": 2,
+        "flights": 1
+      },
+      "budgetChangedNothing": [
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ]
+    },
+    "avgPlanMs": 1.9818181818181824
+  },
+  "results": [
+    {
+      "id": 1,
+      "tag": "family-young",
+      "lang": "he",
+      "text": "זוג עם 2 ילדים בני 3 ו-5, 5 לילות ברומא באפריל",
+      "ms": 15.5,
+      "parsed": {
+        "styles": [],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          3,
+          5
+        ],
+        "nights": 5,
+        "month": 4,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "rome"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 5,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.14285714285714285,
+        "availShare": 0.07692307692307693,
+        "knownArea": 0,
+        "mustCoverage": 0.7142857142857143,
+        "items": 7,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 7,
+        "mustSeeTotal": 7,
+        "spare": 5
+      },
+      "findings": {
+        "unsuitable": [
+          "D3: 2 museums/churches in one toddler day",
+          "D3: מוזיאוני הוותיקן והקפלה הסיסטינית 3.5h museum for toddlers",
+          "D4 פומפיי: 9h > 5h toddler day"
+        ],
+        "removedForKids": [
+          "Trastevere [food,nightlife]"
+        ],
+        "overloaded": [
+          "D4 daytrip 9h > 5h"
+        ],
+        "emptyFull": [],
+        "thin": [
+          "D5 1h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "2 highlight(s) left out (e.g. Jewish Ghetto & Jewish Museum of Rome) while 1 non-highlight, off-style item(s) planned (e.g. St Peter’s Basilica)",
+        "missedMust": [
+          "Jewish Ghetto & Jewish Museum of Rome",
+          "Trastevere"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [
+          "D4 פומפיי 9h vs 5h kids pace"
+        ],
+        "monotone": [
+          "D2: 2× landmark",
+          "D5: 2× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-04-11 arrival 2h: Villa Borghese gardens [park 2h family]",
+        "D2 2027-04-12 full 4.5h: The Colosseum [landmark 2h culture] | Roman Forum & Palatine Hill [landmark 2.5h culture]",
+        "D3 2027-04-13 full 5h: Vatican Museums & Sistine Chapel [museum 3.5h culture] | St Peter’s Basilica [religious 1.5h culture]",
+        "D4 2027-04-14 daytrip 9h: פומפיי [daytrip 9h]",
+        "D5 2027-04-15 full 1h: The Pantheon [landmark 0.5h culture] | Trevi Fountain [landmark 0.5h couple]",
+        "D6 2027-04-16 departure: —"
+      ],
+      "spare": [
+        "המדרגות הספרדיות",
+        "הגטו היהודי והמוזיאון היהודי",
+        "גלריה בורגזה",
+        "שוק קמפו דה פיורי",
+        "תצפית ג׳יאניקולו"
+      ]
+    },
+    {
+      "id": 2,
+      "tag": "family-young",
+      "lang": "en",
+      "text": "Family with a 2 year old and a 4 year old, 4 nights in Paris in May",
+      "ms": 10.7,
+      "parsed": {
+        "styles": [
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          2,
+          4
+        ],
+        "nights": 4,
+        "month": 5,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "paris"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 5,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.42857142857142855,
+        "availShare": 0.25,
+        "knownArea": 0.42857142857142855,
+        "mustCoverage": 0.7142857142857143,
+        "items": 7,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 7,
+        "mustSeeTotal": 9,
+        "spare": 5
+      },
+      "findings": {
+        "unsuitable": [
+          "D3: 2 museums/churches in one toddler day",
+          "D3: The Louvre 3.5h museum for toddlers",
+          "D4: 2 museums/churches in one toddler day"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "4 highlight(s) left out (e.g. Montmartre & Sacré-Cœur) while 1 non-highlight, off-style item(s) planned (e.g. Notre-Dame Cathedral)",
+        "missedMust": [
+          "Montmartre & Sacré-Cœur",
+          "Arc de Triomphe & Champs-Élysées",
+          "Le Marais & rue des Rosiers",
+          "Galeries Lafayette rooftop"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D3: 2× museum"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-05-16 arrival 1.5h: Luxembourg Gardens [park 1.5h @Saint-Germain & the Latin Quarter family/relaxation]",
+        "D2 2027-05-17 full 3h: Seine river cruise [experience 1h couple/family] | The Eiffel Tower [landmark 2h @7th arrondissement (near the Eiffel Tower) couple/family]",
+        "D3 2027-05-18 full 5h: The Louvre [museum 3.5h culture] | Musée de l’Orangerie [museum 1.5h culture]",
+        "D4 2027-05-19 full 3.5h: Musée d’Orsay [museum 2.5h @7th arrondissement (near the Eiffel Tower) culture] | Notre-Dame Cathedral [religious 1h culture]",
+        "D5 2027-05-20 departure: —"
+      ],
+      "spare": [
+        "Sainte-Chapelle",
+        "Montmartre & Sacré-Cœur",
+        "Arc de Triomphe & Champs-Élysées",
+        "Le Marais & rue des Rosiers",
+        "Galeries Lafayette rooftop"
+      ]
+    },
+    {
+      "id": 3,
+      "tag": "family-young",
+      "lang": "he",
+      "text": "משפחה עם תינוק בן שנה וילדה בת 4, 5 לילות באילת בדצמבר",
+      "ms": 9.4,
+      "parsed": {
+        "styles": [
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 1,
+        "childAges": [
+          4
+        ],
+        "nights": 5,
+        "month": 12,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "eilat"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 5,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.8571428571428571,
+        "availShare": 0.6666666666666666,
+        "knownArea": 0.5714285714285714,
+        "mustCoverage": 0.5,
+        "items": 7,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 7,
+        "mustSeeTotal": 6,
+        "spare": 5
+      },
+      "findings": {
+        "unsuitable": [
+          "D4 מצפה רמון: 8h > 5h toddler day"
+        ],
+        "removedForKids": [],
+        "overloaded": [
+          "D4 daytrip 8h > 5h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D3: South coast (Coral Beach) + North Beach & the promenade"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [
+          "Coral Beach Nature Reserve",
+          "Timna Park",
+          "Red Canyon"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [
+          "D4 מצפה רמון 8h vs 5h kids pace"
+        ],
+        "monotone": [
+          "D2: 2× experience",
+          "D3: 2× experience"
+        ],
+        "spareInversions": [
+          "Timna Park",
+          "Hai-Bar Yotvata Nature Reserve"
+        ],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2026-12-13 arrival 1h: Eilat Botanical Garden [park 1h family]",
+        "D2 2026-12-14 full 5h: Coral World Underwater Observatory [experience 3h @South coast (Coral Beach) family/with_children] | Camel Ranch [experience 2h family/with_children]",
+        "D3 2026-12-15 full 4.5h: Dolphin Reef [experience 2.5h @South coast (Coral Beach) family/nature] | Ice Mall [experience 2h @North Beach & the promenade shopping/family]",
+        "D4 2026-12-16 daytrip 8h: מצפה רמון [daytrip 8h]",
+        "D5 2026-12-17 full 5h: North Beach & promenade [beach 3h @North Beach & the promenade beach/family] | Intro dive or snorkelling [experience 2h adventure]",
+        "D6 2026-12-18 departure: —"
+      ],
+      "spare": [
+        "פארק תמנע",
+        "שמורת חוף האלמוגים",
+        "שמורת חי־בר יטבתה",
+        "הקניון האדום",
+        "הר צפחות"
+      ]
+    },
+    {
+      "id": 4,
+      "tag": "family-mid",
+      "lang": "he",
+      "text": "משפחה עם 2 ילדים בני 6 ו-9, אוגוסט, שבוע, בריכה והכול כלול, כשר",
+      "ms": 2.9,
+      "parsed": {
+        "styles": [
+          "beach",
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          6,
+          9
+        ],
+        "nights": 7,
+        "month": 8,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "crete"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "crete",
+        "rhodes",
+        "croatia"
+      ],
+      "destFit": {
+        "chosen": "crete",
+        "ok": true,
+        "suggestions": [
+          "crete",
+          "rhodes",
+          "croatia"
+        ]
+      },
+      "pace": {
+        "hours": 6,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.6666666666666666,
+        "availShare": 0.46153846153846156,
+        "knownArea": 0.4444444444444444,
+        "mustCoverage": 0.8571428571428571,
+        "items": 9,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 9,
+        "mustSeeTotal": 7,
+        "spare": 4
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D5 daytrip 8h > 6h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [
+          "Samaria Gorge"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [
+          "D5 סנטוריני 8h vs 6h kids pace"
+        ],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-08-15 arrival 2h: Chania Venetian harbour [neighborhood 2h @Chania couple/food]",
+        "D2 2027-08-16 full 6h: Elafonisi beach [beach 4h beach/family] | CretAquarium [experience 2h family/with_children]",
+        "D3 2027-08-17 full 5.5h: Preveli beach [beach 3h beach/nature] | Spinalonga island [landmark 2.5h @Agios Nikolaos & Elounda culture/family]",
+        "D4 2027-08-18 full 5.5h: Balos Lagoon [beach 5h beach/nature] | Etz Hayyim Synagogue, Chania [religious 0.5h @Chania culture]",
+        "D5 2027-08-19 daytrip 8h: סנטוריני [daytrip 8h]",
+        "D6 2027-08-20 full 3.5h: Lake Kournas [nature 1.5h family/nature] | Palace of Knossos [landmark 2h @Heraklion culture]",
+        "D7 2027-08-21 rest: —",
+        "D8 2027-08-22 departure: —"
+      ],
+      "spare": [
+        "המוזיאון הארכאולוגי של הרקליון",
+        "העיר העתיקה של רתימנו ומבצר הפורטצה",
+        "מנזר ארקדי",
+        "ערוץ סמריה"
+      ]
+    },
+    {
+      "id": 5,
+      "tag": "family-teens",
+      "lang": "he",
+      "text": "משפחה עם שני ילדים בני 14 ו-16, שבוע בברצלונה ביולי",
+      "ms": 1.7,
+      "parsed": {
+        "styles": [
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          14,
+          16
+        ],
+        "nights": 7,
+        "month": 7,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "barcelona"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 6,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.3333333333333333,
+        "availShare": 0.23076923076923078,
+        "knownArea": 0.6666666666666666,
+        "mustCoverage": 0.8,
+        "items": 9,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 9,
+        "mustSeeTotal": 5,
+        "spare": 4
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D3: Barceloneta + Eixample"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. La Boqueria market) while 3 non-highlight, off-style item(s) planned (e.g. Casa Batlló)",
+        "missedMust": [
+          "La Boqueria market"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D4: 2× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [
+          "barcelona out of season in month 7 (best 4,5,6,9,10)"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-07-11 arrival 2h: Park Güell [park 2h culture/family]",
+        "D2 2027-07-12 full 6h: Montjuïc [park 3h family/culture] | Tibidabo amusement park & viewpoint [experience 3h family/with_children]",
+        "D3 2027-07-13 full 4.5h: Barceloneta Beach [beach 3h @Barceloneta beach] | Sagrada Família [religious 1.5h @Eixample culture]",
+        "D4 2027-07-14 full 3h: Casa Batlló [landmark 1.5h @Eixample culture] | Casa Milà (La Pedrera) [landmark 1.5h @Eixample culture]",
+        "D5 2027-07-15 daytrip 6h: מונסראט [daytrip 6h]",
+        "D6 2027-07-16 full 3.5h: Gothic Quarter [neighborhood 2h @Gothic Quarter & El Born culture] | Picasso Museum [museum 1.5h @Gothic Quarter & El Born culture]",
+        "D7 2027-07-17 rest: —",
+        "D8 2027-07-18 departure: —"
+      ],
+      "spare": [
+        "שוק לה בוקריה",
+        "לה רמבלה",
+        "תצפית הבונקרים (בונקרס דל כרמל)",
+        "פלאו דה לה מוזיקה קטלאנה"
+      ]
+    },
+    {
+      "id": 6,
+      "tag": "family-ski",
+      "lang": "en",
+      "text": "Family ski holiday in the Austrian Alps in February, 7 nights, kids aged 8 and 11",
+      "ms": 5.6,
+      "parsed": {
+        "styles": [
+          "family",
+          "ski"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          8,
+          11
+        ],
+        "nights": 7,
+        "month": 2,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "austrian-alps"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 6,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.75,
+        "availShare": 0.75,
+        "knownArea": 0.625,
+        "mustCoverage": 0.8,
+        "items": 8,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 9,
+        "mustSeeTotal": 5,
+        "spare": 4
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D5 daytrip 8h > 6h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 1,
+        "dups": [
+          "day trip \"Salzburg from Innsbruck\" (D5) repeats \"Golden Roof & Innsbruck Old Town\""
+        ],
+        "mustInversion": "1 highlight(s) left out (e.g. Salzburg Old Town & Hohensalzburg Fortress) while 1 non-highlight, off-style item(s) planned (e.g. Ambras Castle)",
+        "missedMust": [
+          "Salzburg Old Town & Hohensalzburg Fortress"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [
+          "D5 Salzburg from Innsbruck 8h vs 6h kids pace"
+        ],
+        "monotone": [
+          "D3: 2× nature",
+          "D6: 2× museum"
+        ],
+        "spareInversions": [
+          "Kitzbühel town & the Hahnenkamm",
+          "Grossglockner High Alpine Road (May–October)",
+          "Eisriesenwelt ice cave (May–October)"
+        ],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-02-14 arrival 1h: Bergisel Ski Jump [viewpoint 1h @Innsbruck ski]",
+        "D2 2027-02-15 full 4.5h: Nordkette cable car [viewpoint 3h @Innsbruck nature/family] | Golden Roof & Innsbruck Old Town [landmark 1.5h @Innsbruck culture]",
+        "D3 2027-02-16 full 6h: Krimml Waterfalls (mainly summer) [nature 3h nature/family] | Zell am See and its lake [nature 3h nature/relaxation]",
+        "D4 2027-02-17 full 6h: Hintertux Glacier [nature 6h @Zillertal (Mayrhofen) ski/adventure]",
+        "D5 2027-02-18 daytrip 8h: Salzburg from Innsbruck [daytrip 8h]",
+        "D6 2027-02-19 full 4h: Swarovski Crystal Worlds [museum 2h family/shopping] | Ambras Castle [museum 2h @Innsbruck culture]",
+        "D7 2027-02-20 rest: —",
+        "D8 2027-02-21 departure: —"
+      ],
+      "spare": [
+        "Kitzbühel town & the Hahnenkamm",
+        "Grossglockner High Alpine Road (May–October)",
+        "Eisriesenwelt ice cave (May–October)",
+        "Salzburg Old Town & Hohensalzburg Fortress"
+      ]
+    },
+    {
+      "id": 7,
+      "tag": "family-long",
+      "lang": "he",
+      "text": "משפחה עם ילדים בני 5 ו-8, 14 לילות בפלורידה באוגוסט",
+      "ms": 1.4,
+      "parsed": {
+        "styles": [
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          5,
+          8
+        ],
+        "nights": 14,
+        "month": 8,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "florida"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 5,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.5454545454545454,
+        "availShare": 0.5,
+        "knownArea": 0.7272727272727273,
+        "mustCoverage": 0.8571428571428571,
+        "items": 11,
+        "fullDays": 11,
+        "dayTrips": 1,
+        "capacity": 23,
+        "mustSeeTotal": 7,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [
+          "D4 מג׳יק קינגדום (וולט דיסני וורלד): 10h > 5h toddler day",
+          "D5 EPCOT (וולט דיסני וורלד): 8h > 5h toddler day",
+          "D6 יוניברסל אורלנדו: 10h > 5h toddler day",
+          "D7 פארק המים וולקנו ביי: 6h > 5h toddler day",
+          "D8 פארק האוורגליידס: 6h > 5h toddler day"
+        ],
+        "removedForKids": [
+          "South Beach & Ocean Drive [beach,nightlife]"
+        ],
+        "overloaded": [
+          "D4 full 10h > 5h",
+          "D5 full 8h > 5h",
+          "D6 full 10h > 5h",
+          "D7 full 6h > 5h",
+          "D8 daytrip 6h > 5h"
+        ],
+        "emptyFull": [
+          "D11",
+          "D12",
+          "D13"
+        ],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 13.5h flight",
+        "multiArea": [],
+        "backForth": 2,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. South Beach & Ocean Drive) while 3 non-highlight, off-style item(s) planned (e.g. Wynwood Walls)",
+        "missedMust": [
+          "South Beach & Ocean Drive"
+        ],
+        "dayTripIssue": "14 nights, 3 day trips in catalog, only 1 used",
+        "dayTripTooLong": [
+          "D8 פארק האוורגליידס 6h vs 5h kids pace"
+        ],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [
+          "florida out of season in month 8 (best 1,2,3,4,5,11,12)"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-08-15 arrival 1.5h: Art Deco Historic District [neighborhood 1.5h @Miami Beach (South Beach) culture]",
+        "D2 2027-08-16 full 5h: Key Biscayne — Bill Baggs Cape Florida State Park [beach 3h beach/family] | Wynwood Walls [neighborhood 2h @Central Miami culture]",
+        "D3 2027-08-17 full 5h: Zoo Miami [park 3h family/with_children] | Little Havana (Calle Ocho) [neighborhood 2h @Central Miami food/culture]",
+        "D4 2027-08-18 full 10h: Magic Kingdom (Walt Disney World) [experience 10h @Orlando (theme-park area) family/with_children]",
+        "D5 2027-08-19 full 8h: EPCOT (Walt Disney World) [experience 8h @Orlando (theme-park area) family]",
+        "D6 2027-08-20 full 10h: Universal Orlando Resort [experience 10h @Orlando (theme-park area) family/with_children]",
+        "D7 2027-08-21 full 6h: Volcano Bay water park [experience 6h @Orlando (theme-park area) water_slides/family/with_children]",
+        "D8 2027-08-22 daytrip 6h: פארק האוורגליידס [daytrip 6h]",
+        "D9 2027-08-23 full 4h: Sawgrass Mills outlets [experience 4h shopping]",
+        "D10 2027-08-24 full 2h: Vizcaya Museum & Gardens [museum 2h @Central Miami culture/couple]",
+        "D11 2027-08-25 full: —",
+        "D12 2027-08-26 full: —",
+        "D13 2027-08-27 full: —",
+        "D14 2027-08-28 rest: —",
+        "D15 2027-08-29 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 8,
+      "tag": "family-cheap-suggest",
+      "lang": "he",
+      "text": "חופשה זולה עם ילדים בני 4 ו-7 במאי, 5 לילות, תציעו",
+      "ms": 1.6,
+      "parsed": {
+        "styles": [],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          4,
+          7
+        ],
+        "nights": 5,
+        "month": 5,
+        "budget": null,
+        "budgetLevel": "low",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "cyprus"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "cyprus",
+        "crete",
+        "rhodes"
+      ],
+      "destFit": {
+        "chosen": "cyprus",
+        "ok": true,
+        "suggestions": [
+          "cyprus",
+          "crete",
+          "rhodes"
+        ]
+      },
+      "pace": {
+        "hours": 5,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.6666666666666666,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0.8333333333333334,
+        "mustCoverage": 0.5714285714285714,
+        "items": 6,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 7,
+        "mustSeeTotal": 8,
+        "spare": 6
+      },
+      "findings": {
+        "unsuitable": [
+          "D4 הרי טרודוס: 7h > 5h toddler day"
+        ],
+        "removedForKids": [
+          "Nissi Beach [beach,nightlife]"
+        ],
+        "overloaded": [
+          "D4 daytrip 7h > 5h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [
+          "Nissi Beach",
+          "Larnaca Salt Lake & Hala Sultan Tekke",
+          "Limassol Marina & Old Port",
+          "Tombs of the Kings"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [
+          "D4 הרי טרודוס 7h vs 5h kids pace"
+        ],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-05-16 arrival 1.5h: Finikoudes promenade [neighborhood 1.5h @Larnaca food/family]",
+        "D2 2027-05-17 full 5h: Fig Tree Bay [beach 3h @Protaras beach/family] | Cape Greco [nature 2h nature/adventure]",
+        "D3 2027-05-18 full 5h: Coral Bay [beach 3h @Paphos beach/family] | Paphos Archaeological Park [landmark 2h @Paphos culture]",
+        "D4 2027-05-19 daytrip 7h: הרי טרודוס [daytrip 7h]",
+        "D5 2027-05-20 full 5h: WaterWorld Ayia Napa [experience 5h @Ayia Napa water_slides/family/with_children]",
+        "D6 2027-05-21 departure: —"
+      ],
+      "spare": [
+        "כנסיית לזרוס הקדוש",
+        "האגם המלוח של לרנקה והלה סולטן טקה",
+        "מרינת לימסול והנמל הישן",
+        "קוריון העתיקה",
+        "סלע אפרודיטה",
+        "קברי המלכים"
+      ]
+    },
+    {
+      "id": 9,
+      "tag": "couple",
+      "lang": "he",
+      "text": "זוג, 4 לילות בפריז במאי, רומנטי, אוכל טוב",
+      "ms": 1.2,
+      "parsed": {
+        "styles": [
+          "city",
+          "couple",
+          "food"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 5,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "paris"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 1,
+        "availShare": 0.9166666666666666,
+        "knownArea": 0.4,
+        "mustCoverage": 0.8888888888888888,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 9,
+        "spare": 2
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [
+          "D4 3h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D2: Montmartre + 7th arrondissement (near the Eiffel Tower)"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [
+          "Galeries Lafayette rooftop"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-05-16 arrival 2h: Le Marais & rue des Rosiers [neighborhood 2h @Le Marais culture/food/kosher]",
+        "D2 2027-05-17 full 8h: Montmartre & Sacré-Cœur [neighborhood 2.5h @Montmartre culture/couple] | The Eiffel Tower [landmark 2h @7th arrondissement (near the Eiffel Tower) couple/family] | The Louvre [museum 3.5h culture]",
+        "D3 2027-05-18 full 6h: Musée d’Orsay [museum 2.5h @7th arrondissement (near the Eiffel Tower) culture] | Musée de l’Orangerie [museum 1.5h culture] | Arc de Triomphe & Champs-Élysées [landmark 2h shopping]",
+        "D4 2027-05-19 full 3h: Notre-Dame Cathedral [religious 1h culture] | Sainte-Chapelle [religious 1h culture] | Seine river cruise [experience 1h couple/family]",
+        "D5 2027-05-20 departure: —"
+      ],
+      "spare": [
+        "גג גלרי לאפייט",
+        "גני לוקסמבורג"
+      ]
+    },
+    {
+      "id": 10,
+      "tag": "couple",
+      "lang": "en",
+      "text": "Romantic getaway for a couple, 5 nights in Santorini in June",
+      "ms": 1.4,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 6,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "santorini"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.3,
+        "availShare": 0.2727272727272727,
+        "knownArea": 0,
+        "mustCoverage": 1,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 5,
+        "spare": 1
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-06-13 arrival 1.5h: Oia Castle sunset viewpoint [viewpoint 1.5h couple]",
+        "D2 2027-06-14 full 7.5h: Santo Wines winery [experience 1.5h food/couple] | Nea Kameni volcano & hot springs cruise [experience 5h adventure] | Akrotiri Lighthouse [viewpoint 1h couple]",
+        "D3 2027-06-15 full 7h: Fira–Oia hiking trail [nature 3.5h adventure/nature] | Akrotiri archaeological site [landmark 1.5h culture] | Red Beach [beach 2h beach]",
+        "D4 2027-06-16 daytrip 5h: Thirasia island [daytrip 5h]",
+        "D5 2027-06-17 full 6.5h: Perissa Beach [beach 4h beach/family] | Pyrgos village [neighborhood 1.5h culture] | Museum of Prehistoric Thera [museum 1h culture]",
+        "D6 2027-06-18 departure: —"
+      ],
+      "spare": [
+        "Ancient Thera"
+      ]
+    },
+    {
+      "id": 11,
+      "tag": "honeymoon-suggest",
+      "lang": "he",
+      "text": "ירח דבש, 8 לילות, מלון יוקרה, תציעו לנו",
+      "ms": 1.3,
+      "parsed": {
+        "styles": [
+          "couple",
+          "luxury"
+        ],
+        "occasion": "honeymoon",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 8,
+        "month": 5,
+        "budget": null,
+        "budgetLevel": "high",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "santorini"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "santorini",
+        "paris",
+        "mykonos"
+      ],
+      "destFit": {
+        "chosen": "santorini",
+        "ok": true,
+        "suggestions": [
+          "santorini",
+          "paris",
+          "mykonos"
+        ]
+      },
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.2727272727272727,
+        "availShare": 0.2727272727272727,
+        "knownArea": 0,
+        "mustCoverage": 1,
+        "items": 11,
+        "fullDays": 6,
+        "dayTrips": 1,
+        "capacity": 19,
+        "mustSeeTotal": 5,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [
+          "D7",
+          "D8"
+        ],
+        "thin": [
+          "D6 2h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "8 nights, 2 day trips in catalog, only 1 used",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-05-16 arrival 1.5h: Oia Castle sunset viewpoint [viewpoint 1.5h couple]",
+        "D2 2027-05-17 full 7.5h: Santo Wines winery [experience 1.5h food/couple] | Nea Kameni volcano & hot springs cruise [experience 5h adventure] | Akrotiri Lighthouse [viewpoint 1h couple]",
+        "D3 2027-05-18 full 7h: Fira–Oia hiking trail [nature 3.5h adventure/nature] | Akrotiri archaeological site [landmark 1.5h culture] | Red Beach [beach 2h beach]",
+        "D4 2027-05-19 full 6.5h: Perissa Beach [beach 4h beach/family] | Pyrgos village [neighborhood 1.5h culture] | Museum of Prehistoric Thera [museum 1h culture]",
+        "D5 2027-05-20 daytrip 5h: האי תרסיה [daytrip 5h]",
+        "D6 2027-05-21 full 2h: Ancient Thera [landmark 2h culture]",
+        "D7 2027-05-22 full: —",
+        "D8 2027-05-23 full: —",
+        "D9 2027-05-24 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 12,
+      "tag": "couple-culture",
+      "lang": "en",
+      "text": "Couple, 3-night city break in Rome in March, culture and food",
+      "ms": 2,
+      "parsed": {
+        "styles": [
+          "city",
+          "couple",
+          "food",
+          "culture"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 3,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "rome"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 1,
+        "availShare": 0.9230769230769231,
+        "knownArea": 0,
+        "mustCoverage": 0.8571428571428571,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 7,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D4 daytrip 9h > 8h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [
+          "Trastevere"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-03-14 arrival 1h: Campo de’ Fiori market [market 1h food]",
+        "D2 2027-03-15 full 5h: The Colosseum [landmark 2h culture] | Roman Forum & Palatine Hill [landmark 2.5h culture] | The Pantheon [landmark 0.5h culture]",
+        "D3 2027-03-16 full 6h: Vatican Museums & Sistine Chapel [museum 3.5h culture] | Galleria Borghese [museum 2h culture] | Trevi Fountain [landmark 0.5h couple]",
+        "D4 2027-03-17 daytrip 9h: Pompeii [daytrip 9h]",
+        "D5 2027-03-18 full 4h: Spanish Steps [landmark 0.5h shopping] | St Peter’s Basilica [religious 1.5h culture] | Jewish Ghetto & Jewish Museum of Rome [neighborhood 2h culture/kosher]",
+        "D6 2027-03-19 departure: —"
+      ],
+      "spare": [
+        "Trastevere",
+        "Gianicolo viewpoint",
+        "Villa Borghese gardens"
+      ]
+    },
+    {
+      "id": 13,
+      "tag": "friends-night",
+      "lang": "he",
+      "text": "אנחנו 4 חברים, 3 לילות בבודפשט, חיי לילה ומסיבות",
+      "ms": 1.4,
+      "parsed": {
+        "styles": [
+          "nightlife"
+        ],
+        "occasion": "friends",
+        "adults": 4,
+        "children": 0,
+        "childAges": [],
+        "nights": 3,
+        "month": 12,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "budapest"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.14285714285714285,
+        "availShare": 0.15384615384615385,
+        "knownArea": 0.8571428571428571,
+        "mustCoverage": 0.7142857142857143,
+        "items": 7,
+        "fullDays": 2,
+        "dayTrips": 0,
+        "capacity": 7,
+        "mustSeeTotal": 9,
+        "spare": 6
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [
+          "D3 3h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "4 highlight(s) left out (e.g. Buda Castle) while 1 non-highlight, off-style item(s) planned (e.g. St Stephen’s Basilica)",
+        "missedMust": [
+          "Buda Castle",
+          "Gellért Thermal Bath",
+          "Gellért Hill viewpoint",
+          "Evening Danube cruise"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [
+          "Great Market Hall"
+        ],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2026-12-13 arrival 1h: Fisherman’s Bastion & Matthias Church [viewpoint 1h @Buda Castle District couple]",
+        "D2 2026-12-14 full 6.5h: Szimpla Kert [experience 2h @District VII (Jewish Quarter) nightlife] | Dohány Street Synagogue [religious 1.5h @District VII (Jewish Quarter) culture] | Széchenyi Thermal Bath [experience 3h relaxation/family]",
+        "D3 2026-12-15 full 3h: Hungarian Parliament Building [landmark 1.5h @District V (central Pest) culture] | Shoes on the Danube Bank [landmark 0.5h @District V (central Pest) culture] | St Stephen’s Basilica [religious 1h @District V (central Pest) culture]",
+        "D4 2026-12-16 departure: —"
+      ],
+      "spare": [
+        "ארמון בודה",
+        "מרחצאות גלרט",
+        "השוק הגדול",
+        "האי מרגרט",
+        "תצפית מגבעת גלרט",
+        "שייט ערב על הדנובה"
+      ]
+    },
+    {
+      "id": 14,
+      "tag": "friends-night",
+      "lang": "en",
+      "text": "Group of 5 friends, party and nightlife in Mykonos, 4 nights in July",
+      "ms": 4.3,
+      "parsed": {
+        "styles": [
+          "city",
+          "nightlife"
+        ],
+        "occasion": "friends",
+        "adults": 5,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 7,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "mykonos"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.7777777777777778,
+        "availShare": 0.5833333333333334,
+        "knownArea": 0.5555555555555556,
+        "mustCoverage": 1,
+        "items": 9,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 5,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D4: 2× beach"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-07-11 arrival 1.5h: Little Venice [neighborhood 1.5h @Chora (Mykonos Town) couple/nightlife]",
+        "D2 2027-07-12 full 6h: Delos archaeological site [landmark 4h culture] | Kato Mili windmills [landmark 0.5h @Chora (Mykonos Town) couple] | Ano Mera village & Tourliani Monastery [neighborhood 1.5h culture]",
+        "D3 2027-07-13 full 5.5h: Aegean Maritime Museum [museum 1h @Chora (Mykonos Town) culture] | Panagia Paraportiani church [religious 0.5h @Chora (Mykonos Town) culture] | Paradise Beach [beach 4h beach/nightlife]",
+        "D4 2027-07-14 full 8h: Super Paradise Beach [beach 4h beach/nightlife] | Psarou Beach [beach 4h @Platys Gialos & Psarou beach/luxury]",
+        "D5 2027-07-15 departure: —"
+      ],
+      "spare": [
+        "Elia Beach",
+        "Ornos Beach",
+        "Armenistis Lighthouse"
+      ]
+    },
+    {
+      "id": 15,
+      "tag": "friends-night",
+      "lang": "he",
+      "text": "3 חברות, ברלין 4 לילות, ברים ואוכל",
+      "ms": 1.2,
+      "parsed": {
+        "styles": [
+          "city",
+          "nightlife",
+          "food"
+        ],
+        "occasion": "friends",
+        "adults": 3,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 12,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "berlin"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.9,
+        "availShare": 0.8461538461538461,
+        "knownArea": 0.9,
+        "mustCoverage": 1,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 6,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [
+          "D2 3h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D3: Kreuzberg & Friedrichshain + Mitte"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [
+          "Topography of Terror",
+          "Checkpoint Charlie"
+        ],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": [
+          "nightlife asked, no nightlife item planned"
+        ]
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2026-12-13 arrival 1.5h: Mauerpark flea market (Sundays) [market 1.5h @Prenzlauer Berg shopping]",
+        "D2 2026-12-14 full 3h: KaDeWe department store [experience 1.5h shopping/food] | Brandenburg Gate [landmark 0.5h @Mitte culture] | Memorial to the Murdered Jews of Europe [landmark 1h @Mitte culture]",
+        "D3 2026-12-15 full 6.5h: Jewish Museum Berlin [museum 2.5h @Kreuzberg & Friedrichshain culture] | East Side Gallery [landmark 1h @Kreuzberg & Friedrichshain culture] | Museum Island [museum 3h @Mitte culture]",
+        "D4 2026-12-16 full 3.5h: Berlin Wall Memorial (Bernauer Strasse) [landmark 1.5h @Mitte culture] | Reichstag dome [viewpoint 1h @Mitte culture] | TV Tower (Fernsehturm) [viewpoint 1h @Mitte family]",
+        "D5 2026-12-17 departure: —"
+      ],
+      "spare": [
+        "טופוגרפיה של הטרור",
+        "צ׳קפוינט צ׳רלי",
+        "פארק טירגרטן"
+      ]
+    },
+    {
+      "id": 16,
+      "tag": "solo",
+      "lang": "en",
+      "text": "Solo traveller, 5 nights in Lisbon in October, culture and food",
+      "ms": 1.2,
+      "parsed": {
+        "styles": [
+          "city",
+          "food",
+          "culture"
+        ],
+        "occasion": "solo",
+        "adults": 1,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 10,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "lisbon"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.9,
+        "availShare": 0.75,
+        "knownArea": 0.4,
+        "mustCoverage": 0.6,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 5,
+        "spare": 2
+      },
+      "findings": {
+        "unsuitable": [
+          "D5 Lisbon Oceanarium: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [
+          "D2 3h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D5: Alfama + Parque das Nações"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "2 highlight(s) left out (e.g. Tram 28) while 1 non-highlight, off-style item(s) planned (e.g. Lisbon Oceanarium)",
+        "missedMust": [
+          "Tram 28",
+          "Miradouro da Senhora do Monte"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-10-10 arrival 1.5h: LX Factory [market 1.5h shopping/food]",
+        "D2 2027-10-11 full 3h: Jerónimos Monastery [landmark 1.5h culture] | Belém Tower [landmark 1h culture] | Praça do Comércio [landmark 0.5h @Baixa & Chiado culture]",
+        "D3 2027-10-12 full 5h: Time Out Market (Mercado da Ribeira) [market 1h food] | Calouste Gulbenkian Museum [museum 2h culture] | Alfama [neighborhood 2h @Alfama culture/couple]",
+        "D4 2027-10-13 daytrip 5.4h: Sintra [daytrip 5.4h]",
+        "D5 2027-10-14 full 6h: Bairro Alto [neighborhood 2h nightlife/food] | São Jorge Castle [viewpoint 1.5h @Alfama culture/family] | Lisbon Oceanarium [museum 2.5h @Parque das Nações family/with_children]",
+        "D6 2027-10-15 departure: —"
+      ],
+      "spare": [
+        "Tram 28",
+        "Miradouro da Senhora do Monte"
+      ]
+    },
+    {
+      "id": 17,
+      "tag": "solo-long",
+      "lang": "he",
+      "text": "אני לבד, 10 לילות בבנגקוק בפברואר",
+      "ms": 1,
+      "parsed": {
+        "styles": [],
+        "occasion": "solo",
+        "adults": 1,
+        "children": 0,
+        "childAges": [],
+        "nights": 10,
+        "month": 2,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "bangkok"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": null,
+        "availShare": null,
+        "knownArea": 0.6923076923076923,
+        "mustCoverage": 1,
+        "items": 13,
+        "fullDays": 8,
+        "dayTrips": 1,
+        "capacity": 25,
+        "mustSeeTotal": 7,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [
+          "D7",
+          "D8",
+          "D9",
+          "D10"
+        ],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 10.5h flight",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "10 nights, 4 day trips in catalog, only 1 used",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-02-14 arrival 1.5h: Lumphini Park [park 1.5h @Silom & Sathorn family]",
+        "D2 2027-02-15 full 6h: Grand Palace & Wat Phra Kaew [landmark 2.5h @Banglamphu & Khao San culture] | Wat Pho — the Reclining Buddha [religious 1.5h @Banglamphu & Khao San culture] | Khao San Road [neighborhood 2h @Banglamphu & Khao San nightlife/low_budget]",
+        "D3 2027-02-16 full 5h: Wat Arun — Temple of Dawn [religious 1h @Riverside culture] | Chao Phraya river boat ride [experience 1.5h @Riverside family] | Asiatique The Riverfront night market [market 2.5h @Riverside shopping/family]",
+        "D4 2027-02-17 full 7h: Chatuchak Weekend Market [market 3h shopping/food] | Chinatown — Yaowarat Road [neighborhood 2.5h food/nightlife] | Jim Thompson House [museum 1.5h @Siam culture]",
+        "D5 2027-02-18 full 8h: The Siam shopping malls [neighborhood 3h @Siam shopping/family] | A rooftop bar with a city view [viewpoint 2h couple/nightlife] | A Thai cooking class [experience 3h food/couple]",
+        "D6 2027-02-19 daytrip 7h: איוטאיה — הבירה העתיקה [daytrip 7h]",
+        "D7 2027-02-20 full: —",
+        "D8 2027-02-21 full: —",
+        "D9 2027-02-22 full: —",
+        "D10 2027-02-23 full: —",
+        "D11 2027-02-24 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 18,
+      "tag": "culture",
+      "lang": "he",
+      "text": "זוג אוהבי תרבות ומוזיאונים, 4 לילות בווינה בנובמבר",
+      "ms": 1,
+      "parsed": {
+        "styles": [
+          "city",
+          "couple",
+          "culture"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 11,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "vienna"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.9,
+        "availShare": 0.8461538461538461,
+        "knownArea": 0.6,
+        "mustCoverage": 0.8333333333333334,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 6,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Prater & the Giant Ferris Wheel) while 1 non-highlight, off-style item(s) planned (e.g. Hundertwasserhaus)",
+        "missedMust": [
+          "Prater & the Giant Ferris Wheel"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× museum"
+        ],
+        "spareInversions": [
+          "MuseumsQuartier",
+          "Spanish Riding School"
+        ],
+        "seasonIssues": [
+          "vienna out of season in month 11 (best 4,5,6,9,10,12)"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-11-14 arrival 1.5h: Naschmarkt [market 1.5h @Around the Naschmarkt (4th & 6th districts) food]",
+        "D2 2027-11-15 full 7h: Belvedere Palace [museum 2h culture/couple] | Hofburg Palace & Sisi Museum [museum 2h @Innere Stadt (1st district) culture] | Kunsthistorisches Museum [museum 3h culture]",
+        "D3 2027-11-16 full 5h: Vienna State Opera (tour or performance) [landmark 1.5h @Innere Stadt (1st district) culture/couple] | The Albertina [museum 2h @Innere Stadt (1st district) culture] | Jewish Museum Vienna [museum 1.5h @Innere Stadt (1st district) culture]",
+        "D4 2027-11-17 full 4.5h: Schönbrunn Palace [landmark 3h culture/family] | Hundertwasserhaus [landmark 0.5h -] | St Stephen’s Cathedral [religious 1h @Innere Stadt (1st district) culture]",
+        "D5 2027-11-18 departure: —"
+      ],
+      "spare": [
+        "רובע המוזיאונים",
+        "בית הספר הספרדי לרכיבה",
+        "הפראטר והגלגל הענק"
+      ]
+    },
+    {
+      "id": 19,
+      "tag": "culture",
+      "lang": "en",
+      "text": "History lovers, 2 adults, 3 nights in Athens in March",
+      "ms": 1.4,
+      "parsed": {
+        "styles": [
+          "culture"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 3,
+        "month": 3,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "athens"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.8571428571428571,
+        "availShare": 0.5384615384615384,
+        "knownArea": 0.8571428571428571,
+        "mustCoverage": 0.6,
+        "items": 7,
+        "fullDays": 2,
+        "dayTrips": 0,
+        "capacity": 7,
+        "mustSeeTotal": 5,
+        "spare": 6
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D2: Plaka + Monastiraki & Psyrri"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "2 highlight(s) left out (e.g. Monastiraki Flea Market) while 1 non-highlight, off-style item(s) planned (e.g. Philopappos Hill)",
+        "missedMust": [
+          "Monastiraki Flea Market",
+          "Lycabettus Hill"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [
+          "Panathenaic Stadium"
+        ],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-03-14 arrival 2h: Plaka & Anafiotika [neighborhood 2h @Plaka culture/food]",
+        "D2 2027-03-15 full 5h: The Acropolis [landmark 2.5h @Plaka culture] | Jewish Museum of Greece [museum 1h @Plaka culture] | Ancient Agora [landmark 1.5h @Monastiraki & Psyrri culture]",
+        "D3 2027-03-16 full 5.5h: Acropolis Museum [museum 2h @Koukaki culture/family] | Philopappos Hill [viewpoint 1h @Koukaki couple/nature] | National Archaeological Museum [museum 2.5h culture]",
+        "D4 2027-03-17 departure: —"
+      ],
+      "spare": [
+        "Panathenaic Stadium",
+        "Monastiraki Flea Market",
+        "Lycabettus Hill",
+        "Changing of the guard at Syntagma Square",
+        "National Garden",
+        "Lake Vouliagmeni"
+      ]
+    },
+    {
+      "id": 20,
+      "tag": "culture",
+      "lang": "he",
+      "text": "זוג, 5 לילות בלונדון, מוזיאונים והיסטוריה",
+      "ms": 0.9,
+      "parsed": {
+        "styles": [
+          "city",
+          "couple",
+          "culture"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 12,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "london"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.7,
+        "availShare": 0.6153846153846154,
+        "knownArea": 0.4,
+        "mustCoverage": 0.7,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 10,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [
+          "D5 מוזיאון הטבע: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D2: West End & Covent Garden + South Bank",
+          "D5: South Bank + South Kensington"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "3 highlight(s) left out (e.g. The London Eye) while 1 non-highlight, off-style item(s) planned (e.g. Tower Bridge)",
+        "missedMust": [
+          "The London Eye",
+          "Hyde Park & Kensington Gardens",
+          "Warner Bros. Studio Tour — The Making of Harry Potter"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× museum",
+          "D3: 3× landmark"
+        ],
+        "spareInversions": [
+          "The London Eye"
+        ],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2026-12-13 arrival 2h: Camden Market [market 2h shopping/food]",
+        "D2 2026-12-14 full 7h: The British Museum [museum 3h culture] | National Gallery & Trafalgar Square [museum 2h @West End & Covent Garden culture] | Tate Modern [museum 2h @South Bank culture]",
+        "D3 2026-12-15 full 5h: Tower of London [landmark 2.5h culture/family] | Tower Bridge [landmark 1h family] | Buckingham Palace & Changing of the Guard [landmark 1.5h family]",
+        "D4 2026-12-16 daytrip 6h: אוקספורד [daytrip 6h]",
+        "D5 2026-12-17 full 5.5h: Westminster Abbey & Big Ben [religious 1.5h culture] | Borough Market [market 1.5h @South Bank food] | Natural History Museum [museum 2.5h @South Kensington family/with_children]",
+        "D6 2026-12-18 departure: —"
+      ],
+      "spare": [
+        "הלונדון איי",
+        "הייד פארק וגני קנזינגטון",
+        "סיור אולפני וורנר בראדרס — הארי פוטר"
+      ]
+    },
+    {
+      "id": 21,
+      "tag": "beach",
+      "lang": "he",
+      "text": "זוג, 7 לילות בכרתים באוגוסט, ים וחופים, עם רכב",
+      "ms": 1,
+      "parsed": {
+        "styles": [
+          "beach",
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 7,
+        "month": 8,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "yes",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "crete"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.4,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0.5,
+        "mustCoverage": 1,
+        "items": 10,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 13,
+        "mustSeeTotal": 7,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D4: Chania + Agios Nikolaos & Elounda"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 2× beach"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-08-15 arrival 2h: Chania Venetian harbour [neighborhood 2h @Chania couple/food]",
+        "D2 2027-08-16 full 8h: Balos Lagoon [beach 5h beach/nature] | Preveli beach [beach 3h beach/nature]",
+        "D3 2027-08-17 full 8h: Elafonisi beach [beach 4h beach/family] | Palace of Knossos [landmark 2h @Heraklion culture] | Heraklion Archaeological Museum [museum 2h @Heraklion culture]",
+        "D4 2027-08-18 full 4h: Etz Hayyim Synagogue, Chania [religious 0.5h @Chania culture] | Arkadi Monastery [religious 1h culture] | Spinalonga island [landmark 2.5h @Agios Nikolaos & Elounda culture/family]",
+        "D5 2027-08-19 daytrip 8h: סנטוריני [daytrip 8h]",
+        "D6 2027-08-20 full 7h: Samaria Gorge [nature 7h adventure/nature]",
+        "D7 2027-08-21 rest: —",
+        "D8 2027-08-22 departure: —"
+      ],
+      "spare": [
+        "העיר העתיקה של רתימנו ומבצר הפורטצה",
+        "אגם קורנס",
+        "האקווריום של כרתים"
+      ]
+    },
+    {
+      "id": 22,
+      "tag": "beach-winter-suggest",
+      "lang": "he",
+      "text": "רוצים חופשת ים בדצמבר, 6 לילות, תציעו",
+      "ms": 1.1,
+      "parsed": {
+        "styles": [
+          "beach"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 6,
+        "month": 12,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "dubai"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "dubai",
+        "eilat",
+        "phuket"
+      ],
+      "destFit": {
+        "chosen": "dubai",
+        "ok": true,
+        "suggestions": [
+          "dubai",
+          "eilat",
+          "phuket"
+        ]
+      },
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.1,
+        "availShare": 0.08333333333333333,
+        "knownArea": 0,
+        "mustCoverage": 0.7142857142857143,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 7,
+        "spare": 2
+      },
+      "findings": {
+        "unsuitable": [
+          "D3 פארק המים אקוונטורה: kids-oriented for adults",
+          "D5 פארק המים ווילד וואדי: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "2 highlight(s) left out (e.g. Desert safari) while 4 non-highlight, off-style item(s) planned (e.g. Aquaventure Waterpark)",
+        "missedMust": [
+          "Desert safari",
+          "Dubai Miracle Garden"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2026-12-13 arrival 1.5h: Burj Khalifa — At the Top [viewpoint 1.5h city/family]",
+        "D2 2026-12-14 full 6.5h: JBR Beach & The Walk [beach 3h beach/family] | Dubai Mall & Aquarium [experience 3h shopping/family] | The Dubai Fountain show [experience 0.5h family/couple]",
+        "D3 2026-12-15 full 8h: Aquaventure Waterpark [experience 5h water_slides/family] | Gold Souk & Spice Souk [market 2h shopping/culture] | Dubai Frame [viewpoint 1h family]",
+        "D4 2026-12-16 daytrip 7h: אבו דאבי — המסגד הגדול והלובר [daytrip 7h]",
+        "D5 2026-12-17 full 7.5h: Wild Wadi Waterpark [experience 4h water_slides/family] | Al Fahidi Historical District [neighborhood 1.5h culture] | Museum of the Future [museum 2h family]",
+        "D6 2026-12-18 rest: —",
+        "D7 2026-12-19 departure: —"
+      ],
+      "spare": [
+        "ספארי מדבר",
+        "גן הפרחים מירקל גארדן"
+      ]
+    },
+    {
+      "id": 23,
+      "tag": "beach-offseason",
+      "lang": "en",
+      "text": "Beach holiday in Cyprus in January, 5 nights, 2 adults",
+      "ms": 1.5,
+      "parsed": {
+        "styles": [
+          "beach"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 1,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "cyprus"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.3,
+        "availShare": 0.23076923076923078,
+        "knownArea": 0.9,
+        "mustCoverage": 0.875,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 8,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D2: Ayia Napa + Protaras + Larnaca",
+          "D5: Larnaca + Limassol"
+        ],
+        "backForth": 1,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. WaterWorld Ayia Napa) while 1 non-highlight, off-style item(s) planned (e.g. Church of Saint Lazarus)",
+        "missedMust": [
+          "WaterWorld Ayia Napa"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [
+          "cyprus out of season in month 1 (best 4,5,6,9,10,11)",
+          "D2 beach \"Nissi Beach\" in month 1",
+          "D2 beach \"Fig Tree Bay\" in month 1",
+          "D3 beach \"Coral Bay\" in month 1"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-01-10 arrival 1.5h: Finikoudes promenade [neighborhood 1.5h @Larnaca food/family]",
+        "D2 2027-01-11 full 7.5h: Nissi Beach [beach 4h @Ayia Napa beach/nightlife] | Fig Tree Bay [beach 3h @Protaras beach/family] | Church of Saint Lazarus [religious 0.5h @Larnaca culture]",
+        "D3 2027-01-12 full 6.5h: Coral Bay [beach 3h @Paphos beach/family] | Paphos Archaeological Park [landmark 2h @Paphos culture] | Tombs of the Kings [landmark 1.5h @Paphos culture]",
+        "D4 2027-01-13 daytrip 7h: Troodos Mountains [daytrip 7h]",
+        "D5 2027-01-14 full 5.5h: Cape Greco [nature 2h nature/adventure] | Larnaca Salt Lake & Hala Sultan Tekke [nature 1.5h @Larnaca nature/culture] | Limassol Marina & Old Port [neighborhood 2h @Limassol food/couple]",
+        "D6 2027-01-15 departure: —"
+      ],
+      "spare": [
+        "WaterWorld Ayia Napa",
+        "Ancient Kourion",
+        "Aphrodite’s Rock (Petra tou Romiou)"
+      ]
+    },
+    {
+      "id": 24,
+      "tag": "beach-offseason",
+      "lang": "he",
+      "text": "זוג, חופשת ים ברודוס בפברואר, 5 לילות",
+      "ms": 0.9,
+      "parsed": {
+        "styles": [
+          "beach",
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 2,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "rhodes"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.4,
+        "availShare": 0.3076923076923077,
+        "knownArea": 1,
+        "mustCoverage": 0.6666666666666666,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 6,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [
+          "D3 פארק המים פלירקי: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D2: Lindos + Faliraki",
+          "D3: Faliraki + Rhodes Town",
+          "D5: Kolymbia + Rhodes Town"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "2 highlight(s) left out (e.g. Kahal Shalom Synagogue & Jewish Museum of Rhodes) while 3 non-highlight, off-style item(s) planned (e.g. Filerimos Hill)",
+        "missedMust": [
+          "Kahal Shalom Synagogue & Jewish Museum of Rhodes",
+          "Valley of the Butterflies"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [
+          "rhodes out of season in month 2 (best 5,6,7,8,9,10)",
+          "D2 beach \"מפרץ פאולוס הקדוש\" in month 2",
+          "D2 beach \"מפרץ אנתוני קווין\" in month 2",
+          "D5 beach \"חוף צמביקה\" in month 2"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-02-14 arrival 1.5h: Filerimos Hill [viewpoint 1.5h @Ixia & Ialysos culture]",
+        "D2 2027-02-15 full 8h: St Paul’s Bay [beach 3h @Lindos beach/couple] | Acropolis of Lindos [landmark 2h @Lindos culture] | Anthony Quinn Bay [beach 3h @Faliraki beach]",
+        "D3 2027-02-16 full 6.5h: Kallithea Springs [landmark 2h @Faliraki beach/couple] | Faliraki Water Park [experience 4h @Faliraki water_slides/family/with_children] | Street of the Knights [landmark 0.5h @Rhodes Town culture]",
+        "D4 2027-02-17 daytrip 7h: האי סימי [daytrip 7h]",
+        "D5 2027-02-18 full 7.5h: Tsambika beach [beach 3h @Kolymbia beach/family] | Seven Springs [nature 1.5h @Kolymbia nature/family] | Rhodes Old Town [neighborhood 3h @Rhodes Town culture/shopping]",
+        "D6 2027-02-19 departure: —"
+      ],
+      "spare": [
+        "ארמון המאסטר הגדול",
+        "בית הכנסת קהל שלום והמוזיאון היהודי",
+        "עמק הפרפרים"
+      ]
+    },
+    {
+      "id": 25,
+      "tag": "nature",
+      "lang": "he",
+      "text": "זוג, 7 לילות בגאורגיה ביוני, טבע והרים, עם רכב",
+      "ms": 2.2,
+      "parsed": {
+        "styles": [
+          "couple",
+          "nature"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 7,
+        "month": 6,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "yes",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "georgia"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.46153846153846156,
+        "availShare": 0.46153846153846156,
+        "knownArea": 0.5384615384615384,
+        "mustCoverage": 1,
+        "items": 13,
+        "fullDays": 5,
+        "dayTrips": 1,
+        "capacity": 16,
+        "mustSeeTotal": 4,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [
+          "D7"
+        ],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D3: Kakheti — Sighnaghi & Telavi + Tbilisi — Old Town"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-06-13 arrival 1.5h: Narikala Fortress [viewpoint 1.5h @Tbilisi — Old Town culture]",
+        "D2 2027-06-14 full 6h: Martvili Canyon [nature 2h nature/adventure] | Prometheus Cave [nature 1.5h nature/family] | Gergeti Trinity Church [religious 2.5h @Kazbegi (Stepantsminda) nature/adventure]",
+        "D3 2027-06-15 full 7.5h: Sighnaghi [neighborhood 3h @Kakheti — Sighnaghi & Telavi couple/food] | Tbilisi Old Town [neighborhood 3h @Tbilisi — Old Town culture/food] | Abanotubani sulphur baths [experience 1.5h @Tbilisi — Old Town relaxation/couple]",
+        "D4 2027-06-16 full 4.5h: Bridge of Peace & Rike Park [park 1h @Tbilisi — Old Town family] | Mtatsminda Park [viewpoint 2h family] | Dry Bridge Market [market 1.5h shopping]",
+        "D5 2027-06-17 daytrip 5h: מצחטה [daytrip 5h]",
+        "D6 2027-06-18 full 4.5h: Ananuri Fortress [landmark 1h culture] | Uplistsikhe cave town [landmark 1.5h culture] | Batumi Boulevard [beach 2h @Batumi beach/family]",
+        "D7 2027-06-19 full: —",
+        "D8 2027-06-20 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 26,
+      "tag": "nature",
+      "lang": "en",
+      "text": "Hiking and nature in Slovenia, 6 nights in June, 2 adults, no car",
+      "ms": 1.7,
+      "parsed": {
+        "styles": [
+          "nature"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 6,
+        "month": 6,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "no",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "slovenia"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.38461538461538464,
+        "availShare": 0.38461538461538464,
+        "knownArea": 0.8461538461538461,
+        "mustCoverage": 1,
+        "items": 13,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 13,
+        "mustSeeTotal": 8,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [
+          "D3 Postojna Cave: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D6: Bled + Ljubljana"
+        ],
+        "backForth": 1,
+        "dups": [
+          "day trip \"Postojna Cave & Predjama Castle\" (D4) repeats \"Postojna Cave\"",
+          "day trip \"Postojna Cave & Predjama Castle\" (D4) repeats \"Predjama Castle\""
+        ],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D3: 3× nature"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-06-13 arrival 2h: Vogel cable car [viewpoint 2h @Bohinj nature/family]",
+        "D2 2027-06-14 full 6.5h: Lake Bled [nature 3h @Bled nature/couple/family] | Vintgar Gorge [nature 2h @Bled nature/family] | Bled Castle [viewpoint 1.5h @Bled culture]",
+        "D3 2027-06-15 full 6.5h: Lake Bohinj [nature 3h @Bohinj nature/relaxation] | Savica Waterfall [nature 1.5h @Bohinj nature] | Postojna Cave [nature 2h family/with_children]",
+        "D4 2027-06-16 daytrip 6h: Postojna Cave & Predjama Castle [daytrip 6h]",
+        "D5 2027-06-17 full 4h: Tivoli Park [park 1.5h @Ljubljana family] | Ljubljana Castle [landmark 1.5h @Ljubljana culture] | Triple Bridge & Prešeren Square [landmark 1h @Ljubljana culture]",
+        "D6 2027-06-18 full 3.5h: Pletna boat to Bled Island [experience 1.5h @Bled couple] | Ljubljana Central Market [market 1h @Ljubljana food] | Predjama Castle [landmark 1h culture/family]",
+        "D7 2027-06-19 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 27,
+      "tag": "nature-long",
+      "lang": "he",
+      "text": "זוג, 8 לילות באיסלנד באוגוסט, טבע ומפלים, רכב שכור",
+      "ms": 1.3,
+      "parsed": {
+        "styles": [
+          "couple",
+          "nature"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 8,
+        "month": 8,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "yes",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "iceland"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.7692307692307693,
+        "availShare": 0.7692307692307693,
+        "knownArea": 0.6923076923076923,
+        "mustCoverage": 1,
+        "items": 13,
+        "fullDays": 6,
+        "dayTrips": 1,
+        "capacity": 19,
+        "mustSeeTotal": 9,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [
+          "D8"
+        ],
+        "thin": [
+          "D7 3h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D4: Akureyri & the North + The South Coast (Vík)"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "8 nights, 3 day trips in catalog, only 1 used",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× nature",
+          "D3: 3× nature"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-08-15 arrival: —",
+        "D2 2027-08-16 full 4h: Jökulsárlón glacier lagoon [nature 2h @The South Coast (Vík) nature/couple] | Seljalandsfoss [nature 1h @The South Coast (Vík) nature] | Skógafoss [nature 1h @The South Coast (Vík) nature]",
+        "D3 2027-08-17 full 4h: Þingvellir National Park [nature 2h nature/culture] | Geysir & Strokkur [nature 1h nature/family] | Gullfoss [nature 1h nature]",
+        "D4 2027-08-18 full 8h: Lake Mývatn area & Mývatn Nature Baths [nature 4h @Akureyri & the North nature/relaxation] | Whale watching from Húsavík [experience 3h @Akureyri & the North nature/family] | Reynisfjara beach [beach 1h @The South Coast (Vík) nature]",
+        "D5 2027-08-19 daytrip 6h: מעגל הזהב [daytrip 6h]",
+        "D6 2027-08-20 full 3.5h: Sky Lagoon [experience 2h @Reykjavík relaxation/couple] | Hallgrímskirkja [religious 1h @Reykjavík culture] | Harpa Concert Hall [landmark 0.5h @Reykjavík culture]",
+        "D7 2027-08-21 full 3h: Blue Lagoon [experience 3h relaxation/luxury]",
+        "D8 2027-08-22 full: —",
+        "D9 2027-08-23 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 28,
+      "tag": "nature-summer-alps",
+      "lang": "en",
+      "text": "Swiss Alps in August, 7 nights, nature and mountains, with a car, 2 adults",
+      "ms": 1.6,
+      "parsed": {
+        "styles": [
+          "nature"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 7,
+        "month": 8,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "yes",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "crete"
+      ],
+      "namedOk": false,
+      "suggestions": [
+        "crete",
+        "mallorca",
+        "croatia"
+      ],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.3076923076923077,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0.46153846153846156,
+        "mustCoverage": 1,
+        "items": 13,
+        "fullDays": 5,
+        "dayTrips": 1,
+        "capacity": 16,
+        "mustSeeTotal": 7,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [
+          "D7 CretAquarium: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D6: Heraklion + Agios Nikolaos & Elounda"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D4: 2× beach"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-08-15 arrival 2h: Chania Venetian harbour [neighborhood 2h @Chania couple/food]",
+        "D2 2027-08-16 full 7.5h: Samaria Gorge [nature 7h adventure/nature] | Etz Hayyim Synagogue, Chania [religious 0.5h @Chania culture]",
+        "D3 2027-08-17 full 7.5h: Lake Kournas [nature 1.5h family/nature] | Balos Lagoon [beach 5h beach/nature] | Arkadi Monastery [religious 1h culture]",
+        "D4 2027-08-18 full 7h: Preveli beach [beach 3h beach/nature] | Elafonisi beach [beach 4h beach/family]",
+        "D5 2027-08-19 daytrip 8h: Santorini [daytrip 8h]",
+        "D6 2027-08-20 full 6.5h: Palace of Knossos [landmark 2h @Heraklion culture] | Heraklion Archaeological Museum [museum 2h @Heraklion culture] | Spinalonga island [landmark 2.5h @Agios Nikolaos & Elounda culture/family]",
+        "D7 2027-08-21 full 4h: Rethymno old town & Fortezza [neighborhood 2h @Rethymno culture] | CretAquarium [experience 2h family/with_children]",
+        "D8 2027-08-22 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 29,
+      "tag": "ski",
+      "lang": "he",
+      "text": "זוג, סקי בבנסקו בינואר, 6 לילות",
+      "ms": 0.9,
+      "parsed": {
+        "styles": [
+          "couple",
+          "ski"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 6,
+        "month": 1,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "bansko"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.5,
+        "availShare": 0.5,
+        "knownArea": 0.5833333333333334,
+        "mustCoverage": 1,
+        "items": 12,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 13,
+        "mustSeeTotal": 5,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D6: Old Town + Banya & Razlog"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 2× nature",
+          "D3: 3× experience"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-01-10 arrival 2h: Todorka peak area [viewpoint 2h ski/adventure]",
+        "D2 2027-01-11 full 8h: Snowshoeing in Pirin National Park [nature 3h nature/adventure] | Shiligarnika & Plato ski areas [nature 5h ski/family]",
+        "D3 2027-01-12 full 7h: Bansko gondola [experience 0.5h @Near the gondola station ski/family] | Ski and snowboard school [experience 4h ski/with_children] | An evening in a traditional mehana [experience 2.5h food/nightlife]",
+        "D4 2027-01-13 daytrip 8h: מנזר רילה [daytrip 8h]",
+        "D5 2027-01-14 full 3.5h: Bansko Old Town [neighborhood 2h @Old Town culture] | Holy Trinity Church [religious 0.5h @Old Town culture] | Velyanova House [museum 1h @Old Town culture]",
+        "D6 2027-01-15 full 4h: Neofit Rilski House-Museum [museum 1h @Old Town culture] | Nikola Vaptsarov House-Museum [museum 1h @Old Town culture] | Banya hot springs [experience 2h @Banya & Razlog relaxation/family]",
+        "D7 2027-01-16 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 30,
+      "tag": "ski-suggest",
+      "lang": "he",
+      "text": "סקי בפברואר, 6 לילות, 2 מבוגרים, תציעו",
+      "ms": 1,
+      "parsed": {
+        "styles": [
+          "ski"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 6,
+        "month": 2,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "swiss-alps"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "swiss-alps",
+        "austrian-alps",
+        "bansko"
+      ],
+      "destFit": {
+        "chosen": "swiss-alps",
+        "ok": true,
+        "suggestions": [
+          "swiss-alps",
+          "austrian-alps",
+          "bansko"
+        ]
+      },
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.5,
+        "availShare": 0.46153846153846156,
+        "knownArea": 0.9166666666666666,
+        "mustCoverage": 0.8888888888888888,
+        "items": 12,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 13,
+        "mustSeeTotal": 9,
+        "spare": 1
+      },
+      "findings": {
+        "unsuitable": [
+          "D6 המוזיאון השווייצרי לתחבורה: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D5: Grindelwald, Wengen & Lauterbrunnen + Interlaken",
+          "D6: Grindelwald, Wengen & Lauterbrunnen + Lucerne + Zurich"
+        ],
+        "backForth": 3,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Lindt Home of Chocolate) while 3 non-highlight, off-style item(s) planned (e.g. Harder Kulm viewpoint)",
+        "missedMust": [
+          "Lindt Home of Chocolate"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [
+          "ski request but no ski item in the plan"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-02-14 arrival 1.5h: Harder Kulm viewpoint [viewpoint 1.5h @Interlaken couple]",
+        "D2 2027-02-15 full 8h: Jungfraujoch [viewpoint 6h @Grindelwald, Wengen & Lauterbrunnen nature/family] | Lauterbrunnen Valley & Staubbach Falls [nature 2h @Grindelwald, Wengen & Lauterbrunnen nature]",
+        "D3 2027-02-16 full 7h: Mount Pilatus [viewpoint 4h @Lucerne nature] | Chapel Bridge, Lucerne [landmark 1h @Lucerne culture] | Lake Lucerne boat cruise [experience 2h @Lucerne relaxation/couple]",
+        "D4 2027-02-17 daytrip 5.5h: מפלי הריין [daytrip 5.5h]",
+        "D5 2027-02-18 full 7.5h: Mount Rigi [viewpoint 4h nature/family] | Trümmelbach Falls [nature 1.5h @Grindelwald, Wengen & Lauterbrunnen nature] | Lake Brienz boat trip [experience 2h @Interlaken relaxation]",
+        "D6 2027-02-19 full 8h: Grindelwald First & Cliff Walk [experience 3h @Grindelwald, Wengen & Lauterbrunnen adventure/family] | Swiss Museum of Transport [museum 3h @Lucerne family/with_children] | Zurich Old Town & Bahnhofstrasse [neighborhood 2h @Zurich shopping/culture]",
+        "D7 2027-02-20 departure: —"
+      ],
+      "spare": [
+        "בית השוקולד של לינדט"
+      ]
+    },
+    {
+      "id": 31,
+      "tag": "ski-wrong-season",
+      "lang": "he",
+      "text": "סקי ביולי, 6 לילות, תציעו",
+      "ms": 0.8,
+      "parsed": {
+        "styles": [
+          "ski"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 6,
+        "month": 7,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "swiss-alps"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "swiss-alps",
+        "austrian-alps",
+        "bansko"
+      ],
+      "destFit": {
+        "chosen": "swiss-alps",
+        "ok": false,
+        "suggestions": [
+          "swiss-alps",
+          "austrian-alps",
+          "bansko"
+        ]
+      },
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.5,
+        "availShare": 0.46153846153846156,
+        "knownArea": 0.9166666666666666,
+        "mustCoverage": 0.8888888888888888,
+        "items": 12,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 13,
+        "mustSeeTotal": 9,
+        "spare": 1
+      },
+      "findings": {
+        "unsuitable": [
+          "D6 המוזיאון השווייצרי לתחבורה: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D5: Grindelwald, Wengen & Lauterbrunnen + Interlaken",
+          "D6: Grindelwald, Wengen & Lauterbrunnen + Lucerne + Zurich"
+        ],
+        "backForth": 3,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Lindt Home of Chocolate) while 3 non-highlight, off-style item(s) planned (e.g. Harder Kulm viewpoint)",
+        "missedMust": [
+          "Lindt Home of Chocolate"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [
+          "ski request → swiss-alps in month 7",
+          "ski request but no ski item in the plan"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-07-11 arrival 1.5h: Harder Kulm viewpoint [viewpoint 1.5h @Interlaken couple]",
+        "D2 2027-07-12 full 8h: Jungfraujoch [viewpoint 6h @Grindelwald, Wengen & Lauterbrunnen nature/family] | Lauterbrunnen Valley & Staubbach Falls [nature 2h @Grindelwald, Wengen & Lauterbrunnen nature]",
+        "D3 2027-07-13 full 7h: Mount Pilatus [viewpoint 4h @Lucerne nature] | Chapel Bridge, Lucerne [landmark 1h @Lucerne culture] | Lake Lucerne boat cruise [experience 2h @Lucerne relaxation/couple]",
+        "D4 2027-07-14 daytrip 5.5h: מפלי הריין [daytrip 5.5h]",
+        "D5 2027-07-15 full 7.5h: Mount Rigi [viewpoint 4h nature/family] | Trümmelbach Falls [nature 1.5h @Grindelwald, Wengen & Lauterbrunnen nature] | Lake Brienz boat trip [experience 2h @Interlaken relaxation]",
+        "D6 2027-07-16 full 8h: Grindelwald First & Cliff Walk [experience 3h @Grindelwald, Wengen & Lauterbrunnen adventure/family] | Swiss Museum of Transport [museum 3h @Lucerne family/with_children] | Zurich Old Town & Bahnhofstrasse [neighborhood 2h @Zurich shopping/culture]",
+        "D7 2027-07-17 departure: —"
+      ],
+      "spare": [
+        "בית השוקולד של לינדט"
+      ]
+    },
+    {
+      "id": 32,
+      "tag": "all-inclusive-suggest",
+      "lang": "he",
+      "text": "חופשת הכל כלול עם ילדים בני 5 ו-10 ביוני, 6 לילות, תציעו",
+      "ms": 1.6,
+      "parsed": {
+        "styles": [],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          5,
+          10
+        ],
+        "nights": 6,
+        "month": 6,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "cyprus"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "cyprus",
+        "crete",
+        "rhodes"
+      ],
+      "destFit": {
+        "chosen": "cyprus",
+        "ok": false,
+        "suggestions": [
+          "cyprus",
+          "crete",
+          "rhodes"
+        ]
+      },
+      "pace": {
+        "hours": 5,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.6666666666666666,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0.8333333333333334,
+        "mustCoverage": 0.5714285714285714,
+        "items": 6,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 7,
+        "mustSeeTotal": 8,
+        "spare": 6
+      },
+      "findings": {
+        "unsuitable": [
+          "D4 הרי טרודוס: 7h > 5h toddler day"
+        ],
+        "removedForKids": [
+          "Nissi Beach [beach,nightlife]"
+        ],
+        "overloaded": [
+          "D4 daytrip 7h > 5h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [
+          "Nissi Beach",
+          "Larnaca Salt Lake & Hala Sultan Tekke",
+          "Limassol Marina & Old Port",
+          "Tombs of the Kings"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [
+          "D4 הרי טרודוס 7h vs 5h kids pace"
+        ],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-06-13 arrival 1.5h: Finikoudes promenade [neighborhood 1.5h @Larnaca food/family]",
+        "D2 2027-06-14 full 5h: Fig Tree Bay [beach 3h @Protaras beach/family] | Cape Greco [nature 2h nature/adventure]",
+        "D3 2027-06-15 full 5h: Coral Bay [beach 3h @Paphos beach/family] | Paphos Archaeological Park [landmark 2h @Paphos culture]",
+        "D4 2027-06-16 daytrip 7h: הרי טרודוס [daytrip 7h]",
+        "D5 2027-06-17 full 5h: WaterWorld Ayia Napa [experience 5h @Ayia Napa water_slides/family/with_children]",
+        "D6 2027-06-18 rest: —",
+        "D7 2027-06-19 departure: —"
+      ],
+      "spare": [
+        "כנסיית לזרוס הקדוש",
+        "האגם המלוח של לרנקה והלה סולטן טקה",
+        "מרינת לימסול והנמל הישן",
+        "קוריון העתיקה",
+        "סלע אפרודיטה",
+        "קברי המלכים"
+      ]
+    },
+    {
+      "id": 33,
+      "tag": "all-inclusive",
+      "lang": "en",
+      "text": "All inclusive in Phuket in February, 10 nights, 2 adults, relaxation and beach",
+      "ms": 1.4,
+      "parsed": {
+        "styles": [
+          "beach",
+          "relaxation"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 10,
+        "month": 2,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "phuket"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 5,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.3333333333333333,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0.6666666666666666,
+        "mustCoverage": 1,
+        "items": 12,
+        "fullDays": 7,
+        "dayTrips": 1,
+        "capacity": 22,
+        "mustSeeTotal": 8,
+        "spare": 1
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D5 full 8h > 5h",
+          "D6 daytrip 7h > 5h",
+          "D9 full 8h > 5h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 11h flight",
+        "multiArea": [
+          "D4: Kamala & Bang Tao + Rawai & Chalong"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "10 nights, 3 day trips in catalog, only 1 used",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-02-14 arrival 1h: Promthep Cape at sunset [viewpoint 1h @Rawai & Chalong couple]",
+        "D2 2027-02-15 full 5h: Patong Beach [beach 3h @Patong beach] | Bangla Road at night [neighborhood 2h @Patong nightlife]",
+        "D3 2027-02-16 full 4.5h: Kata and Kata Noi beaches [beach 4h @Kata & Karon beach/family] | Karon Viewpoint [viewpoint 0.5h @Kata & Karon -]",
+        "D4 2027-02-17 full 5h: Bang Tao Beach [beach 4h @Kamala & Bang Tao beach/relaxation] | Wat Chalong [religious 1h @Rawai & Chalong culture]",
+        "D5 2027-02-18 full 8h: Phi Phi Islands & Maya Bay boat trip [nature 8h beach/nature]",
+        "D6 2027-02-19 daytrip 7h: The Phi Phi Islands [daytrip 7h]",
+        "D7 2027-02-20 full 4h: The Big Buddha [religious 1.5h culture] | Phuket Old Town [neighborhood 2.5h @Phuket Town & Old Town culture/food]",
+        "D8 2027-02-21 full 2h: Phuket Weekend Market (Naka) [market 2h shopping/food]",
+        "D9 2027-02-22 full 8h: Phang Nga Bay & James Bond Island by kayak [nature 8h nature/adventure]",
+        "D10 2027-02-23 rest: —",
+        "D11 2027-02-24 departure: —"
+      ],
+      "spare": [
+        "Snorkelling in the Similan Islands (in season)"
+      ]
+    },
+    {
+      "id": 34,
+      "tag": "shabbat",
+      "lang": "he",
+      "text": "זוג דתי שומרי שבת, אוכל כשר, פראג, 5 לילות במרץ",
+      "ms": 1.2,
+      "parsed": {
+        "styles": [
+          "city",
+          "couple",
+          "food"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 3,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": true,
+        "suggest": false
+      },
+      "destination": [
+        "prague"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 1,
+        "availShare": 0.8461538461538461,
+        "knownArea": 0.5,
+        "mustCoverage": 0.875,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 8,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D4 daytrip 10h > 8h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [
+          "Prague Zoo"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [
+          "prague out of season in month 3 (best 4,5,6,9,10,12)"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-03-14 arrival 2h: Malá Strana [neighborhood 2h @Malá Strana (Lesser Town) couple]",
+        "D2 2027-03-15 full 5h: Prague Castle [landmark 3h culture] | Charles Bridge [landmark 1h couple] | Old Town Square & the Astronomical Clock [landmark 1h @Old Town (Staré Město) culture/family]",
+        "D3 2027-03-16 full 4.5h: Jewish Museum in Prague (synagogues & Old Jewish Cemetery) [museum 3h @Old Town (Staré Město) culture] | Old-New Synagogue [religious 0.5h @Old Town (Staré Město) culture] | St Vitus Cathedral [religious 1h culture]",
+        "D4 2027-03-17 daytrip 10h: צ׳סקי קרומלוב [daytrip 10h]",
+        "D5 2027-03-18 full 4.5h: Petřín Hill & Lookout Tower [viewpoint 2h @Malá Strana (Lesser Town) family/couple] | Vyšehrad [viewpoint 1.5h culture] | Vltava river cruise [experience 1h couple/family]",
+        "D6 2027-03-19 departure: —"
+      ],
+      "spare": [
+        "פארק לטנה",
+        "הבית הרוקד",
+        "גן החיות של פראג"
+      ]
+    },
+    {
+      "id": 35,
+      "tag": "shabbat-family",
+      "lang": "he",
+      "text": "משפחה שומרת שבת עם ילדים בני 4 ו-7, כשר, לונדון, 6 לילות ביולי",
+      "ms": 1.5,
+      "parsed": {
+        "styles": [
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          4,
+          7
+        ],
+        "nights": 6,
+        "month": 7,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": true,
+        "suggest": false
+      },
+      "destination": [
+        "london"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 5,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.8571428571428571,
+        "availShare": 0.5384615384615384,
+        "knownArea": 0.2857142857142857,
+        "mustCoverage": 0.7142857142857143,
+        "items": 7,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 7,
+        "mustSeeTotal": 10,
+        "spare": 6
+      },
+      "findings": {
+        "unsuitable": [
+          "D4 אוקספורד: 6h > 5h toddler day",
+          "D5: 2 museums/churches in one toddler day"
+        ],
+        "removedForKids": [],
+        "overloaded": [
+          "D4 daytrip 6h > 5h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D5: South Kensington + West End & Covent Garden"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "5 highlight(s) left out (e.g. The British Museum) while 1 non-highlight, off-style item(s) planned (e.g. National Gallery & Trafalgar Square)",
+        "missedMust": [
+          "The British Museum",
+          "Westminster Abbey & Big Ben",
+          "The London Eye",
+          "Borough Market",
+          "Camden Market"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [
+          "D4 אוקספורד 6h vs 5h kids pace"
+        ],
+        "monotone": [
+          "D3: 2× landmark",
+          "D5: 2× museum"
+        ],
+        "spareInversions": [
+          "The London Eye"
+        ],
+        "seasonIssues": [],
+        "shabbatIssues": [
+          "D7 departure on Shabbat"
+        ],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-07-11 arrival 2h: Hyde Park & Kensington Gardens [park 2h family/relaxation]",
+        "D2 2027-07-12 full 5h: Warner Bros. Studio Tour — The Making of Harry Potter [experience 4h family/with_children] | Tower Bridge [landmark 1h family]",
+        "D3 2027-07-13 full 4h: Tower of London [landmark 2.5h culture/family] | Buckingham Palace & Changing of the Guard [landmark 1.5h family]",
+        "D4 2027-07-14 daytrip 6h: אוקספורד [daytrip 6h]",
+        "D5 2027-07-15 full 4.5h: Natural History Museum [museum 2.5h @South Kensington family/with_children] | National Gallery & Trafalgar Square [museum 2h @West End & Covent Garden culture]",
+        "D6 2027-07-16 rest: —",
+        "D7 2027-07-17 departure: —"
+      ],
+      "spare": [
+        "הלונדון איי",
+        "המוזיאון הבריטי",
+        "מנזר וסטמינסטר וביג בן",
+        "טייט מודרן",
+        "שוק בורו",
+        "שוק קמדן"
+      ]
+    },
+    {
+      "id": 36,
+      "tag": "short",
+      "lang": "he",
+      "text": "זוג, 3 לילות באמסטרדם בסוף מרץ",
+      "ms": 0.8,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 3,
+        "month": 3,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "amsterdam"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.5714285714285714,
+        "availShare": 0.3333333333333333,
+        "knownArea": 0.7142857142857143,
+        "mustCoverage": 0.6,
+        "items": 7,
+        "fullDays": 2,
+        "dayTrips": 0,
+        "capacity": 7,
+        "mustSeeTotal": 5,
+        "spare": 5
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "2 highlight(s) left out (e.g. Anne Frank House) while 1 non-highlight, off-style item(s) planned (e.g. Heineken Experience)",
+        "missedMust": [
+          "Anne Frank House",
+          "Jewish Cultural Quarter & Portuguese Synagogue"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [
+          "amsterdam out of season in month 3 (best 4,5,6,7,8,9)"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-03-14 arrival 2h: Jordaan [neighborhood 2h @Jordaan food/couple]",
+        "D2 2027-03-15 full 3.5h: Canal cruise [experience 1h couple/family] | Heineken Experience [experience 1.5h @De Pijp nightlife] | Albert Cuyp Market [market 1h @De Pijp food]",
+        "D3 2027-03-16 full 6h: A’DAM Lookout [viewpoint 1h couple] | Rijksmuseum [museum 3h @Museum Quarter culture] | Van Gogh Museum [museum 2h @Museum Quarter culture]",
+        "D4 2027-03-17 departure: —"
+      ],
+      "spare": [
+        "בית אנה פרנק",
+        "הרובע התרבותי היהודי ובית הכנסת הפורטוגזי",
+        "הוונדלפארק",
+        "שוק הפרחים",
+        "מוזיאון המדע נמו"
+      ]
+    },
+    {
+      "id": 37,
+      "tag": "long",
+      "lang": "he",
+      "text": "זוג, 12 לילות בטוסקנה ופירנצה בספטמבר, עם רכב",
+      "ms": 0.9,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 12,
+        "month": 9,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "yes",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "florence-tuscany"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.3076923076923077,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0.8461538461538461,
+        "mustCoverage": 1,
+        "items": 13,
+        "fullDays": 10,
+        "dayTrips": 1,
+        "capacity": 31,
+        "mustSeeTotal": 9,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [
+          "D6",
+          "D8",
+          "D9",
+          "D10",
+          "D11",
+          "D12"
+        ],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D2: An agriturismo in Chianti + Historic centre",
+          "D5: Oltrarno & Santo Spirito + Santa Croce & Sant’Ambrogio"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "12 nights, 4 day trips in catalog, only 1 used",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D4: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-09-12 arrival 1h: Piazzale Michelangelo [viewpoint 1h @Oltrarno & Santo Spirito couple]",
+        "D2 2027-09-13 full 8h: Chianti wine tour [experience 5h @An agriturismo in Chianti food/couple/nature] | Mercato Centrale & San Lorenzo market [market 1.5h @Historic centre food/shopping] | Galleria dell’Accademia — David [museum 1.5h @Historic centre culture]",
+        "D3 2027-09-14 full 7.5h: San Gimignano [neighborhood 2.5h culture/couple] | Florence Cathedral & dome climb [landmark 2h @Historic centre culture] | Uffizi Gallery [museum 3h @Historic centre culture]",
+        "D4 2027-09-15 full 5h: Ponte Vecchio [landmark 0.5h @Historic centre shopping] | Piazza della Signoria & Palazzo Vecchio [landmark 1.5h @Historic centre culture] | Piazza del Campo, Siena [landmark 3h culture]",
+        "D5 2027-09-16 full 4.5h: Palazzo Pitti & Boboli Gardens [park 2.5h @Oltrarno & Santo Spirito culture/family] | Basilica of Santa Croce [religious 1h @Santa Croce & Sant’Ambrogio culture] | Great Synagogue & Jewish Museum [religious 1h @Santa Croce & Sant’Ambrogio culture]",
+        "D6 2027-09-17 full: —",
+        "D7 2027-09-18 daytrip 6h: פיזה ולוקה [daytrip 6h]",
+        "D8 2027-09-19 full: —",
+        "D9 2027-09-20 full: —",
+        "D10 2027-09-21 full: —",
+        "D11 2027-09-22 full: —",
+        "D12 2027-09-23 full: —",
+        "D13 2027-09-24 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 38,
+      "tag": "long",
+      "lang": "he",
+      "text": "זוג, 10 לילות ביפן באפריל",
+      "ms": 0.8,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 10,
+        "month": 4,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "japan"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.3076923076923077,
+        "availShare": 0.3076923076923077,
+        "knownArea": 1,
+        "mustCoverage": 1,
+        "items": 13,
+        "fullDays": 8,
+        "dayTrips": 1,
+        "capacity": 25,
+        "mustSeeTotal": 6,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [
+          "D8",
+          "D9",
+          "D10"
+        ],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 15.5h flight",
+        "multiArea": [
+          "D4: Osaka + Tokyo",
+          "D5: Tokyo + Kyoto"
+        ],
+        "backForth": 3,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "10 nights, 4 day trips in catalog, only 1 used",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-04-11 arrival 2h: Tsukiji Outer Market [market 2h @Tokyo food]",
+        "D2 2027-04-12 full 4.5h: teamLab Planets [museum 2h @Tokyo family/couple] | Senso-ji Temple, Asakusa [religious 1.5h @Tokyo culture] | Shibuya Crossing [landmark 1h @Tokyo city]",
+        "D3 2027-04-13 full 5.5h: Gion district [neighborhood 2h @Kyoto culture/couple] | Fushimi Inari Taisha [religious 2.5h @Kyoto culture] | Kinkaku-ji — the Golden Pavilion [religious 1h @Kyoto culture]",
+        "D4 2027-04-14 full 6h: Dotonbori [neighborhood 2.5h @Osaka food/nightlife] | Osaka Castle [landmark 2h @Osaka culture/family] | Meiji Jingu Shrine [religious 1.5h @Tokyo culture/nature]",
+        "D5 2027-04-15 full 3.5h: Tokyo Skytree [viewpoint 1.5h @Tokyo family] | Arashiyama Bamboo Grove [nature 2h @Kyoto nature]",
+        "D6 2027-04-16 daytrip 5.5h: נארה [daytrip 5.5h]",
+        "D7 2027-04-17 full 5h: Lake Kawaguchi & Mt Fuji views [nature 5h @Fuji & Hakone nature]",
+        "D8 2027-04-18 full: —",
+        "D9 2027-04-19 full: —",
+        "D10 2027-04-20 full: —",
+        "D11 2027-04-21 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 39,
+      "tag": "multi-city",
+      "lang": "he",
+      "text": "זוג, רומא ופירנצה, 8 לילות במאי",
+      "ms": 0.8,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 8,
+        "month": 5,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "rome",
+        "florence-tuscany"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.4,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0.4,
+        "mustCoverage": 0.875,
+        "items": 20,
+        "fullDays": 6,
+        "dayTrips": 0,
+        "capacity": 20,
+        "mustSeeTotal": 16,
+        "spare": 6
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [
+          "D4 2.5h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D6: An agriturismo in Chianti + Historic centre"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "2 highlight(s) left out (e.g. Jewish Ghetto & Jewish Museum of Rome) while 3 non-highlight, off-style item(s) planned (e.g. St Peter’s Basilica)",
+        "missedMust": [
+          "Jewish Ghetto & Jewish Museum of Rome",
+          "Great Synagogue & Jewish Museum"
+        ],
+        "dayTripIssue": "8 nights, 8 day trips in catalog, only 0 used",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× landmark",
+          "D8: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-05-16 arrival 2h: Trastevere [neighborhood 2h food/nightlife]",
+        "D2 2027-05-17 full 5h: Trevi Fountain [landmark 0.5h couple] | The Colosseum [landmark 2h culture] | Roman Forum & Palatine Hill [landmark 2.5h culture]",
+        "D3 2027-05-18 full 5.5h: Campo de’ Fiori market [market 1h food] | Gianicolo viewpoint [viewpoint 1h couple] | Vatican Museums & Sistine Chapel [museum 3.5h culture]",
+        "D4 2027-05-19 full 2.5h: St Peter’s Basilica [religious 1.5h culture] | The Pantheon [landmark 0.5h culture] | Spanish Steps [landmark 0.5h shopping]",
+        "D5 2027-05-20 move 1h: Piazzale Michelangelo [viewpoint 1h @Oltrarno & Santo Spirito couple]",
+        "D6 2027-05-21 full 8h: Chianti wine tour [experience 5h @An agriturismo in Chianti food/couple/nature] | Mercato Centrale & San Lorenzo market [market 1.5h @Historic centre food/shopping] | Galleria dell’Accademia — David [museum 1.5h @Historic centre culture]",
+        "D7 2027-05-22 full 7.5h: San Gimignano [neighborhood 2.5h culture/couple] | Florence Cathedral & dome climb [landmark 2h @Historic centre culture] | Uffizi Gallery [museum 3h @Historic centre culture]",
+        "D8 2027-05-23 full 5h: Ponte Vecchio [landmark 0.5h @Historic centre shopping] | Piazza della Signoria & Palazzo Vecchio [landmark 1.5h @Historic centre culture] | Piazza del Campo, Siena [landmark 3h culture]",
+        "D9 2027-05-24 departure: —"
+      ],
+      "spare": [
+        "הגטו היהודי והמוזיאון היהודי",
+        "גלריה בורגזה",
+        "גני וילה בורגזה",
+        "ארמון פיטי וגני בובולי",
+        "בזיליקת סנטה קרוצ׳ה",
+        "בית הכנסת הגדול והמוזיאון היהודי"
+      ]
+    },
+    {
+      "id": 40,
+      "tag": "suggest-cheap",
+      "lang": "en",
+      "text": "We don't know where to go, 2 adults, cheap, 5 nights in March",
+      "ms": 1.7,
+      "parsed": {
+        "styles": [],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 3,
+        "budget": null,
+        "budgetLevel": "low",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "vietnam"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "vietnam",
+        "sri-lanka",
+        "goa"
+      ],
+      "destFit": {
+        "chosen": "vietnam",
+        "ok": true,
+        "suggestions": [
+          "vietnam",
+          "sri-lanka",
+          "goa"
+        ]
+      },
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": null,
+        "availShare": null,
+        "knownArea": 0.6666666666666666,
+        "mustCoverage": 0.5,
+        "items": 6,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 4,
+        "spare": 6
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D3 full 24h > 8h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 13h flight",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [
+          "day trip \"Ninh Binh from Hanoi\" (D4) repeats \"Trang An & Tam Coc in Ninh Binh\""
+        ],
+        "mustInversion": "2 highlight(s) left out (e.g. Hoi An Ancient Town) while 4 non-highlight, off-style item(s) planned (e.g. Ben Thanh Market)",
+        "missedMust": [
+          "Hoi An Ancient Town",
+          "Cu Chi Tunnels"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-03-14 arrival 1.5h: Ben Thanh Market [market 1.5h @Ho Chi Minh City (Saigon) shopping/food]",
+        "D2 2027-03-15 full 5.5h: Hoan Kiem Lake & the Old Quarter [neighborhood 3h @Hanoi culture/food] | Temple of Literature [landmark 1h @Hanoi culture] | Ho Chi Minh Mausoleum & One Pillar Pagoda [landmark 1.5h @Hanoi culture]",
+        "D3 2027-03-16 full 24h: Overnight cruise in Ha Long Bay [nature 24h nature/couple]",
+        "D4 2027-03-17 daytrip 8h: Ninh Binh from Hanoi [daytrip 8h]",
+        "D5 2027-03-18 full 8h: Trang An & Tam Coc in Ninh Binh [nature 8h nature]",
+        "D6 2027-03-19 departure: —"
+      ],
+      "spare": [
+        "Hoi An Ancient Town",
+        "An Bang Beach",
+        "The Marble Mountains",
+        "Ba Na Hills & the Golden Bridge",
+        "My Khe Beach",
+        "War Remnants Museum"
+      ]
+    },
+    {
+      "id": 41,
+      "tag": "luxury",
+      "lang": "en",
+      "text": "Luxury trip to Dubai, 5 nights in January, 5-star hotel, 2 adults",
+      "ms": 1.2,
+      "parsed": {
+        "styles": [
+          "luxury"
+        ],
+        "occasion": "",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 1,
+        "budget": null,
+        "budgetLevel": "high",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "dubai"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.1111111111111111,
+        "availShare": 0.08333333333333333,
+        "knownArea": 0,
+        "mustCoverage": 0.5714285714285714,
+        "items": 9,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 7,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [
+          "D2 Wild Wadi Waterpark: kids-oriented for adults",
+          "D3 Aquaventure Waterpark: kids-oriented for adults"
+        ],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "3 highlight(s) left out (e.g. Desert safari) while 5 non-highlight, off-style item(s) planned (e.g. Wild Wadi Waterpark)",
+        "missedMust": [
+          "Desert safari",
+          "Dubai Frame",
+          "Dubai Miracle Garden"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× experience"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2027-01-10 arrival 1.5h: Burj Khalifa — At the Top [viewpoint 1.5h city/family]",
+        "D2 2027-01-11 full 7.5h: Dubai Mall & Aquarium [experience 3h shopping/family] | The Dubai Fountain show [experience 0.5h family/couple] | Wild Wadi Waterpark [experience 4h water_slides/family]",
+        "D3 2027-01-12 full 8h: Aquaventure Waterpark [experience 5h water_slides/family] | JBR Beach & The Walk [beach 3h beach/family]",
+        "D4 2027-01-13 daytrip 7h: Abu Dhabi — Grand Mosque & Louvre [daytrip 7h]",
+        "D5 2027-01-14 full 5.5h: Gold Souk & Spice Souk [market 2h shopping/culture] | Al Fahidi Historical District [neighborhood 1.5h culture] | Museum of the Future [museum 2h family]",
+        "D6 2027-01-15 departure: —"
+      ],
+      "spare": [
+        "Desert safari",
+        "Dubai Frame",
+        "Dubai Miracle Garden"
+      ]
+    },
+    {
+      "id": 42,
+      "tag": "relax-short",
+      "lang": "he",
+      "text": "זוג, מנוחה בים המלח, 3 לילות בדצמבר",
+      "ms": 0.9,
+      "parsed": {
+        "styles": [
+          "beach",
+          "relaxation",
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 3,
+        "month": 12,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "dead-sea"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 5,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.3333333333333333,
+        "availShare": 0.18181818181818182,
+        "knownArea": 0.5,
+        "mustCoverage": 0.4,
+        "items": 6,
+        "fullDays": 2,
+        "dayTrips": 0,
+        "capacity": 7,
+        "mustSeeTotal": 5,
+        "spare": 5
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "3 highlight(s) left out (e.g. Masada) while 2 non-highlight, off-style item(s) planned (e.g. Nahal Bokek)",
+        "missedMust": [
+          "Masada",
+          "Ein Gedi Reserve — Nahal David",
+          "Einot Tzukim Nature Reserve"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D3: 2× experience"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": null,
+      "budgetInfluence": null,
+      "plan": [
+        "D1 2026-12-13 arrival 1.5h: Kibbutz Ein Gedi Botanical Garden [park 1.5h @Ein Gedi nature]",
+        "D2 2026-12-14 full 5h: Ein Bokek public beach [beach 2h @Ein Bokek beach/family] | Nahal Bokek [nature 1.5h @Ein Bokek nature/family] | Qumran National Park [landmark 1.5h culture]",
+        "D3 2026-12-15 full 5h: Mud treatments and spa [experience 2h relaxation/couple] | Snake Path climb at sunrise [experience 3h adventure/nature]",
+        "D4 2026-12-16 departure: —"
+      ],
+      "spare": [
+        "מצדה",
+        "שמורת עין גדי — נחל דוד",
+        "נחל ערוגות",
+        "שמורת עינות צוקים",
+        "הר סדום"
+      ]
+    },
+    {
+      "id": 43,
+      "tag": "budget-low",
+      "lang": "he",
+      "text": "זוג, 4 לילות ברומא במאי, תקציב עד 6000 ש\"ח",
+      "ms": 1.1,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 5,
+        "budget": 6000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "rome"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.4,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0,
+        "mustCoverage": 0.8571428571428571,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 7,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [
+          "D4 2.5h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Jewish Ghetto & Jewish Museum of Rome) while 2 non-highlight, off-style item(s) planned (e.g. St Peter’s Basilica)",
+        "missedMust": [
+          "Jewish Ghetto & Jewish Museum of Rome"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 6000,
+        "budgetLevel": "mid",
+        "flightSource": "fixture-live",
+        "fixturePick": {
+          "selectedUsd": 440.16,
+          "cheapestUsd": 440.16,
+          "pickRank": 1,
+          "offers": 20
+        },
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": [
+          "value:4* $181.53",
+          "alternative:4* $234.63",
+          ":4* $257.44"
+        ],
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 1607,
+          "low": 6847,
+          "high": 9321
+        },
+        "systemVerdict": "over",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 10621,
+        "steps": [
+          [
+            "flights",
+            1607,
+            1607
+          ],
+          [
+            "hotel",
+            4914,
+            6521
+          ],
+          [
+            "ground",
+            2800,
+            9321
+          ],
+          [
+            "car",
+            0,
+            9321
+          ],
+          [
+            "insurance",
+            500,
+            9821
+          ],
+          [
+            "transfers",
+            800,
+            10621
+          ]
+        ],
+        "firstOverAt": "hotel",
+        "overBy": 4621,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-05-16 arrival 2h: Trastevere [neighborhood 2h food/nightlife]",
+        "D2 2027-05-17 full 5h: Trevi Fountain [landmark 0.5h couple] | The Colosseum [landmark 2h culture] | Roman Forum & Palatine Hill [landmark 2.5h culture]",
+        "D3 2027-05-18 full 5.5h: Campo de’ Fiori market [market 1h food] | Gianicolo viewpoint [viewpoint 1h couple] | Vatican Museums & Sistine Chapel [museum 3.5h culture]",
+        "D4 2027-05-19 full 2.5h: St Peter’s Basilica [religious 1.5h culture] | The Pantheon [landmark 0.5h culture] | Spanish Steps [landmark 0.5h shopping]",
+        "D5 2027-05-20 departure: —"
+      ],
+      "spare": [
+        "הגטו היהודי והמוזיאון היהודי",
+        "גלריה בורגזה",
+        "גני וילה בורגזה"
+      ]
+    },
+    {
+      "id": 44,
+      "tag": "budget-mid",
+      "lang": "he",
+      "text": "זוג, 5 לילות ברומא במאי, תקציב 12000 ש\"ח",
+      "ms": 1.1,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 5,
+        "month": 5,
+        "budget": 12000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "rome"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.4,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0,
+        "mustCoverage": 0.8571428571428571,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 10,
+        "mustSeeTotal": 7,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D4 daytrip 9h > 8h"
+        ],
+        "emptyFull": [],
+        "thin": [
+          "D5 2.5h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Jewish Ghetto & Jewish Museum of Rome) while 2 non-highlight, off-style item(s) planned (e.g. St Peter’s Basilica)",
+        "missedMust": [
+          "Jewish Ghetto & Jewish Museum of Rome"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 12000,
+        "budgetLevel": "mid",
+        "flightSource": "fixture-live",
+        "fixturePick": {
+          "selectedUsd": 440.16,
+          "cheapestUsd": 440.16,
+          "pickRank": 1,
+          "offers": 20
+        },
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": [
+          "value:4* $181.53",
+          "alternative:4* $234.63",
+          ":4* $257.44"
+        ],
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 1607,
+          "low": 8157,
+          "high": 11249
+        },
+        "systemVerdict": "within",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 12649,
+        "steps": [
+          [
+            "flights",
+            1607,
+            1607
+          ],
+          [
+            "hotel",
+            6142,
+            7749
+          ],
+          [
+            "ground",
+            3500,
+            11249
+          ],
+          [
+            "car",
+            0,
+            11249
+          ],
+          [
+            "insurance",
+            600,
+            11849
+          ],
+          [
+            "transfers",
+            800,
+            12649
+          ]
+        ],
+        "firstOverAt": "transfers",
+        "overBy": 649,
+        "hiddenOverrun": true
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-05-16 arrival 2h: Trastevere [neighborhood 2h food/nightlife]",
+        "D2 2027-05-17 full 5h: Trevi Fountain [landmark 0.5h couple] | The Colosseum [landmark 2h culture] | Roman Forum & Palatine Hill [landmark 2.5h culture]",
+        "D3 2027-05-18 full 5.5h: Campo de’ Fiori market [market 1h food] | Gianicolo viewpoint [viewpoint 1h couple] | Vatican Museums & Sistine Chapel [museum 3.5h culture]",
+        "D4 2027-05-19 daytrip 9h: פומפיי [daytrip 9h]",
+        "D5 2027-05-20 full 2.5h: St Peter’s Basilica [religious 1.5h culture] | The Pantheon [landmark 0.5h culture] | Spanish Steps [landmark 0.5h shopping]",
+        "D6 2027-05-21 departure: —"
+      ],
+      "spare": [
+        "הגטו היהודי והמוזיאון היהודי",
+        "גלריה בורגזה",
+        "גני וילה בורגזה"
+      ]
+    },
+    {
+      "id": 45,
+      "tag": "budget-family-low",
+      "lang": "he",
+      "text": "משפחה עם 2 ילדים בני 5 ו-9, שבוע ביוון באוגוסט, עד 15000 שקל",
+      "ms": 1.5,
+      "parsed": {
+        "styles": [
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          5,
+          9
+        ],
+        "nights": 7,
+        "month": 8,
+        "budget": 15000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "santorini",
+        "athens",
+        "crete",
+        "rhodes"
+      ],
+      "namedOk": false,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 5,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.5,
+        "availShare": 0.26,
+        "knownArea": 0.4,
+        "mustCoverage": 0.5,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 23,
+        "spare": 24
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "18 highlight(s) left out (e.g. Fira–Oia hiking trail) while 2 non-highlight, off-style item(s) planned (e.g. Oia Castle sunset viewpoint)",
+        "missedMust": [
+          "Fira–Oia hiking trail",
+          "Akrotiri archaeological site",
+          "Nea Kameni volcano & hot springs cruise",
+          "Akrotiri Lighthouse",
+          "The Acropolis",
+          "Plaka & Anafiotika",
+          "Monastiraki Flea Market",
+          "Lycabettus Hill",
+          "Palace of Knossos",
+          "Samaria Gorge",
+          "Balos Lagoon",
+          "Spinalonga island",
+          "Street of the Knights",
+          "Kahal Shalom Synagogue & Jewish Museum of Rhodes",
+          "Acropolis of Lindos",
+          "Anthony Quinn Bay",
+          "Faliraki Water Park",
+          "Valley of the Butterflies"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [
+          "Panathenaic Stadium",
+          "CretAquarium",
+          "Spinalonga island",
+          "Lake Kournas",
+          "Tsambika beach",
+          "Faliraki Water Park",
+          "Valley of the Butterflies",
+          "Seven Springs"
+        ],
+        "seasonIssues": [
+          "santorini out of season in month 8 (best 5,6,9,10)",
+          "athens out of season in month 8 (best 3,4,5,6,9,10,11)"
+        ],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 15000,
+        "budgetLevel": "mid",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model",
+          "model",
+          "model",
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "systemTotal": {
+          "live": 6290,
+          "low": 15040,
+          "high": 19980
+        },
+        "systemVerdict": "over",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 24780,
+        "steps": [
+          [
+            "flights",
+            6290,
+            6290
+          ],
+          [
+            "hotel",
+            6710,
+            13000
+          ],
+          [
+            "ground",
+            6980,
+            19980
+          ],
+          [
+            "car",
+            0,
+            19980
+          ],
+          [
+            "insurance",
+            1600,
+            21580
+          ],
+          [
+            "transfers",
+            3200,
+            24780
+          ]
+        ],
+        "firstOverAt": "ground",
+        "overBy": 9780,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-08-15 arrival 1.5h: Oia Castle sunset viewpoint [viewpoint 1.5h couple]",
+        "D2 2027-08-16 full 5h: Perissa Beach [beach 4h beach/family] | Museum of Prehistoric Thera [museum 1h culture]",
+        "D3 2027-08-17 move 1h: National Garden [park 1h family]",
+        "D4 2027-08-18 full 2.5h: Changing of the guard at Syntagma Square [experience 0.5h family] | Acropolis Museum [museum 2h @Koukaki culture/family]",
+        "D5 2027-08-19 move 2h: Chania Venetian harbour [neighborhood 2h @Chania couple/food]",
+        "D6 2027-08-20 full 4.5h: Elafonisi beach [beach 4h beach/family] | Etz Hayyim Synagogue, Chania [religious 0.5h @Chania culture]",
+        "D7 2027-08-21 move 1.5h: Filerimos Hill [viewpoint 1.5h @Ixia & Ialysos culture]",
+        "D8 2027-08-22 departure: —"
+      ],
+      "spare": [
+        "החוף האדום",
+        "יקב ותצפית בסנטו",
+        "מסלול פירה–אויה",
+        "אקרוטירי",
+        "הכפר פירגוס",
+        "שייט לנאה קמני ולמעיינות החמים",
+        "האצטדיון הפנאתנאי",
+        "האקרופוליס",
+        "האגורה העתיקה",
+        "המוזיאון הארכאולוגי הלאומי",
+        "פלאקה ואנאפיוטיקה",
+        "שוק הפשפשים במונסטירקי",
+        "האקווריום של כרתים",
+        "האי ספינלונגה",
+        "אגם קורנס",
+        "חוף פרבלי",
+        "ארמון קנוסוס",
+        "המוזיאון הארכאולוגי של הרקליון",
+        "חוף צמביקה",
+        "פארק המים פלירקי",
+        "עמק הפרפרים",
+        "שבעת המעיינות",
+        "מפרץ פאולוס הקדוש",
+        "מפרץ אנתוני קווין"
+      ]
+    },
+    {
+      "id": 46,
+      "tag": "budget-family-suggest",
+      "lang": "he",
+      "text": "משפחה עם 3 ילדים, 6 לילות ביולי, עד 18000 ש\"ח, תציעו",
+      "ms": 1.4,
+      "parsed": {
+        "styles": [
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 3,
+        "childAges": [],
+        "nights": 6,
+        "month": 7,
+        "budget": 18000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "crete"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "crete",
+        "rhodes",
+        "london"
+      ],
+      "destFit": {
+        "chosen": "crete",
+        "ok": true,
+        "suggestions": [
+          "crete",
+          "rhodes",
+          "london"
+        ]
+      },
+      "pace": {
+        "hours": 6,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.5714285714285714,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0.42857142857142855,
+        "mustCoverage": 0.5714285714285714,
+        "items": 7,
+        "fullDays": 3,
+        "dayTrips": 1,
+        "capacity": 7,
+        "mustSeeTotal": 7,
+        "spare": 6
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D4 daytrip 8h > 6h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D3: Agios Nikolaos & Elounda + Heraklion"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "3 highlight(s) left out (e.g. Etz Hayyim Synagogue, Chania) while 1 non-highlight, off-style item(s) planned (e.g. Preveli beach)",
+        "missedMust": [
+          "Etz Hayyim Synagogue, Chania",
+          "Samaria Gorge",
+          "Balos Lagoon"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [
+          "D4 סנטוריני 8h vs 6h kids pace"
+        ],
+        "monotone": [
+          "D3: 2× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 18000,
+        "budgetLevel": "mid",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 6885,
+          "low": 17865,
+          "high": 23471
+        },
+        "systemVerdict": "tight",
+        "linesNotInTotal": [
+          "car",
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 27021,
+        "steps": [
+          [
+            "flights",
+            6885,
+            6885
+          ],
+          [
+            "hotel",
+            10206,
+            17091
+          ],
+          [
+            "ground",
+            6380,
+            23471
+          ],
+          [
+            "car",
+            1800,
+            25271
+          ],
+          [
+            "insurance",
+            1750,
+            27021
+          ],
+          [
+            "transfers",
+            0,
+            27021
+          ]
+        ],
+        "firstOverAt": "ground",
+        "overBy": 9021,
+        "hiddenOverrun": true
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-07-11 arrival 2h: Chania Venetian harbour [neighborhood 2h @Chania couple/food]",
+        "D2 2027-07-12 full 6h: Elafonisi beach [beach 4h beach/family] | CretAquarium [experience 2h family/with_children]",
+        "D3 2027-07-13 full 4.5h: Spinalonga island [landmark 2.5h @Agios Nikolaos & Elounda culture/family] | Palace of Knossos [landmark 2h @Heraklion culture]",
+        "D4 2027-07-14 daytrip 8h: סנטוריני [daytrip 8h]",
+        "D5 2027-07-15 full 4.5h: Lake Kournas [nature 1.5h family/nature] | Preveli beach [beach 3h beach/nature]",
+        "D6 2027-07-16 rest: —",
+        "D7 2027-07-17 departure: —"
+      ],
+      "spare": [
+        "המוזיאון הארכאולוגי של הרקליון",
+        "בית הכנסת עץ חיים בחאניה",
+        "לגונת בלוס",
+        "העיר העתיקה של רתימנו ומבצר הפורטצה",
+        "מנזר ארקדי",
+        "ערוץ סמריה"
+      ]
+    },
+    {
+      "id": 47,
+      "tag": "budget-per-person",
+      "lang": "he",
+      "text": "זוג לברצלונה 4 לילות ביוני, 4000 לאדם",
+      "ms": 0.8,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 6,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "barcelona"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.2,
+        "availShare": 0.15384615384615385,
+        "knownArea": 0.6,
+        "mustCoverage": 0.8,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 5,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D3: Eixample + Gothic Quarter & El Born"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Barceloneta Beach) while 5 non-highlight, off-style item(s) planned (e.g. Casa Batlló)",
+        "missedMust": [
+          "Barceloneta Beach"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D3: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": null,
+        "budgetLevel": "mid",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 4709,
+          "low": 9949,
+          "high": 12423
+        },
+        "systemVerdict": "no-budget",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 13723,
+        "steps": [
+          [
+            "flights",
+            4709,
+            4709
+          ],
+          [
+            "hotel",
+            4914,
+            9623
+          ],
+          [
+            "ground",
+            2800,
+            12423
+          ],
+          [
+            "car",
+            0,
+            12423
+          ],
+          [
+            "insurance",
+            500,
+            12923
+          ],
+          [
+            "transfers",
+            800,
+            13723
+          ]
+        ],
+        "firstOverAt": null,
+        "overBy": null,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-06-13 arrival 1h: La Boqueria market [market 1h food]",
+        "D2 2027-06-14 full 5h: Bunkers del Carmel viewpoint [viewpoint 1.5h couple] | Sagrada Família [religious 1.5h @Eixample culture] | Park Güell [park 2h culture/family]",
+        "D3 2027-06-15 full 4h: Casa Batlló [landmark 1.5h @Eixample culture] | Casa Milà (La Pedrera) [landmark 1.5h @Eixample culture] | Palau de la Música Catalana [landmark 1h @Gothic Quarter & El Born culture]",
+        "D4 2027-06-16 full 4.5h: Gothic Quarter [neighborhood 2h @Gothic Quarter & El Born culture] | Picasso Museum [museum 1.5h @Gothic Quarter & El Born culture] | La Rambla [neighborhood 1h shopping]",
+        "D5 2027-06-17 departure: —"
+      ],
+      "spare": [
+        "חוף ברצלונטה",
+        "גבעת מונז׳ואיק",
+        "טיבידאבו — פארק השעשועים והתצפית"
+      ]
+    },
+    {
+      "id": 48,
+      "tag": "budget-per-person-kw",
+      "lang": "he",
+      "text": "זוג לברצלונה 4 לילות ביוני, תקציב 4000 ש\"ח לאדם",
+      "ms": 0.9,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 6,
+        "budget": 8000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "barcelona"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.2,
+        "availShare": 0.15384615384615385,
+        "knownArea": 0.6,
+        "mustCoverage": 0.8,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 5,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D3: Eixample + Gothic Quarter & El Born"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Barceloneta Beach) while 5 non-highlight, off-style item(s) planned (e.g. Casa Batlló)",
+        "missedMust": [
+          "Barceloneta Beach"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D3: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 8000,
+        "budgetLevel": "mid",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 4709,
+          "low": 9949,
+          "high": 12423
+        },
+        "systemVerdict": "over",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 13723,
+        "steps": [
+          [
+            "flights",
+            4709,
+            4709
+          ],
+          [
+            "hotel",
+            4914,
+            9623
+          ],
+          [
+            "ground",
+            2800,
+            12423
+          ],
+          [
+            "car",
+            0,
+            12423
+          ],
+          [
+            "insurance",
+            500,
+            12923
+          ],
+          [
+            "transfers",
+            800,
+            13723
+          ]
+        ],
+        "firstOverAt": "hotel",
+        "overBy": 5723,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-06-13 arrival 1h: La Boqueria market [market 1h food]",
+        "D2 2027-06-14 full 5h: Bunkers del Carmel viewpoint [viewpoint 1.5h couple] | Sagrada Família [religious 1.5h @Eixample culture] | Park Güell [park 2h culture/family]",
+        "D3 2027-06-15 full 4h: Casa Batlló [landmark 1.5h @Eixample culture] | Casa Milà (La Pedrera) [landmark 1.5h @Eixample culture] | Palau de la Música Catalana [landmark 1h @Gothic Quarter & El Born culture]",
+        "D4 2027-06-16 full 4.5h: Gothic Quarter [neighborhood 2h @Gothic Quarter & El Born culture] | Picasso Museum [museum 1.5h @Gothic Quarter & El Born culture] | La Rambla [neighborhood 1h shopping]",
+        "D5 2027-06-17 departure: —"
+      ],
+      "spare": [
+        "חוף ברצלונטה",
+        "גבעת מונז׳ואיק",
+        "טיבידאבו — פארק השעשועים והתצפית"
+      ]
+    },
+    {
+      "id": 49,
+      "tag": "budget-usd",
+      "lang": "en",
+      "text": "Couple, Rome 4 nights in May, budget $3000",
+      "ms": 1,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 5,
+        "budget": null,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "rome"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.4,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0,
+        "mustCoverage": 0.8571428571428571,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 7,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [
+          "D4 2.5h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Jewish Ghetto & Jewish Museum of Rome) while 2 non-highlight, off-style item(s) planned (e.g. St Peter’s Basilica)",
+        "missedMust": [
+          "Jewish Ghetto & Jewish Museum of Rome"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": null,
+        "budgetLevel": "mid",
+        "flightSource": "fixture-live",
+        "fixturePick": {
+          "selectedUsd": 440.16,
+          "cheapestUsd": 440.16,
+          "pickRank": 1,
+          "offers": 20
+        },
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": [
+          "value:4* $181.53",
+          "alternative:4* $234.63",
+          ":4* $257.44"
+        ],
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 1607,
+          "low": 6847,
+          "high": 9321
+        },
+        "systemVerdict": "no-budget",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 10621,
+        "steps": [
+          [
+            "flights",
+            1607,
+            1607
+          ],
+          [
+            "hotel",
+            4914,
+            6521
+          ],
+          [
+            "ground",
+            2800,
+            9321
+          ],
+          [
+            "car",
+            0,
+            9321
+          ],
+          [
+            "insurance",
+            500,
+            9821
+          ],
+          [
+            "transfers",
+            800,
+            10621
+          ]
+        ],
+        "firstOverAt": null,
+        "overBy": null,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-05-16 arrival 2h: Trastevere [neighborhood 2h food/nightlife]",
+        "D2 2027-05-17 full 5h: Trevi Fountain [landmark 0.5h couple] | The Colosseum [landmark 2h culture] | Roman Forum & Palatine Hill [landmark 2.5h culture]",
+        "D3 2027-05-18 full 5.5h: Campo de’ Fiori market [market 1h food] | Gianicolo viewpoint [viewpoint 1h couple] | Vatican Museums & Sistine Chapel [museum 3.5h culture]",
+        "D4 2027-05-19 full 2.5h: St Peter’s Basilica [religious 1.5h culture] | The Pantheon [landmark 0.5h culture] | Spanish Steps [landmark 0.5h shopping]",
+        "D5 2027-05-20 departure: —"
+      ],
+      "spare": [
+        "Jewish Ghetto & Jewish Museum of Rome",
+        "Galleria Borghese",
+        "Villa Borghese gardens"
+      ]
+    },
+    {
+      "id": 50,
+      "tag": "budget-long",
+      "lang": "he",
+      "text": "זוג, 12 לילות בתאילנד, פוקט, בפברואר, עד 16000 ש\"ח",
+      "ms": 1.1,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 12,
+        "month": 2,
+        "budget": 16000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "phuket"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.23076923076923078,
+        "availShare": 0.23076923076923078,
+        "knownArea": 0.6153846153846154,
+        "mustCoverage": 1,
+        "items": 13,
+        "fullDays": 10,
+        "dayTrips": 1,
+        "capacity": 31,
+        "mustSeeTotal": 8,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [
+          "D9 full 10h > 8h"
+        ],
+        "emptyFull": [
+          "D10",
+          "D11",
+          "D12"
+        ],
+        "thin": [
+          "D3 3h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 11h flight",
+        "multiArea": [
+          "D2: Phuket Town & Old Town + Patong",
+          "D3: Rawai & Chalong + Kata & Karon",
+          "D4: Patong + Kata & Karon"
+        ],
+        "backForth": 1,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "12 nights, 3 day trips in catalog, only 1 used",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D4: 2× beach"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 16000,
+        "budgetLevel": "mid",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 9792,
+          "low": 20952,
+          "high": 27198
+        },
+        "systemVerdict": "over",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 29298,
+        "steps": [
+          [
+            "flights",
+            9792,
+            9792
+          ],
+          [
+            "hotel",
+            10206,
+            19998
+          ],
+          [
+            "ground",
+            7200,
+            27198
+          ],
+          [
+            "car",
+            0,
+            27198
+          ],
+          [
+            "insurance",
+            1300,
+            28498
+          ],
+          [
+            "transfers",
+            800,
+            29298
+          ]
+        ],
+        "firstOverAt": "hotel",
+        "overBy": 13298,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-02-14 arrival 1h: Promthep Cape at sunset [viewpoint 1h @Rawai & Chalong couple]",
+        "D2 2027-02-15 full 6.5h: Phuket Old Town [neighborhood 2.5h @Phuket Town & Old Town culture/food] | Bangla Road at night [neighborhood 2h @Patong nightlife] | Phuket Weekend Market (Naka) [market 2h shopping/food]",
+        "D3 2027-02-16 full 3h: The Big Buddha [religious 1.5h culture] | Wat Chalong [religious 1h @Rawai & Chalong culture] | Karon Viewpoint [viewpoint 0.5h @Kata & Karon -]",
+        "D4 2027-02-17 full 7h: Patong Beach [beach 3h @Patong beach] | Kata and Kata Noi beaches [beach 4h @Kata & Karon beach/family]",
+        "D5 2027-02-18 full 4h: Bang Tao Beach [beach 4h @Kamala & Bang Tao beach/relaxation]",
+        "D6 2027-02-19 full 8h: Phi Phi Islands & Maya Bay boat trip [nature 8h beach/nature]",
+        "D7 2027-02-20 daytrip 7h: איי פי פי [daytrip 7h]",
+        "D8 2027-02-21 full 8h: Phang Nga Bay & James Bond Island by kayak [nature 8h nature/adventure]",
+        "D9 2027-02-22 full 10h: Snorkelling in the Similan Islands (in season) [nature 10h nature/adventure]",
+        "D10 2027-02-23 full: —",
+        "D11 2027-02-24 full: —",
+        "D12 2027-02-25 full: —",
+        "D13 2027-02-26 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 51,
+      "tag": "budget-long-family",
+      "lang": "en",
+      "text": "Family of 4, kids 6 and 10, 10 nights in Florida in April, up to 30000 shekels, with a car",
+      "ms": 1.8,
+      "parsed": {
+        "styles": [
+          "family"
+        ],
+        "occasion": "family",
+        "adults": 2,
+        "children": 2,
+        "childAges": [
+          6,
+          10
+        ],
+        "nights": 10,
+        "month": 4,
+        "budget": 30000,
+        "budgetLevel": "mid",
+        "car": "yes",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "florida"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 6,
+        "items": 2
+      },
+      "metrics": {
+        "styleShare": 0.5454545454545454,
+        "availShare": 0.5,
+        "knownArea": 0.7272727272727273,
+        "mustCoverage": 0.8571428571428571,
+        "items": 11,
+        "fullDays": 7,
+        "dayTrips": 1,
+        "capacity": 15,
+        "mustSeeTotal": 7,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [
+          "South Beach & Ocean Drive [beach,nightlife]"
+        ],
+        "overloaded": [
+          "D3 full 10h > 6h",
+          "D4 full 8h > 6h",
+          "D5 full 10h > 6h"
+        ],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 13.5h flight",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. South Beach & Ocean Drive) while 3 non-highlight, off-style item(s) planned (e.g. Wynwood Walls)",
+        "missedMust": [
+          "South Beach & Ocean Drive"
+        ],
+        "dayTripIssue": "10 nights, 3 day trips in catalog, only 1 used",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 30000,
+        "budgetLevel": "mid",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 23494,
+          "low": 42194,
+          "high": 53379
+        },
+        "systemVerdict": "over",
+        "linesNotInTotal": [
+          "car",
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 58579,
+        "steps": [
+          [
+            "flights",
+            23494,
+            23494
+          ],
+          [
+            "hotel",
+            12285,
+            35779
+          ],
+          [
+            "ground",
+            17600,
+            53379
+          ],
+          [
+            "car",
+            3000,
+            56379
+          ],
+          [
+            "insurance",
+            2200,
+            58579
+          ],
+          [
+            "transfers",
+            0,
+            58579
+          ]
+        ],
+        "firstOverAt": "hotel",
+        "overBy": 28579,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-04-11 arrival 1.5h: Art Deco Historic District [neighborhood 1.5h @Miami Beach (South Beach) culture]",
+        "D2 2027-04-12 full 6h: Key Biscayne — Bill Baggs Cape Florida State Park [beach 3h beach/family] | Zoo Miami [park 3h family/with_children]",
+        "D3 2027-04-13 full 10h: Magic Kingdom (Walt Disney World) [experience 10h @Orlando (theme-park area) family/with_children]",
+        "D4 2027-04-14 full 8h: EPCOT (Walt Disney World) [experience 8h @Orlando (theme-park area) family]",
+        "D5 2027-04-15 full 10h: Universal Orlando Resort [experience 10h @Orlando (theme-park area) family/with_children]",
+        "D6 2027-04-16 daytrip 6h: Everglades National Park [daytrip 6h]",
+        "D7 2027-04-17 full 6h: Volcano Bay water park [experience 6h @Orlando (theme-park area) water_slides/family/with_children]",
+        "D8 2027-04-18 full 6h: Sawgrass Mills outlets [experience 4h shopping] | Wynwood Walls [neighborhood 2h @Central Miami culture]",
+        "D9 2027-04-19 full 4h: Little Havana (Calle Ocho) [neighborhood 2h @Central Miami food/culture] | Vizcaya Museum & Gardens [museum 2h @Central Miami culture/couple]",
+        "D10 2027-04-20 rest: —",
+        "D11 2027-04-21 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 52,
+      "tag": "budget-high",
+      "lang": "en",
+      "text": "Honeymoon in the Maldives, 7 nights in February, budget 45000 shekels",
+      "ms": 1.1,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "honeymoon",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 7,
+        "month": 2,
+        "budget": 45000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "maldives"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.2,
+        "availShare": 0.2,
+        "knownArea": 0,
+        "mustCoverage": 1,
+        "items": 10,
+        "fullDays": 5,
+        "dayTrips": 1,
+        "capacity": 16,
+        "mustSeeTotal": 6,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [
+          "D6",
+          "D7"
+        ],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 8h flight",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× experience"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 45000,
+        "budgetLevel": "mid",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 8563,
+          "low": 21373,
+          "high": 28832
+        },
+        "systemVerdict": "within",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 30431,
+        "steps": [
+          [
+            "flights",
+            8563,
+            8563
+          ],
+          [
+            "hotel",
+            12569,
+            21131
+          ],
+          [
+            "ground",
+            7700,
+            28831
+          ],
+          [
+            "car",
+            0,
+            28831
+          ],
+          [
+            "insurance",
+            800,
+            29631
+          ],
+          [
+            "transfers",
+            800,
+            30431
+          ]
+        ],
+        "firstOverAt": "",
+        "overBy": -14569,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-02-14 arrival 2h: Malé city & fish market tour [market 2h culture]",
+        "D2 2027-02-15 full 5.5h: Sunset dolphin cruise [experience 2h couple] | Scenic seaplane flight [experience 1h luxury] | Traditional night fishing [experience 2.5h family]",
+        "D3 2027-02-16 full 8h: Sandbank picnic [beach 3h couple/beach] | Snorkelling the resort’s house reef [nature 2h beach/nature] | Manta ray dive [nature 3h adventure]",
+        "D4 2027-02-17 full 7.5h: Whale-shark snorkelling in South Ari [nature 4h adventure/nature] | Overwater spa [experience 2h relaxation/luxury] | Kayak & paddleboard in the lagoon [experience 1.5h adventure]",
+        "D5 2027-02-18 daytrip 5h: A local-island visit [daytrip 5h]",
+        "D6 2027-02-19 full: —",
+        "D7 2027-02-20 full: —",
+        "D8 2027-02-21 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 53,
+      "tag": "budget-ski",
+      "lang": "he",
+      "text": "זוג, סקי בבנסקו בינואר, 6 לילות, עד 7000 ש\"ח",
+      "ms": 1.2,
+      "parsed": {
+        "styles": [
+          "couple",
+          "ski"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 6,
+        "month": 1,
+        "budget": 7000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "bansko"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.5,
+        "availShare": 0.5,
+        "knownArea": 0.5833333333333334,
+        "mustCoverage": 1,
+        "items": 12,
+        "fullDays": 4,
+        "dayTrips": 1,
+        "capacity": 13,
+        "mustSeeTotal": 5,
+        "spare": 0
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [
+          "D6: Old Town + Banya & Razlog"
+        ],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "",
+        "missedMust": [],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 2× nature",
+          "D3: 3× experience"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 7000,
+        "budgetLevel": "mid",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 3145,
+          "low": 9925,
+          "high": 13048
+        },
+        "systemVerdict": "over",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 14548,
+        "steps": [
+          [
+            "flights",
+            3145,
+            3145
+          ],
+          [
+            "hotel",
+            5103,
+            8248
+          ],
+          [
+            "ground",
+            4800,
+            13048
+          ],
+          [
+            "car",
+            0,
+            13048
+          ],
+          [
+            "insurance",
+            700,
+            13748
+          ],
+          [
+            "transfers",
+            800,
+            14548
+          ]
+        ],
+        "firstOverAt": "hotel",
+        "overBy": 7548,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-01-10 arrival 2h: Todorka peak area [viewpoint 2h ski/adventure]",
+        "D2 2027-01-11 full 8h: Snowshoeing in Pirin National Park [nature 3h nature/adventure] | Shiligarnika & Plato ski areas [nature 5h ski/family]",
+        "D3 2027-01-12 full 7h: Bansko gondola [experience 0.5h @Near the gondola station ski/family] | Ski and snowboard school [experience 4h ski/with_children] | An evening in a traditional mehana [experience 2.5h food/nightlife]",
+        "D4 2027-01-13 daytrip 8h: מנזר רילה [daytrip 8h]",
+        "D5 2027-01-14 full 3.5h: Bansko Old Town [neighborhood 2h @Old Town culture] | Holy Trinity Church [religious 0.5h @Old Town culture] | Velyanova House [museum 1h @Old Town culture]",
+        "D6 2027-01-15 full 4h: Neofit Rilski House-Museum [museum 1h @Old Town culture] | Nikola Vaptsarov House-Museum [museum 1h @Old Town culture] | Banya hot springs [experience 2h @Banya & Razlog relaxation/family]",
+        "D7 2027-01-16 departure: —"
+      ],
+      "spare": []
+    },
+    {
+      "id": 54,
+      "tag": "budget-cheap-suggest",
+      "lang": "he",
+      "text": "זוג, משהו זול במרץ, 4 לילות, עד 5000 ש\"ח, תציעו",
+      "ms": 1.2,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 3,
+        "budget": 5000,
+        "budgetLevel": "low",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": true
+      },
+      "destination": [
+        "sri-lanka"
+      ],
+      "namedOk": null,
+      "suggestions": [
+        "sri-lanka",
+        "phuket",
+        "cape-town"
+      ],
+      "destFit": {
+        "chosen": "sri-lanka",
+        "ok": false,
+        "suggestions": [
+          "sri-lanka",
+          "phuket",
+          "cape-town"
+        ]
+      },
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.1111111111111111,
+        "availShare": 0.07692307692307693,
+        "knownArea": 0.7777777777777778,
+        "mustCoverage": 0.42857142857142855,
+        "items": 9,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 7,
+        "spare": 4
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [],
+        "arrivalHeavy": [],
+        "longHaulArrival": "arrival-day activity after 10h flight",
+        "multiArea": [
+          "D4: Kandy + Ella & the tea hills"
+        ],
+        "backForth": 1,
+        "dups": [],
+        "mustInversion": "4 highlight(s) left out (e.g. Yala National Park safari) while 6 non-highlight, off-style item(s) planned (e.g. Peradeniya Royal Botanical Gardens)",
+        "missedMust": [
+          "Yala National Park safari",
+          "Udawalawe National Park",
+          "Galle Fort",
+          "Whale-watching cruise from Mirissa"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 5000,
+        "budgetLevel": "low",
+        "flightSource": "model",
+        "fixturePick": null,
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": null,
+        "hotelMinStars": [
+          3
+        ],
+        "systemTotal": {
+          "live": 10361,
+          "low": 12361,
+          "high": 13741
+        },
+        "systemVerdict": "over",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 15041,
+        "steps": [
+          [
+            "flights",
+            10361,
+            10361
+          ],
+          [
+            "hotel",
+            1620,
+            11981
+          ],
+          [
+            "ground",
+            1760,
+            13741
+          ],
+          [
+            "car",
+            0,
+            13741
+          ],
+          [
+            "insurance",
+            500,
+            14241
+          ],
+          [
+            "transfers",
+            800,
+            15041
+          ]
+        ],
+        "firstOverAt": "flights",
+        "overBy": 10041,
+        "hiddenOverrun": false
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-03-14 arrival 2h: Peradeniya Royal Botanical Gardens [park 2h @Kandy nature/family]",
+        "D2 2027-03-15 full 8h: Kandy–Ella scenic train [experience 7h nature/couple] | Nine Arch Bridge [landmark 1h @Ella & the tea hills -]",
+        "D3 2027-03-16 full 7.5h: Sigiriya Rock Fortress [landmark 3h @The Cultural Triangle culture/adventure] | Ancient City of Polonnaruwa [landmark 3h @The Cultural Triangle culture] | Dambulla Cave Temple [religious 1.5h @The Cultural Triangle culture]",
+        "D4 2027-03-17 full 7.5h: Temple of the Tooth, Kandy [religious 1.5h @Kandy culture] | Little Adam’s Peak [viewpoint 2h @Ella & the tea hills nature] | Horton Plains & World’s End [nature 4h nature/adventure]",
+        "D5 2027-03-18 departure: —"
+      ],
+      "spare": [
+        "ספארי בפארק הלאומי יאלה",
+        "פארק הפילים אודאוואלאווה",
+        "מבצר גאלה",
+        "שייט לצפייה בלווייתנים במיריסה"
+      ]
+    },
+    {
+      "id": 55,
+      "tag": "budget-thousands-word",
+      "lang": "he",
+      "text": "זוג לרומא 4 לילות במאי, עד 10 אלף שקל",
+      "ms": 0.9,
+      "parsed": {
+        "styles": [
+          "couple"
+        ],
+        "occasion": "couple",
+        "adults": 2,
+        "children": 0,
+        "childAges": [],
+        "nights": 4,
+        "month": 5,
+        "budget": 10000,
+        "budgetLevel": "mid",
+        "car": "auto",
+        "shabbat": false,
+        "suggest": false
+      },
+      "destination": [
+        "rome"
+      ],
+      "namedOk": true,
+      "suggestions": [],
+      "destFit": null,
+      "pace": {
+        "hours": 8,
+        "items": 3
+      },
+      "metrics": {
+        "styleShare": 0.4,
+        "availShare": 0.3076923076923077,
+        "knownArea": 0,
+        "mustCoverage": 0.8571428571428571,
+        "items": 10,
+        "fullDays": 3,
+        "dayTrips": 0,
+        "capacity": 10,
+        "mustSeeTotal": 7,
+        "spare": 3
+      },
+      "findings": {
+        "unsuitable": [],
+        "removedForKids": [],
+        "overloaded": [],
+        "emptyFull": [],
+        "thin": [
+          "D4 2.5h"
+        ],
+        "arrivalHeavy": [],
+        "longHaulArrival": "",
+        "multiArea": [],
+        "backForth": 0,
+        "dups": [],
+        "mustInversion": "1 highlight(s) left out (e.g. Jewish Ghetto & Jewish Museum of Rome) while 2 non-highlight, off-style item(s) planned (e.g. St Peter’s Basilica)",
+        "missedMust": [
+          "Jewish Ghetto & Jewish Museum of Rome"
+        ],
+        "dayTripIssue": "",
+        "dayTripTooLong": [],
+        "monotone": [
+          "D2: 3× landmark"
+        ],
+        "spareInversions": [],
+        "seasonIssues": [],
+        "shabbatIssues": [],
+        "issues": []
+      },
+      "budget": {
+        "budget": 10000,
+        "budgetLevel": "mid",
+        "flightSource": "fixture-live",
+        "fixturePick": {
+          "selectedUsd": 440.16,
+          "cheapestUsd": 440.16,
+          "pickRank": 1,
+          "offers": 20
+        },
+        "hotelSource": [
+          "model"
+        ],
+        "fixtureHotelRoles": [
+          "value:4* $181.53",
+          "alternative:4* $234.63",
+          ":4* $257.44"
+        ],
+        "hotelMinStars": [
+          4
+        ],
+        "systemTotal": {
+          "live": 1607,
+          "low": 6847,
+          "high": 9321
+        },
+        "systemVerdict": "within",
+        "linesNotInTotal": [
+          "insurance",
+          "transfers"
+        ],
+        "fullHigh": 10621,
+        "steps": [
+          [
+            "flights",
+            1607,
+            1607
+          ],
+          [
+            "hotel",
+            4914,
+            6521
+          ],
+          [
+            "ground",
+            2800,
+            9321
+          ],
+          [
+            "car",
+            0,
+            9321
+          ],
+          [
+            "insurance",
+            500,
+            9821
+          ],
+          [
+            "transfers",
+            800,
+            10621
+          ]
+        ],
+        "firstOverAt": "transfers",
+        "overBy": 621,
+        "hiddenOverrun": true
+      },
+      "budgetInfluence": {
+        "sameDestination": true,
+        "sameNights": true,
+        "sameMinStars": true,
+        "sameBoard": true,
+        "sameCar": true,
+        "sameFlightSearch": true
+      },
+      "plan": [
+        "D1 2027-05-16 arrival 2h: Trastevere [neighborhood 2h food/nightlife]",
+        "D2 2027-05-17 full 5h: Trevi Fountain [landmark 0.5h couple] | The Colosseum [landmark 2h culture] | Roman Forum & Palatine Hill [landmark 2.5h culture]",
+        "D3 2027-05-18 full 5.5h: Campo de’ Fiori market [market 1h food] | Gianicolo viewpoint [viewpoint 1h couple] | Vatican Museums & Sistine Chapel [museum 3.5h culture]",
+        "D4 2027-05-19 full 2.5h: St Peter’s Basilica [religious 1.5h culture] | The Pantheon [landmark 0.5h culture] | Spanish Steps [landmark 0.5h shopping]",
+        "D5 2027-05-20 departure: —"
+      ],
+      "spare": [
+        "הגטו היהודי והמוזיאון היהודי",
+        "גלריה בורגזה",
+        "גני וילה בורגזה"
+      ]
+    }
+  ]
+}

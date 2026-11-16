@@ -10,7 +10,7 @@ export function asciiBackground(canvas, { cell = 18, fps = 30 } = {}) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return () => {};
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let w = 0, h = 0, cols = 0, rows = 0, dpr = 1, raf = 0, last = 0, time = 0, visible = true;
+  let w = 0, h = 0, cols = 0, rows = 0, dpr = 1, raf = 0, last = 0, time = 0, visible = true, intro = still ? 1 : 0;
   const trail = []; // pointer points {x, y, at}
   const resize = () => {
     dpr = Math.min(2, devicePixelRatio || 1); w = canvas.clientWidth; h = canvas.clientHeight;
@@ -35,7 +35,8 @@ export function asciiBackground(canvas, { cell = 18, fps = 30 } = {}) {
       const v = (r + 0.5) / rows;
       for (let c = 0; c < cols; c++) {
         const u = (c + 0.5) / cols, x = c * cw + cw / 2, y = r * cell + cell / 2;
-        let t = field(u, v);
+        // Intro (2.4 s): the glow rises from the bottom edge.
+        let t = field(u, v) * Math.min(1, Math.max(0, (intro * 1.6 - (1 - v)) * 2.5));
         if (t < 0.12) continue;
         let scramble = 0;
         for (const p of trail) { const d = (x - p.x) ** 2 + (y - p.y) ** 2, life = 1 - (now - p.at) / 700; scramble = Math.max(scramble, life * Math.exp(-d / 5000)); }
@@ -52,7 +53,7 @@ export function asciiBackground(canvas, { cell = 18, fps = 30 } = {}) {
   const loop = (at) => {
     raf = requestAnimationFrame(loop);
     if (!visible || at - last < 1000 / fps) return;
-    time += Math.min(0.05, (at - last) / 1000); last = at; draw();
+    const dt = Math.min(0.05, (at - last) / 1000); time += dt; intro = Math.min(1, intro + dt / 2.4); last = at; draw();
   };
   const move = (e) => { const b = canvas.getBoundingClientRect(); trail.push({ x: e.clientX - b.left, y: e.clientY - b.top, at: performance.now() }); if (trail.length > 24) trail.shift(); };
   const ro = new ResizeObserver(resize); ro.observe(canvas);
