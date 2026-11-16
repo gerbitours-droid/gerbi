@@ -508,7 +508,7 @@ export default {
   'munich-bavaria|Neuschwanstein Castle': {
     about: { he: 'טירת האגדות של המלך לודוויג השני על צוק מעל עמק, שהשפיעה על הטירה של דיסני. הביקור בפנים הוא סיור מודרך קצר באולמות המעוטרים.', en: 'King Ludwig II’s fairy-tale castle on a crag above a gorge, which inspired Disney. Inside visits are short guided tours of the decorated halls.' },
     tip: { he: 'הזמינו כרטיס עם שעת סיור מראש. גשר מרי (מריינבריקה) נותן את הצילום הקלאסי – לפעמים סגור. העלייה ברגל כ־40 דקות.', en: 'Pre-book a tour slot. Marienbrücke gives the classic photo but sometimes closes. The walk up takes about 40 minutes.' },
-    book: 'required',
+    book: 'recommended',
     ticketIls: { low: 90, high: 105 },
   },
   'munich-bavaria|Lake Königssee': {
@@ -612,7 +612,7 @@ export default {
   'barcelona|Park Güell': {
     about: { he: 'פארק על גבעה שתכנן גאודי, עם הלטאה המפורסמת מפסיפס, ספסל הגלים הצבעוני, אולם עמודים ובתי שער שנראים כמו עוגיות ג׳ינג׳ר. הנוף מגיע עד הים.', en: 'Gaudí’s hillside park with the famous mosaic dragon, the wavy colourful bench, a hall of columns and gingerbread-like gatehouses, with views down to the sea.' },
     tip: { he: 'האזור המונומנטלי דורש כרטיס בשעה קבועה. הגיעו באוטובוס 24 לכניסה העליונה וחסכו טיפוס.', en: 'The Monumental Zone needs a timed ticket. Take bus 24 to the upper entrance to skip the climb.' },
-    book: 'required',
+    book: 'recommended',
     ticketIls: { low: 70, high: 80 },
   },
   'barcelona|Casa Batlló': {
@@ -839,7 +839,7 @@ export default {
   'tenerife|Teide Cable Car': {
     about: { he: 'רכבל שעולה בשמונה דקות מ־2,356 ל־3,555 מטר, כמעט עד פסגת הטיידה. למעלה שבילים קצרים ונוף על האיים השכנים.', en: 'A cable car climbing in eight minutes from 2,356 m to 3,555 m, almost to Teide’s summit. At the top are short trails and views of the neighbouring islands.' },
     tip: { he: 'הזמינו מראש – הרכבל נסגר ברוח חזקה. לפסגה עצמה נדרש היתר חינמי שנגמר חודשים מראש.', en: 'Book ahead – it closes in strong wind. The summit itself needs a free permit that runs out months ahead.' },
-    book: 'required',
+    book: 'recommended',
     ticketIls: { low: 140, high: 180 },
   },
   'tenerife|Siam Park': {
@@ -862,7 +862,7 @@ export default {
   },
   'tenerife|Masca': {
     about: { he: 'כפר קטן ומבודד בין הרי טנו, אליו מוביל כביש צר ומתפתל. הבתים על רכס תלול מעל ערוץ עמוק שיורד עד הים.', en: 'A small, remote hamlet in the Teno mountains, reached by a narrow, twisting road, with houses on a steep ridge above a deep gorge that runs to the sea.' },
-    tip: { he: 'הכביש צר מאוד – נהגו לאט וצפרו בעיקולים. מסלול הערוץ לים דורש הרשמה ותשלום מראש.', en: 'The road is very narrow – drive slowly. The gorge trail to the sea requires advance registration and a fee.' },
+    tip: { he: 'הכביש צר מאוד – נהגו לאט וצפרו בעיקולים. מסלול הערוץ דורש הזמנה ותשלום מראש (כ־40 אירו עם שאטל); חוזרים בסירה.', en: 'The road is very narrow – drive slowly. The gorge trail needs advance booking and a fee (about €40 incl. shuttle); you return by boat.' },
     book: 'no',
     ticketIls: { low: 0, high: 0 },
   },
@@ -1004,7 +1004,7 @@ export default {
   'porto|Livraria Lello': {
     about: { he: 'חנות ספרים ניאו־גותית מ־1906, עם מדרגות עץ אדומות מתפתלות ותקרת ויטראז׳, שנחשבת לאחת היפות בעולם.', en: 'A 1906 neo-Gothic bookshop with a curving red wooden staircase and stained-glass ceiling, considered one of the world’s most beautiful.' },
     tip: { he: 'חובה לקנות כרטיס עם שעה אונליין. מחיר הכרטיס יורד מספר שקונים במקום.', en: 'Buy a timed ticket online. The ticket price is deducted from a book purchased there.' },
-    book: 'required',
+    book: 'recommended',
     ticketIls: { low: 40, high: 80 },
   },
   'porto|Clérigos Tower': {
@@ -1059,9 +1059,9 @@ export default {
   },
   'madeira|Pico do Arieiro–Pico Ruivo hike': {
     about: { he: 'המסלול ההררי המפורסם במדיירה (PR1), לאורך רכס חד בין שתי הפסגות הגבוהות: מדרגות חצובות, מנהרות בסלע ותהומות משני הצדדים. אחד המסלולים המרהיבים באירופה.', en: 'Madeira’s famous mountain trail (PR1) along a knife-edge ridge between the two highest peaks: carved steps, rock tunnels and drops on both sides – one of Europe’s most spectacular hikes.' },
-    tip: { he: 'בדקו באתר הרשמי שהמסלול פתוח – קטעים נסגרים לפעמים. יש דמי שימוש קטנים למסלולים. פנס למנהרות.', en: 'Check the official site that it’s open – sections sometimes close. A small trail fee applies. Bring a torch for the tunnels.' },
+    tip: { he: 'מאז 2026 המסלול חד־כיווני ובהזמנה מראש, בתשלום של כ־10.5 אירו. בדקו שהוא פתוח, תאמו מונית חזרה וקחו פנס למנהרות.', en: 'Since 2026 it’s one-way and pre-booked, about €10.50 per hiker. Check it’s open, arrange a taxi back and bring a torch for the tunnels.' },
     book: 'recommended',
-    ticketIls: { low: 10, high: 20 },
+    ticketIls: { low: 30, high: 45 },
   },
   'madeira|Levada das 25 Fontes': {
     about: { he: 'מסלול לאורך תעלת השקיה (לבאדה) ביער דפנה ירוק, שמגיע לבריכה שאליה זורמים עשרות מפלים קטנים מקיר סלע מכוסה טחב. הפופולרי במסלולי האי.', en: 'A walk along an irrigation channel (levada) through green laurel forest to a pool fed by dozens of small cascades down a mossy rock wall – the island’s most popular trail.' },
@@ -1089,9 +1089,9 @@ export default {
   },
   'madeira|Cabo Girão skywalk': {
     about: { he: 'אחד הצוקים הגבוהים באירופה (580 מ׳), עם מרפסת זכוכית שקופה שעומדים עליה ומביטים ישר למטה על השדות והים.', en: 'One of Europe’s highest sea cliffs (580 m), with a glass-floored platform where you look straight down to fields and ocean.' },
-    tip: { he: 'שלבו עם קמרה דה לובוש, כפר הדייגים שבו צייר צ׳רצ׳יל. בבוקר פחות אוטובוסים.', en: 'Combine with Câmara de Lobos, the fishing village Churchill painted. Fewer coaches in the morning.' },
+    tip: { he: 'הכניסה בתשלום (כ־5 אירו מ־2026, ילדים עד 12 חינם). שלבו עם קמרה דה לובוש, כפר הדייגים שבו צייר צ׳רצ׳יל. בבוקר פחות אוטובוסים.', en: 'Entry costs about €5 from 2026 (under-12s free). Combine with Câmara de Lobos, the village Churchill painted. Fewer coaches in the morning.' },
     book: 'no',
-    ticketIls: { low: 0, high: 15 },
+    ticketIls: { low: 20, high: 25 },
   },
   'madeira|Monte Palace Tropical Garden': {
     about: { he: 'גן טרופי מטופח על מדרון במונטה, עם אגמים, שערים מזרחיים, צמחים מכל העולם, אוסף אריחי אזולז׳ו ומוזיאון מינרלים.', en: 'A lush tropical garden on the Monte hillside with lakes, oriental gates, plants from around the world, an azulejo tile collection and a mineral museum.' },
@@ -1294,7 +1294,7 @@ export default {
   },
   'slovenia|Vintgar Gorge': {
     about: { he: 'ערוץ צר ליד בלד שבו נהר רדובנה זורם במים טורקיז בין קירות סלע, לאורך מסלול גשרי עץ של כ־1.6 ק״מ שמסתיים במפל.', en: 'A narrow gorge near Bled where the Radovna river runs turquoise between rock walls along a 1.6 km wooden boardwalk ending at a waterfall.' },
-    tip: { he: 'בעונה צריך להזמין שעת כניסה מראש. המסלול חד־כיווני. סגור בחורף.', en: 'In season book an entry time online. The trail is one-way. Closed in winter.' },
+    tip: { he: 'מאז 2025 הכרטיסים נמכרים רק אונליין או במרכזי VINTGAR ומשם שאטל – לא בכניסה. הזמינו שעה מראש. המסלול חד־כיווני.', en: 'Since 2025 tickets are sold only online or at VINTGAR hubs with a shuttle – not at the gorge. Book a slot. The trail is one-way.' },
     book: 'recommended',
     ticketIls: { low: 40, high: 65 },
     hours: { he: 'סגור בחורף', en: 'Closed in winter' },

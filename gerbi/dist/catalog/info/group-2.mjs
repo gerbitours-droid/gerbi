@@ -425,7 +425,7 @@ export default {
     tip: { he: 'את הכרטיס קונים מראש באתר הרשמי בלבד. אל תשאירו אוכל פתוח – הקופים חוטפים.', en: 'Tickets must be bought online in advance from the official site. Don’t leave food out – the monkeys snatch it.' },
     book: 'required',
     ticketIls: { low: 65, high: 75 },
-    hours: { he: 'סגור בימי שני', en: 'Closed Mondays' }
+    hours: { he: 'סגור בימי שלישי', en: 'Closed Tuesdays' }
   },
   'costa-rica|Río Celeste & Tenorio Volcano National Park': {
     about: { he: 'נהר בצבע תכלת חלבי שנוצר במקום שבו שני נחלים עם מינרלים שונים נפגשים. השביל עובר ביער גשם למפל תכלת, לנקודת המפגש ולמעיינות רותחים קטנים.', en: 'A river of milky sky-blue water, created where two streams with different minerals meet. The trail runs through rainforest to a turquoise waterfall, the meeting point and small bubbling springs.' },
@@ -534,9 +534,9 @@ export default {
   // ── Buenos Aires ──
   'buenos-aires|Recoleta Cemetery': {
     about: { he: 'בית קברות מפואר מ־1822 שנראה כמו עיר קטנה של מאוזוליאומים משיש, עם פסלים, כיפות וויטראז׳ים. כאן קבורים נשיאים, סופרים ואווה פרון, בקבר משפחת דוארטה.', en: 'A grand 1822 cemetery that feels like a small city of marble mausoleums with statues, domes and stained glass. Presidents, writers and Eva Perón (in the Duarte family tomb) are buried here.' },
-    tip: { he: 'קחו מפה או סיור מודרך בכניסה – קל ללכת לאיבוד בסמטאות. בסופי שבוע יש יריד אומנים צמוד לחומה.', en: 'Grab a map or join a guided walk at the gate – the lanes are a maze. On weekends a craft fair sets up by the walls.' },
+    tip: { he: 'תיירים זרים משלמים דמי כניסה, בכרטיס אשראי בלבד. קחו מפה או סיור מודרך – קל ללכת לאיבוד. בסופי שבוע יש יריד אומנים ליד החומה.', en: 'Foreign visitors pay an entry fee, card only. Grab a map or a guided walk – the lanes are a maze. Weekend craft fair by the walls.' },
     book: 'no',
-    ticketIls: { low: 0, high: 60 }
+    ticketIls: { low: 55, high: 80 }
   },
   'buenos-aires|El Ateneo Grand Splendid bookshop': {
     about: { he: 'חנות ספרים בתוך תיאטרון מ־1919, עם תקרה מצוירת, תאי צפייה מוזהבים ווילון אדום. מדפי הספרים ממלאים את האולם, ועל הבמה פועל בית קפה.', en: 'A bookshop inside a 1919 theatre, with a painted ceiling, gilded boxes and red curtains. Shelves fill the auditorium and a café sits on the stage.' },
@@ -816,7 +816,7 @@ export default {
   'new-zealand|Kawarau Bridge bungy': {
     about: { he: 'האתר שבו נולדה קפיצת הבאנג׳י המסחרית ב־1988: קפיצה של 43 מטר מגשר היסטורי מעל נהר קווארו, עם אפשרות לגעת במים. גם לצפות מהמרפסת מרגש.', en: 'Where commercial bungy began in 1988: a 43-metre jump from a historic bridge over the Kawarau River, with an optional water touch. Watching from the deck is a thrill too.' },
     tip: { he: 'יש מגבלות משקל וגיל – בדקו מראש. אפשר גם קפיצה בזוג.', en: 'There are weight and age limits – check ahead. Tandem jumps are possible.' },
-    book: 'required',
+    book: 'recommended',
     ticketIls: { low: 580, high: 700 }
   },
   'new-zealand|Skiing at The Remarkables or Coronet Peak': {
@@ -935,7 +935,7 @@ export default {
   'budapest|Hungarian Parliament Building': {
     about: { he: 'בניין הפרלמנט הניאו־גותי על גדת הדנובה, מהגדולים באירופה, עם כיפה ומאות צריחים. בסיור מודרך עולים במדרגות המוזהבות ורואים את כתר סטפן הקדוש.', en: 'The neo-Gothic Parliament on the Danube, one of Europe’s largest buildings, with its dome and hundreds of spires. A guided tour climbs the gilded staircase to see the Holy Crown of Hungary.' },
     tip: { he: 'הסיורים באנגלית נגמרים מהר – הזמינו באתר הרשמי מראש. בערב הבניין מואר ונראה הכי טוב מצד בודה.', en: 'English tours sell out – book on the official site in advance. At night it’s lit and looks best from the Buda side.' },
-    book: 'required',
+    book: 'recommended',
     ticketIls: { low: 90, high: 130 }
   },
   'budapest|Buda Castle': {
@@ -958,8 +958,8 @@ export default {
   },
   'budapest|Gellért Thermal Bath': {
     about: { he: 'מרחצאות בסגנון ארט נובו למרגלות גבעת גלרט, עם עמודים, פסיפסים וויטראז׳ים. הבריכה המקורה המפוארת נחשבת לאחת היפות באירופה.', en: 'Art Nouveau baths at the foot of Gellért Hill, with columns, mosaics and stained glass. The grand indoor pool is considered one of Europe’s most beautiful.' },
-    tip: { he: 'בדקו לפני הביקור שהמרחצאות פתוחים – במבנה מתוכננים שיפוצים. בימי חול בבוקר שקט יותר.', en: 'Check it’s open before you go – renovation works are planned for the building. Weekday mornings are calmer.' },
-    book: 'recommended',
+    tip: { he: 'סגור לשיפוץ מאז אוקטובר 2025, פתיחה מחדש צפויה לא לפני 2028. בינתיים – מרחצאות סצ׳ני או רודאש.', en: 'Closed for renovation since October 2025; reopening expected no earlier than 2028. Try Széchenyi or Rudas instead.' },
+    book: 'no',
     ticketIls: { low: 120, high: 180 }
   },
   'budapest|Dohány Street Synagogue': {
@@ -1078,7 +1078,7 @@ export default {
   'krakow|Oskar Schindler’s Enamel Factory': {
     about: { he: 'המפעל של אוסקר שינדלר, שהציל כ־1,200 יהודים, הפך למוזיאון מרגש על קרקוב תחת הכיבוש הנאצי. התערוכה מעוצבת כמסלול של חדרים משוחזרים, עדויות ותמונות.', en: 'The factory of Oskar Schindler, who saved some 1,200 Jews, now a powerful museum on Kraków under Nazi occupation, laid out as a route of recreated rooms, testimony and photographs.' },
     tip: { he: 'מספר הכרטיסים מוגבל ונגמר מראש – הזמינו באתר. הקדישו לפחות שעתיים.', en: 'Tickets are limited and sell out – book online. Allow at least two hours.' },
-    book: 'required',
+    book: 'recommended',
     ticketIls: { low: 40, high: 55 }
   },
   'krakow|Ghetto Heroes Square': {
@@ -1311,7 +1311,7 @@ export default {
   'iceland|Sky Lagoon': {
     about: { he: 'לגונה גיאותרמית חדשה על שפת האוקיינוס, דקות מרייקיאוויק, עם בריכת אינסוף שמשקיפה על הים. ״הטקס בשבעה שלבים״ כולל סאונה, טבילה קרה וקרצוף גוף.', en: 'A newer geothermal lagoon on the ocean’s edge minutes from Reykjavík, with an infinity pool facing the sea. Its seven-step ritual includes a sauna, cold plunge and body scrub.' },
     tip: { he: 'קרוב יותר לעיר מהלגונה הכחולה. בשקיעה או בערבי חורף, עם סיכוי לזוהר צפוני – קסום.', en: 'Closer to town than the Blue Lagoon. At sunset or on winter evenings, with a chance of aurora, it’s magical.' },
-    book: 'required',
+    book: 'recommended',
     ticketIls: { low: 270, high: 450 }
   },
   'iceland|Whale watching from Húsavík': {

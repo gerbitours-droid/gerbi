@@ -162,7 +162,7 @@ export default {
   'vietnam|Ho Chi Minh Mausoleum & One Pillar Pagoda': {
     about: { he: 'מבנה שיש מרשים בכיכר בה דין שבו מוצגת גופתו החנוטה של הו צ׳י מין, עם משמר כבוד. בסמוך נמצא מקדש העמוד האחד – פגודה קטנה מעץ שעומדת על עמוד יחיד מעל בריכה.', en: 'An imposing marble building on Ba Dinh Square where Ho Chi Minh’s embalmed body lies under honour guard. Nearby is the One Pillar Pagoda, a small wooden shrine on a single column above a pond.' },
     tip: { he: 'לבוש צנוע חובה, אין לצלם בפנים ויש לשמור על שקט. התור זז מהר אבל הגיעו לפני 9:00. המוזוליאום נסגר לתחזוקה לכחודשיים בכל שנה, לרוב בסתיו.', en: 'Modest dress, no photos inside, silence required. Queue before 9am. The mausoleum closes for about two months a year for maintenance, usually in autumn.' },
-    book: 'no', ticketIls: { low: 0, high: 10 }, hours: { he: 'בבקרים בלבד; בדרך כלל סגור בימי שני ושישי', en: 'Mornings only; usually closed Monday & Friday' } },
+    book: 'no', ticketIls: { low: 0, high: 10 }, hours: { he: 'סגור בימי שני ושישי; פתוח בעיקר בבוקר', en: 'Closed Mondays & Fridays; open mainly in the morning' } },
   'vietnam|Overnight cruise in Ha Long Bay': {
     about: { he: 'לילה על ספינה במפרץ של כ־2,000 איים וצוקי גיר ירוקים שמזדקרים מהמים. התוכנית כוללת קיאקים, ביקור במערה, שחייה, שיעור בישול וזריחה שקטה על הסיפון.', en: 'A night aboard a boat in a bay of some 2,000 jungle-topped limestone islets. Kayaking, a cave visit, swimming, a cooking demo and a quiet sunrise on deck.' },
     tip: { he: 'בחרו ספינה שמפליגה במפרץ לאן הא או באי טו לונג – פחות צפוף. הנסיעה מהאנוי כשעתיים וחצי לכל כיוון.', en: 'Pick a boat cruising Lan Ha or Bai Tu Long Bay – far fewer boats. It’s about 2.5 hours’ drive each way from Hanoi.' },
@@ -686,7 +686,7 @@ export default {
   'dubai|Burj Khalifa — At the Top': {
     about: { he: 'תצפית במגדל הגבוה בעולם (828 מטר). מעלית מהירה מעלה לקומות 124–125, ובכרטיס יקר יותר עד קומה 148. רואים את המדבר, הים, פאלם ג׳ומיירה ואת כל דובאי מלמעלה.', en: 'The observation deck of the world’s tallest building (828 m). A fast lift takes you to floors 124–125, or 148 with a pricier ticket, for views over desert, sea, Palm Jumeirah and all of Dubai.' },
     tip: { he: 'הזמינו מראש באתר – זול יותר מבקופה. שעת השקיעה הכי יקרה ומבוקשת; שעה לפני היא פשרה טובה. אחר כך רדו למופע המזרקות.', en: 'Book online – cheaper than at the desk. Sunset slots are priciest; an hour earlier is a good compromise. Then catch the fountain show below.' },
-    book: 'required', ticketIls: { low: 150, high: 550 } },
+    book: 'recommended', ticketIls: { low: 150, high: 550 } },
   'dubai|Dubai Mall & Aquarium': {
     about: { he: 'אחד הקניונים הגדולים בעולם, עם יותר מ־1,200 חנויות, משטח החלקה על קרח, ואקווריום ענק עם כרישים וטריגונים שנראה מהמעבר בחינם. בכרטיס נכנסים למנהרה התת־ימית ולגן החיות.', en: 'One of the world’s largest malls, with 1,200+ shops, an ice rink and a huge aquarium tank of sharks and rays visible free from the concourse. A ticket gets you the walk-through tunnel and underwater zoo.' },
     tip: { he: 'את הקיר הגדול של האקווריום רואים חינם מהקומה התחתונה – לא חייבים כרטיס. הורידו את מפת הקניון, קל ללכת לאיבוד.', en: 'You can see the big tank wall free from the ground floor – no ticket needed. Use the mall map app; it’s easy to get lost.' },

@@ -102,9 +102,9 @@ export default {
   },
   'rome|Trevi Fountain': {
     about: { he: 'המזרקה הבארוקית המפורסמת בעולם, עם פסל נפטון ומפלי מים על חזית ארמון. לפי המסורת זורקים מטבע מעבר לכתף כדי להבטיח חזרה לרומא.', en: 'The world’s most famous Baroque fountain, with Neptune and cascades against a palace façade. Tradition says toss a coin over your shoulder to ensure you return to Rome.' },
-    tip: { he: 'בואו ב־7:00 בבוקר או מאוחר בלילה – ביום זה דוחק. יש הסדרת גישה לקרבת המזרקה, לפעמים בתשלום סמלי.', en: 'Come at 7 am or late at night – daytime is a crush. Access to the basin area is managed, sometimes for a small fee.' },
+    tip: { he: 'מאז פברואר 2026 הכניסה לאזור האגן עולה 2 אירו (בערך 9:00–21:00, תשלום בכרטיס); מהכיכר רואים בחינם. הכי שקט ב־7:00 בבוקר.', en: 'Since Feb 2026 the basin area costs €2 (roughly 9am–9pm, card only); viewing from the square is free. Quietest at 7am.' },
     book: 'no',
-    ticketIls: { low: 0, high: 10 }
+    ticketIls: { low: 0, high: 8 }
   },
   'rome|Spanish Steps': {
     about: { he: '135 מדרגות בארוקיות שעולות מפיאצה די ספניה אל כנסיית טריניטה דיי מונטי. למטה מזרקת הסירה, ומסביב רחובות האופנה היוקרתיים כמו ויה קונדוטי.', en: 'A 135-step Baroque stairway from Piazza di Spagna up to Trinità dei Monti church. The boat fountain sits below, surrounded by luxury shopping streets like Via Condotti.' },
@@ -845,7 +845,7 @@ export default {
   },
   'amalfi-naples|Castel dell’Ovo & the seafront': {
     about: { he: 'מבצר עתיק על אי קטן המחובר בגשר לטיילת של נאפולי, ולידו נמל דייגים קטן עם מסעדות. מהטיילת נוף רחב למפרץ ולווזוב.', en: 'An ancient fortress on a small islet joined by a causeway to Naples’ seafront, with a little fishing harbour of restaurants beside it. The promenade has broad views of the bay and Vesuvius.' },
-    tip: { he: 'הליכת שקיעה לאורך הטיילת לכיוון קיאייה. הכניסה למבצר משתנה – בדקו מראש.', en: 'Walk the seafront towards Chiaia at sunset. Access inside the castle varies – check ahead.' },
+    tip: { he: 'הליכת שקיעה לאורך הטיילת לכיוון קיאייה. המבצר סגור כרגע לשיפוץ – רואים אותו מבחוץ.', en: 'Walk the seafront towards Chiaia at sunset. The castle is currently closed for restoration – enjoy it from outside.' },
     book: 'no',
     ticketIls: { low: 0, high: 0 }
   },
