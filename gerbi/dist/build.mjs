@@ -11,7 +11,7 @@ import { account, ready as accountReady } from './account.mjs';
 import { bookingConfig, startBooking } from './booking-client.mjs';
 import { asciiBackground } from './ascii-bg.mjs';
 import { slingTop } from './sling-top.mjs';
-import { brochureHtml } from './brochure.mjs';
+import { brochureHtml, loadBrochureData } from './brochure.mjs';
 import { fitPackage, upsellOffers, applyUpsell, flightsInBudget } from './budget.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -200,6 +200,7 @@ function render() {
   for (const part of ['where', 'flights', 'hotels', 'car', 'insurance', 'itinerary', 'practical', 'total', 'banner', 'upsell']) paint(part);
   if (leadOpen) paintLead();
   wireImages(out);
+  loadBrochureData().then((x) => { brochureData = x; }).catch(() => {});
 }
 function wireImages(root) { root.querySelectorAll('img[data-fallback]').forEach((img) => img.addEventListener('error', () => img.classList.add('bk-noimg'), { once: true })); }
 
@@ -511,15 +512,19 @@ function page({ view: host, footer, bread }) {
 }
 
 // Spec 27: print/PDF = a designed brochure, not the screen. Also catches ⌘P while a package is shown.
+let brochureData = null, brochureLink = '';
 function mountBrochure() {
   if (!pkg?.destination || !view?.isConnected) return false;
   document.getElementById('bk-brochure')?.remove();
   const box = document.createElement('div'); box.id = 'bk-brochure'; box.className = 'br'; box.setAttribute('aria-hidden', 'true');
-  box.innerHTML = brochureHtml(pkg, { esc, L, longDay, fare, formatIls, totals: () => pricePackage(pkg, getFx()), hotelGroups });
+  box.innerHTML = brochureHtml(pkg, { esc, L, longDay, fare, formatIls, totals: () => pricePackage(pkg, getFx()), hotelGroups, shareUrl: () => brochureLink }, brochureData || undefined);
   document.body.append(box); document.documentElement.classList.add('printing-brochure'); return box;
 }
 function unmountBrochure() { document.getElementById('bk-brochure')?.remove(); document.documentElement.classList.remove('printing-brochure'); }
 async function printBrochure() {
+  // Details (descriptions, photos, country info) and a live link for the cover QR; neither may block printing.
+  brochureData = await loadBrochureData().catch(() => null);
+  brochureLink = await Promise.race([snapshotId().then(shareUrl), new Promise((ok) => setTimeout(() => ok(''), 3000))]).catch(() => '');
   const box = mountBrochure(); if (!box) return window.print();
   // Wait for the photos, or the PDF comes out with empty frames.
   await Promise.all([...box.querySelectorAll('img')].map((img) => img.complete ? null : new Promise((ok) => { img.onload = img.onerror = ok; setTimeout(ok, 4000); })));

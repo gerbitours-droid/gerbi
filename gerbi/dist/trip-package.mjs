@@ -110,8 +110,10 @@ export function pricePackage(pkg, fx) {
 // ---- Snapshot: what may be stored, shared and sent to the owner. Whitelisted, bounded, no free-form JSON.
 function cleanFlightPick(p) {
   return { key: str(p?.key, 240), carriers: list(p?.carriers, 4).map((c) => str(c, 60)), price: price(p?.price), stops: int(p?.stops, 0, 8) ?? 0, minutes: int(p?.minutes, 0, 6000),
-    legs: list(p?.legs, 5).map((l) => ({ from: code3(l?.from), to: code3(l?.to), date: day(l?.date), depart: str(l?.depart, 5), arrive: str(l?.arrive, 5), stops: int(l?.stops, 0, 8) ?? 0, dayOffset: int(l?.dayOffset, 0, 3) ?? 0 })),
-    badges: list(p?.badges, 4).map((b) => slug(b)).filter(Boolean), reasons: list(p?.reasons, 3).map((x) => str(x, 120)), bag: slug(p?.bag) };
+    legs: list(p?.legs, 5).map((l) => ({ from: code3(l?.from), to: code3(l?.to), date: day(l?.date), depart: str(l?.depart, 5), arrive: str(l?.arrive, 5), stops: int(l?.stops, 0, 8) ?? 0, dayOffset: int(l?.dayOffset, 0, 3) ?? 0,
+      segments: list(l?.segments, 6).map((x) => ({ carrier: str(x?.carrier, 60), number: str(x?.number, 12), from: code3(x?.from), fromName: str(x?.fromName, 60), to: code3(x?.to), toName: str(x?.toName, 60), date: day(x?.date), depart: str(x?.depart, 5), arriveDate: day(x?.arriveDate), arrive: str(x?.arrive, 5), duration: str(x?.duration, 6) })) })),
+    badges: list(p?.badges, 4).map((b) => slug(b)).filter(Boolean), reasons: list(p?.reasons, 3).map((x) => str(x, 120)), bag: slug(p?.bag), trolley: slug(p?.trolley), refundable: slug(p?.refundable),
+    longestLayover: int(p?.longestLayover, 0, 6000), overnight: p?.overnight === true, airportChange: p?.airportChange === true };
 }
 function cleanHotelGroup(g) {
   const e = g?.estimate, money = (v) => num(v, 0, 1e7);

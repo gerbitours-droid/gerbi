@@ -33,9 +33,14 @@ export function flightPicks(payload, request = {}, l = 'he') {
   } finally { setLang(previous); }
 }
 function pickOf(f) {
+  // Spec 29: every segment travels with the pick so the brochure can print flight numbers, airports and times.
+  const seg = (x) => ({ carrier: x.marketingCarrier?.airline?.name || '', number: [x.marketingCarrier?.airline?.code, x.marketingCarrier?.flightNumber].filter(Boolean).join(' '),
+    from: x.departure?.airport?.code || '', fromName: x.departure?.city?.name || x.departure?.airport?.name || '', to: x.arrival?.airport?.code || '', toName: x.arrival?.city?.name || x.arrival?.airport?.name || '',
+    date: x.departure?.date || '', depart: x.departure?.time || '', arriveDate: x.arrival?.date || '', arrive: x.arrival?.time || '', duration: x.flightDetails?.duration || '' });
   return { key: itineraryKey(f), offerIndex: String(f.index), itineraryIndex: f.offer?.flightsOverview?.[0]?.itineraryIndex ?? 0, carriers: f.carriers.slice(0, 4), price: f.price, stops: f.stops ?? 0, minutes: f.totalMinutes, bag: f.checked,
+    trolley: f.trolley ?? null, refundable: f.refundable ?? null, longestLayover: f.longestLayover ?? null, overnight: Boolean(f.overnight), airportChange: Boolean(f.airportChange),
     legs: f.legs.map((leg) => ({ from: leg.segments[0]?.departure?.airport?.code || '', to: leg.segments.at(-1)?.arrival?.airport?.code || '', date: leg.summary.departDate,
-      depart: leg.segments[0]?.departure?.time || '', arrive: leg.segments.at(-1)?.arrival?.time || '', stops: leg.summary.stops, dayOffset: leg.summary.dayOffset })), badges: [], reasons: [] };
+      depart: leg.segments[0]?.departure?.time || '', arrive: leg.segments.at(-1)?.arrival?.time || '', stops: leg.summary.stops, dayOffset: leg.summary.dayOffset, segments: leg.segments.slice(0, 6).map(seg) })), badges: [], reasons: [] };
 }
 // Budget fit + upgrades (spec 28), from the offers already fetched: the cheapest offer that meets the hard constraints
 // (direct when asked for), the cheapest direct one, and the cheapest with a checked bag included.
