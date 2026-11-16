@@ -219,8 +219,9 @@ function suitable(a, request, p, want) {
 // The sea is cold Nov–Apr in Europe and the Middle East (unless the destination is a winter-sun one); ski has its own
 // months by hemisphere; an attraction's own `months` win. Returns the warning key, '' when in season.
 function offSeason(a, dest, month) {
-  if (Array.isArray(a.months) && a.months.length) return a.months.includes(month) ? '' : 'season';
-  const tags = a.tags || [];
+  const tags = a.tags || [], beachy = a.kind === 'beach' || tags.includes('beach');
+  // The specific reason wins over the generic one, so the customer reads "the sea is cold", not "seasonal".
+  if (Array.isArray(a.months) && a.months.length) return a.months.includes(month) ? '' : beachy ? 'beach' : tags.includes('ski') ? 'ski' : 'season';
   if ((a.kind === 'beach' || tags.includes('beach')) && ['europe', 'middle-east'].includes(dest.region) && !(dest.bestMonths || []).some((m) => [12, 1, 2].includes(m)) && (month < 5 || month > 10)) return 'beach';
   if (tags.includes('ski') && !skiSeason(dest, month)) return 'ski';
   return '';
@@ -335,6 +336,14 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
     }
     zone = seed.zone;
     plans.push(day.sort((x, y) => Number(LATE(x.a)) - Number(LATE(y.a))));
+  }
+  // A country-sized destination: days of the same base stay together, in the order the bases first appear
+  // (a low-scored leftover in Kyoto must not bring the trip back from Osaka).
+  if (sized) {
+    const order = [], days = plans.filter(Boolean);
+    days.forEach((d) => { if (!order.includes(d[0].zone)) order.push(d[0].zone); });
+    days.sort((a, b) => order.indexOf(a[0].zone) - order.indexOf(b[0].zone));
+    let n = 0; plans.forEach((d, i) => { if (d) plans[i] = days[n++]; });
   }
   // Free days are spread between the planned ones (not all at the end) and carry 2–3 ideas.
   const fullDays = out.filter((d) => d.kind === 'full'), free = plans.filter((x) => !x).length, content = plans.filter(Boolean);
