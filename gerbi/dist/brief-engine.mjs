@@ -243,11 +243,11 @@ function extractDuration(text) {
 const AGE_TAIL = '(?!\\d)(?!\\s*-\\s*\\d)(?!\\s*(?:לילות|ימים|לילה|שבועות|חודשים|₪|שקל|ש"ח|שח|אלף|כוכבים|%|מבוגרים|מבוגרות|אנשים|נוסעים|חברים|חברות))';
 function agesIn(text) {
   const ages = [];
-  for (const m of text.matchAll(new RegExp(`(?:^|[\\s(])(?:בן|בת|בני|בנות|בגיל(?:אי)?|גילאי|גיל)\\s+(\\d{1,2})${AGE_TAIL}((?:\\s*(?:,\\s*(?:ו-?\\s*)?|ו-?\\s*|-\\s*(?=\\d{1,2}\\s*(?:,|ו)))\\d{1,2}${AGE_TAIL})*)`, 'g'))) {
+  for (const m of text.matchAll(new RegExp(`(?:^|[\\s(])ו?(?:בן|בת|בני|בנות|בגיל(?:אי)?|גילאי|גיל)\\s+(\\d{1,2})${AGE_TAIL}((?:\\s*(?:,\\s*(?:ו-?\\s*)?|ו-?\\s*|-\\s*(?=\\d{1,2}\\s*(?:,|ו)))\\d{1,2}${AGE_TAIL})*)`, 'g'))) {
     ages.push(+m[1], ...(m[2].match(/\d{1,2}/g) || []).map(Number));
   }
   // Ages in brackets after the kids: "3 ילדים קטנים (1, 3, 5)", "ילדים (4 ו-7)".
-  for (const m of text.matchAll(/(?:ילדים|ילדות|נכדים|הילדים|קטנים|נערים)\s*\((\d{1,2}(?:\s*(?:,|ו-?|-)\s*\d{1,2})*)\)/g)) ages.push(...m[1].match(/\d{1,2}/g).map(Number));
+  for (const m of text.matchAll(/(?:ילדים|ילדות|נכדים|הילדים|קטנים|נערים)\s*\((\d{1,2}(?:\.\d)?(?:\s*(?:,|ו-?|-)\s*\d{1,2}(?:\.\d)?)*)\)/g)) ages.push(...m[1].match(/\d{1,2}(?:\.\d)?/g).map((a) => Math.floor(Number(a))));
   // A list of two or more ages right after the kids, without "בני": "ילדים 3 ו-6", "2 ילדים 9 ו-12", "מתבגרים 15 ו-17".
   for (const m of text.matchAll(new RegExp(`(?:ילדים|ילדות|נכדים|נערים|נערות|מתבגרים|מתבגרות)(?:\\s+(?:קטנים|קטנות|גדולים))?\\s*,?\\s*(\\d{1,2})${AGE_TAIL}((?:\\s*(?:,\\s*(?:ו-?\\s*)?|ו-?\\s*))\\d{1,2}${AGE_TAIL})+`, 'g'))) {
     if (!/(?:^|[\s,(])(?:בן|בת|בני|בנות|בגיל(?:אי)?|גילאי|גיל)\s+$/.test(text.slice(0, m.index))) ages.push(...m[0].match(/\d{1,2}/g).map(Number));
@@ -258,6 +258,8 @@ const KIDS_HE = 'ילדים|ילדות|ילד(?=\\s|$|,)|ילדה(?=\\s|$|,)|נ�
 const PARTNER_HE = /(?:^|\s|,)ו?(?:אשתי|אישתי|בעלי|זוגתי|בן זוגי|בת זוגי|בן הזוג|בת הזוג|בן הזוג שלי|בת הזוג שלי|החבר שלי|החברה שלי|חברה שלי|החבר|החברה|ארוסתי|ארוסי)(?=[\s,.]|$)/;
 function extractTravelers(text) {
   const found = {};
+  // "בלי בעלי" / "בלי אשתי": the partner is NOT coming.
+  text = text.replace(/(?:בלי|ללא)\s+(?:ה)?(?:בעלי|אשתי|אישתי|בן הזוג|בת הזוג|בן זוגי|בת זוגי)(?:\s+שלי)?/g, ' ');
   const counted = text.match(new RegExp(`(\\d+)\\s*(?:${KIDS_HE})`)), single = text.match(/(?:^|\s)(?:ו|עם\s+)?(?:ילד|ילדה)\s+(?:אחד|אחת|1)(?=\s|$|,|ו)/);
   if (counted || single) { found.children = counted ? Math.min(8, +counted[1]) : 1; found.childrenSource = (counted || single)[0].trim(); }
   const infants = text.match(/(\d+)?\s*תינוק(?:ת|ות|ים)?/);
@@ -326,6 +328,9 @@ function extractTravelers(text) {
   const sons = text.match(/(?:^|\s)ו?(\d+)\s+(?:בנים|בנות|נכדים|נכדות)(?=\s|$)/);
   if (sons && !counted && !found.groupOfAdults) { found.children = Math.max(found.children || 0, +sons[1]); found.childrenSource = sons[0].trim(); }
   if (!found.children && !found.noChildren && /עם הילדים|עם ילדים|משפחה|והילדים/.test(text)) found.childrenUnknown = true;
+  // Grown-up sons / daughters travelling along: "אני ושני בנים בני 19 ו-21", "והבן שלנו בן 20" – adults.
+  const grown = [...text.matchAll(/(?:בנים|בנות|ה?בן|ה?בת)(?:\s+שלנו|\s+שלי)?\s+(?:בן|בת|בני|בנות)\s+(\d{2})(?:\s*(?:,|ו-?)\s*(\d{2}))?/g)].flatMap((m) => m.slice(1).filter(Boolean).map(Number)).filter((a) => a >= 18);
+  if (grown.length) { found.adults = (found.adults || (/(?:^|\s)אני(?=[\s,.]|$)/.test(text) && !PARTNER_HE.test(text) ? 1 : 2)) + grown.length; found.adultsSource = 'בנים בוגרים'; }
   // A grandparent or the parents on top of a couple / me + a sibling ("עם סבא… אני ואשתי" 3, "ההורים שלי… אני ואחותי" 4).
   if (found.adults === 2 && PARTNER_HE.test(text) && /(?:^|\s)(?:ו|את|עם)?(?:סבא|סבתא)(?:\s+שלי)?(?=[\s,.]|$)/.test(text)) found.adults = 3;
   if (/(?:^|\s)(?:את\s+)?ההורים שלי/.test(text) && /אני ו(?:אחי|אחותי)/.test(text)) found.adults = 4;
@@ -532,7 +537,7 @@ function extractDurationEn(text) {
   const unit = (u, n) => (/^night/.test(u) ? n : /^day/.test(u) ? n - 1 : /^week/.test(u) ? 7 * n : 30 * n);
   let m = text.match(/(?<!\d)(\d{1,2})\s*(?:-|to|or)\s*(\d{1,2})\s*(nights?|days?|weeks?|months?)\b/);
   if (m && +m[1] < +m[2]) { const lo = clampNights(unit(m[3], +m[1])), hi = clampNights(unit(m[3], +m[2])); return { nights: clampNights((lo + hi) / 2), range: [lo, hi], source: m[0] }; }
-  m = text.match(/(\d+)\s*nights?\b/);
+  m = text.match(/(\d+)[\s-]*nights?\b/);
   if (m) return { nights: clampNights(+m[1]), source: m[0] };
   if (/\b(?:a|one) night\b/.test(text)) return { nights: 1, source: 'a night' };
   m = text.match(/(\d+)\s*days?\b(?!\s+(?:from now|old))/);
@@ -541,7 +546,7 @@ function extractDurationEn(text) {
   // "8 months old".
   m = text.match(/\b(?:a|one|1)\s+(?:and a half|& a half)\s+months?\b|\b(?:a|one|1)\s+month and a half\b|\b1\.5\s+months?\b/);
   if (m) return { nights: 45, source: m[0] };
-  m = text.match(/\b(\d+)\s+months?\b(?![\s-]+old)/);
+  m = text.match(/(?<!(?:baby|infant|toddler|newborn|aged?)\s*\(?\s*)\b(\d+)\s+months?\b(?![\s-]+old)(?!\s*\))/);
   if (m && !/\bin\s+$/.test(text.slice(0, m.index))) return { nights: clampNights(30 * +m[1]), source: m[0] };
   m = text.match(/\b(?:a|one|for a|the whole|a whole|a full|an entire|for the)\s+(?:whole\s+|full\s+|entire\s+)?month\b(?!\s+(?:from now|of))/);
   if (m && !/\b(?:in|within)\s+$/.test(text.slice(0, m.index))) return { nights: 30, source: m[0] };
@@ -560,7 +565,7 @@ function extractDurationEn(text) {
 function extractTravelersEn(text) {
   const found = {};
   // Ages in months are babies ("a baby aged 8 months", "a 10-month-old") – never a stay of months.
-  text = text.replace(/\b(\d{1,2})[\s-]*months?[\s-]*old\b/g, '0 year old').replace(/\b(aged?)\s+\d{1,2}\s+months?\b/g, '$1 0');
+  text = text.replace(/\b(\d{1,2})[\s-]*months?[\s-]*old\b/g, '0 year old').replace(/\(\s*\d{1,2}\s*(?:months?|mo)\s*\)/g, '(0)').replace(/\b(aged?)\s+\d{1,2}\s+months?\b/g, '$1 0');
   const counted = text.match(/(?<!family of\s*)(?<!\d)(\d+)\s*(?:kids?|children|child|boys?|girls?(?!friends)|grandkids|grandchildren|grandchild|sons?|daughters?|teens|teenagers|teenage (?:kids|boys|girls))\b/);
   const single = text.match(/(?:^|\s)(?:a|our|my|with a|and a)\s+(?:kid|child|son|daughter|boy|girl|grandchild|grandson|granddaughter)\b/);
   if (counted || single) { found.children = counted ? Math.min(8, +counted[1]) : 1; found.childrenSource = (counted || single)[0].trim(); }
@@ -571,12 +576,20 @@ function extractTravelersEn(text) {
   const ages = [...text.matchAll(new RegExp(`\\b(?:aged?|ages|(?:kids|children|boys|girls|sons|daughters)(?:\\s+are|:)?(?=\\s*\\(?\\s*\\d{1,2}\\s*(?:,|and|&)\\s*\\d))\\s*\\(?\\s*${AGE}(?:\\s*(?:,|and|&)\\s*${AGE})?(?:\\s*(?:,|and|&)\\s*${AGE})?(?:\\s*(?:,|and|&)\\s*${AGE})?`, 'g'))]
     .flatMap(m => m.slice(1).filter(Boolean).map(Number));
   for (const m of text.matchAll(/(\d{1,2})(?:\s*(?:,|and|&)\s*(\d{1,2}))?[\s-]*(?:years?|yrs?)[\s-]*olds?\b/g)) ages.push(...m.slice(1).filter(Boolean).map(Number));
+  // "a teenager (15)", "2 teens (14,16)", "a toddler (2)", "my son (16)": ages in brackets after the kid.
+  if (!ages.length) for (const b of text.matchAll(/\b(?:teen(?:ager)?s?|toddlers?|sons?|daughters?|kids?|children|child|boys?|girls?|grandkids?)\s*\((\d{1,2}(?:\s*(?:,|and|&)\s*\d{1,2})*)\)/g)) ages.push(...b[1].match(/\d{1,2}/g).map(Number));
+  if (/\b(?:a|one|1|with a|and a)\s+(?:teen(?:ager)?|toddler)\b/.test(text) && !found.children) { found.children = 1; found.childrenSource = 'teen'; }
+  const twoPlus = text.match(/(?:^|[\s,(])(\d)\s*\+\s*(\d)(?!\d)(?!\s*(?:nights?|days?|stars?))/);
+  if (twoPlus && !counted) { found.adults = +twoPlus[1]; found.adultsSource = twoPlus[0].trim(); found.children = Math.max(found.children || 0, +twoPlus[2]); found.childrenSource = twoPlus[0].trim(); }
   const kidAges = ages.filter(age => age < 18);
   if (kidAges.length) { found.childAges = kidAges.slice(0, 8); found.children = Math.max(found.children || 0, kidAges.length); }
   if (found.infants && !(found.childAges || []).some(age => age < 2)) { found.childAges = [...(found.childAges || []), ...Array(found.infants).fill(0)].slice(0, 8); found.infantAgeAssumed = true; }
   if (/\b(?:no|without)\s+(?:kids|children)\b|\badults only\b|\b(?:just|only)\s+adults\b/.test(text)) { found.children = 0; found.childAges = []; found.noChildren = true; }
   let m = text.match(/\bfamily of (\d+)/);
   if (m) { const total = +m[1]; found.children = found.children ?? Math.max(0, total - 2); found.adults = Math.max(1, total - found.children); found.adultsSource = m[0]; }
+  // A party of grown-ups: "4 girls" on a party trip, "5 women", "12 guys" – adults, not children.
+  m = /\b(?:party|bachelor(?:ette)?|hen|stag|girls'? trip|girls'? weekend|trip|getaway|holiday|vacation)\b/.test(text) && text.match(/(\d+)\s+(?:girls|women|ladies|guys|men|lads)\b/);
+  if (m) { found.adults = +m[1]; found.adultsSource = m[0]; if (/girls|guys/.test(m[0]) && found.childrenSource && /girls|boys/.test(found.childrenSource)) { found.children = 0; delete found.childAges; } }
   m = text.match(/(\d+)\s*(?:adults?|grown[- ]?ups)\b/);
   if (m) { found.adults = +m[1]; found.adultsSource = m[0]; }
   m = !found.adults && text.match(/(\d+)\s*couples\b/);
@@ -638,7 +651,7 @@ const STYLE_RULES_EN = [
 
 // Labels in the page language: Hebrew keeps the engine's original wording (names from places.mjs `names[0]`).
 const MONTH_EN_LABEL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const HOLIDAY_EN_LABEL = { פסח: 'Passover', סוכות: 'Sukkot', 'ראש השנה': 'Rosh Hashanah', חנוכה: 'Hanukkah', שבועות: 'Shavuot' };
+const HOLIDAY_EN_LABEL = { פסח: 'Passover', סוכות: 'Sukkot', 'ראש השנה': 'Rosh Hashanah', חנוכה: 'Hanukkah', שבועות: 'Shavuot', פורים: 'Purim', 'יום כיפור': 'Yom Kippur' };
 const SEASON_EN_LABEL = { קיץ: 'summer', חורף: 'winter', אביב: 'spring', סתיו: 'autumn' };
 // brief.month is stored in Hebrew ('יוני'); this is how to show it.
 export const monthLabel = (month, l = lang) => (l === 'en' && MONTHS.includes(month) ? MONTH_EN_LABEL[MONTHS.indexOf(month)] : month || '');
@@ -673,7 +686,7 @@ export function coverage(text, understood) {
 
 const STYLE_RULES = [
   ['beach', /(?:^|[\s,])(?:ים|בים|לים|וים|בריכה|ובריכה|חוף|חופים|בטן גב|בטן-גב)(?=[\s,.!?]|$)/, /בלי ים|ללא ים|לא רוצים ים|לא ים/],
-  ['city', /אוכל|תרבות|(?:^|\s)עיר(?:וני)?(?=\s|$)|מוזיאונים|קניות/, /בלי עיר|לא עיר/],
+  ['city', /אוכל|תרבות|(?:^|\s)ו?עיר(?:וני)?(?=[\s,.]|$)|מוזיאונים|קניות/, /בלי עיר|לא עיר/],
   ['relaxation', /מנוחה|להירגע|שקט|רגוע|לנוח/, /לא מנוחה/],
   ['family', /משפח|עם הילדים|לילדים/, /בלי ילדים|ללא ילדים/]
 ];
@@ -805,11 +818,11 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
     const symbol = l === 'en' ? { ILS: '₪', USD: '$', EUR: '€' }[budget.currency] : budget.currency === 'ILS' ? '₪' : budget.currency;
     say('budget', tr('planner.budget', { perPerson: budget.scope === 'person' ? tr('planner.budget.perPerson', { amount: l === 'en' ? symbol + num(budget.amount) : num(budget.amount) }) : '', total: num(total), currency: symbol }), budget.source);
   }
-  if (english ? /\b(?:cheap|cheaper|cheapest|affordable|inexpensive|low[- ]cost|low price|lowest price|best price|budget[- ]friendly|bargain|good deal|not expensive)\b/.test(base)
-    : /זול|משתלם|תוריד|מחיר נמוך|הכי זול|לא יקר|במחיר נוח/.test(base)) { brief.cheaper = true; say('cheaper', tr('planner.cheaper')); }
+  if (english ? /\b(?:cheap|cheaper|cheapest|affordable|inexpensive|low[- ]cost|low price|lowest price|best price|budget[- ]friendly|bargain|good deal|not expensive|on a (?:tight |small |low )?budget|low budget|tight budget|backpack(?:ing|er)?)\b/.test(base)
+    : /זול|משתלם|תוריד|מחיר נמוך|הכי זול|לא יקר|במחיר נוח|תקציב (?:מוגבל|נמוך|קטן|צנוע)|בלי מיליון|תרמיל/.test(base)) { brief.cheaper = true; say('cheaper', tr('planner.cheaper')); }
   // "לא משנה המחיר" / "money is no object": no cap, and the plan may go up a level.
-  if (english ? /\b(?:money is no object|price is not an issue|price doesn'?t matter|no budget limit|whatever it costs|regardless of (?:the )?(?:price|cost)|no matter the (?:price|cost)|sky'?s the limit)\b/.test(base)
-    : /לא משנה (?:ה?מחיר|כמה|ה?תקציב)|ה?מחיר לא משנה|ה?תקציב לא משנה|בלי הגבלת תקציב|בלי הגבלה|אין הגבלת תקציב|לא משנה לנו כמה/.test(base)) { brief.noBudgetLimit = true; delete brief.cheaper; say('budget', tr('planner.noBudgetLimit')); }
+  if (english ? /\b(?:money is no object|price is not an issue|price doesn'?t matter|no budget limit|whatever it costs|regardless of (?:the )?(?:price|cost)|no matter the (?:price|cost)|sky'?s the limit|money (?:isn'?t|is not) an (?:issue|object)|budget (?:isn'?t|is not) an (?:issue|object))\b/.test(base)
+    : /לא משנה (?:ה?מחיר|כמה|ה?תקציב)|ה?מחיר לא משנה|ה?תקציב לא משנה|בלי הגבלת תקציב|בלי הגבלה|אין הגבלת תקציב|לא משנה לנו כמה|לא מוגבלים (?:ב)?תקציב|תקציב לא מוגבל|תקציב פתוח/.test(base)) { brief.noBudgetLimit = true; delete brief.cheaper; say('budget', tr('planner.noBudgetLimit')); }
 
   // Regions ("אירופה", "המזרח הרחוק", "not Europe") are read first and taken out, so "דרום אמריקה" is not the USA.
   const regions = extractRegions(base);

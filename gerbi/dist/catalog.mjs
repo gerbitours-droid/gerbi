@@ -101,7 +101,7 @@ const ALIASES = {
   edinburgh: ['סקוטלנד', 'אדינבורו', 'scotland', 'edinburgh'], 'munich-bavaria': ['בוואריה', 'באוואריה', 'מינכן', 'bavaria', 'munich'],
   'new-york': ['מנהטן', 'ניו-יורק', 'manhattan', 'nyc'], 'swiss-alps': ['שוויץ', 'שווייץ', 'ציריך', 'אינטרלאקן', 'switzerland', 'zurich', 'interlaken'],
   croatia: ['קרואטיה', 'דוברובניק', 'ספליט', 'croatia', 'dubrovnik'], 'florence-tuscany': ['פירנצה', 'טוסקנה', 'florence', 'tuscany'],
-  'milan-lake-como': ['מילאנו', 'אגם קומו', 'milan', 'lake como'], nice: ['הריביירה הצרפתית', 'ריביירה', 'ניס', 'french riviera', "cote d'azur"],
+  'milan-lake-como': ['מילאנו', 'אגם קומו', 'milan', 'lake como'], nice: ['הריביירה הצרפתית', 'ריביירה', 'ניס', 'מונקו', 'french riviera', "cote d'azur", 'monaco'], 'las-vegas': ['וגאס', 'vegas'],
   'kenya-safari': ['קניה', 'kenya'], 'norway-fjords': ['נורווגיה', 'פיורדים', 'הפיורדים', 'norway', 'fjords'], 'austrian-alps': ['אלפים האוסטריים', 'austrian alps', 'tyrol', 'טירול'],
   cancun: ['קנקון', 'טולום', 'cancun', 'tulum', 'riviera maya'], slovenia: ['סלובניה', 'אגם בלד', 'ליובליאנה', 'slovenia', 'lake bled', 'ljubljana'],
   'dead-sea': ['ים המלח', 'dead sea'], maldives: ['מלדיביים', 'המלדיבים', 'מלדיבים', 'maldives'], seychelles: ['סיישל', 'seychelles']

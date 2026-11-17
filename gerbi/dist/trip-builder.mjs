@@ -28,7 +28,7 @@ const RX = {
   halfBoard: /חצי פנסיון|half[- ]board/i, fullBoard: /פנסיון מלא|full[- ]board/i, breakfast: /(?:עם|כולל|רק)\s+ארוחת בוקר|bed (?:and|&) breakfast|\bb&b\b|with breakfast/i,
   carYes: /(?:עם|כולל|נשכור|לשכור|שוכרים|השכרת|ונשכור|וגם|ב)\s*(?:ה)?רכב(?!\s*ציבורי)|רכב שכור|רכב צמוד|קרוואן|קראוון|\bcampervan|\bmotorhome|\bcaravan|\brv\b|\bby car\b|\b(?:rent(?:al|ing)?\s+(?:a\s+)?car|car\s+(?:hire|rental)|with\s+a\s+car|road\s?trip)\b/i,
   carNo: /(?:בלי|ללא|לא צריך|לא צריכים|לא רוצים)\s*(?:ה)?רכב|\b(?:no|without a|don'?t need a)\s+car\b/i,
-  ski: /סקי|סנובורד|\bski(?:ing)?\b|snowboard/i, nature: /טבע|הרים|מפלים|נופים|נוף|טרקים|טרק|הליכות|מסלולי הליכה|\bnature\b|hiking|hikes?\b|treks?\b|trekking|mountains|waterfalls|scenery/i,
+  ski: /סקי|סנובורד|\bski(?:ing)?\b|snowboard/i, nature: /טבע|הרים|מפלים|נופים|נוף|טרקים|טיולים רגליים|זוהר|צילום נוף|טיול צילום|טרק|הליכות|מסלולי הליכה|\bnature\b|hiking|hikes?\b|treks?\b|trekking|mountains|waterfalls|scenery/i,
   nightlife: /חיי לילה|מסיבות|ברים|nightlife|clubs|\bbars\b|\bparty\b/i, friends: /חברים|חברות|\bfriends\b|\bmates\b/i,
   honeymoon: /ירח דבש|honeymoon/i, luxury: /יוקרה|יוקרתי|פינוק|מפנק|\bluxury\b|luxurious|5[- ]star|five[- ]star|pamper/i,
   food: /אוכל|קולינרי|יין|\bfood\b|culinary|\bwine\b/i, culture: /תרבות|היסטוריה|מוזיאונים|culture|history|museums/i, shopping: /קניות|שופינג|אאוטלט|אופנה|shopping|outlets?|fashion/i,
@@ -65,7 +65,7 @@ export function routeBases(ids, count, { maxHop = Infinity } = {}) {
   while (chosen.length) { chosen.sort((a, b) => km(route.at(-1), a) - km(route.at(-1), b)); route.push(chosen.shift()); }
   return route;
 }
-const HOLIDAY_EN = { פסח: 'Passover', סוכות: 'Sukkot', 'ראש השנה': 'Rosh Hashanah', חנוכה: 'Hanukkah', שבועות: 'Shavuot' };
+const HOLIDAY_EN = { פסח: 'Passover', סוכות: 'Sukkot', 'ראש השנה': 'Rosh Hashanah', חנוכה: 'Hanukkah', שבועות: 'Shavuot', פורים: 'Purim', 'יום כיפור': 'Yom Kippur' };
 const fmtDay = (iso, l) => (l === 'en' ? `${Number(iso.slice(8, 10))}/${Number(iso.slice(5, 7))}/${iso.slice(0, 4)}` : `${Number(iso.slice(8, 10))}.${Number(iso.slice(5, 7))}.${iso.slice(0, 4)}`);
 
 // Destinations named in the text (catalog names in Hebrew/English, with Hebrew prefixes) and countries named.
@@ -86,6 +86,12 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   // Misspelt place names are corrected on a copy the rules read ("ברסלונה" → "ברצלונה"); the visitor's text is kept.
   const raw = String(text || '').slice(0, 1500), fixed = spellFix(raw, CATALOG_NAMES), u = understandRequest(fixed, {}, { today, lang }), b = u.brief, has = (rx) => rx.test(fixed);
   const styles = ['beach', 'city', 'relaxation', 'family', 'couple'].filter((k) => b[k] === true);
+  // More ways people say a style: spa / בטן גב is rest, the sun / snorkelling is the beach, a show is culture, kids make it a family trip.
+  for (const [k, rx] of [['relaxation', /(?:^|\s)ו?ל?ספא(?=[\s,.!?]|$)|בטן[- ]גב|צ'יל|צ׳יל|רוגע|יוגה|ריטריט|\bspa\b|\bchill\b|\byoga\b|\bretreat\b/i], ['beach', /\bsun(?:ny|shine)?\b|\bhot place\b|snorkel|\bsurf|גלישה|לגלוש|שנורקל|על הים|מלון על החוף/i],
+    ['culture', /תיאטרון|ברודווי|הופעות|מחזמר|אופרה|theat(?:re|er)|broadway|musicals?|\bshows?\b|opera/i], ['nightlife', /לצאת בלילות|לצאת בערבים|לבלות|party|parties/i],
+    ['food', /\btapas\b|vegan|טבעוני|בשר|גסטרונומ/i], ['city', /בירה אירופ|עיר בירה|\bcapital\b|city break/i], ['couple', /יום נישואין|אחרי החתונה|anniversary|נשואים טריים/i]])
+    if (rx.test(fixed) && !styles.includes(k)) styles.push(k);
+  if ((b.children || 0) > 0 && !styles.includes('family') && !/בלי ילדים|without (?:the )?kids/i.test(fixed)) styles.push('family');
   for (const k of ['ski', 'nature', 'nightlife', 'food', 'culture', 'shopping', 'luxury']) if (has(RX[k]) && !styles.includes(k)) styles.push(k);
   const friends = has(RX.friends), honeymoon = has(RX.honeymoon);
   const occasion = honeymoon ? 'honeymoon' : friends ? 'friends' : (b.children || 0) > 0 ? 'family' : b.couple ? 'couple' : (b.adults === 1 ? 'solo' : '');
@@ -113,10 +119,12 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   const said = ` ${normalize(fixed)} `, at = (d) => Math.min(...[...nameVariants(d), ...(placeByCode(d.code)?.names || []), ...[d.name?.he, d.name?.en].flatMap((x) => normalize(x).split(/\s+ו|\s*&\s*|\s+—\s+|,\s*/))]
     .filter((x) => x && x.length >= 3).map((x) => said.indexOf(x)).filter((i) => i >= 0), 1e6);
   // A place that only a spelling fix produced, outside the country they named, is a misread ("בתאילנד… טיולים" ≠ Tulum).
-  const saidRaw = new Set(namedInText(raw).found.map((d) => d.id));
+  if (/\bLA\b|\bL\.A\.?/.test(raw)) named.found.push(byId('los-angeles'));
+  const saidRaw = new Set([...namedInText(raw).found.map((d) => d.id), ...(/\bLA\b|\bL\.A\.?/.test(raw) ? ['los-angeles'] : [])]);
   const desertSafari = /ספארי\s*(?:מדבר|ג'יפים|ג׳יפים)|desert safari/i.test(fixed) && !/קניה|kenya/i.test(fixed);
+  const atLA = raw.search(/\bLA\b|\bL\.A\.?/), atOf = (d) => (d.id === 'los-angeles' && atLA >= 0 ? atLA : at(d));
   let wanted = [...new Map([...named.found, ...fromCodes].map((d) => [d.id, d])).values()].filter((d) => !excluded.has(d.id))
-    .filter((d) => saidRaw.has(d.id) || !named.countries.length || named.countries.includes(d.country?.en)).filter((d) => !(desertSafari && d.id === 'kenya-safari')).sort((a, b) => at(a) - at(b));
+    .filter((d) => saidRaw.has(d.id) || !named.countries.length || named.countries.includes(d.country?.en)).filter((d) => !(desertSafari && d.id === 'kenya-safari')).sort((a, b) => atOf(a) - atOf(b));
   const forced = byId(destId);
   if (forced) wanted = [forced, ...wanted.filter((d) => d.id !== forced.id)];
   const legs = detectLegs(fixed, { today, origin: b.origin || 'TLV' })?.legs || null;
@@ -135,13 +143,16 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
     [/גלישה|לגלוש|גלים|\bsurf/i, ['sri-lanka', 'costa-rica', 'tenerife', 'bali', 'lisbon']],
     [/לא חם מדי|לא חם|קריר|not too hot|cool weather|escape the heat/i, ['swiss-alps', 'norway-fjords', 'iceland', 'edinburgh', 'copenhagen', 'amsterdam', 'london', 'munich-bavaria', 'slovenia', 'austrian-alps']],
     [/ויין חם|mulled wine/i, ['vienna', 'prague', 'munich-bavaria', 'berlin', 'budapest']],
+    [/קרוואן|קראוון|campervan|motorhome|\bcaravan/i, ['norway-fjords', 'iceland', 'slovenia', 'swiss-alps', 'munich-bavaria', 'edinburgh', 'austrian-alps']],
+    [/ג'יפים|ג׳יפים|הרפתקא|אקסטרים|אדרנלין|\badventure|\bjeep|\bextreme/i, destinations.filter((d) => d.tags.includes('adventure')).map((d) => d.id)],
+    [/(?:^|\s)(?:ה)?איים(?=[\s,.]|$)|\bislands?\b/i, ['crete', 'rhodes', 'santorini', 'mykonos', 'mallorca', 'sicily', 'tenerife', 'madeira', 'cyprus', 'bali', 'phuket', 'zanzibar', 'mauritius', 'seychelles', 'maldives']],
     [/פריחת (?:ה)?דובדבן|cherry blossom|sakura/i, ['japan']], [/שווקי (?:חג )?(?:ה)?מולד|כריסמס|christmas market/i, ['vienna', 'prague', 'munich-bavaria', 'berlin', 'budapest']],
     [/פיורד|fjord/i, ['norway-fjords']], [/צלילה|שנורקל|snorkel|diving|scuba/i, ['eilat', 'maldives', 'zanzibar', 'seychelles', 'mauritius']],
     [/פארקי שעשועים|יוניברסל|דיסני|disney|universal|theme park/i, ['florida', 'los-angeles', 'paris', 'dubai']], [/(?:^|\s)(?:תרמיל|תרמילאים|תרמילאי)|backpack/i, ['vietnam', 'sri-lanka', 'georgia', 'bangkok', 'peru']]];
   const boost = [...new Set(IDEAS.filter(([rx]) => rx.test(fixed)).flatMap(([, ids]) => ids))];
   // A flight-length limit: "עד 4 שעות טיסה", "לא יותר מ-3 שעות טיסה", "טיסה קצרה", "max 5 hours flight", "short flight".
   const fh = fixed.match(/(?:עד|לא יותר מ-?|מקסימום|פחות מ-?|max(?:imum)?|up to|under|less than|no more than)\s*(\d{1,2}(?:\.5)?)\s*(?:שעות|שעה|hours?|hrs?|h)\s*(?:טיסה|של טיסה|flight|flying|of flight)|(?:טיסה|flight)\s*(?:של\s*)?(?:עד|לא יותר מ-?|מקסימום|max|up to|under)\s*(\d{1,2}(?:\.5)?)\s*(?:שעות|שעה|hours?|hrs?)/i);
-  const fh2 = !fh && fixed.match(/(?:עד|לא יותר מ-?|מקסימום|within|up to|under|max(?:imum)?)\s*(\d(?:\.5)?)\s*(?:שעות|שעה|hours?|hrs?|h)\b(?!\s*(?:נסיעה|הליכה|ביום|ממלון|drive|driving|walk|a day|from))/i);
+  const fh2 = !fh && fixed.match(/(?:עד|לא יותר מ-?|מקסימום|within|up to|under|max(?:imum)?)\s*(\d(?:\.5)?)\s*(?:שעות|שעה|hours?|hrs?|h)(?![א-תa-z])(?!\s*(?:נסיעה|הליכה|ביום|ממלון|drive|driving|walk|a day|from))/i);
   const maxFlightHours = fh ? Number(fh[1] || fh[2]) : fh2 ? Number(fh2[1]) : /טיסה קצרה|טיסות קצרות|קרוב לארץ|לא רחוק|(?:^|\s)(?:הכי\s+)?קרוב(?=[\s,.!?]|$)|\bshort (?:flight|haul)\b|\bclose to israel\b|\bnot far\b|\bclose by\b|\b(?:cheap|something) and close\b/i.test(fixed) ? 4.5 : 0;
   const pool = has(RX.pool);
   if (pool) extra.push({ field: 'pool', label: t('planner.need.pool', {}, lang) });
@@ -217,6 +228,7 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   if (!pool && request.regions?.length) { const inside = ranked.filter((x) => request.regions.some((id) => inRegion(x.destination, id))); if (inside.length) ranked = inside; }
   if (request.excludeRegions?.length) ranked = ranked.filter((x) => !request.excludeRegions.some((id) => inRegion(x.destination, id)));
   if (request.abroad) ranked = ranked.filter((x) => x.destination.region !== 'israel');
+  if (/המזרח הרחוק|דרום מזרח אסיה|far east|south ?east asia/i.test(request.text)) { const fe = ranked.filter((x) => ['Thailand', 'Vietnam', 'Indonesia', 'Japan'].includes(x.destination.country?.en)); if (fe.length) ranked = fe; }
   // In season first (a stable move: the ranking order is kept inside each group); the rest stay as a fallback.
   const month = prefs.month;
   // Ski has its own season rule (by hemisphere, in the ranking): bestMonths are the general climate, not the snow.
