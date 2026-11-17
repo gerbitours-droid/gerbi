@@ -33,7 +33,8 @@ export function check(c) {
   for (const [k, v] of Object.entries(e.needs || {})) if (r.needs[k] !== v) fail(`needs.${k}`, r.needs[k], v);
   for (const s of e.styles || []) if (!r.styles.includes(s)) fail(`style.${s}`, r.styles, s);
   // What was chosen.
-  const stops = p.stops?.length ? p.stops.map((s) => s.id) : p.destination ? [p.destination.id] : [];
+  // Bases of one destination (Tokyo → Kyoto) are one place on the route.
+  const stops = (p.stops?.length ? p.stops.map((s) => s.id) : p.destination ? [p.destination.id] : []).filter((id, i, all) => id !== all[i - 1]);
   if (!stops.length && (e.dest || e.route)) fail('destination', null, e.dest || e.route);
   if (e.route && JSON.stringify(stops) !== JSON.stringify(e.route)) fail('route', stops, e.route);
   if (e.dest && stops.length && !stops.every((id) => e.dest.includes(id))) fail('dest', stops, e.dest);

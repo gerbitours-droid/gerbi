@@ -43,7 +43,9 @@ const CATALOG_NAMES = [...new Set(destinations.flatMap((d) => [d.name?.he, d.nam
 // World regions people name instead of a place ("אירופה", "המזרח הרחוק"); "דרום אמריקה" is the Americas without the USA.
 const SOUTH_AMERICA = ['Peru', 'Argentina', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Bolivia', 'Uruguay'];
 export const inRegion = (d, id) => (id === 'latin-america' ? d?.region === 'americas' && d?.country?.en !== 'United States'
-  : id === 'south-america' ? d?.region === 'americas' && SOUTH_AMERICA.includes(d?.country?.en) : d?.region === id);
+  : id === 'south-america' ? d?.region === 'americas' && SOUTH_AMERICA.includes(d?.country?.en)
+  // "אירופה" as Israelis say it: not the Caucasus.
+  : id === 'europe' ? d?.region === 'europe' && d?.country?.en !== 'Georgia' : d?.region === id);
 // Approximate coordinates of each catalog destination: only to order the bases of a long trip as a route (nearest next),
 // never shown. A destination missing here is simply placed by its ranking.
 const COORDS = { rome: [41.9, 12.5], 'milan-lake-como': [45.6, 9.1], venice: [45.4, 12.3], 'florence-tuscany': [43.8, 11.25], 'amalfi-naples': [40.7, 14.5], sicily: [37.5, 14.5],
@@ -79,6 +81,23 @@ function namedInText(text) {
     if ([d.country?.he, d.country?.en].filter(Boolean).some(has)) countries.add(d.country.en);
   }
   return { found: found.sort((a, b) => a.at - b.at).map((x) => x.d), countries: [...countries] };
+}
+
+// "שבוע בוייטנאם ואז שבוע בפוקט", "3 nights in Rome then 4 in Florence": a length said next to each place → its nights.
+const UNIT_NIGHTS = [[/(\d+)\s*לילות?/, (m) => +m[1]], [/(\d+)\s*ימים/, (m) => +m[1] - 1], [/שבועיים/, () => 14], [/שבוע/, () => 7], [/סופ"?ש|סוף שבוע/, () => 3],
+  [/(\d+)\s*nights?/i, (m) => +m[1]], [/(\d+)\s*days?/i, (m) => +m[1] - 1], [/(?:two|2)\s*weeks|fortnight/i, () => 14], [/(?:a|one)\s*week/i, () => 7]];
+function legNightsOf(text, wanted) {
+  if (wanted.length < 2) return null;
+  const n = ` ${normalize(text)} `, out = [];
+  for (const d of wanted) {
+    const at = Math.min(...nameVariants(d).map((v) => n.indexOf(v)).filter((i) => i >= 0), 1e6);
+    if (at === 1e6) return null;
+    const before = n.slice(Math.max(0, at - 18), at), after = n.slice(at, at + 40).replace(/^\S+(?:\s+\S+)?/, '');
+    const hit = UNIT_NIGHTS.map(([rx, f]) => { const m = before.match(new RegExp(rx.source + '\\s*(?:ב|ל|in|at)?\\s*-?\\s*$', 'i')) || after.match(new RegExp('^\\s*,?\\s*(?:ל|for)?\\s*' + rx.source, 'i')); return m ? f(m) : null; }).find((x) => x);
+    if (!hit) return null;
+    out.push(hit);
+  }
+  return out;
 }
 
 // text + quick chips (already appended to the text by the page) → the trip request.
@@ -125,6 +144,13 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   const atLA = raw.search(/\bLA\b|\bL\.A\.?/), atOf = (d) => (d.id === 'los-angeles' && atLA >= 0 ? atLA : at(d));
   let wanted = [...new Map([...named.found, ...fromCodes].map((d) => [d.id, d])).values()].filter((d) => !excluded.has(d.id))
     .filter((d) => saidRaw.has(d.id) || !named.countries.length || named.countries.includes(d.country?.en)).filter((d) => !(desertSafari && d.id === 'kenya-safari')).sort((a, b) => atOf(a) - atOf(b));
+  // "אתונה + איים", "Athens and the islands": the named place, then the islands of its country.
+  const ISLANDS = { Greece: ['santorini', 'mykonos', 'crete', 'rhodes'], Italy: ['sicily', 'amalfi-naples'], Spain: ['mallorca', 'tenerife'], Croatia: ['croatia'] };
+  if (wanted.length === 1 && /(?:\+|ו|and(?: the)?|with(?: the)?)\s*(?:ה)?(?:איים|islands)(?![א-ת])/i.test(fixed)) {
+    const isl = (ISLANDS[wanted[0].country?.en] || []).filter((id) => id !== wanted[0].id && !excluded.has(id)).map(byId);
+    const n = (b.nights || 7) >= 10 ? 2 : 1;
+    wanted.push(...isl.slice(0, n));
+  }
   const forced = byId(destId);
   if (forced) wanted = [forced, ...wanted.filter((d) => d.id !== forced.id)];
   const legs = detectLegs(fixed, { today, origin: b.origin || 'TLV' })?.legs || null;
@@ -169,7 +195,7 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
     asked: { stars: stars > 0 },
     destinations: alternatives ? [] : wanted.map((d) => d.id).slice(0, 4), shortlist: alternatives ? wanted.map((d) => d.id) : [], countries: named.countries, exclude: [...excluded],
     regions: b.regions || [], excludeRegions: b.excludeRegions || [],
-    maxFlightHours, abroad: /חו"ל|חו״ל|חוץ לארץ|לחו"ל|\babroad\b|\boverseas\b/i.test(fixed) || (b.excludeRegions || []).length > 0, ...(boost.length ? { boost } : {}), legs, suggest: !wanted.length || has(RX.suggest) && !forced,
+    legNights: legNightsOf(fixed, wanted), maxFlightHours, abroad: /חו"ל|חו״ל|חוץ לארץ|לחו"ל|\babroad\b|\boverseas\b/i.test(fixed) || (b.excludeRegions || []).length > 0, ...(boost.length ? { boost } : {}), legs, suggest: !wanted.length || has(RX.suggest) && !forced,
     understood: [...u.understood.filter((x) => !['want', 'exclude'].includes(x.field) || (x.field === 'exclude' && (b.excludeRegions || []).length)).map(({ field, label }) => ({ field, label })), ...extra],
     coverage: u.coverage
   };
@@ -228,6 +254,7 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   if (!pool && request.regions?.length) { const inside = ranked.filter((x) => request.regions.some((id) => inRegion(x.destination, id))); if (inside.length) ranked = inside; }
   if (request.excludeRegions?.length) ranked = ranked.filter((x) => !request.excludeRegions.some((id) => inRegion(x.destination, id)));
   if (request.abroad) ranked = ranked.filter((x) => x.destination.region !== 'israel');
+  if (request.needs.car === 'yes') ranked = [...ranked.filter((x) => countrySized(x.destination)), ...ranked.filter((x) => !countrySized(x.destination))];
   if (/המזרח הרחוק|דרום מזרח אסיה|far east|south ?east asia/i.test(request.text)) { const fe = ranked.filter((x) => ['Thailand', 'Vietnam', 'Indonesia', 'Japan'].includes(x.destination.country?.en)); if (fe.length) ranked = fe; }
   // In season first (a stable move: the ranking order is kept inside each group); the rest stay as a fallback.
   const month = prefs.month;
@@ -387,6 +414,44 @@ function mustSeeOf(dest) {
 const REGION_SIZED = new Set(['swiss-alps', 'austrian-alps', 'amalfi-naples', 'goa', 'bali', 'zanzibar', 'kenya-safari']);
 export const countrySized = (d) => (d?.countrySized ?? null) !== null ? d.countrySized === true : Array.isArray(d?.bases) || d?.transport?.carRecommended === true
   || REGION_SIZED.has(d?.id) || normalize(d?.name?.en).replace(/^the /, '') === normalize(d?.country?.en);
+// Where a country-sized trip sleeps: its bases in route order. weight → share of the nights; city → the hotel search's city
+// code ('' = no live search there, an agent quotes it); air → the airport to fly home from when the trip ends there;
+// areas → the catalog attraction areas that belong to the base; trips → its day trips (English name starts).
+// ponytail: hand-written for the destinations whose areas are hours apart; the rest stay one base with day trips.
+const B = (areas, weight, city, air, trips = []) => ({ areas: [].concat(areas), weight, city, air, trips });
+export const BASES = {
+  japan: [B('Tokyo', 3, 'TYO', 'TYO', ['Kamakura', 'Hakone']), B('Fuji & Hakone', 1, '', ''), B('Kyoto', 2.5, 'UKY', 'OSA', ['Nara']), B('Osaka', 1.5, 'OSA', 'OSA', ['Hiroshima', 'Nara'])],
+  vietnam: [B('Hanoi', 3, 'HAN', 'HAN', ['Ha Long', 'Ninh Binh', 'Sapa']), B(['Hoi An', 'Da Nang'], 2.5, 'DAD', 'DAD', ['My Son', 'Hue', 'Ba Na']), B('Ho Chi Minh City (Saigon)', 2, 'SGN', 'SGN', ['Mekong', 'Cu Chi'])],
+  'sri-lanka': [B('The Cultural Triangle', 2.5, '', 'CMB'), B('Kandy', 1.5, '', 'CMB'), B('Ella & the tea hills', 1.5, '', 'CMB'), B(['The south coast (Galle & Mirissa)', 'Yala (Tissamaharama)', 'Udawalawe'], 2.5, '', 'CMB')],
+  'new-zealand': [B('Auckland', 2, 'AKL', 'AKL'), B(['Rotorua', 'Tongariro National Park'], 2, 'ROT', 'AKL'), B('Queenstown', 3, 'ZQN', 'ZQN', ['Milford']), B('Wanaka & Mount Cook', 1.5, '', 'ZQN')],
+  peru: [B(['Miraflores (Lima)', 'Barranco (Lima)', 'Lima Centro', 'Pueblo Libre (Lima)'], 2, 'LIM', 'LIM'), B('Cusco', 2.5, 'CUZ', 'CUZ', ['Rainbow', 'Vinicunca']), B(['Sacred Valley', 'Aguas Calientes'], 2, '', 'CUZ')],
+  'costa-rica': [B('La Fortuna & Arenal', 3, '', 'SJO'), B('Monteverde', 1.5, '', 'SJO'), B(['Manuel Antonio', 'Turrialba'], 2.5, '', 'SJO')],
+  iceland: [B('Reykjavík', 3, 'REK', 'KEF', ['Golden Circle', 'Blue Lagoon', 'Snæfellsnes']), B('The South Coast (Vík)', 2, '', 'KEF'), B('Akureyri & the North', 2, 'AEY', 'KEF')],
+  'norway-fjords': [B(['Bergen', 'Stavanger'], 2.5, 'BGO', 'BGO'), B(['Flåm & Aurland', 'Lærdal', 'Geiranger'], 2, '', 'BGO'), B('Hardanger (Odda & Lofthus)', 1.5, '', 'BGO')],
+  'kenya-safari': [B('Nairobi (Karen)', 1, 'NBO', 'NBO'), B('Maasai Mara', 3, '', 'NBO'), B('Amboseli', 2, '', 'NBO'), B('Naivasha & Nakuru (Rift Valley)', 1.5, '', 'NBO')],
+  florida: [B(['Miami Beach (South Beach)', 'Central Miami', 'Sunrise (Fort Lauderdale)'], 3, 'MIA', 'MIA', ['Everglades', 'Key']), B('Orlando (theme-park area)', 3, 'ORL', 'MCO', ['Kennedy'])],
+  sicily: [B(['Palermo', 'Cefalù'], 2, 'PMO', 'PMO'), B(['Syracuse — Ortigia', 'Noto', 'Agrigento'], 2, '', 'CTA'), B(['Taormina', 'Catania'], 2, 'CTA', 'CTA', ['Etna'])],
+  croatia: [B(['Split centre', 'Krka', 'Brač', 'Trogir'], 3, 'SPU', 'SPU'), B(['Dubrovnik Old Town', 'Lokrum'], 3, 'DBV', 'DBV')],
+  'swiss-alps': [B('Zurich', 1.5, 'ZRH', 'ZRH'), B('Lucerne', 2, '', 'ZRH'), B(['Interlaken', 'Grindelwald, Wengen & Lauterbrunnen'], 3, '', 'ZRH')],
+  georgia: [B('Tbilisi — Old Town', 3, 'TBS', 'TBS'), B('Kazbegi (Stepantsminda)', 1.5, '', 'TBS'), B('Kakheti — Sighnaghi & Telavi', 1.5, '', 'TBS'), B(['Batumi', 'Kutaisi'], 2, 'BUS', 'BUS')],
+  'amalfi-naples': [B(['Naples — historic centre', 'Naples — Chiaia seafront', 'Pompeii', 'Ercolano', 'Vesuvius'], 2, 'NAP', 'NAP'), B(['Positano', 'Amalfi & Ravello', 'Furore', 'Capri'], 3, '', 'NAP')],
+  'munich-bavaria': [B(['Munich Altstadt', 'Schwabing & Maxvorstadt', 'Nymphenburg', 'Isarvorstadt', 'Olympiapark', 'Dachau'], 3, 'MUC', 'MUC'), B(['Füssen', 'Garmisch-Partenkirchen', 'Berchtesgaden'], 2, '', 'MUC')]
+};
+// A country-sized stop of 5+ nights → its bases: about one per 3.5 nights (the heaviest ones, kept in route order),
+// nights by weight, at least 2 a base (1 for a one-night stopover like Hakone).
+export function splitBases(stop) {
+  const all = BASES[stop.dest.id];
+  if (!all || stop.nights < 5) return [stop];
+  const n = Math.min(all.length, Math.max(2, Math.round(stop.nights / 3.5)));
+  const picked = [...all].sort((a, b) => b.weight - a.weight).slice(0, n), route = all.filter((b) => picked.includes(b));
+  const w = route.reduce((t, b) => t + b.weight, 0), min = (b) => (b.weight <= 1 ? 1 : 2);
+  const nights = route.map((b) => Math.max(min(b), Math.floor((stop.nights * b.weight) / w)));
+  while (nights.reduce((a, b) => a + b, 0) > stop.nights) { const i = nights.findIndex((x, k) => x > min(route[k]) && x === Math.max(...nights)); if (i < 0) break; nights[i]--; }
+  for (let k = 0; nights.reduce((a, b) => a + b, 0) < stop.nights; k++) nights[k % route.length]++;
+  let cursor = stop.start;
+  return route.map((base, i) => { const st = { ...stop, base, start: cursor, end: addDays(cursor, nights[i]), nights: nights[i] }; cursor = st.end; return st; });
+}
+const baseName = (s) => { if (!s.base) return s.dest.name; const a = (s.dest.areas || []).find((x) => s.base.areas.includes(x.name?.en)); return a ? a.name : { he: s.base.areas[0], en: s.base.areas[0] }; };
 const dayTripHours = (dt) => Math.max(4, (dt.hours || 1) * 2 + 4);
 
 function freeIdeaKeys(request, dest, cold) {
@@ -399,7 +464,9 @@ function freeIdeaKeys(request, dest, cold) {
   return [...new Set([...keys, 'walk', 'food', 'cafe'])];
 }
 
-function stopDays(dest, request, { start, nights, first, last, stopIndex, l, others = [] }) {
+function stopDays(dest, request, { start, nights, first, last, stopIndex, l, others = [], base = null }) {
+  // A base of a country-sized trip: only its own areas and day trips, and no area hopping inside it.
+  if (base) dest = { ...dest, attractions: (dest.attractions || []).filter((a) => base.areas.includes(a.area)), dayTrips: (dest.dayTrips || []).filter((dt) => base.trips.some((x) => L(dt.name, 'en').startsWith(x))), countrySized: base.areas.length > 1 };
   const where = L(dest.name, l), p = pace(request), want = wantTags(request, p.profile), asked = styleTags(request, p.profile), month = Number(start.slice(5, 7));
   const sized = countrySized(dest), isMust = mustSeeOf(dest), warnings = new Set();
   const item = (a) => ({ name: L(a.name, l), kind: a.kind, durationH: a.durationH, area: a.area || '', where, mapsUrl: mapsUrl(L(a.name, l), where) });
@@ -428,7 +495,9 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
   const trips = (dest.dayTrips || []).map((dt, i) => ({ dt, h: dayTripHours(dt), s: (dt.mustSee ? 3 : 0) + (dt.tags || []).filter((x) => want.has(x)).length * 2 - (request.children ? dayTripHours(dt) * 0.1 : 0) - i * 0.01 }))
     .filter((x) => x.h <= p.dayTripH && !(Array.isArray(x.dt.months) && x.dt.months.length && !x.dt.months.includes(month)) && !others.some((o) => overlaps(o, x.dt.name)))
     .sort((x, y) => y.s - x.s);
-  const tripCount = nights >= 5 && fullIdx.length >= 3 ? Math.min(Math.max(1, Math.round(nights / 3.5)), Math.floor((fullIdx.length - 1) / 2), trips.length) : 0;
+  // A base of a longer trip gets its day trip from 3 nights (Kyoto → Nara), the rest from 5.
+  const tripCount = nights >= 5 && fullIdx.length >= 3 ? Math.min(Math.max(1, Math.round(nights / 3.5)), Math.floor((fullIdx.length - 1) / 2), trips.length)
+    : base && nights >= 3 && fullIdx.length >= 2 && trips.length ? 1 : 0;
   const chosen = trips.slice(0, tripCount);
   chosen.forEach((x, k) => { kinds[fullIdx[Math.floor(((k + 1) * fullIdx.length) / (tripCount + 1))]] = 'daytrip'; });
   // A day trip to a place replaces the same place as an attraction (no "Phi Phi" twice).
@@ -519,11 +588,11 @@ export function buildItinerary(stops, request, l = 'he') {
   const days = [], spare = [], warnings = [];
   stops.forEach((s, i) => {
     const others = stops.filter((_, k) => k !== i).map((o) => o.dest.name);
-    const part = stopDays(s.dest, request, { start: s.start, nights: s.nights, first: i === 0, last: i === stops.length - 1, stopIndex: i, l, others });
+    const part = stopDays(s.dest, request, { start: s.start, nights: s.nights, first: i === 0, last: i === stops.length - 1, stopIndex: i, l, others: s.base ? [] : others, base: s.base || null });
     days.push(...part.days); spare.push(...part.spare.slice(0, 6));
     for (const w of part.warnings) warnings.push(t(`build.warn.${w}`, { place: L(s.dest.name, l) }, l));
   });
-  return { days: days.map((d, i) => ({ ...d, day: i + 1, title: dayTitle(d, l, L(stops[d.stop]?.dest.name, l)),
+  return { days: days.map((d, i) => ({ ...d, day: i + 1, title: dayTitle(d, l, L(stops[d.stop] ? baseName(stops[d.stop]) : '', l)),
     note: d.note || (d.kind === 'shabbat' ? t('build.note.shabbat', {}, l) : request.needs.shabbat && weekday(d.date) === 5 && d.kind === 'full' ? t('build.note.friday', {}, l) : request.needs.shabbat && weekday(d.date) === 6 ? t('build.note.travelShabbat', {}, l) : '') })), spare, warnings };
 }
 
@@ -549,9 +618,15 @@ export function passengers(request) {
   if (inf > adt) { chd += inf - adt; inf = adt; }
   return [{ ptc: 'ADT', count: Math.min(9, adt) }, ...(chd ? [{ ptc: 'CHD', count: chd }] : []), ...(inf ? [{ ptc: 'INF', count: inf }] : [])];
 }
+// Two places under ~450 km apart on the mainland (Rome → Florence, Vienna → Budapest, Paris → London) go by train or road,
+// not a flight; islands always fly (or sail). ponytail: straight-line distance, a rail map would be the upgrade.
+const ISLAND = new Set(['santorini', 'mykonos', 'crete', 'rhodes', 'mallorca', 'tenerife', 'madeira', 'sicily', 'cyprus', 'maldives', 'bali', 'zanzibar', 'seychelles', 'mauritius', 'phuket', 'iceland']);
+export const byLand = (a, b) => Boolean(a && b && a.id !== b.id && !ISLAND.has(a.id) && !ISLAND.has(b.id) && COORDS[a.id] && COORDS[b.id] && km(a.id, b.id) < 450);
 export function flightSearchOf(request, stops) {
-  const codes = [request.origin, ...stops.map((s) => s.dest.code), request.origin];
-  const legs = codes.slice(0, -1).map((from, i) => ({ origin: { code: from, type: placeType(from) }, destination: { code: codes[i + 1], type: placeType(codes[i + 1]) }, date: i === 0 ? stops[0].start : stops[i - 1].end }));
+  // Bases of one destination are joined by train or road: one flight in (the first base's airport), one out (the last's).
+  const groups = []; stops.forEach((s) => { const g = groups.at(-1); if (g && ((g.dest.id === s.dest.id && s.base) || byLand(g.last, s.dest))) { g.out = s.base?.air || s.dest.code; g.end = s.end; g.last = s.dest; } else groups.push({ dest: s.dest, last: s.dest, in: s.base?.air || s.dest.code, out: s.base?.air || s.dest.code, start: s.start, end: s.end }); });
+  const hops = [{ out: request.origin }, ...groups, { in: request.origin }];
+  const legs = hops.slice(0, -1).map((from, i) => ({ origin: { code: from.out, type: placeType(from.out) }, destination: { code: hops[i + 1].in, type: placeType(hops[i + 1].in) }, date: i === 0 ? groups[0].start : groups[i - 1].end }));
   return { originDestinations: legs, passengers: { ptcList: passengers(request) }, sellingChannel: 'B2B', language: 'en_GB', timeout: 10 };
 }
 // Hotel rooms: two adults per room, children spread (at most 2 per room); unknown ages search as 8 (stated).
@@ -564,7 +639,7 @@ export function roomsOf(request) {
   return rooms.filter((r) => r.adults > 0);
 }
 export function hotelSearchOf(request, stop, area) {
-  return { destinationId: stop.dest.id, city: hotelCityOf(stop.dest), checkIn: stop.start, checkOut: stop.end, rooms: roomsOf(request), board: request.needs.board || '',
+  return { destinationId: stop.dest.id, city: stop.base ? stop.base.city : hotelCityOf(stop.dest), checkIn: stop.start, checkOut: stop.end, rooms: roomsOf(request), board: request.needs.board || '',
     minStars: defaultStars(request), family: request.children > 0, area: area ? L(area.name, 'en') : '' };
 }
 // The area the catalog recommends for these travellers: matched on its "for whom" text.
@@ -614,10 +689,11 @@ function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10)
   // A country or a region for two weeks or more ("חודש באיטליה", "3 weeks in Thailand"): several bases of about a week
   // each, best-ranked first – never one city for a month, never cut to a week.
   let bases = 0;
-  if (!chosenId && !request.destinations.length && !request.shortlist.length && !request.legs && (request.countries.length || request.regions?.length) && request.nights >= 14) {
-    const want = Math.min(4, Math.max(2, Math.round(request.nights / 7)));
+  const roadTrip = request.needs.car === 'yes' && /כמה מקומות|בין מקומות|כמה ערים|מסלול|road ?trip|several places|a few places|multiple/i.test(request.text);
+  if (!chosenId && !request.destinations.length && !request.shortlist.length && !request.legs && (request.countries.length || request.regions?.length) && (request.nights >= 14 || (roadTrip && request.nights >= 6))) {
+    const want = roadTrip && request.nights < 14 ? Math.min(3, Math.max(2, Math.round(request.nights / 3.5))) : Math.min(4, Math.max(2, Math.round(request.nights / 7)));
     const pool = suggestDestinations(request, { today, limit: 12 }).filter((s) => !s.advisory && (!request.countries.length || request.countries.includes(s.country?.en)));
-    const route = routeBases(pool.map((s) => s.id), want, { maxHop: request.countries.length ? Infinity : 3500 });
+    const route = routeBases(pool.map((s) => s.id), want, { maxHop: request.countries.length ? Infinity : roadTrip ? 700 : 3500 });
     if (route.length > 1) { ids = route; bases = ids.length; }
   }
   const dests = ids.map(byId).filter(Boolean);
@@ -630,7 +706,9 @@ function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10)
   if (legDates) { r.start = legDates[0]; r.end = legDates.at(-1); r.nights = daysBetween(r.start, r.end); stops = dests.map((d, i) => ({ dest: d, start: legDates[i], end: legDates[i + 1], nights: daysBetween(legDates[i], legDates[i + 1]) })); }
   else {
     let cursor = r.start;
-    stops = dests.map((d, i) => { const n = Math.floor(r.nights / dests.length) + (i < r.nights % dests.length ? 1 : 0); const s = { dest: d, start: cursor, end: addDays(cursor, Math.max(1, n)), nights: Math.max(1, n) }; cursor = s.end; return s; });
+    const said = request.legNights?.length === dests.length && !request.end ? request.legNights : null;
+    if (said) r.nights = said.reduce((a, b) => a + b, 0);
+    stops = dests.map((d, i) => { const n = said ? said[i] : Math.floor(r.nights / dests.length) + (i < r.nights % dests.length ? 1 : 0); const s = { dest: d, start: cursor, end: addDays(cursor, Math.max(1, n)), nights: Math.max(1, n) }; cursor = s.end; return s; });
     // Shabbat-observant: no internal flight on Saturday – the boundary moves a day earlier (or later).
     if (r.needs.shabbat) for (let i = 1; i < stops.length; i++) if (weekday(stops[i].start) === 6) {
       const shift = stops[i - 1].nights > 1 ? -1 : stops[i].nights > 1 ? 1 : 0;
@@ -638,9 +716,15 @@ function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10)
     }
     r.end = stops.at(-1).end; r.nights = daysBetween(r.start, r.end);
   }
+  const before = stops.length;
+  stops = stops.flatMap(splitBases);
+  const split = stops.length > before ? stops.filter((s) => s.base) : [];
   const it = buildItinerary(stops, r, l), main = dests[0];
   const assumed = dates.assumed.map((a) => (['anchor', 'holiday'].includes(a.key) ? t(`planner.assumed.${a.key}`, { date: fmtDay(a.date, l), holiday: a.holiday && l === 'en' ? HOLIDAY_EN[a.holiday] || a.holiday : a.holiday }, l)
     : t(`build.assumed.${a.key}`, { nights: a.nights, month: monthName(a.month, l) }, l)));
+  const land = stops.filter((s, i) => i > 0 && byLand(stops[i - 1].dest, s.dest)).map((s, i) => `${L(stops[stops.indexOf(s) - 1].dest.name, l)} ← ${L(s.dest.name, l)}`);
+  if (land.length) assumed.push(t('build.assumed.ground', { list: land.join(', ') }, l));
+  if (split.length && !bases) assumed.push(t('planner.assumed.bases', { nights: split.reduce((a, s) => a + s.nights, 0), count: split.length, list: split.map((s) => `${L(baseName(s), l)} (${s.nights})`).join(', ') }, l));
   if (bases) assumed.push(t('planner.assumed.bases', { nights: r.nights, count: bases, list: stops.map((s) => `${L(s.dest.name, l)} (${s.nights})`).join(', ') }, l));
   // The live hotel search covers 30 nights per stay; a longer base is completed by an agent (said, not hidden).
   if (stops.some((s) => s.nights > 30)) assumed.push(t('planner.assumed.longStay', {}, l));
@@ -649,8 +733,8 @@ function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10)
   if (hotelNeeds.length) assumed.push(t('planner.assumed.needs', { list: hotelNeeds.join(', ') }, l));
   if (!request.understood.some((x) => x.field === 'adults')) assumed.unshift(t('build.assumed.adults', {}, l));
   if (request.children > request.childAges.length) assumed.push(t('build.assumed.ages', {}, l));
-  const stopView = (s) => ({ id: s.dest.id, code: s.dest.code, name: s.dest.name, country: s.dest.country, nights: s.nights, start: s.start, end: s.end, dailyBudgetIls: s.dest.dailyBudgetIls, image: imageOf(s.dest), summary: s.dest.summary, advisory: s.dest.advisory || null });
-  const areas = stops.map((s) => areaFor(s.dest, r));
+  const stopView = (s) => ({ id: s.dest.id, code: s.base?.air || s.dest.code, name: baseName(s), ...(s.base ? { base: L(baseName(s), 'en'), country: s.dest.country } : {}), country: s.dest.country, nights: s.nights, start: s.start, end: s.end, dailyBudgetIls: s.dest.dailyBudgetIls, image: imageOf(s.dest), summary: s.dest.summary, advisory: s.dest.advisory || null });
+  const areas = stops.map((s) => (s.base ? (s.dest.areas || []).find((a) => s.base.areas.includes(a.name?.en)) || null : areaFor(s.dest, r)));
   // Budget (spec 28 §א.2): the highest stars / meal plan / car whose estimated HIGH end fits the cap (no supplier call).
   const base = baseConfigOf(r, main), budgetPlan = fitTrip(stops, r, base), cfg = budgetPlan?.config || base;
   if (budgetPlan) {
@@ -666,7 +750,7 @@ function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10)
   return {
     request: r, suggestions, assumed, budgetPlan,
     destination: stopView(stops[0]), stops: stops.length > 1 ? stops.map(stopView) : [],
-    areas: stops.map((s) => (s.dest.areas || []).map((a) => ({ name: a.name, forWhom: a.forWhom }))),
+    areas: stops.map((s) => (s.dest.areas || []).filter((a) => !s.base || s.base.areas.includes(a.name?.en)).map((a) => ({ name: a.name, forWhom: a.forWhom }))),
     flightSearch: flightSearchOf(r, stops), hotelSearches: stops.map((s, i) => ({ ...hotelSearchOf(r, s, areas[i]), minStars: cfg.stars, board: cfg.board })),
     hotelAreas: areas.map((a) => (a ? { name: a.name, forWhom: a.forWhom } : null)),
     car: { ...carAdvice(main, r, l), include: cfg.car }, itinerary: it.days, spare: it.spare, warnings: it.warnings,
