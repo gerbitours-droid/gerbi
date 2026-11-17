@@ -5,7 +5,7 @@
 //   2. fitPackage – after prices arrive: cheapest fitting flight → cheaper hotel tier (no area) → lower meal plan →
 //      one star down → no car (unless asked for). Never shows an over-budget package as fitting.
 //   3. upsellOffers – up to 5 upgrades that cost at most ₪500 more, each with what it adds and how to apply it.
-import { COST_MODEL as M, CHILD_WEIGHT, pricePackage, selectedFlight, selectedHotels, travellers, carsFor, vansFor, MAX_PICKS } from './trip-package.mjs';
+import { COST_MODEL as M, CHILD_WEIGHT, typical, pricePackage, selectedFlight, selectedHotels, travellers, carsFor, vansFor, MAX_PICKS } from './trip-package.mjs';
 import { toIls } from './fx.mjs';
 
 export const UPSELL_MAX = 500, UPSELL_CARDS = 5;
@@ -52,14 +52,14 @@ const spread = (stops, n) => stops.map((s, i) => ({ ...s, nights: Math.max(1, Ma
 // Before the search: the best configuration whose HIGH end fits, or the closest one with how far over it is.
 export function fitTrip(stops, r, base) {
   if (!(r?.budget > 0) || !stops.length) return null;
-  const configs = budgetLadder(base, r), at = configs.findIndex((c) => estimateTrip(stops, r, c).high <= r.budget);
+  const configs = budgetLadder(base, r), at = configs.findIndex((c) => typical(estimateTrip(stops, r, c)) <= r.budget);
   const fits = at >= 0, config = configs[fits ? at : configs.length - 1], est = estimateTrip(stops, r, config);
   const changes = [config.board !== base.board && 'board', config.stars !== base.stars && 'stars', config.car !== base.car && 'car'].filter(Boolean);
   const out = { amount: r.budget, fits, config: { stars: config.stars, board: config.board, car: config.car }, base: { stars: base.stars, board: base.board, car: base.car }, changes, estimate: { low: est.low, high: est.high } };
   if (!fits) {
-    out.overBy = est.high - r.budget; out.raiseTo = ceil100(est.high);
+    out.overBy = typical(est) - r.budget; out.raiseTo = ceil100(typical(est));
     const total = stops.reduce((s, x) => s + x.nights, 0);
-    for (let n = total - 1; n >= Math.max(2, stops.length); n--) if (estimateTrip(spread(stops, n), r, config).high <= r.budget) { out.nights = n; break; }
+    for (let n = total - 1; n >= Math.max(2, stops.length); n--) if (typical(estimateTrip(spread(stops, n), r, config)) <= r.budget) { out.nights = n; break; }
   }
   return out;
 }
@@ -140,10 +140,10 @@ export function fitPackage(pkg, fx) {
   const out = { verdict, steps, fits: verdict === 'within' };
   if (verdict === 'over') {
     const pr = pricePackage(pkg, fx);
-    out.overBy = pr.budget.diff; out.raiseTo = ceil100(pr.total.high);
+    out.overBy = pr.budget.diff; out.raiseTo = ceil100(typical(pr.total));
     // Fewer nights: what scales with nights (hotel, ground, car, insurance) shrinks; flights, transfers and bags stay.
     const fixed = pr.lines.filter((l) => ['flight', 'transfers', 'bags'].includes(l.id.split(':')[0]) || l.id.startsWith('extra')).reduce((s, l) => s + (l.kind === 'live' ? l.ils : l.range?.high || 0), 0);
-    const nights = r.nights || 1, perNight = (pr.total.high - fixed) / nights, n = perNight > 0 ? Math.floor((r.budget - fixed) / perNight) : 0;
+    const nights = r.nights || 1, perNight = (typical(pr.total) - fixed) / nights, n = perNight > 0 ? Math.floor((r.budget - fixed) / perNight) : 0;
     if (n >= 1 && n < nights) out.nights = n;
   }
   return out;

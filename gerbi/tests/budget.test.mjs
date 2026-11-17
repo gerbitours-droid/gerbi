@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { parseTrip, planPackage, applyEdits, suggestDestinations } from '../dist/trip-builder.mjs';
-import { pricePackage } from '../dist/trip-package.mjs';
+import { pricePackage, typical } from '../dist/trip-package.mjs';
 import { estimateTrip, budgetLadder, fitPackage, upsellOffers, applyUpsell, flightsInBudget, UPSELL_MAX } from '../dist/budget.mjs';
 import { byId } from '../dist/catalog.mjs';
 import { slimHotel, hotelOptions } from '../backend/hotels.mjs';
@@ -41,14 +41,14 @@ const CASES = ['זוג, 4 לילות ברומא במאי, תקציב עד 6000 �
   'זוג, סקי בבנסקו בינואר, 6 לילות, עד 7000 ש"ח', 'זוג, משהו זול במרץ, 4 לילות, עד 5000 ש"ח, תציעו', 'זוג לרומא 4 לילות במאי, עד 10 אלף שקל', 'ירח דבש במלדיביים, 7 לילות בפברואר, תקציב 45000 שקל',
   'זוג לרומא 5 לילות במאי, תקציב 25000 ש"ח'];
 
-test('pre-search cap: the chosen stars/meal plan/car fit at the HIGH end, or the plan says how far over it is (never silently over)', () => {
+test('pre-search cap: the chosen stars/meal plan/car fit at the TYPICAL estimate (the middle of the range, owner 18.11.2026), or the plan says how far over it is (never silently over)', () => {
   for (const text of CASES) {
     const p = plan(text), b = p.budgetPlan, stops = (p.stops.length ? p.stops : [p.destination]).map((s) => ({ dest: byId(s.id), nights: s.nights }));
     assert.ok(b, text);
     const est = estimateTrip(stops, p.request, b.config);
     assert.equal(est.high, b.estimate.high, text);
-    if (b.fits) assert.ok(est.high <= p.request.budget, `${text}: ${est.high} > ${p.request.budget}`);
-    else { assert.ok(b.overBy > 0 && b.raiseTo >= est.high, text); const { step, ...last } = budgetLadder(b.base, p.request).at(-1); assert.deepEqual(b.config, last, 'nothing fits → everything the ladder may give up is given up'); }
+    if (b.fits) assert.ok(typical(est) <= p.request.budget, `${text}: ${typical(est)} > ${p.request.budget}`);
+    else { assert.ok(b.overBy > 0 && b.raiseTo >= typical(est), text); const { step, ...last } = budgetLadder(b.base, p.request).at(-1); assert.deepEqual(b.config, last, 'nothing fits → everything the ladder may give up is given up'); }
     assert.equal(p.hotelSearches[0].minStars, b.config.stars, 'the hotel search uses the fitted stars'); assert.equal(p.car.include, b.config.car);
   }
   const roomy = plan('זוג לרומא 5 לילות במאי, תקציב 25000 ש"ח');
@@ -89,16 +89,16 @@ function pricedPackage({ budget, car = 'auto', direct = false, flightUsd = 900 }
       { id: 'stars', tier: 'cheap', minStars: 3, board: '', estimate: est(700, 800) },
       { id: 'upStars', tier: 'asked', minStars: 5, board: '', estimate: est(1300, 1700) }, { id: 'upBoard', tier: 'asked', minStars: 4, board: 'BB', estimate: est(1250, 1680) }] } };
 }
-const high = (pkg) => pricePackage(pkg, FX).total.high;
+const high = (pkg) => pricePackage(pkg, FX).total.high, cost = (pkg) => typical(pricePackage(pkg, FX).total);
 
-test('post-price fit: cheapest fitting flight → cheaper hotel (any area) → lower meal plan → a star down → no car; compared at the high end', () => {
-  const full = pricedPackage({ budget: 1e6 }), start = high(full);
+test('post-price fit: cheapest fitting flight → cheaper hotel (any area) → lower meal plan → a star down → no car; compared at the typical estimate', () => {
+  const full = pricedPackage({ budget: 1e6 }), start = cost(full);
   // A budget that only the very last step meets: every step runs, in order.
   const strip = pricedPackage({ budget: 1e6 }); strip.flights.selected = 'cheap'; strip.flights.picks.push(strip.flights.alternatives.cheapest);
   Object.assign(strip.hotels, { estimate: strip.hotels.options[2].estimate }); strip.car.include = false;
-  const floor = high(strip), pkg = pricedPackage({ budget: floor });
+  const floor = cost(strip), pkg = pricedPackage({ budget: floor });
   const t0 = performance.now(), r = fitPackage(pkg, FX), ms = performance.now() - t0;
-  assert.deepEqual(r.steps, ['flight', 'hotel', 'board', 'stars', 'car']); assert.equal(r.verdict, 'within'); assert.ok(high(pkg) <= floor);
+  assert.deepEqual(r.steps, ['flight', 'hotel', 'board', 'stars', 'car']); assert.equal(r.verdict, 'within'); assert.ok(cost(pkg) <= floor);
   assert.ok(ms < 10, `fit in ${ms.toFixed(2)} ms`); assert.ok(start > floor);
   assert.equal(pkg.flights.selected, 'cheap'); assert.equal(pkg.hotels.minStars, 3); assert.equal(pkg.car.include, false);
   // A budget the cheaper flight alone meets: nothing else is given up.
@@ -113,7 +113,7 @@ test('post-price fit keeps hard constraints: a direct flight, a car and stars th
   assert.equal(pkg.flights.selected, 'exp', 'only the direct flight meets "direct"'); assert.equal(pkg.car.include, true, 'the asked-for car stays');
   assert.equal(pkg.hotels.minStars, 4, 'asked-for stars stay'); assert.ok(!r.steps.includes('stars') && !r.steps.includes('car'));
   // Still over → never "within": the honest closest + ways out.
-  assert.equal(r.verdict, 'over'); assert.equal(r.fits, false); assert.ok(r.overBy > 0 && r.raiseTo >= high(pkg));
+  assert.equal(r.verdict, 'over'); assert.equal(r.fits, false); assert.ok(r.overBy > 0 && r.raiseTo >= cost(pkg));
   assert.equal(pricePackage(pkg, FX).budget.verdict, 'over');
 });
 
@@ -122,8 +122,8 @@ test('the verdict never says "within" above the cap, and there is no "tight"', (
     const pkg = pricedPackage({ budget }); fitPackage(pkg, FX);
     const pr = pricePackage(pkg, FX);
     assert.ok(['within', 'over'].includes(pr.budget.verdict));
-    if (pr.budget.verdict === 'within') assert.ok(pr.total.high <= budget, `${budget}: ${pr.total.high}`);
-    else assert.ok(pr.total.high > budget);
+    if (pr.budget.verdict === 'within') assert.ok(typical(pr.total) <= budget, `${budget}: ${typical(pr.total)}`);
+    else assert.ok(typical(pr.total) > budget);
   }
   const unknown = pricedPackage({ budget: 1e6 }); unknown.flights = { status: 'quote' };
   assert.equal(pricePackage(unknown, FX).budget.verdict, 'unverified');

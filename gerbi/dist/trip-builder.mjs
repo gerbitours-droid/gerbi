@@ -6,7 +6,7 @@ import { detectLegs } from './multi-city-brief.mjs';
 import { destinations, byId, byCode, rank, normalize, monthName, nameVariants, skiSeason } from './catalog.mjs';
 import { placeByCode, placeType } from './places.mjs';
 import { t } from './i18n.mjs';
-import { mapsUrl } from './trip-package.mjs';
+import { mapsUrl, typical } from './trip-package.mjs';
 import { estimateTrip, fitTrip, floorConfig } from './budget.mjs';
 
 export const L = (v, l = 'he') => (v && typeof v === 'object' && !Array.isArray(v) ? v[l] || v.he || v.en || '' : v ?? '');
@@ -168,7 +168,7 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
     [/(?:נוף ל|ליד |על )?אגם|lake\b|lakes\b/i, ['milan-lake-como', 'slovenia', 'swiss-alps', 'austrian-alps', 'munich-bavaria']],
     [/גלישה|לגלוש|גלים|\bsurf/i, ['sri-lanka', 'costa-rica', 'tenerife', 'bali', 'lisbon']],
     [/לא חם מדי|לא חם|קריר|not too hot|cool weather|escape the heat/i, ['swiss-alps', 'norway-fjords', 'iceland', 'edinburgh', 'copenhagen', 'amsterdam', 'london', 'munich-bavaria', 'slovenia', 'austrian-alps']],
-    [/ויין חם|mulled wine/i, ['vienna', 'prague', 'munich-bavaria', 'berlin', 'budapest']],
+    [/ויין חם|mulled wine|אווירת חג|אווירה חגיגית|festive/i, ['vienna', 'prague', 'munich-bavaria', 'berlin', 'budapest']],
     [/קרוואן|קראוון|campervan|motorhome|\bcaravan/i, ['norway-fjords', 'iceland', 'slovenia', 'swiss-alps', 'munich-bavaria', 'edinburgh', 'austrian-alps']],
     [/ג'יפים|ג׳יפים|הרפתקא|אקסטרים|אדרנלין|\badventure|\bjeep|\bextreme/i, destinations.filter((d) => d.tags.includes('adventure')).map((d) => d.id)],
     [/(?:^|\s)(?:ה)?איים(?=[\s,.]|$)|\bislands?\b/i, ['crete', 'rhodes', 'santorini', 'mykonos', 'mallorca', 'sicily', 'tenerife', 'madeira', 'cyprus', 'bali', 'phuket', 'zanzibar', 'mauritius', 'seychelles', 'maldives']],
@@ -329,7 +329,7 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   if (request.budget > 0) {
     // A trip type that defines the place (ski) or an experience they named (northern lights) is not traded for price:
     // "ski, ₪12,000" is the cheapest ski resort, never Cyprus. Those that lack it only follow.
-    const must = (x) => (!request.styles.includes('ski') || x.destination.tags.includes('ski')) && (!request.boost?.length || request.boost.includes(x.destination.id))
+    const must = (x) => (!request.styles.includes('ski') || x.destination.tags.includes('ski')) && (!request.styles.includes('beach') || x.destination.tags.includes('beach')) && (!request.boost?.length || request.boost.includes(x.destination.id))
       && (!request.needs.allInclusive || x.destination.tags.includes('all_inclusive')) && (!request.needs.kosher || x.destination.tags.includes('kosher'))
       && (request.tags?.must || []).every((t) => x.destination.tags.includes(t));
     const rest = ranked.some(must) ? ranked.filter((x) => !must(x)) : [];
@@ -337,10 +337,12 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
     for (const x of ranked.slice(0, 40)) { const d = x.destination, stops = [{ dest: d, nights: planDates(request, d, today).nights }]; cost.set(d.id, estimateTrip(stops, request, floorConfig(request, baseConfigOf(request, d)))); }
     const known = ranked.filter((x) => cost.has(x.destination.id)), fitting = known.filter((x) => cost.get(x.destination.id).low <= request.budget);
     if (fitting.length) {
-      const fits = (x) => cost.get(x.destination.id).high <= request.budget;
+      const fits = (x) => typical(cost.get(x.destination.id)) <= request.budget;
       ranked = [...fitting.filter(fits), ...fitting.filter((x) => !fits(x))];
       if (request.budgetLevel === 'low') ranked = [...ranked.slice(0, 8).sort((a, b) => cost.get(a.destination.id).high - cost.get(b.destination.id).high), ...ranked.slice(8)];
     } else ranked = known.sort((a, b) => cost.get(a.destination.id).low - cost.get(b.destination.id).low);
+    // Season before price: a beach in December that fits the budget is still the wrong answer.
+    if (month && !request.styles.includes('ski')) ranked = [...ranked.filter((x) => x.destination.bestMonths?.includes(month)), ...ranked.filter((x) => !x.destination.bestMonths?.includes(month))];
     ranked = [...ranked, ...rest];
   } else if (request.budgetLevel === 'low') {
     // "Cheap" with no amount: the best matches ordered by what the whole trip costs (a cheap hotel 13 hours away is not cheap).
@@ -350,7 +352,7 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   }
   return ranked.slice(0, limit).map(({ destination: d, score, reasons }) => ({ id: d.id, name: d.name, country: d.country, image: imageOf(d), score,
     reasons: reasons.slice(0, 3).map((r) => L(r, request.lang)), flightHours: d.flightHours, direct: d.direct, budgetLevel: d.budgetLevel, advisory: L(d.advisory, request.lang),
-    ...(cost.has(d.id) ? { estimate: { low: cost.get(d.id).low, high: cost.get(d.id).high }, fitsBudget: cost.get(d.id).high <= request.budget } : {}) }));
+    ...(cost.has(d.id) ? { estimate: { low: cost.get(d.id).low, high: cost.get(d.id).high }, fitsBudget: typical(cost.get(d.id)) <= request.budget } : {}) }));
 }
 // The configuration a plan starts from before the budget fit: the hotel search's stars and meal plan, the car advice.
 export const baseConfigOf = (request, dest) => ({ stars: defaultStars(request), board: request.needs.board || '', car: carAdvice(dest, request).include });
@@ -715,10 +717,11 @@ export function areaFor(dest, request) {
 export function planPackage(request, opts = {}) {
   const p = planPackageRaw(request, opts), bp = p.budgetPlan, l = request.lang;
   if (!bp || bp.fits || opts.chosenId || opts.nights || !p.destination) return p;
-  const askedName = L(p.destination.name, l), askedNights = p.request.nights;
+  const askedName = L(p.destination.name, l);
   const namedCity = request.destinations.length > 0 && !request.suggest;
   if (!namedCity) {
-    const same = (p.suggestions || []).filter((x) => x.fitsBudget && x.id !== p.destination.id);
+    const mon = Number(p.request.start?.slice(5, 7)), inSeason = (id) => !mon || request.styles.includes('ski') || byId(id)?.bestMonths?.includes(mon);
+    const same = (p.suggestions || []).filter((x) => x.fitsBudget && x.id !== p.destination.id && inSeason(x.id));
     const free = !request.countries.length && !request.regions?.length ? (bp.alternatives || []).filter((a) => a.fits) : [];
     for (const alt of [...same, ...free].slice(0, 3)) {
       const q = planPackageRaw(request, { ...opts, chosenId: alt.id });
@@ -729,14 +732,8 @@ export function planPackage(request, opts = {}) {
       }
     }
   }
-  if (bp.nights && bp.nights < askedNights) {
-    const q = planPackageRaw(request, { ...opts, nights: bp.nights });
-    if (q.budgetPlan?.fits) {
-      q.assumed.unshift(t('build.assumed.budgetNights', { nights: bp.nights, asked: askedNights, budget: request.budget.toLocaleString('en-US'), raise: bp.raiseTo.toLocaleString('en-US') }, l));
-      q.budgetPlan.adjusted = { kind: 'nights', askedNights, raiseTo: bp.raiseTo };
-      return q;
-    }
-  }
+  // The length asked for is never cut (owner decision 18.11.2026): the plan stays, says how far over it is, and offers
+  // fewer nights (budgetPlan.nights) / another place / a higher budget as buttons.
   return p;
 }
 function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10), chosenId = '', nights: override = 0 } = {}) {
@@ -801,7 +798,9 @@ function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10)
     if (what.length) assumed.push(t('build.assumed.budget', { list: what.join(', ') }, l));
     // Nearest alternatives: destinations that fit; when none does, the cheapest ones that are cheaper than this plan.
     if (!budgetPlan.fits) {
-      const others = suggestDestinations({ ...r, destinations: [], shortlist: [], countries: [] }, { limit: 6, today }).filter((s) => !ids.includes(s.id) && s.estimate);
+      // Alternatives that fit the season too (a cheaper beach in December is no alternative to a winter-sun one).
+      const mon = Number(r.start.slice(5, 7));
+      const others = suggestDestinations({ ...r, destinations: [], shortlist: [], countries: [] }, { limit: 6, today }).filter((s) => !ids.includes(s.id) && s.estimate && (!mon || r.styles.includes('ski') || byId(s.id)?.bestMonths?.includes(mon)));
       const fitting = others.filter((s) => s.fitsBudget), cheaper = others.filter((s) => s.estimate.high < budgetPlan.estimate.high).sort((a, b) => a.estimate.high - b.estimate.high);
       budgetPlan.alternatives = (fitting.length ? fitting : cheaper).slice(0, 2).map(({ id, name, estimate, fitsBudget }) => ({ id, name, estimate, fits: fitsBudget === true }));
     }

@@ -58,6 +58,9 @@ export const COST_MODEL = {
   carPerDay: { low: 170, high: 300 }, insurancePerPersonDay: { low: 30, high: 50 },
   transferPerVanEachWay: { low: 150, high: 400 }, bagPerTraveller: { low: 180, high: 400 }
 };
+// What a trip typically costs: the middle of its range (owner decision 18.11.2026 – the high end over-estimated, e.g. a ₪10
+// Bangkok room priced as ₪450, and cut trips that fit). The range is still shown.
+export const typical = (x) => Math.round(((x?.low ?? 0) + (x?.high ?? 0)) / 2);
 const band = (b, n) => ({ low: Math.round(b.low * n), high: Math.round(b.high * n) });
 export const carsFor = (r = {}) => ((r.adults || 0) + (r.children || 0) > 5 ? 2 : 1);
 export const vansFor = (r = {}) => Math.max(1, Math.ceil(((r.adults || 0) + (r.children || 0)) / 4));
@@ -104,7 +107,7 @@ export function pricePackage(pkg, fx) {
   if (num(r.budget, 1)) {
     const pending = lines.some((l) => l.kind === 'pending'), known = total && flight && selectedHotels(pkg).every(({ group, pick }) => pick || (group.status === 'estimate' && group.estimate));
     budget = !known ? { amount: r.budget, verdict: pending ? 'pending' : 'unverified' }
-      : { amount: r.budget, verdict: total.high <= r.budget ? 'within' : 'over', diff: Math.round(total.high - r.budget), left: Math.max(0, Math.round(r.budget - total.high)) };
+      : { amount: r.budget, verdict: typical(total) <= r.budget ? 'within' : 'over', diff: Math.round(typical(total) - r.budget), left: Math.max(0, Math.round(r.budget - typical(total))) };
   }
   return { lines, total, perPerson, people, budget, missingFx, pending: lines.some((l) => l.kind === 'pending'), oldestLive: live.map((l) => l.at).filter(Boolean).sort()[0] || null };
 }
