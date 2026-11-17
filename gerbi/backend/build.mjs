@@ -2,7 +2,7 @@
 // from the catalog, then runs the supplier searches it derived itself (flights + hotels) through caches and rate limits.
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { parseTrip, applyEdits, planPackage, L } from '../dist/trip-builder.mjs';
+import { parseTrip, applyEdits, planPackage, mergeModel, L } from '../dist/trip-builder.mjs';
 import { sanitizePackage } from '../dist/trip-package.mjs';
 import { byId, byCode } from '../dist/catalog.mjs';
 import { offerFacts } from '../dist/flight-view.mjs';
@@ -65,7 +65,7 @@ export function upsellTrips(destId, l = 'he') {
 // What the booking wizard needs to price the chosen flight again (spec 25 §9). The search token lives an hour.
 const bookingRef = (data) => (data?.srk && data?.tokens?.searchResults ? { srk: data.srk, searchToken: data.tokens.searchResults } : null);
 
-export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, polish = null, fx = null, log = () => {}, now = () => Date.now() }) {
+export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, tagger = null, polish = null, fx = null, log = () => {}, now = () => Date.now() }) {
   const today = () => new Date(now()).toISOString().slice(0, 10);
   const hotels = createHotelSearch({ store, log, now, keyPrefix: fixtures(env) ? 'fixture-h:' : 'h:', search: async (input, options) => {
     if (fixtures(env)) { const f = await fixture('hotels'); return { hotels: f.hotels, totalItems: f.totalItems, complete: true, filtered: !options.fallbackQuery }; }
@@ -97,8 +97,12 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     // A budget in dollars / euros converts at the site's rate (spec 28 §א.1); no rate in 1.5 s → the amount is asked for.
     const rates = fx && /[$€]|usd|eur|dollar|euro|דולר|יורו/i.test(text) ? await Promise.race([fx.get().catch(() => null), new Promise((r) => setTimeout(r, 1500, null))]) : null;
     let request = parseTrip(text, { today: t0, lang: l, destId: dest, fx: rates });
-    // The LLM partner only when the rules understood little and named no destination (spec 24 §8).
-    if (partner && !request.destinations.length && request.coverage?.needsPartner) {
+    // The model reads the request's meaning (tags, places, travellers) for every request when a provider is set; the
+    // rules stay the source of exact dates/amounts and the whole answer without a model (or when it is slow).
+    const tags = tagger && text.trim() ? await Promise.race([tagger(text, l, t0).catch(() => null), new Promise((r) => setTimeout(r, Number(env.GERBI_TAGGER_TIMEOUT_MS) || 6000, null))]) : null;
+    if (tags) request = mergeModel(request, tags, { today: t0 });
+    // The older LLM partner only when there was no tagger answer, the rules understood little and named no destination (spec 24 §8).
+    if (!tags && partner && !request.destinations.length && request.coverage?.needsPartner) {
       const extra = await partner(text, request, l).catch(() => null);
       if (extra) {
         const ids = (codes) => (codes || []).map((c) => byCode(c)?.id).filter(Boolean);

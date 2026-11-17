@@ -3,6 +3,12 @@
 // locally (providers receive them stripped). Semantic checks (grounding) live with the caller in ai-features.mjs.
 import { places } from '../dist/places.mjs';
 import { BUDGETS, FLEXIBILITY, STYLES } from '../dist/leads-validate.mjs';
+import { destinations } from '../dist/catalog.mjs';
+
+// The trip builder's vocabulary (17.11.2026): the model reads meaning and answers only in catalog ids and catalog tags.
+export const TRIP_IDS = destinations.map((d) => d.id), TRIP_TAGS = [...new Set(destinations.flatMap((d) => d.tags))];
+export const TRIP_COUNTRIES = [...new Set(destinations.map((d) => d.country.en))];
+export const TRIP_REGIONS = ['europe', 'asia', 'africa', 'americas', 'latin-america', 'south-america', 'middle-east', 'oceania', 'israel'];
 
 const codes = places.filter((p) => !p.home).map((p) => p.code);
 const allCodes = places.map((p) => p.code);
@@ -29,6 +35,30 @@ Destination codes must come from this list: ${places.filter((p) => !p.home).map(
       adults: { type: 'integer' }, children: { type: 'integer' }, nights: { type: 'integer' }, month: { type: 'string', enum: MONTHS },
       beach: TRI, city: TRI, relaxation: TRI, family: TRI, couple: TRI, interests: list(str(40), 8), question: str(200),
       legs: list(obj({ from: { type: 'string', enum: allCodes }, to: { type: 'string', enum: allCodes }, date: str(10) }), 5) })
+  },
+  trip_tags: {
+    label: 'בונה חופשות: הבנת הבקשה לתגיות', audience: 'customer', tier: 'fast', maxTokens: 900, timeoutMs: 7000, cacheTtl: 30 * 86400, dailyCalls: 3000, version: 1,
+    system: `You read one free-text holiday request written to Gerbi, an Israeli travel agency (flights from Tel Aviv), usually in Hebrew, and turn its MEANING into structured fields.
+Answer only with catalog ids and catalog tags. Never invent: a field the text does not state or clearly imply is 0, "", [] or "unknown". "today" is in the input.
+Travellers: "adults" includes the writer when they travel ("זוג"=2, "אני ואמא שלי"=2, "2+3" = 2 adults + 3 children, "משפחה של 5 (2+3)"); grown children 18+ are adults; "children" are 2–17 (count), "childAges" their ages when stated; "infants" are under 2 (a baby, "בן שנה", "8 months").
+Length: "nights" (Hebrew convention: "X ימים" = X-1 nights, "שבוע"=7, "סופ\"ש"=3, "סופ\"ש ארוך"=4, "שבועיים"=14, "חודש"=30). "nightsPerPlace" only when a length is said for each named place, in order ("שבוע בוייטנאם ואז שבוע בפוקט" = [7,7]).
+When: "month" 1–12 when a month, season or holiday is stated (Passover→4, Hanukkah→12, Sukkot→10, "החופש הגדול"→7). "start"/"end" ISO dates only for explicit dates, the next future occurrence after today.
+Budget: "budgetIls" = the total cap in shekels for everyone (per person × travellers; $×3.65, €×3.95), else 0. "budgetLevel": low (cheap, students, backpacking, limited budget), high (luxury, pampering, "money is no object"), else unknown.
+Places: "destinations" = catalog ids the traveller NAMED (cities, regions, aliases such as Manhattan→new-york, Amalfi→amalfi-naples, Scotland→edinburgh, Tuscany→florence-tuscany), in the order said. "countries" = countries named without a city (exact English names from the list). "regions" = regions named ("אירופה"→europe, "המזרח הרחוק"→asia). "exclude" = ids the traveller rules out ("לא יוון" → every Greek id). "abroad" true when they want to fly abroad (חו"ל) or rule out a region.
+Meaning → tags: "mustTags" = catalog tags the place MUST have for this trip to make sense (ski for a ski trip, all_inclusive when asked, kosher when kosher food is required, water_slides for a water park); "niceTags" = tags that describe the wish (beach, nature, nightlife, culture, food, shopping, relaxation, luxury, adventure, family, couple, city, low_budget…). Read meaning, not words: "בטן גב"→beach+relaxation, "טרקים"→nature+adventure, "מסיבת רווקים"→nightlife, "ירח דבש"→couple(+luxury), "לראות את הזוהר הצפוני"→nature with suggest iceland/norway-fjords.
+"suggest" = up to 5 catalog ids that best fulfil the wish when the traveller did not name one place (consider month/season, flight length, who travels and the budget), best first; [] when they named their place.
+"needs": booleans for kosher, shabbat (Shabbat observant), accessible (wheelchair / walker), allInclusive, pool, direct (direct flight); "car" yes/no/unknown. "maxFlightHours" when they limit the flight ("עד 4 שעות טיסה", "קרוב" ≈ 4.5), else 0.
+"question": one short question in the request's language only when something essential is genuinely ambiguous, else "".
+Catalog ids (id = Hebrew name, country, flight hours, tags):
+${destinations.map((d) => `${d.id} = ${d.name.he}, ${d.country.en}, ${d.flightHours}h, ${d.tags.join(' ')}`).join('\n')}`,
+    schema: obj({ adults: { type: 'integer' }, children: { type: 'integer' }, childAges: list({ type: 'integer' }, 8), infants: { type: 'integer' },
+      nights: { type: 'integer' }, nightsPerPlace: list({ type: 'integer' }, 4), month: { type: 'integer' }, start: str(10), end: str(10),
+      budgetIls: { type: 'integer' }, budgetLevel: { type: 'string', enum: ['low', 'high', 'unknown'] },
+      destinations: list({ type: 'string', enum: TRIP_IDS }, 4), countries: list({ type: 'string', enum: TRIP_COUNTRIES }, 4), regions: list({ type: 'string', enum: TRIP_REGIONS }, 3),
+      exclude: list({ type: 'string', enum: TRIP_IDS }, 20), abroad: { type: 'boolean' },
+      mustTags: list({ type: 'string', enum: TRIP_TAGS }, 4), niceTags: list({ type: 'string', enum: TRIP_TAGS }, 8), suggest: list({ type: 'string', enum: TRIP_IDS }, 5),
+      needs: obj({ kosher: { type: 'boolean' }, shabbat: { type: 'boolean' }, accessible: { type: 'boolean' }, allInclusive: { type: 'boolean' }, pool: { type: 'boolean' }, direct: { type: 'boolean' }, car: { type: 'string', enum: ['yes', 'no', 'unknown'] } }),
+      maxFlightHours: { type: 'number' }, question: str(200) })
   },
   tiebreak: {
     label: 'טיסות: שובר שוויון', audience: 'customer', tier: 'fast', maxTokens: 300, timeoutMs: 6000, cacheTtl: 86400, dailyCalls: 1500,

@@ -219,6 +219,51 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
 }
 
 // Inline edits from the page ("הבנו / הנחנו" rows): each field re-validated; anything else is ignored.
+// The model's reading of the request (backend trip_tags task) merged into the rules' request. The model decides MEANING
+// (who travels, where, what kind of trip: tags, needs, exclusions); the rules keep what they read exactly (explicit
+// dates, a budget amount, a length) and are the whole answer when no model is available. Everything is re-validated.
+export function mergeModel(request, v, { today = new Date().toISOString().slice(0, 10) } = {}) {
+  if (!v || typeof v !== 'object') return request;
+  const r = { ...request, needs: { ...request.needs }, modelUsed: true };
+  const int = (n, lo, hi) => (Number.isInteger(n) && n >= lo && n <= hi ? n : null), ids = (xs) => [...new Set((xs || []).filter((id) => byId(id)))];
+  const iso = (x) => (/^\d{4}-\d{2}-\d{2}$/.test(x || '') && x > today ? x : '');
+  // Travellers: the model's count when it gives one (it reads "אני, אחי ואחותי", "2+3", "12 חברים" as people do).
+  const adults = int(v.adults, 1, 9), kids = int(v.children, 0, 8) ?? 0, infants = int(v.infants, 0, 4) ?? 0;
+  if (adults) {
+    const ages = (v.childAges || []).filter((a) => int(a, 2, 17) !== null).slice(0, 8);
+    r.adults = adults; r.children = kids + infants; r.infants = infants;
+    r.childAges = ages.length === kids ? [...ages, ...Array(infants).fill(0)] : request.children === r.children ? request.childAges : [...Array(infants).fill(0)];
+  }
+  if (!r.nights && int(v.nights, 1, MAX_NIGHTS)) r.nights = v.nights;
+  if (!r.start && iso(v.start)) { r.start = iso(v.start); if (iso(v.end) > r.start) r.end = iso(v.end); }
+  if (!r.month && !r.start && int(v.month, 1, 12)) r.month = v.month;
+  if (!(r.budget > 0) && int(v.budgetIls, 300, 2e6)) r.budget = v.budgetIls;
+  if (r.budgetLevel === 'mid' && ['low', 'high'].includes(v.budgetLevel)) r.budgetLevel = v.budgetLevel;
+  // Places: what the model says was named wins (aliases, typos, "Nice and Monaco"); exclusions add up.
+  r.exclude = [...new Set([...r.exclude, ...ids(v.exclude)])];
+  const named = ids(v.destinations).filter((id) => !r.exclude.includes(id));
+  if (named.length && !r.shortlist.length) { r.destinations = named; r.suggest = false; }
+  if (Array.isArray(v.countries) && v.countries.length) r.countries = [...new Set(v.countries.filter((c) => destinations.some((d) => d.country.en === c)))];
+  if (Array.isArray(v.regions) && v.regions.length && !r.regions.length) r.regions = v.regions.slice(0, 3);
+  if (v.abroad === true) r.abroad = true;
+  if (r.destinations.length > 1 && (v.nightsPerPlace || []).length === r.destinations.length && v.nightsPerPlace.every((n) => int(n, 1, 60))) r.legNights = v.nightsPerPlace;
+  // Meaning → tags (searched in the catalog) and the styles the itinerary reads.
+  const TAGS = new Set(destinations.flatMap((d) => d.tags)), tags = (xs) => [...new Set((xs || []).filter((x) => TAGS.has(x)))];
+  r.tags = { must: tags(v.mustTags), nice: tags(v.niceTags) };
+  const STYLE_OF = { beach: 'beach', city: 'city', relaxation: 'relaxation', family: 'family', couple: 'couple', ski: 'ski', nature: 'nature', nightlife: 'nightlife', food: 'food', culture: 'culture', shopping: 'shopping', luxury: 'luxury' };
+  r.styles = [...new Set([...r.styles, ...[...r.tags.must, ...r.tags.nice].map((x) => STYLE_OF[x]).filter(Boolean)])];
+  if (r.styles.includes('luxury') && r.budgetLevel === 'mid') r.budgetLevel = 'high';
+  const n = v.needs || {};
+  for (const k of ['kosher', 'shabbat', 'accessible', 'allInclusive', 'pool', 'direct']) if (n[k] === true) r.needs[k] = true;
+  if (r.needs.allInclusive && !r.needs.board) r.needs.board = 'AI';
+  if (r.needs.car === 'auto' && ['yes', 'no'].includes(n.car)) r.needs.car = n.car;
+  if (!r.maxFlightHours && typeof v.maxFlightHours === 'number' && v.maxFlightHours >= 1 && v.maxFlightHours <= 24) r.maxFlightHours = v.maxFlightHours;
+  const sug = ids(v.suggest).filter((id) => !r.exclude.includes(id));
+  if (sug.length) r.modelSuggest = sug;
+  if (!r.questions?.length && typeof v.question === 'string' && v.question.trim()) { r.questions = [v.question.trim().slice(0, 200)]; r.questionIds = ['model']; }
+  return r;
+}
+
 export function applyEdits(request, e = {}, today = new Date().toISOString().slice(0, 10)) {
   if (!e || typeof e !== 'object') return request;
   const r = { ...request, needs: { ...request.needs }, childAges: [...request.childAges] };
@@ -247,6 +292,14 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   if (request.needs.allInclusive) prefs.tags = ['all_inclusive'];
   // Destinations under a travel advisory stay in the list (shown with their note) but never lead it.
   let ranked = rank(prefs).sort((a, b) => Boolean(a.destination.advisory) - Boolean(b.destination.advisory));
+  // The model's tags: every "must" tag is required (when any place has them all), each "nice" tag adds to the score.
+  if (request.tags) {
+    const has = (x, t) => x.destination.tags.includes(t), { must, nice } = request.tags;
+    ranked = ranked.map((x) => ({ ...x, score: x.score + 1.5 * nice.filter((t) => has(x, t)).length + 3 * must.filter((t) => has(x, t)).length }))
+      .sort((a, b) => Boolean(a.destination.advisory) - Boolean(b.destination.advisory) || b.score - a.score);
+    const all = ranked.filter((x) => must.every((t) => has(x, t)));
+    if (must.length && all.length) ranked = [...all, ...ranked.filter((x) => !all.includes(x))];
+  }
   const pool = request.shortlist.length ? request.shortlist : null;
   if (pool) ranked = ranked.filter((x) => pool.includes(x.destination.id));
   else if (request.countries.length) { const inCountry = ranked.filter((x) => request.countries.includes(x.destination.country.en)); if (inCountry.length) ranked = inCountry; }
@@ -266,6 +319,9 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   if (request.children > 0 && ranked.length > limit) { const near = ranked.filter((x) => x.destination.flightHours <= 6); if (near.length) ranked = near; }
   // The AI partner's ideas (when the rules understood little) lead the list; they never hide the catalog's ranking.
   if (request.boost?.length) ranked = [...ranked.filter((x) => request.boost.includes(x.destination.id)), ...ranked.filter((x) => !request.boost.includes(x.destination.id))];
+  // The model's own picks lead, in its order (it weighed season, flight length, who travels and the budget).
+  const ms = request.modelSuggest || [];
+  if (ms.length) ranked = [...ranked.filter((x) => ms.includes(x.destination.id)).sort((a, b) => ms.indexOf(a.destination.id) - ms.indexOf(b.destination.id)), ...ranked.filter((x) => !ms.includes(x.destination.id))];
   // Budget (spec 28 §א.2): a destination whose LOW end – with everything the plan may give up given up – is above the
   // cap is not offered; the ones whose HIGH end fits lead; "cheap" orders the best-matching ones by estimated cost.
   const cost = new Map();
@@ -273,7 +329,8 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
     // A trip type that defines the place (ski) or an experience they named (northern lights) is not traded for price:
     // "ski, ₪12,000" is the cheapest ski resort, never Cyprus. Those that lack it only follow.
     const must = (x) => (!request.styles.includes('ski') || x.destination.tags.includes('ski')) && (!request.boost?.length || request.boost.includes(x.destination.id))
-      && (!request.needs.allInclusive || x.destination.tags.includes('all_inclusive')) && (!request.needs.kosher || x.destination.tags.includes('kosher'));
+      && (!request.needs.allInclusive || x.destination.tags.includes('all_inclusive')) && (!request.needs.kosher || x.destination.tags.includes('kosher'))
+      && (request.tags?.must || []).every((t) => x.destination.tags.includes(t));
     const rest = ranked.some(must) ? ranked.filter((x) => !must(x)) : [];
     ranked = ranked.filter((x) => !rest.includes(x));
     for (const x of ranked.slice(0, 40)) { const d = x.destination, stops = [{ dest: d, nights: planDates(request, d, today).nights }]; cost.set(d.id, estimateTrip(stops, request, floorConfig(request, baseConfigOf(request, d)))); }

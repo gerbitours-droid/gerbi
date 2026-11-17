@@ -4,16 +4,31 @@
 //   node scripts/eval-user-300.mjs          → score + failures by field
 //   node scripts/eval-user-300.mjs --all    → every failing case
 //   node scripts/eval-user-300.mjs --id 17  → one case in full
-import { readFile } from 'node:fs/promises';
-import { parseTrip, planPackage } from '../dist/trip-builder.mjs';
+//   node scripts/eval-user-300.mjs --model  → the model reads each request first (trip_tags, needs a provider key such as
+//     DEEPSEEK_API_KEY); answers are cached in tests/fixtures/trip-tags-cache.json, so a rerun is free and offline
+import { readFile, writeFile } from 'node:fs/promises';
+import { parseTrip, planPackage, mergeModel } from '../dist/trip-builder.mjs';
 import { byId } from '../dist/catalog.mjs';
 
 const TODAY = '2026-11-17', FX = { rates: { USD: 3.65, EUR: 3.95, ILS: 1 } };
 const CASES = JSON.parse(await readFile(new URL('../tests/fixtures/user-300.json', import.meta.url), 'utf8'));
-const args = process.argv.slice(2), only = args.includes('--id') ? Number(args[args.indexOf('--id') + 1]) : 0;
+const args = process.argv.slice(2), only = args.includes('--id') ? Number(args[args.indexOf('--id') + 1]) : 0, withModel = args.includes('--model');
+// Model mode: a file-backed cache in the gateway's get/set shape.
+const cacheUrl = new URL('../tests/fixtures/trip-tags-cache.json', import.meta.url);
+const memo = withModel ? JSON.parse(await readFile(cacheUrl, 'utf8').catch(() => '{}')) : {};
+const cache = { get: async (k) => memo[k] ?? null, set: async (k, v) => { memo[k] = v; } };
+const tagger = withModel ? (await import('../backend/llm-partner.mjs')).partnerTripTags : null;
+const read = {};
+if (withModel) {
+  const todo = CASES.filter((c) => !only || c.id === only);
+  for (let i = 0; i < todo.length; i += 8) await Promise.all(todo.slice(i, i + 8).map(async (c) => { read[c.id] = await tagger(cache, c.text, { today: TODAY, lang: c.lang }).catch(() => null); }));
+  await writeFile(cacheUrl, JSON.stringify(memo));
+  const miss = todo.filter((c) => !read[c.id]).length;
+  if (miss) console.log(`model: no answer for ${miss}/${todo.length} (no key, timeout or invalid) – those run on the rules`);
+}
 
 export function check(c) {
-  const r = parseTrip(c.text, { today: TODAY, lang: c.lang, fx: FX }), p = planPackage(r, { today: TODAY }), e = c.expect || {}, bad = [];
+  const r = mergeModel(parseTrip(c.text, { today: TODAY, lang: c.lang, fx: FX }), read[c.id], { today: TODAY }), p = planPackage(r, { today: TODAY }), e = c.expect || {}, bad = [];
   const fail = (field, got, want) => bad.push({ field, got: JSON.stringify(got), want: JSON.stringify(want) });
   const eq = (field, got, want) => { if (want !== undefined && JSON.stringify(got) !== JSON.stringify(want)) fail(field, got, want); };
   // Understanding (the request as parsed, before any budget fit changes the plan).
@@ -54,7 +69,7 @@ const ok = results.filter((x) => !x.bad.length).length, byField = {};
 for (const x of results) for (const b of x.bad) byField[b.field] = (byField[b.field] || 0) + 1;
 const he = results.filter((x) => x.c.lang === 'he'), en = results.filter((x) => x.c.lang === 'en');
 const pct = (xs) => `${xs.filter((x) => !x.bad.length).length}/${xs.length}`;
-console.log(`user-300: ${ok}/${results.length} (${(100 * ok / results.length).toFixed(1)}%) · Hebrew ${pct(he)} · English ${pct(en)}`);
+console.log(`user-300${withModel ? ' (model + rules)' : ''}: ${ok}/${results.length} (${(100 * ok / results.length).toFixed(1)}%) · Hebrew ${pct(he)} · English ${pct(en)}`);
 console.log(Object.entries(byField).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(' · '));
 for (const x of results.filter((y) => y.bad.length).slice(0, args.includes('--all') ? 1e9 : 25))
   console.log(`✗ #${x.c.id} ${x.c.text}\n   ${x.bad.map((b) => `${b.field}: got ${b.got} want ${b.want}`).join(' | ')}`);

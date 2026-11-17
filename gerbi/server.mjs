@@ -16,7 +16,7 @@ import { createStore } from './backend/kv-store.mjs';
 import { validSearch, isMultiCity, validAvailability, slimSearch, slimAvailability, cachedSearch, withRetry, allow, clientOf, configureLimits } from './backend/volero-guard.mjs';
 import { createDeals, searchForDeals } from './backend/deals.mjs';
 import { QueryMemory, EVENT_WEIGHTS } from './backend/query-memory.mjs';
-import { partnerUnderstand, partnerTieBreak, partnerStatus } from './backend/llm-partner.mjs';
+import { partnerUnderstand, partnerTieBreak, partnerStatus, partnerTripTags } from './backend/llm-partner.mjs';
 import { places } from './dist/places.mjs';
 import { learnFromChoice } from './dist/scoring.mjs';
 import { handleLeads, tokenMatches } from './backend/leads.mjs';
@@ -110,6 +110,7 @@ const deals = createDeals({ search: searchForDeals(voleroFlightSearch, withRetry
 const background = promise => { const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.(); if (ctx?.waitUntil) ctx.waitUntil(promise.catch(() => {})); else promise.catch(() => {}); };
 // Magic trip builder (spec 24): plans from the catalog, then live flights + hotels through its own caches.
 const builder = createBuilder({ store: createStore('build', dataDirectory), llmCache, flightSearch: voleroFlightSearch, hotelSearch: voleroHotelSearch, hotelImage: voleroHotelImage, fx,
+  tagger: (text, l, today) => partnerTripTags(llmCache, text, { today, lang: l }),
   partner: (text, request, l) => partnerUnderstand(llmCache, text, { adults: request.adults, children: request.children, nights: request.nights, month: '', want: [], exclude: [] }, { lang: l }),
   polish: (destination, travellers, days, l) => tripPolish(destination, travellers, days, { store: llmCache, lang: l }), log: entry => logSupplier({ cached: false, ...entry }) });
 const tooMany = (send) => send(429, { error:'rate_limited', message:'יותר מדי בקשות בזמן קצר. נסו שוב בעוד דקה.' });
