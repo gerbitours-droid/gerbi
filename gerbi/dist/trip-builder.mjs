@@ -1,7 +1,7 @@
 // Magic trip builder (spec 24): free text → a validated trip request → a package skeleton (destination, dates,
 // flight/hotel search specs, car advice, day-by-day itinerary, practical card). Deterministic and catalog-grounded:
 // no prices are produced here (live prices come from the supplier, estimates from trip-package.mjs).
-import { understandRequest } from './brief-engine.mjs';
+import { understandRequest, spellFix, MAX_NIGHTS } from './brief-engine.mjs';
 import { detectLegs } from './multi-city-brief.mjs';
 import { destinations, byId, byCode, rank, normalize, monthName, nameVariants, skiSeason } from './catalog.mjs';
 import { placeByCode, placeType } from './places.mjs';
@@ -24,7 +24,7 @@ export const hotelCityOf = (d) => d?.hotelCity || HOTEL_CITY[d?.code] || d?.code
 
 // ---- 1. Understanding: the shared brief engine + what only a whole-trip request needs.
 const RX = {
-  allInclusive: /הכו?ל כלול|all[- ]?inclusive/i,
+  allInclusive: /הכו?ל כלול|הכו?ל-כלול|או?ל ?אינקלוסיב|all[- ]?inclusive/i, pool: /בריכה|\bpool\b/i,
   halfBoard: /חצי פנסיון|half[- ]board/i, fullBoard: /פנסיון מלא|full[- ]board/i, breakfast: /(?:עם|כולל|רק)\s+ארוחת בוקר|bed (?:and|&) breakfast|\bb&b\b|with breakfast/i,
   carYes: /(?:עם|כולל|נשכור|לשכור|שוכרים|השכרת|ונשכור|וגם)\s*(?:ה)?רכב|רכב שכור|רכב צמוד|\b(?:rent(?:al|ing)?\s+(?:a\s+)?car|car\s+(?:hire|rental)|with\s+a\s+car|road\s?trip)\b/i,
   carNo: /(?:בלי|ללא|לא צריך|לא צריכים|לא רוצים)\s*(?:ה)?רכב|\b(?:no|without a|don'?t need a)\s+car\b/i,
@@ -37,6 +37,36 @@ const RX = {
   alternatives: /\s(?:או|or)\s/i
 };
 const WORD_STARS = { חמישה: 5, ארבעה: 4, שלושה: 3 };
+
+// Every catalog name (destinations and countries, both languages): what a misspelt word is corrected to.
+const CATALOG_NAMES = [...new Set(destinations.flatMap((d) => [d.name?.he, d.name?.en, ...nameVariants(d), d.country?.he, d.country?.en]).filter(Boolean).map((n) => normalize(n)).filter((n) => !/[—&,(]/.test(n)))];
+// World regions people name instead of a place ("אירופה", "המזרח הרחוק"); "דרום אמריקה" is the Americas without the USA.
+const SOUTH_AMERICA = ['Peru', 'Argentina', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Bolivia', 'Uruguay'];
+export const inRegion = (d, id) => (id === 'latin-america' ? d?.region === 'americas' && d?.country?.en !== 'United States'
+  : id === 'south-america' ? d?.region === 'americas' && SOUTH_AMERICA.includes(d?.country?.en) : d?.region === id);
+// Approximate coordinates of each catalog destination: only to order the bases of a long trip as a route (nearest next),
+// never shown. A destination missing here is simply placed by its ranking.
+const COORDS = { rome: [41.9, 12.5], 'milan-lake-como': [45.6, 9.1], venice: [45.4, 12.3], 'florence-tuscany': [43.8, 11.25], 'amalfi-naples': [40.7, 14.5], sicily: [37.5, 14.5],
+  athens: [37.98, 23.7], santorini: [36.4, 25.4], crete: [35.3, 25.1], rhodes: [36.4, 28.2], mykonos: [37.45, 25.35], barcelona: [41.4, 2.2], madrid: [40.4, -3.7], mallorca: [39.6, 2.9],
+  tenerife: [28.3, -16.6], lisbon: [38.7, -9.1], porto: [41.15, -8.6], madeira: [32.7, -16.9], paris: [48.86, 2.35], nice: [43.7, 7.26], london: [51.5, -0.1], edinburgh: [55.95, -3.2],
+  berlin: [52.5, 13.4], 'munich-bavaria': [48.1, 11.6], bangkok: [13.75, 100.5], phuket: [7.9, 98.4], 'new-york': [40.7, -74], florida: [25.8, -80.2], 'los-angeles': [34.05, -118.25],
+  'las-vegas': [36.17, -115.14], dubai: [25.2, 55.3], 'abu-dhabi': [24.45, 54.4], eilat: [29.55, 34.95], 'dead-sea': [31.2, 35.4], 'swiss-alps': [46.6, 8], 'austrian-alps': [47.2, 11.4],
+  vienna: [48.2, 16.4], japan: [35.7, 139.7], vietnam: [21, 105.8], bali: [-8.4, 115.2], 'sri-lanka': [7, 80], goa: [15.3, 74], maldives: [4.2, 73.5], cancun: [21.2, -86.8],
+  'costa-rica': [9.9, -84], peru: [-12, -77], 'buenos-aires': [-34.6, -58.4], rio: [-22.9, -43.2], zanzibar: [-6.2, 39.2], seychelles: [-4.6, 55.5], mauritius: [-20.2, 57.5],
+  'cape-town': [-33.9, 18.4], 'kenya-safari': [-1.3, 36.8], marrakech: [31.6, -8], budapest: [47.5, 19], prague: [50.1, 14.4], amsterdam: [52.4, 4.9], cyprus: [34.9, 33.6],
+  georgia: [41.7, 44.8], croatia: [42.65, 18.1], montenegro: [42.4, 18.75], bansko: [41.8, 23.5], krakow: [50.06, 19.94], slovenia: [46.05, 14.5], istanbul: [41, 29],
+  iceland: [64.1, -21.9], 'norway-fjords': [60.4, 5.3], copenhagen: [55.7, 12.6], sydney: [-33.9, 151.2], 'new-zealand': [-36.85, 174.8] };
+const km = (a, b) => { const [x, y] = [COORDS[a], COORDS[b]]; if (!x || !y) return 5000; const r = Math.PI / 180, h = Math.sin((y[0] - x[0]) * r / 2) ** 2 + Math.cos(x[0] * r) * Math.cos(y[0] * r) * Math.sin((y[1] - x[1]) * r / 2) ** 2; return 12742 * Math.asin(Math.sqrt(h)); };
+// The bases of a long trip: the best-ranked first, then always the nearest of the chosen ones (no zig-zag); a region's
+// bases stay within a reasonable hop of the first (a month "in Asia" is not Japan + Bali + Goa).
+export function routeBases(ids, count, { maxHop = Infinity } = {}) {
+  const pool = ids.filter((id) => id === ids[0] || km(ids[0], id) <= maxHop).slice(0, Math.max(count, 0) + 4);
+  const chosen = pool.slice(0, count), route = [chosen.shift()].filter(Boolean);
+  while (chosen.length) { chosen.sort((a, b) => km(route.at(-1), a) - km(route.at(-1), b)); route.push(chosen.shift()); }
+  return route;
+}
+const HOLIDAY_EN = { פסח: 'Passover', סוכות: 'Sukkot', 'ראש השנה': 'Rosh Hashanah', חנוכה: 'Hanukkah', שבועות: 'Shavuot' };
+const fmtDay = (iso, l) => (l === 'en' ? `${Number(iso.slice(8, 10))}/${Number(iso.slice(5, 7))}/${iso.slice(0, 4)}` : `${Number(iso.slice(8, 10))}.${Number(iso.slice(5, 7))}.${iso.slice(0, 4)}`);
 
 // Destinations named in the text (catalog names in Hebrew/English, with Hebrew prefixes) and countries named.
 function namedInText(text) {
@@ -53,23 +83,27 @@ function namedInText(text) {
 
 // text + quick chips (already appended to the text by the page) → the trip request.
 export function parseTrip(text, { today = new Date().toISOString().slice(0, 10), lang = 'he', destId = '', fx = null } = {}) {
-  const raw = String(text || '').slice(0, 1500), u = understandRequest(raw, {}, { today, lang }), b = u.brief, has = (rx) => rx.test(raw);
+  // Misspelt place names are corrected on a copy the rules read ("ברסלונה" → "ברצלונה"); the visitor's text is kept.
+  const raw = String(text || '').slice(0, 1500), fixed = spellFix(raw, CATALOG_NAMES), u = understandRequest(fixed, {}, { today, lang }), b = u.brief, has = (rx) => rx.test(fixed);
   const styles = ['beach', 'city', 'relaxation', 'family', 'couple'].filter((k) => b[k] === true);
   for (const k of ['ski', 'nature', 'nightlife', 'food', 'culture', 'shopping', 'luxury']) if (has(RX[k]) && !styles.includes(k)) styles.push(k);
   const friends = has(RX.friends), honeymoon = has(RX.honeymoon);
   const occasion = honeymoon ? 'honeymoon' : friends ? 'friends' : (b.children || 0) > 0 ? 'family' : b.couple ? 'couple' : (b.adults === 1 ? 'solo' : '');
-  const starsMatch = RX.stars.exec(raw), stars = starsMatch ? Number(starsMatch[1] || starsMatch[2]) || WORD_STARS[starsMatch[3]] : 0;
+  const starsMatch = RX.stars.exec(fixed), stars = starsMatch ? Number(starsMatch[1] || starsMatch[2]) || WORD_STARS[starsMatch[3]] : 0;
   const allInclusive = has(RX.allInclusive);
   const board = allInclusive ? 'AI' : has(RX.fullBoard) ? 'FB' : has(RX.halfBoard) ? 'HB' : has(RX.breakfast) ? 'BB' : '';
   const car = has(RX.carNo) ? 'no' : has(RX.carYes) ? 'yes' : 'auto';
   const luxury = styles.includes('luxury') || honeymoon && stars >= 5;
   // A country alone ("שבוע ביוון") is a choice between its destinations (ranked below), not a route through all of them.
-  const named = namedInText(raw), fromCodes = u.countryOnly ? [] : (b.want || []).map((c) => byCode(c)).filter(Boolean);
+  const named = namedInText(fixed), fromCodes = u.countryOnly ? [] : (b.want || []).map((c) => byCode(c)).filter(Boolean);
   const excluded = new Set((b.exclude || []).map((c) => byCode(c)?.id).filter(Boolean));
-  let wanted = [...new Map([...named.found, ...fromCodes].map((d) => [d.id, d])).values()].filter((d) => !excluded.has(d.id));
+  // In the order they were named ("רומא, פירנצה וונציה" is that route), whichever list found them.
+  const said = ` ${normalize(fixed)} `, at = (d) => Math.min(...[...nameVariants(d), ...(placeByCode(d.code)?.names || []), ...[d.name?.he, d.name?.en].flatMap((x) => normalize(x).split(/\s+ו|\s*&\s*|\s+—\s+|,\s*/))]
+    .filter((x) => x && x.length >= 3).map((x) => said.indexOf(x)).filter((i) => i >= 0), 1e6);
+  let wanted = [...new Map([...named.found, ...fromCodes].map((d) => [d.id, d])).values()].filter((d) => !excluded.has(d.id)).sort((a, b) => at(a) - at(b));
   const forced = byId(destId);
   if (forced) wanted = [forced, ...wanted.filter((d) => d.id !== forced.id)];
-  const legs = detectLegs(raw, { today, origin: b.origin || 'TLV' })?.legs || null;
+  const legs = detectLegs(fixed, { today, origin: b.origin || 'TLV' })?.legs || null;
   const alternatives = wanted.length > 1 && has(RX.alternatives) && !legs;
   const extra = [];
   const say = (field, key, vars) => extra.push({ field, label: t(`build.understood.${key}`, vars, lang) });
@@ -78,6 +112,8 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   if (stars) say('stars', 'stars', { stars });
   if (honeymoon) say('occasion', 'honeymoon'); else if (friends) say('occasion', 'friends');
   for (const k of ['ski', 'nature', 'nightlife']) if (styles.includes(k)) say('style', `style.${k}`);
+  const pool = has(RX.pool);
+  if (pool) extra.push({ field: 'pool', label: t('planner.need.pool', {}, lang) });
   // Budget (spec 28 §א): a cap for everyone in shekels. "$3000" / "€2500" convert at today's rate (the site's /api/fx);
   // with no rate the amount is unknown and the visitor is asked for it in shekels.
   const foreign = b.budgetForeign, rate = foreign ? fx?.rates?.[foreign.currency] : null;
@@ -85,18 +121,32 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   if (foreign && rate) say('budget', 'budgetFx', { amount: `₪${new Intl.NumberFormat('en-US').format(budget)}` });
   const request = {
     text: raw, lang, origin: placeByCode(b.origin)?.code || 'TLV', adults: b.adults || 2, children: b.children || 0, childAges: (b.childAges || []).filter((a) => Number.isInteger(a) && a >= 0 && a < 18).slice(0, 8),
-    infants: b.infants || 0, nights: b.nights || 0, start: b.start || '', end: b.end || '', month: monthIndex(b.month), styles, occasion,
-    budget, budgetLevel: luxury ? 'high' : b.cheaper ? 'low' : 'mid',
-    needs: { car, allInclusive, board, minStars: stars || (luxury ? 5 : 0), kosher: b.kosher === true, shabbat: b.shabbat === true, accessible: b.accessible === true, direct: b.stops === '0' },
+    infants: b.infants || 0, nights: b.nights || 0, start: b.start || '', end: b.end || '', month: monthIndex(b.month), year: b.year || 0, anchor: b.anchor || '', holiday: b.holiday || '', styles, occasion,
+    budget, budgetLevel: luxury || b.noBudgetLimit ? 'high' : b.cheaper ? 'low' : 'mid',
+    needs: { car, allInclusive, board, minStars: stars || (luxury ? 5 : 0), kosher: b.kosher === true, shabbat: b.shabbat === true, accessible: b.accessible === true, direct: b.stops === '0', pool },
     asked: { stars: stars > 0 },
     destinations: alternatives ? [] : wanted.map((d) => d.id).slice(0, 4), shortlist: alternatives ? wanted.map((d) => d.id) : [], countries: named.countries, exclude: [...excluded],
+    regions: b.regions || [], excludeRegions: b.excludeRegions || [],
     legs, suggest: !wanted.length || has(RX.suggest) && !forced,
-    understood: [...u.understood.filter((x) => !['want', 'exclude'].includes(x.field)).map(({ field, label }) => ({ field, label })), ...extra],
-    questions: u.questions.filter((q) => !['destination', 'budget', 'nights', 'ages', 'children'].includes(q.id) && (q.id !== 'budget-currency' || !budget)).map((q) => q.question).slice(0, 2),
+    understood: [...u.understood.filter((x) => !['want', 'exclude'].includes(x.field) || (x.field === 'exclude' && (b.excludeRegions || []).length)).map(({ field, label }) => ({ field, label })), ...extra],
     coverage: u.coverage
   };
-  if (request.children && request.childAges.length < request.children) request.questions.unshift(t('build.q.ages', {}, lang));
-  request.questions = request.questions.slice(0, 2);
+  // Questions (spec 24 §3): what is genuinely ambiguous is asked – one clear question, the most decision-changing –
+  // instead of guessed silently. Otherwise the brief engine's "what is still missing" (exact dates, which city).
+  const ask = [], q = (id, question) => ask.push({ id, question });
+  const asked = new Map((u.allQuestions || u.questions).map((x) => [x.id, x.question]));
+  if (b.nightsConflict) q('nights-conflict', t('planner.q.nightsConflict', { said: b.nightsConflict.said, dated: b.nightsConflict.dated, start: fmtDay(request.start, lang), end: fmtDay(request.end, lang) }, lang));
+  if (asked.has('budget-currency') && !budget) q('budget-currency', asked.get('budget-currency'));
+  if (asked.has('children')) q('children', asked.get('children'));
+  if (request.children && request.childAges.length < request.children) q('ages', t('build.q.ages', {}, lang));
+  const ambiguous = ask.length > 0;
+  // Which city: not when a long trip in the country is planned as several bases anyway.
+  if (asked.has('city') && !wanted.length && !(request.nights >= 14)) q('city', asked.get('city'));
+  if (!wanted.length && !request.countries.length && !request.regions.length && !styles.length && !has(RX.suggest) && !forced) q('destination', asked.get('destination') || t('planner.q.destination', {}, lang));
+  for (const id of ['dates', 'exact-dates']) if (asked.has(id) && !(id === 'exact-dates' && request.anchor)) q(id, asked.get(id));
+  const shown = ask.slice(0, ambiguous ? 1 : 2);
+  request.questions = shown.map((x) => x.question);
+  request.questionIds = shown.map((x) => x.id);
   return request;
 }
 
@@ -108,8 +158,8 @@ export function applyEdits(request, e = {}, today = new Date().toISOString().sli
   if (int(e.adults, 1, 9) !== null) r.adults = e.adults;
   if (int(e.children, 0, 8) !== null) { r.children = Math.min(e.children, 9 - r.adults); r.childAges = r.childAges.slice(0, r.children); }
   if (Array.isArray(e.childAges)) r.childAges = e.childAges.filter((a) => int(a, 0, 17) !== null).slice(0, r.children);
-  if (int(e.nights, 1, 30) !== null) { r.nights = e.nights; r.end = ''; }
-  if (typeof e.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.start) && e.start >= today) { r.start = e.start; r.end = ''; r.nights = r.nights || 5; }
+  if (int(e.nights, 1, MAX_NIGHTS) !== null) { r.nights = e.nights; r.end = ''; }
+  if (typeof e.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.start) && e.start >= today) { r.start = e.start; r.end = ''; r.anchor = ''; r.nights = r.nights || 5; }
   if (['yes', 'no', 'auto'].includes(e.car)) r.needs.car = e.car;
   if (typeof e.allInclusive === 'boolean') { r.needs.allInclusive = e.allInclusive; r.needs.board = e.allInclusive ? 'AI' : r.needs.board === 'AI' ? '' : r.needs.board; }
   // A star level chosen in the form (a change, not the value it was showing) is a hard constraint for the budget fit.
@@ -132,7 +182,11 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   const pool = request.shortlist.length ? request.shortlist : null;
   if (pool) ranked = ranked.filter((x) => pool.includes(x.destination.id));
   else if (request.countries.length) { const inCountry = ranked.filter((x) => request.countries.includes(x.destination.country.en)); if (inCountry.length) ranked = inCountry; }
-  if (request.children > 0) ranked = ranked.filter((x) => x.destination.flightHours <= 6 || ranked.length <= limit);
+  // Regions: "באירופה" keeps Europe; "לא אירופה" never offers it.
+  if (!pool && request.regions?.length) { const inside = ranked.filter((x) => request.regions.some((id) => inRegion(x.destination, id))); if (inside.length) ranked = inside; }
+  if (request.excludeRegions?.length) ranked = ranked.filter((x) => !request.excludeRegions.some((id) => inRegion(x.destination, id)));
+  // With children, short flights first – unless that leaves nothing (a region or a season that is all long-haul).
+  if (request.children > 0 && ranked.length > limit) { const near = ranked.filter((x) => x.destination.flightHours <= 6); if (near.length) ranked = near; }
   // The AI partner's ideas (when the rules understood little) lead the list; they never hide the catalog's ranking.
   if (request.boost?.length) ranked = [...ranked.filter((x) => request.boost.includes(x.destination.id)), ...ranked.filter((x) => !request.boost.includes(x.destination.id))];
   // Budget (spec 28 §א.2): a destination whose LOW end – with everything the plan may give up given up – is above the
@@ -164,6 +218,8 @@ export function planDates(request, dest, today) {
   let start = request.start, nights = defNights;
   if (start && request.end && request.end > start) nights = daysBetween(start, request.end);
   const earliest = addDays(today, 14);
+  // An approximate start the visitor gave ("באמצע יולי", "בפסח"): the plan starts there, said out loud.
+  if (!start && request.anchor && request.anchor > today) { start = request.anchor; assumed.push({ key: request.holiday ? 'holiday' : 'anchor', date: start, holiday: request.holiday }); }
   if (!start) {
     let month = request.month;
     if (!month) {
@@ -172,8 +228,8 @@ export function planDates(request, dest, today) {
       month = [...best].sort((a, b) => ((a - Number(soon.slice(5, 7)) + 12) % 12) - ((b - Number(soon.slice(5, 7)) + 12) % 12))[0];
       assumed.push({ key: 'month', month });
     } else assumed.push({ key: 'dates', month });
-    let year = Number(today.slice(0, 4));
-    if (`${year}-${pad(month)}-28` < earliest) year++;
+    let year = request.year && request.month ? request.year : Number(today.slice(0, 4));
+    if (!(request.year && request.month) && `${year}-${pad(month)}-28` < earliest) year++;
     start = `${year}-${pad(month)}-10`;
     while (weekday(start) !== 0) start = addDays(start, 1);
     if (start < earliest) { start = earliest; while (weekday(start) !== 0) start = addDays(start, 1); }
@@ -424,9 +480,10 @@ export function practicalOf(dest, request, l = 'he') {
 
 // Passengers by age: under 2 → infant (on a lap, at most one per adult), 2–11 → child, 12+ → adult.
 export function passengers(request) {
-  let adt = request.adults, chd = 0, inf = request.infants || 0;
+  // Children include the infants: with every age known the ages decide, else the infants are the under-2s.
+  let adt = request.adults, chd = 0, inf = 0;
   const ages = request.childAges.length === request.children ? request.childAges : [];
-  if (ages.length) for (const a of ages) { if (a < 2) inf++; else if (a < 12) chd++; else adt++; } else chd = request.children;
+  if (ages.length) for (const a of ages) { if (a < 2) inf++; else if (a < 12) chd++; else adt++; } else { inf = Math.min(request.infants || 0, request.children); chd = request.children - inf; }
   if (inf > adt) { chd += inf - adt; inf = adt; }
   return [{ ptc: 'ADT', count: Math.min(9, adt) }, ...(chd ? [{ ptc: 'CHD', count: chd }] : []), ...(inf ? [{ ptc: 'INF', count: inf }] : [])];
 }
@@ -456,12 +513,51 @@ export function areaFor(dest, request) {
 }
 
 // ---- 6. The whole skeleton.
-export function planPackage(request, { today = new Date().toISOString().slice(0, 10), chosenId = '', nights: override = 0 } = {}) {
+// The budget is a hard cap (owner rule, spec 28 §א): when the asked plan cannot fit, the plan the customer sees is one
+// that does – another destination in what they asked for (never a city they named), else fewer nights – and it says so,
+// with what the original would cost. Only when nothing fits does the honest "closest is ₪X over" remain.
+export function planPackage(request, opts = {}) {
+  const p = planPackageRaw(request, opts), bp = p.budgetPlan, l = request.lang;
+  if (!bp || bp.fits || opts.chosenId || opts.nights || !p.destination) return p;
+  const askedName = L(p.destination.name, l), askedNights = p.request.nights;
+  const namedCity = request.destinations.length > 0 && !request.suggest;
+  if (!namedCity) {
+    const same = (p.suggestions || []).filter((x) => x.fitsBudget && x.id !== p.destination.id);
+    const free = !request.countries.length && !request.regions?.length ? (bp.alternatives || []).filter((a) => a.fits) : [];
+    for (const alt of [...same, ...free].slice(0, 3)) {
+      const q = planPackageRaw(request, { ...opts, chosenId: alt.id });
+      if (q.budgetPlan?.fits) {
+        q.assumed.unshift(t('build.assumed.budgetDest', { from: askedName, to: L(q.destination.name, l), budget: request.budget.toLocaleString('en-US'), raise: bp.raiseTo.toLocaleString('en-US') }, l));
+        q.budgetPlan.adjusted = { kind: 'destination', from: p.destination.id, raiseTo: bp.raiseTo };
+        return q;
+      }
+    }
+  }
+  if (bp.nights && bp.nights < askedNights) {
+    const q = planPackageRaw(request, { ...opts, nights: bp.nights });
+    if (q.budgetPlan?.fits) {
+      q.assumed.unshift(t('build.assumed.budgetNights', { nights: bp.nights, asked: askedNights, budget: request.budget.toLocaleString('en-US'), raise: bp.raiseTo.toLocaleString('en-US') }, l));
+      q.budgetPlan.adjusted = { kind: 'nights', askedNights, raiseTo: bp.raiseTo };
+      return q;
+    }
+  }
+  return p;
+}
+function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10), chosenId = '', nights: override = 0 } = {}) {
   const l = request.lang;
   if (override) request = { ...request, nights: override, end: '' };
   const suggestions = request.destinations.length && !request.suggest ? [] : suggestDestinations(request, { today });
   let ids = chosenId && byId(chosenId) ? [chosenId] : request.destinations.length ? request.destinations : suggestions.slice(0, 1).map((s) => s.id);
   if (chosenId && request.destinations.length > 1 && request.destinations.includes(chosenId)) ids = request.destinations;
+  // A country or a region for two weeks or more ("חודש באיטליה", "3 weeks in Thailand"): several bases of about a week
+  // each, best-ranked first – never one city for a month, never cut to a week.
+  let bases = 0;
+  if (!chosenId && !request.destinations.length && !request.shortlist.length && !request.legs && (request.countries.length || request.regions?.length) && request.nights >= 14) {
+    const want = Math.min(4, Math.max(2, Math.round(request.nights / 7)));
+    const pool = suggestDestinations(request, { today, limit: 12 }).filter((s) => !s.advisory && (!request.countries.length || request.countries.includes(s.country?.en)));
+    const route = routeBases(pool.map((s) => s.id), want, { maxHop: request.countries.length ? Infinity : 3500 });
+    if (route.length > 1) { ids = route; bases = ids.length; }
+  }
   const dests = ids.map(byId).filter(Boolean);
   if (!dests.length) return { request, suggestions, destination: null, stops: [], assumed: [] };
   const dates = planDates(request, dests[0], today);
@@ -481,7 +577,14 @@ export function planPackage(request, { today = new Date().toISOString().slice(0,
     r.end = stops.at(-1).end; r.nights = daysBetween(r.start, r.end);
   }
   const it = buildItinerary(stops, r, l), main = dests[0];
-  const assumed = dates.assumed.map((a) => t(`build.assumed.${a.key}`, { nights: a.nights, month: monthName(a.month, l) }, l));
+  const assumed = dates.assumed.map((a) => (['anchor', 'holiday'].includes(a.key) ? t(`planner.assumed.${a.key}`, { date: fmtDay(a.date, l), holiday: a.holiday && l === 'en' ? HOLIDAY_EN[a.holiday] || a.holiday : a.holiday }, l)
+    : t(`build.assumed.${a.key}`, { nights: a.nights, month: monthName(a.month, l) }, l)));
+  if (bases) assumed.push(t('planner.assumed.bases', { nights: r.nights, count: bases, list: stops.map((s) => `${L(s.dest.name, l)} (${s.nights})`).join(', ') }, l));
+  // The live hotel search covers 30 nights per stay; a longer base is completed by an agent (said, not hidden).
+  if (stops.some((s) => s.nights > 30)) assumed.push(t('planner.assumed.longStay', {}, l));
+  // What the offline plan cannot guarantee is requested from the hotel and confirmed – stated, never silently dropped.
+  const hotelNeeds = ['accessible', 'pool'].filter((k) => r.needs?.[k]).map((k) => t(`planner.need.${k}`, {}, l));
+  if (hotelNeeds.length) assumed.push(t('planner.assumed.needs', { list: hotelNeeds.join(', ') }, l));
   if (!request.understood.some((x) => x.field === 'adults')) assumed.unshift(t('build.assumed.adults', {}, l));
   if (request.children > request.childAges.length) assumed.push(t('build.assumed.ages', {}, l));
   const stopView = (s) => ({ id: s.dest.id, code: s.dest.code, name: s.dest.name, country: s.dest.country, nights: s.nights, start: s.start, end: s.end, dailyBudgetIls: s.dest.dailyBudgetIls, image: imageOf(s.dest), summary: s.dest.summary, advisory: s.dest.advisory || null });

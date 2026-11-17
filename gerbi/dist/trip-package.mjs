@@ -8,6 +8,8 @@ export const BOARDS = ['RO', 'SC', 'BB', 'HB', 'FB', 'AI', 'RD'];
 // Children cost less on the ground (food, tickets); the weight is a stated assumption of the estimate.
 export const CHILD_WEIGHT = 0.6;
 export const STALE_MS = 30 * 60000;
+// The longest stay a package keeps when saved or shared (the builder plans up to 90 nights; nothing is cut to a month).
+const MAX_STAY = 90;
 export const MAX_PICKS = 8;
 
 const num = (v, min = 0, max = 1e7) => (typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max ? v : null);
@@ -120,14 +122,14 @@ function cleanHotelGroup(g) {
   return { status: ['live', 'none', 'quote', 'pending', 'error', 'estimate'].includes(g?.status) ? g.status : 'quote', searchedAt: iso(g?.searchedAt), stop: int(g?.stop, 0, 4),
     ref: typeof g?.ref === 'string' && /^[a-f0-9]{16}$/.test(g.ref) ? g.ref : '', minStars: int(g?.minStars, 0, 5) ?? 0,
     estimate: e && /^[A-Z]{3}$/.test(e.currency || '') && [e.perNight?.low, e.perNight?.high, e.stay?.low, e.stay?.high].every((v) => money(v) !== null)
-      ? { perNight: { low: e.perNight.low, high: e.perNight.high }, stay: { low: e.stay.low, high: e.stay.high }, currency: e.currency, count: int(e.count, 0, 10000) ?? 0, areaScope: e.areaScope === true, nights: int(e.nights, 1, 60) ?? 1 } : null,
+      ? { perNight: { low: e.perNight.low, high: e.perNight.high }, stay: { low: e.stay.low, high: e.stay.high }, currency: e.currency, count: int(e.count, 0, 10000) ?? 0, areaScope: e.areaScope === true, nights: int(e.nights, 1, MAX_STAY) ?? 1 } : null,
     board: BOARDS.includes(g?.board) ? g.board : '', boardFallback: g?.boardFallback === true, total: int(g?.total, 0, 100000),
     area: g?.area ? { name: txt(g.area.name, 80), forWhom: txt(g.area.forWhom, 200) } : null, selected: str(g?.selected, 20),
     picks: list(g?.picks, MAX_PICKS).map((h) => ({ id: str(h?.id, 20), name: str(h?.name, 120), stars: int(h?.stars, 0, 5) ?? 0, board: BOARDS.includes(h?.board) ? h.board : '', boards: list(h?.boards, 7).filter((b) => BOARDS.includes(b)),
-      price: price(h?.price), nights: int(h?.nights, 1, 60), address: str(h?.address, 160), image: typeof h?.image === 'string' && /^\/api\/build\/hotel-image\?src=[\w%.-]{1,400}$/.test(h.image) ? h.image : '',
+      price: price(h?.price), nights: int(h?.nights, 1, MAX_STAY), address: str(h?.address, 160), image: typeof h?.image === 'string' && /^\/api\/build\/hotel-image\?src=[\w%.-]{1,400}$/.test(h.image) ? h.image : '',
       family: h?.family === true, refundable: h?.refundable === true, areaMatch: h?.areaMatch === true, role: slug(h?.role) })) };
 }
-const cleanStop = (s) => ({ id: slug(s?.id), code: code3(s?.code), name: txt(s?.name, 80), country: txt(s?.country, 80), nights: int(s?.nights, 0, 60) ?? 0, start: day(s?.start), end: day(s?.end),
+const cleanStop = (s) => ({ id: slug(s?.id), code: code3(s?.code), name: txt(s?.name, 80), country: txt(s?.country, 80), nights: int(s?.nights, 0, MAX_STAY) ?? 0, start: day(s?.start), end: day(s?.end),
   dailyBudgetIls: s?.dailyBudgetIls && ['low', 'mid', 'high'].every((k) => num(s.dailyBudgetIls[k], 0, 100000) !== null) ? { low: s.dailyBudgetIls.low, mid: s.dailyBudgetIls.mid, high: s.dailyBudgetIls.high } : null,
   image: typeof s?.image === 'string' && /^\/assets\/[\w./-]{1,120}$/.test(s.image) ? s.image : '', summary: txt(s?.summary, 400) });
 
@@ -135,7 +137,7 @@ export function sanitizePackage(pkg) {
   if (!pkg || typeof pkg !== 'object') return null;
   const r = pkg.request || {}, needs = r.needs || {};
   const request = { text: str(r.text, 1500), origin: code3(r.origin) || 'TLV', adults: int(r.adults, 1, 9) ?? 2, children: int(r.children, 0, 8) ?? 0, childAges: list(r.childAges, 8).filter((a) => int(a, 0, 17) !== null),
-    nights: int(r.nights, 1, 30) ?? 5, start: day(r.start), end: day(r.end), month: int(r.month, 0, 12) ?? 0, datesAssumed: r.datesAssumed === true, styles: list(r.styles, 12).map(slug).filter(Boolean),
+    nights: int(r.nights, 1, MAX_STAY) ?? 5, start: day(r.start), end: day(r.end), month: int(r.month, 0, 12) ?? 0, datesAssumed: r.datesAssumed === true, styles: list(r.styles, 12).map(slug).filter(Boolean),
     budget: num(r.budget, 1, 5e6), budgetLevel: ['low', 'mid', 'high'].includes(r.budgetLevel) ? r.budgetLevel : 'mid', occasion: slug(r.occasion),
     needs: { car: ['yes', 'no', 'auto'].includes(needs.car) ? needs.car : 'auto', allInclusive: needs.allInclusive === true, board: BOARDS.includes(needs.board) ? needs.board : '', minStars: int(needs.minStars, 0, 5) ?? 0,
       kosher: needs.kosher === true, shabbat: needs.shabbat === true, accessible: needs.accessible === true, direct: needs.direct === true } };
@@ -147,10 +149,10 @@ export function sanitizePackage(pkg) {
     car: { advice: ['recommended', 'optional', 'not_needed'].includes(pkg.car?.advice) ? pkg.car.advice : 'optional', include: pkg.car?.include === true, note: txt(pkg.car?.note, 300) },
     insurance: { include: pkg.insurance?.include === true },
     extras: list(pkg.extras, 4).map((x) => ({ name: str(x?.name, 120), range: { low: num(x?.range?.low, 0, 1e6), high: num(x?.range?.high, 0, 1e6) } })).filter((x) => x.name && x.range.low !== null && x.range.high !== null && x.range.low <= x.range.high),
-    itinerary: list(pkg.itinerary, 40).map((d) => ({ day: int(d?.day, 1, 61) ?? 1, date: day(d?.date), kind: slug(d?.kind) || 'full', stop: int(d?.stop, 0, 4) ?? 0, title: str(d?.title, 140), note: str(d?.note, 240),
+    itinerary: list(pkg.itinerary, MAX_STAY + 1).map((d) => ({ day: int(d?.day, 1, MAX_STAY + 1) ?? 1, date: day(d?.date), kind: slug(d?.kind) || 'full', stop: int(d?.stop, 0, 4) ?? 0, title: str(d?.title, 140), note: str(d?.note, 240),
       items: list(d?.items, 6).map((x) => ({ name: str(x?.name, 120), kind: slug(x?.kind), durationH: num(x?.durationH, 0, 24) ?? 0, mapsUrl: mapsUrl(str(x?.name, 120), str(x?.where, 80)), where: str(x?.where, 80) })) })),
     practical: pkg.practical && typeof pkg.practical === 'object' ? Object.fromEntries(['visa', 'currency', 'language', 'timeZone', 'kosher', 'shabbat', 'season', 'transport'].map((k) => [k, str(pkg.practical[k], 600)])) : null,
-    polish: pkg.polish ? { intro: str(pkg.polish.intro, 400), dayTitles: list(pkg.polish.dayTitles, 40).map((x) => str(x, 140)) } : null };
+    polish: pkg.polish ? { intro: str(pkg.polish.intro, 400), dayTitles: list(pkg.polish.dayTitles, MAX_STAY + 1).map((x) => str(x, 140)) } : null };
 }
 
 // A plain Google Maps search link – no API key, no tracking.

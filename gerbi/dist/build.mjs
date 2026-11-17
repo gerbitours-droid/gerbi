@@ -211,7 +211,7 @@ function editHtml() {
    <label>${t('build.edit.children')}<input type="number" name="children" min="0" max="8" value="${r.children}"></label>
    <label>${t('build.edit.ages')}<input type="text" name="childAges" inputmode="numeric" placeholder="${esc(t('build.edit.agesPlaceholder'))}" value="${esc(r.childAges.join(', '))}"></label>
    <label>${t('build.edit.start')}<input type="date" name="start" value="${esc(r.start)}"></label>
-   <label>${t('build.edit.nights')}<input type="number" name="nights" min="1" max="30" value="${r.nights}"></label>
+   <label>${t('build.edit.nights')}<input type="number" name="nights" min="1" max="90" value="${r.nights}"></label>
    <label>${t('build.edit.stars')}<select name="minStars">${[0, 3, 4, 5].map((s) => `<option value="${s}" ${n.minStars === s ? 'selected' : ''}>${s ? t('build.edit.starsN', { stars: s }) : t('build.edit.starsAny')}</option>`).join('')}</select></label>
    <label>${t('build.edit.car')}<select name="car">${['auto', 'yes', 'no'].map((c) => `<option value="${c}" ${n.car === c ? 'selected' : ''}>${t(`build.edit.car.${c}`)}</option>`).join('')}</select></label>
    <label class="lead-check"><input type="checkbox" name="allInclusive" ${n.allInclusive ? 'checked' : ''}><span>${t('build.edit.allInclusive')}</span></label>

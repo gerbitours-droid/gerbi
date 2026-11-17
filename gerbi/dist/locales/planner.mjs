@@ -54,7 +54,19 @@ export default {
     'planner.q.budget': 'מה התקציב הכולל לכל הנוסעים?',
     'planner.missing.travelers': 'כמה מבוגרים וילדים נוסעים?',
     'planner.missing.nights': 'לכמה לילות תרצו לצאת?',
-    'planner.missing.dates': 'באיזה חודש או תאריכים נוחים לכם?'
+    'planner.missing.dates': 'באיזה חודש או תאריכים נוחים לכם?',
+    'planner.nightsRange': '{low}–{high, plural, one {# לילה} other {# לילות}} (מתכננים {nights})',
+    'planner.noBudgetLimit': 'בלי הגבלת תקציב',
+    'planner.region.europe': 'אירופה', 'planner.region.asia': 'אסיה והמזרח הרחוק', 'planner.region.latin-america': 'אמריקה הלטינית', 'planner.region.south-america': 'דרום אמריקה',
+    'planner.region.africa': 'אפריקה', 'planner.region.middle-east': 'המזרח התיכון', 'planner.region.oceania': 'אוסטרליה וניו זילנד',
+    'planner.q.nightsConflict': 'כתבתם {said, plural, one {לילה אחד} other {# לילות}}, אבל התאריכים {start}–{end} הם {dated, plural, one {לילה אחד} other {# לילות}}. לפי מה לתכנן? בינתיים תכננו לפי התאריכים.',
+    'planner.q.dayOnly': 'באיזה חודש? כתבתם יום בלי חודש.',
+    'planner.assumed.anchor': 'יציאה סביב {date}',
+    'planner.assumed.holiday': 'יציאה בערב {holiday} ({date})',
+    'planner.assumed.bases': '{nights, plural, one {לילה אחד} other {# לילות}} – חילקנו ל-{count} בסיסים: {list}',
+    'planner.assumed.longStay': 'חיפוש מלון חי מכסה עד 30 לילות לבסיס – את ההמשך נשלים בהצעה מנציג',
+    'planner.assumed.needs': 'נבקש מהמלון ונוודא לפני ההזמנה: {list}',
+    'planner.need.accessible': 'נגישות לכיסא גלגלים', 'planner.need.pool': 'בריכה במלון'
   },
   en: {
     'planner.adults': { one: '1 adult', other: '{count} adults' },
@@ -109,6 +121,18 @@ export default {
     'planner.q.budget': 'What’s the total budget for everyone?',
     'planner.missing.travelers': 'How many adults and kids are traveling?',
     'planner.missing.nights': 'How many nights would you like to go for?',
-    'planner.missing.dates': 'Which month or dates work for you?'
+    'planner.missing.dates': 'Which month or dates work for you?',
+    'planner.nightsRange': '{low}–{high, plural, one {# night} other {# nights}} (planning {nights})',
+    'planner.noBudgetLimit': 'No budget limit',
+    'planner.region.europe': 'Europe', 'planner.region.asia': 'Asia & the Far East', 'planner.region.latin-america': 'Latin America', 'planner.region.south-america': 'South America',
+    'planner.region.africa': 'Africa', 'planner.region.middle-east': 'the Middle East', 'planner.region.oceania': 'Australia & New Zealand',
+    'planner.q.nightsConflict': 'You wrote {said, plural, one {# night} other {# nights}}, but {start}–{end} is {dated, plural, one {# night} other {# nights}}. Which should we plan? For now the plan follows the dates.',
+    'planner.q.dayOnly': 'Which month? You gave a day without a month.',
+    'planner.assumed.anchor': 'leaving around {date}',
+    'planner.assumed.holiday': 'leaving on the eve of {holiday} ({date})',
+    'planner.assumed.bases': '{nights, plural, one {# night} other {# nights}} – split into {count} bases: {list}',
+    'planner.assumed.longStay': 'the live hotel search covers up to 30 nights per base – an agent completes the rest',
+    'planner.assumed.needs': 'we will request and confirm with the hotel before booking: {list}',
+    'planner.need.accessible': 'wheelchair accessibility', 'planner.need.pool': 'a hotel pool'
   }
 };
