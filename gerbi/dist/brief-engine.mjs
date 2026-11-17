@@ -7,7 +7,7 @@ import { t, lang, fmtDate } from './i18n.mjs';
 
 const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
 const MONTH_ALIASES = { מרס: 'מרץ' };
-const HOLIDAYS = { פסח: 'אפריל', סוכות: 'אוקטובר', 'ראש השנה': 'ספטמבר', חנוכה: 'דצמבר', שבועות: 'יוני' };
+const HOLIDAYS = { פסח: 'אפריל', סוכות: 'אוקטובר', 'ראש השנה': 'ספטמבר', חנוכה: 'דצמבר', שבועות: 'יוני', פורים: 'מרץ', 'יום כיפור': 'אוקטובר' };
 // The first evening of each holiday (Hebrew calendar), so "בפסח" plans around the holiday itself, not "some day in
 // April". Outside this table the holiday's usual month is used and said out loud.
 const HOLIDAY_EVE = {
@@ -15,7 +15,9 @@ const HOLIDAY_EVE = {
   שבועות: ['2026-05-21', '2027-06-10', '2028-05-30', '2029-05-19', '2030-06-06'],
   'ראש השנה': ['2026-09-11', '2027-10-01', '2028-09-20', '2029-09-09', '2030-09-27'],
   סוכות: ['2026-09-25', '2027-10-15', '2028-10-04', '2029-09-23', '2030-10-11'],
-  חנוכה: ['2026-12-04', '2027-12-24', '2028-12-12', '2029-12-01', '2030-12-20']
+  חנוכה: ['2026-12-04', '2027-12-24', '2028-12-12', '2029-12-01', '2030-12-20'],
+  פורים: ['2027-03-22', '2028-03-11', '2029-02-28', '2030-03-18'],
+  'יום כיפור': ['2027-10-10', '2028-09-29', '2029-09-18', '2030-10-06']
 };
 const holidayEve = (holiday, today) => (HOLIDAY_EVE[holiday] || []).find(day => day >= today) || null;
 // The longest stay the builder plans (a long trip is split into bases; nothing is silently cut to a week).
@@ -99,6 +101,7 @@ function nextDate(day, month, today, year) {
 const valid = value => { const date = new Date(value + 'T12:00:00Z'); return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value; };
 
 function extractDates(text, today) {
+  text = text.replace(/[?!;:]+/g, ' ');
   const monthPattern = MONTHS.concat(Object.keys(MONTH_ALIASES)).join('|');
   const monthIndex = name => MONTHS.indexOf(MONTH_ALIASES[name] || name) + 1;
   // "יציאה 2 בפברואר וחזרה 6 בפברואר", "28 ביוני עד 3 ביולי"
@@ -113,6 +116,18 @@ function extractDates(text, today) {
     const month = monthIndex(match[3]), start = nextDate(+match[1], month, today, match[4] && +match[4]);
     const end = nextDate(+match[2], month, start);
     if (valid(start) && valid(end)) return { start, end, month: MONTHS[month - 1], source: match[0] };
+  }
+  // "10-17.7", "15-20.3": both days in the month after the second.
+  match = text.match(/(?:^|\s)(?:מה?-?|ב-?|בין\s+)?(?<!\d)(\d{1,2})\s*(?:-|עד|ל-?)\s*(\d{1,2})[./](\d{1,2})(?![./]\d)(?!\d)/);
+  if (match && +match[3] >= 1 && +match[3] <= 12) {
+    const start = nextDate(+match[1], +match[3], today), end = nextDate(+match[2], +match[3], start);
+    if (valid(start) && valid(end)) return { start, end, month: MONTHS[+match[3] - 1], source: match[0].trim() };
+  }
+  // "לטוס ב-24.12 ולחזור ב-31.12", "יציאה 3.7 חזרה 10.7"
+  match = text.match(/(?<!\d)(\d{1,2})[./](\d{1,2})(?![./]\d)\s*,?\s*(?:ו?(?:לחזור|חזרה|חוזרים|נחזור)|ו?עד)\s*(?:ב|ה)?-?\s*(\d{1,2})[./](\d{1,2})(?!\d)/);
+  if (match) {
+    const start = nextDate(+match[1], +match[2], today), end = nextDate(+match[3], +match[4], start);
+    if (valid(start) && valid(end)) return { start, end, month: MONTHS[+match[2] - 1], source: match[0].trim() };
   }
   // "3.7-10.7", "מה-3/7 עד ה-10/7", "3/7/27"
   match = text.match(/ה?-?(?<!\d)(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?\s*(?:-|עד|ועד|ל-?)\s*ה?-?(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/);
@@ -153,6 +168,12 @@ function extractDates(text, today) {
   match = text.match(new RegExp(`(?:^|\\s)(?:ביום\\s+${day}(?:\\s+(?:הקרוב|הבא))?|ב(ראשון|שלישי|רביעי|חמישי|שישי)\\s+(?:הקרוב|הבא))(?=[\\s,.!?]|$)`));
   if (match) return { start: nextWeekday(today, WEEKDAYS_HE.indexOf(match[1] || match[2])), source: match[0].trim() };
   // A holiday: "בפסח", "בחג סוכות", "פסח ברומא"; "3 שבועות" is three weeks, so Shavuot needs "ב"/"חג" in front.
+  text = text.replace(/ליל ה?סדר/g, 'פסח').replace(/(?:^|\s)(?:ב|ל)?כיפור(?=[\s,.]|$)/g, ' ביום כיפור');
+  // Civil dates people travel for: around the day itself.
+  for (const [rx, day, mon] of [[/ולנטיין|יום האהבה/, 14, 2], [/סילבסטר|ראש השנה האזרחית|השנה האזרחית החדשה/, 29, 12], [/חג המולד|כריסמס|קריסמס/, 22, 12]]) {
+    const hit = text.match(rx);
+    if (hit) { const anchor = nextDate(day, mon, today); return { month: MONTHS[mon - 1], anchor, approximate: true, source: hit[0] }; }
+  }
   for (const [holiday, month] of Object.entries(HOLIDAYS)) {
     const hit = text.match(new RegExp(`(?:^|\\s)(?:ב|בחג\\s+ה?|חג\\s+ה?|לחג\\s+ה?|ל${holiday === 'שבועות' ? '' : '|'})${holiday}(?=\\s|$|[,.])`));
     if (!hit) continue;
@@ -160,7 +181,7 @@ function extractDates(text, today) {
     return eve ? { month: MONTHS[+eve.slice(5, 7) - 1], holiday, anchor: eve, approximate: true, source: hit[0].trim() } : { month, holiday, source: hit[0].trim() };
   }
   // The school summer holiday.
-  match = text.match(/(?:^|\s)(?:ב|ל)?(?:חופש הגדול|חופשת הקיץ|חופש הקיץ)(?=[\s,.!?]|$)/);
+  match = text.match(/(?:^|\s)(?:ב|ל)?ה?(?:חופש הגדול|חופשת הקיץ|חופש הקיץ)(?=[\s,.!?-]|$)/);
   if (match) return { month: 'יולי', season: 'קיץ', source: match[0].trim() };
   // "בחודש הבא" / "החודש".
   match = text.match(/(?:^|\s)(?:ב|ל)?(?:ה)?חודש (?:הבא|הקרוב)(?=[\s,.!?]|$)/);
@@ -219,11 +240,17 @@ function extractDuration(text) {
 }
 
 // Ages after "בן/בת/בני/בגילאי": "בני 2,5,9", "בני 3 ו-6", "בני 2, 5 ו-9" – never a count of nights/days/money after them.
-const AGE_TAIL = '(?!\\d)(?!\\s*-\\s*\\d)(?!\\s*(?:לילות|ימים|לילה|שבועות|חודשים|₪|שקל|ש"ח|שח|אלף|כוכבים|%))';
+const AGE_TAIL = '(?!\\d)(?!\\s*-\\s*\\d)(?!\\s*(?:לילות|ימים|לילה|שבועות|חודשים|₪|שקל|ש"ח|שח|אלף|כוכבים|%|מבוגרים|מבוגרות|אנשים|נוסעים|חברים|חברות))';
 function agesIn(text) {
   const ages = [];
   for (const m of text.matchAll(new RegExp(`(?:^|[\\s(])(?:בן|בת|בני|בנות|בגיל(?:אי)?|גילאי|גיל)\\s+(\\d{1,2})${AGE_TAIL}((?:\\s*(?:,\\s*(?:ו-?\\s*)?|ו-?\\s*|-\\s*(?=\\d{1,2}\\s*(?:,|ו)))\\d{1,2}${AGE_TAIL})*)`, 'g'))) {
     ages.push(+m[1], ...(m[2].match(/\d{1,2}/g) || []).map(Number));
+  }
+  // Ages in brackets after the kids: "3 ילדים קטנים (1, 3, 5)", "ילדים (4 ו-7)".
+  for (const m of text.matchAll(/(?:ילדים|ילדות|נכדים|הילדים|קטנים|נערים)\s*\((\d{1,2}(?:\s*(?:,|ו-?|-)\s*\d{1,2})*)\)/g)) ages.push(...m[1].match(/\d{1,2}/g).map(Number));
+  // A list of two or more ages right after the kids, without "בני": "ילדים 3 ו-6", "2 ילדים 9 ו-12", "מתבגרים 15 ו-17".
+  for (const m of text.matchAll(new RegExp(`(?:ילדים|ילדות|נכדים|נערים|נערות|מתבגרים|מתבגרות)(?:\\s+(?:קטנים|קטנות|גדולים))?\\s*,?\\s*(\\d{1,2})${AGE_TAIL}((?:\\s*(?:,\\s*(?:ו-?\\s*)?|ו-?\\s*))\\d{1,2}${AGE_TAIL})+`, 'g'))) {
+    if (!/(?:^|[\s,(])(?:בן|בת|בני|בנות|בגיל(?:אי)?|גילאי|גיל)\s+$/.test(text.slice(0, m.index))) ages.push(...m[0].match(/\d{1,2}/g).map(Number));
   }
   return ages.filter(age => age < 18);
 }
@@ -235,12 +262,21 @@ function extractTravelers(text) {
   if (counted || single) { found.children = counted ? Math.min(8, +counted[1]) : 1; found.childrenSource = (counted || single)[0].trim(); }
   const infants = text.match(/(\d+)?\s*תינוק(?:ת|ות|ים)?/);
   if (infants) { found.infants = infants[1] ? +infants[1] : 1; found.children = (found.children || 0) + found.infants; }
-  const ages = agesIn(text);
+  // "2+2", "זוג + 3", "משפחה 2+4", "2+3 (6,10,13)": adults + children – the Israeli shorthand for a family.
+  const plus = text.match(/(?:^|[\s,(])(זוג|\d)\s*\+\s*(\d)(?!\d)(?!\s*(?:לילות|לילה|ימים|יום|כוכבים|שבועות|₪|אלף|שקל|ש"ח))/);
+  if (plus) {
+    found.plusAdults = plus[1] === 'זוג' ? 2 : +plus[1];
+    if (!counted && !single) { found.children = Math.max(found.children || 0, +plus[2]); found.childrenSource = plus[0].trim(); }
+    const list = text.slice(plus.index + plus[0].length).match(/^\s*(?:[א-ת]+\s*)?\((\d{1,2}(?:\.\d)?(?:\s*(?:,|ו-?|-)\s*\d{1,2}(?:\.\d)?)*)\)/);
+    if (list) found.plusAges = list[1].match(/\d{1,2}(?:\.\d)?/g).map((a) => Math.floor(Number(a)));
+  }
+  const ages = [...agesIn(text), ...(found.plusAges || [])];
   if (ages.length) { found.childAges = ages.slice(0, 8); found.children = Math.max(found.children || 0, ages.length); }
   // A baby with no age said is under 2 (flight infant fare, cot in the room) – never "age 8" in the hotel search.
   if (found.infants && !(found.childAges || []).some(age => age < 2)) { found.childAges = [...(found.childAges || []), ...Array(found.infants).fill(0)].slice(0, 8); found.infantAgeAssumed = true; }
   if (/בלי ילדים|ללא ילדים|רק מבוגרים/.test(text)) { found.children = 0; found.childAges = []; found.noChildren = true; }
-  let match = text.match(/משפחה של (\d+)/);
+  if (found.plusAdults) { found.adults = found.plusAdults; found.adultsSource = 'N+M'; }
+  let match = !found.adults && text.match(/משפחה של (\d+)/);
   if (match) { const total = +match[1]; found.children = found.children ?? Math.max(0, total - 2); found.adults = Math.max(1, total - found.children); found.adultsSource = match[0]; }
   match = text.match(/(\d+)\s*(?:מבוגרים|מבוגרות)/);
   if (match) { found.adults = +match[1]; found.adultsSource = match[0]; }
@@ -253,11 +289,11 @@ function extractTravelers(text) {
   // Couples: "3 זוגות", "שני זוגות" (numerals made it "2 זוגות").
   match = !found.adults && text.match(/(\d+)\s*זוגות/);
   if (match) { found.adults = 2 * +match[1]; found.adultsSource = match[0]; }
-  match = !found.adults && text.match(/(?:אנחנו\s+)?(\d+)\s*(?:נוסעים|אנשים|מטיילים|חברים|חברות|חבר'ה|רווקים|רווקות)(?![א-ת])/);
+  match = !found.adults && text.match(/(?:אנחנו\s+)?(\d+)\s*(?:נוסעים|אנשים|מטיילים|חברים|חברות|חבר'ה|חברה|רווקים|רווקות|נשים|גברים|בחורים|בחורות)(?![א-ת])/);
   // "אני ו-3 חברים" / "אני ועוד 2 חברות" is the friends plus me.
   if (match) { const me = /(?:^|\s)אני\s+(?:ו-?\s*)?(?:עוד\s+)?$/.test(text.slice(0, match.index + (match[0].length - match[0].trimStart().length))) ? 1 : 0; found.adults = Math.max(1, +match[1] + me - (found.children || 0)); found.adultsSource = match[0]; }
   // "6 בנות" / "4 בנים" with no parent around is a group of women / men (a hen party), not children.
-  match = !found.adults && !/(?:^|\s)(?:אבא|אמא|הורים|ההורים|זוג|סבא|סבתא|משפחה|אני|ואני|אשתי|בעלי|עם)(?=[\s,.]|$)/.test(text) && text.match(/(?:^|\s)(\d+)\s+(?:בנות|בנים)(?=[\s,.]|$)/);
+  match = !found.adults && (!/(?:^|\s)(?:אבא|אמא|הורים|ההורים|זוג|סבא|סבתא|משפחה|אני|ואני|אשתי|בעלי|עם)(?=[\s,.]|$)/.test(text) || /חבר'?ה|רווק|מסיב|בנות \d\d\+?|חברות|חברים/.test(text)) && text.match(/(?:^|\s)(\d+)\s+(?:בנות|בנים)(?=[\s,.]|$)/);
   if (match) { found.adults = +match[1]; found.adultsSource = match[0].trim(); found.groupOfAdults = true; }
   if (!found.adults && /(?:^|\s)אנחנו (\d+)(?=\s|$|,)/.test(text)) { const total = +text.match(/אנחנו (\d+)/)[1]; found.adults = Math.max(1, total - (found.children || 0)); found.adultsSource = `אנחנו ${total}`; }
   const forParty = text.match(/(?:^|\s)ל-?(שניים|שלושה|ארבעה|חמישה|שישה|שבעה|שמונה|\d)(?=\s|$|,)(?!\s*(?:לילות|ימים|לילה|שבועות|חודשים|[בל]?(?:ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר)))/);
@@ -269,6 +305,16 @@ function extractTravelers(text) {
   if (!found.adults && (/(?:^|\s)ו?(?:זוג|שנינו|שני מבוגרים)(?=[\s,.+]|$)/.test(text) || (/(?:^|\s)אני(?=[\s,]|$)/.test(text) && PARTNER_HE.test(text)) || /(?:^|\s)אני ו(?:עוד\s+)?(?:חבר|חברה)(?=[\s,.]|$)/.test(text))) {
     found.adults = 2; found.adultsSource = (text.match(/זוג|שנינו|שני מבוגרים|אני ו\S+/) || ['זוג'])[0];
   }
+  // Me and one parent / grandparent: "לקחת את אמא שלי", "אני ואבא", "עם סבתא שלי" – two adults (no children with them).
+  const elder = /(?:^|\s)(?:את|עם|ו)?-?(?:אמא|אבא|סבתא|סבא|אמי|אבי)(?:\s+שלי)?(?=[\s,.]|$)/;
+  if (!found.adults && !found.children && elder.test(text) && /(?:^|\s)(?:אני|ואני|רוצה|לקחת|שלי|עם)(?=[\s,.]|$)/.test(text)) { found.adults = 2; found.adultsSource = text.match(elder)[0].trim(); }
+  // Me and named relatives: "אני, אחי ואחותי" 3, "ההורים שלי… אני ואחותי" 4, "סבא… אני ואשתי" 3.
+  if (!found.adults && /(?:^|\s)ו?אני(?=[\s,.]|$)/.test(text) && /(?:^|\s)ו?(?:אחי|אחותי)(?=[\s,.]|$)/.test(text)) {
+    const rel = ['אחי', 'אחותי', 'אשתי', 'בעלי', 'אבא', 'אמא', 'סבא', 'סבתא'].filter((w) => new RegExp(`(?:^|\\s)(?:ו|את|עם)?${w}(?=[\\s,.]|$)`).test(text)).length;
+    found.adults = 1 + rel + (/ההורים/.test(text) ? 2 : 0); found.adultsSource = 'אני + קרובים';
+  }
+  // "אני בת 22", "אני סטודנטית" with nobody else named: one traveller.
+  if (!found.adults && !found.children && /(?:^|\s)אני\s+(?:בת|בן)\s+\d{2}(?=[\s,.]|$)|(?:^|\s)אני\s+(?:סטודנט|סטודנטית|חייל|חיילת)(?=[\s,.]|$)/.test(text) && !PARTNER_HE.test(text) && !/חבר|אמא|אבא|ההורים|אחי|אחותי|אנחנו|זוג/.test(text)) { found.adults = 1; found.adultsSource = 'אני'; }
   if (!found.adults && /(?:^|\s)(?:לבד|סולו|רק אני)(?=\s|$|,)/.test(text)) { found.adults = 1; found.adultsSource = 'לבד'; }
   // One parent or grandparent travelling with children, without a partner named: "אני והילדים", "אני ו-2 הילדים",
   // "אמא עם ילדה בת 10", "אבא ובן בן 12".
@@ -280,6 +326,9 @@ function extractTravelers(text) {
   const sons = text.match(/(?:^|\s)ו?(\d+)\s+(?:בנים|בנות|נכדים|נכדות)(?=\s|$)/);
   if (sons && !counted && !found.groupOfAdults) { found.children = Math.max(found.children || 0, +sons[1]); found.childrenSource = sons[0].trim(); }
   if (!found.children && !found.noChildren && /עם הילדים|עם ילדים|משפחה|והילדים/.test(text)) found.childrenUnknown = true;
+  // A grandparent or the parents on top of a couple / me + a sibling ("עם סבא… אני ואשתי" 3, "ההורים שלי… אני ואחותי" 4).
+  if (found.adults === 2 && PARTNER_HE.test(text) && /(?:^|\s)(?:ו|את|עם)?(?:סבא|סבתא)(?:\s+שלי)?(?=[\s,.]|$)/.test(text)) found.adults = 3;
+  if (/(?:^|\s)(?:את\s+)?ההורים שלי/.test(text) && /אני ו(?:אחי|אחותי)/.test(text)) found.adults = 4;
   found.wholeGroup = found.groupOfAdults || /חברים|חברות|חבר'ה|אנחנו \d|משפחה של|לבד|סולו|רק אני|זוגות|\d+\s*(?:נוסעים|אנשים|מטיילים)/.test(found.adultsSource || '');
   if (found.adults) found.adults = Math.min(9, found.adults);
   return found;
@@ -383,8 +432,8 @@ const MONTHS_EN = ['january', 'february', 'march', 'april', 'may', 'june', 'july
 const MONTH_SHORT_EN = { jan: 1, feb: 2, mar: 3, apr: 4, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12 };
 const EN_MONTH = `(${MONTHS_EN.join('|')}|sept|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\\.?`;
 const enMonthIndex = name => MONTHS_EN.indexOf(name) + 1 || MONTH_SHORT_EN[name] || 0;
-const HOLIDAYS_EN = [[/passover|pesach/, 'פסח'], [/sukkot|sukkos|succot/, 'סוכות'], [/rosh hashanah?|jewish new year/, 'ראש השנה'], [/hanukkah?|chanukah?|hanuka/, 'חנוכה'], [/shavuot|shavuos/, 'שבועות'], [/christmas/, 'Christmas'], [/easter/, 'Easter']];
-const HOLIDAY_MONTH_EN = { Christmas: 'דצמבר', Easter: 'אפריל' };
+const HOLIDAYS_EN = [[/passover|pesach/, 'פסח'], [/sukkot|sukkos|succot/, 'סוכות'], [/rosh hashanah?|jewish new year/, 'ראש השנה'], [/hanukkah?|chanukah?|hanuka/, 'חנוכה'], [/shavuot|shavuos/, 'שבועות'], [/christmas/, 'Christmas'], [/easter/, 'Easter'], [/new years?'?s?(?: eve)?\b|\bnye\b/, 'NYE'], [/valentine/, 'Valentine'], [/summer (?:vacation|holidays?|break)/, 'Summer']];
+const HOLIDAY_MONTH_EN = { Christmas: 'דצמבר', Easter: 'אפריל', NYE: 'דצמבר', Valentine: 'פברואר', Summer: 'יולי' };
 const SEASONS_EN = [['summer', 'קיץ'], ['winter', 'חורף'], ['spring', 'אביב'], ['autumn', 'סתיו'], ['fall', 'סתיו']];
 const NUMBER_WORDS_EN = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, twenty: 20, thirty: 30 };
 const isEnglish = raw => /[a-z]{2}/i.test(raw) && !/[֐-׿]/.test(raw);
@@ -397,6 +446,7 @@ function numeralsEn(text) {
 }
 
 function extractDatesEn(text, today) {
+  text = text.replace(/[?!;:]+/g, ' ');
   const dm = `(?:(\\d{1,2})\\s+(?:of\\s+)?${EN_MONTH}|${EN_MONTH}\\s+(\\d{1,2})(?!\\s*(?:-|to)\\s*\\d{1,2}\\s*(?:nights?|days?|weeks?))(?!\\s*(?:nights?|days?|weeks?|adults?|kids?|children|child|people|persons|travell?ers|passengers|infants?|babies)\\b))(?!\\d)(?:,?\\s+(\\d{4}))?`;
   const read = (m, at) => ({ day: +(m[at] || m[at + 3]), month: enMonthIndex(m[at + 1] || m[at + 2]), year: m[at + 4] && +m[at + 4] });
   const out = (start, end, month, source) => (valid(start) && (!end || valid(end)) ? { start, ...(end ? { end } : {}), month: MONTHS[month - 1], source } : null);
@@ -466,7 +516,8 @@ function extractDatesEn(text, today) {
   for (const hit of m || []) {
     const parts = new RegExp(`(in|during|early|mid|late|of)?\\s*${EN_MONTH}$`).exec(hit.trim());
     if (!parts) continue;
-    if ((parts[2] === 'may' || parts[2] === 'march') && !parts[1]) continue;
+    // "may" / "march" are verbs too: bare, only as an item of their own ("Krakow, May, 4 nights", "…, 4 nights, May").
+    if ((parts[2] === 'may' || parts[2] === 'march') && !parts[1] && !new RegExp(`(?:^|,)\\s*${parts[2]}\\s*(?:,|\\.|$)`).test(text)) continue;
     const year = text.match(new RegExp(`${parts[2]}\\.?,?\\s+(20[23]\\d)\\b`));
     return { month: MONTHS[enMonthIndex(parts[2]) - 1], ...(year ? { year: +year[1] } : {}), source: parts[2] };
   }
@@ -501,6 +552,8 @@ function extractDurationEn(text) {
   if (/\b(?:a|for a|one)\s+week\b/.test(text)) return { nights: 7, source: 'a week' };
   if (/\blong weekend\b/.test(text) && !/\b(?:this|next)\s+long weekend\b/.test(text)) return { nights: 4, source: 'long weekend' };
   if (/\bweekend\b/.test(text) && !/\b(?:this|next)\s+weekend\b/.test(text)) return { nights: 3, source: 'weekend' };
+  // "a beach week", "ski week": a week-long stay (not "next week", "the week of 5 July").
+  if (/\bweek\b(?!\s+(?:from|of|after|before)\b)/.test(text) && !/\b(?:this|next|last|that|the)\s+week\b|\bweek (?:from|of)\b/.test(text)) return { nights: 7, source: 'week' };
   return null;
 }
 
@@ -508,7 +561,7 @@ function extractTravelersEn(text) {
   const found = {};
   // Ages in months are babies ("a baby aged 8 months", "a 10-month-old") – never a stay of months.
   text = text.replace(/\b(\d{1,2})[\s-]*months?[\s-]*old\b/g, '0 year old').replace(/\b(aged?)\s+\d{1,2}\s+months?\b/g, '$1 0');
-  const counted = text.match(/(\d+)\s*(?:kids?|children|child|boys?|girls?(?!friends)|grandkids|grandchildren|grandchild|sons?|daughters?|teens|teenagers|teenage (?:kids|boys|girls))\b/);
+  const counted = text.match(/(?<!family of\s*)(?<!\d)(\d+)\s*(?:kids?|children|child|boys?|girls?(?!friends)|grandkids|grandchildren|grandchild|sons?|daughters?|teens|teenagers|teenage (?:kids|boys|girls))\b/);
   const single = text.match(/(?:^|\s)(?:a|our|my|with a|and a)\s+(?:kid|child|son|daughter|boy|girl|grandchild|grandson|granddaughter)\b/);
   if (counted || single) { found.children = counted ? Math.min(8, +counted[1]) : 1; found.childrenSource = (counted || single)[0].trim(); }
   const infants = text.match(/(?:(\d+)\s*(?:infants|babies|toddlers)|(?:an?|our|my|1)\s+(?:\d{1,2}[\s-]*(?:year|month)s?[\s-]*old\s+)?(?:infant|baby|toddler))\b/);
@@ -665,7 +718,9 @@ function vocabulary(extra) {
   vocabCache.set(id, value);
   return value;
 }
-const NOT_PLACES = new Set([...MONTHS, ...Object.keys(NUMBER_WORDS), 'שבועות', 'שבועיים', 'חודשיים', 'לילות', 'ילדים', 'ילדות', 'זוגות', 'בריכה', 'מבוגרים', 'סופש', 'יוקרה', 'יוקרתי', 'רגוע', 'שקלים', 'תקציב', 'מקסימום', 'בסביבות', 'מתבגרים', 'נכדים', 'תינוק', 'תינוקת', 'חברים', 'חברות', 'אשתי', 'אישתי', 'בעלי', 'ספטמבר', 'פסח', 'סוכות', 'חנוכה', 'כשר', 'כשרות', 'שבת', 'רכב', 'ישירה', 'טיסה', 'טיסות', 'זול', 'הכול', 'כלול', 'נגיש', 'לבד', 'סבתא', 'משפחה', 'מלון', 'חופשה', 'חופש', 'פנסיונרים', 'שומרי', 'נוסעים']);
+const NOT_PLACES = new Set([...MONTHS, ...Object.keys(NUMBER_WORDS), 'שבועות', 'שבועיים', 'חודשיים', 'לילות', 'ילדים', 'ילדות', 'זוגות', 'בריכה', 'מבוגרים', 'סופש', 'יוקרה', 'יוקרתי', 'רגוע', 'שקלים', 'תקציב', 'מקסימום', 'בסביבות', 'מתבגרים', 'נכדים', 'תינוק', 'תינוקת', 'חברים', 'חברות', 'אשתי', 'אישתי', 'בעלי', 'ספטמבר', 'פסח', 'סוכות', 'חנוכה', 'כשר', 'כשרות', 'שבת', 'רכב', 'ישירה', 'טיסה', 'טיסות', 'זול', 'הכול', 'כלול', 'נגיש', 'לבד', 'סבתא', 'משפחה', 'מלון', 'חופשה', 'חופש', 'פנסיונרים', 'שומרי', 'נוסעים',
+  // Everyday trip words that sound like a place ("טיולים" ≈ "טולום"): never "corrected".
+  'טיול', 'טיולים', 'טיולי', 'לטייל', 'מטיילים', 'טבע', 'נופים', 'מוזיאונים', 'מסעדות', 'הופעה', 'הופעות', 'קניות', 'שופינג', 'ספארי', 'אטרקציות', 'מפלים', 'הרים', 'פארקים', 'ברים', 'מועדונים', 'מסיבות', 'צלילה', 'שנורקל', 'חופים', 'איים', 'אגמים', 'כפרים', 'שווקים']);
 export function spellFix(text, extra = []) {
   const vocab = vocabulary(extra), english = isEnglish(text);
   return String(text || '').replace(/[\p{L}'"]+/gu, (word) => {

@@ -26,12 +26,12 @@ export const hotelCityOf = (d) => d?.hotelCity || HOTEL_CITY[d?.code] || d?.code
 const RX = {
   allInclusive: /הכו?ל כלול|הכו?ל-כלול|או?ל ?אינקלוסיב|all[- ]?inclusive/i, pool: /בריכה|\bpool\b/i,
   halfBoard: /חצי פנסיון|half[- ]board/i, fullBoard: /פנסיון מלא|full[- ]board/i, breakfast: /(?:עם|כולל|רק)\s+ארוחת בוקר|bed (?:and|&) breakfast|\bb&b\b|with breakfast/i,
-  carYes: /(?:עם|כולל|נשכור|לשכור|שוכרים|השכרת|ונשכור|וגם)\s*(?:ה)?רכב|רכב שכור|רכב צמוד|\b(?:rent(?:al|ing)?\s+(?:a\s+)?car|car\s+(?:hire|rental)|with\s+a\s+car|road\s?trip)\b/i,
+  carYes: /(?:עם|כולל|נשכור|לשכור|שוכרים|השכרת|ונשכור|וגם|ב)\s*(?:ה)?רכב(?!\s*ציבורי)|רכב שכור|רכב צמוד|קרוואן|קראוון|\bcampervan|\bmotorhome|\bcaravan|\brv\b|\bby car\b|\b(?:rent(?:al|ing)?\s+(?:a\s+)?car|car\s+(?:hire|rental)|with\s+a\s+car|road\s?trip)\b/i,
   carNo: /(?:בלי|ללא|לא צריך|לא צריכים|לא רוצים)\s*(?:ה)?רכב|\b(?:no|without a|don'?t need a)\s+car\b/i,
-  ski: /סקי|סנובורד|\bski(?:ing)?\b|snowboard/i, nature: /טבע|הרים|מפלים|נופים|\bnature\b|hiking|mountains|waterfalls/i,
+  ski: /סקי|סנובורד|\bski(?:ing)?\b|snowboard/i, nature: /טבע|הרים|מפלים|נופים|נוף|טרקים|טרק|הליכות|מסלולי הליכה|\bnature\b|hiking|hikes?\b|treks?\b|trekking|mountains|waterfalls|scenery/i,
   nightlife: /חיי לילה|מסיבות|ברים|nightlife|clubs|\bbars\b|\bparty\b/i, friends: /חברים|חברות|\bfriends\b|\bmates\b/i,
-  honeymoon: /ירח דבש|honeymoon/i, luxury: /יוקרה|יוקרתי|פינוק|\bluxury\b|luxurious/i,
-  food: /אוכל|קולינרי|יין|\bfood\b|culinary|\bwine\b/i, culture: /תרבות|היסטוריה|מוזיאונים|culture|history|museums/i, shopping: /קניות|shopping/i,
+  honeymoon: /ירח דבש|honeymoon/i, luxury: /יוקרה|יוקרתי|פינוק|מפנק|\bluxury\b|luxurious|5[- ]star|five[- ]star|pamper/i,
+  food: /אוכל|קולינרי|יין|\bfood\b|culinary|\bwine\b/i, culture: /תרבות|היסטוריה|מוזיאונים|culture|history|museums/i, shopping: /קניות|שופינג|אאוטלט|אופנה|shopping|outlets?|fashion/i,
   stars: /(\d)\s*(?:כוכבים|★)|\b(\d)[- ]?stars?\b|(חמישה|ארבעה|שלושה) כוכבים/i,
   suggest: /תציעו|תמליצו|לא יודעים לאן|לא בטוחים לאן|הפתיעו|תפתיעו|לאן כדאי|איפה כדאי|surprise|suggest|recommend|anywhere|not sure where|don'?t know where/i,
   alternatives: /\s(?:או|or)\s/i
@@ -97,10 +97,26 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   // A country alone ("שבוע ביוון") is a choice between its destinations (ranked below), not a route through all of them.
   const named = namedInText(fixed), fromCodes = u.countryOnly ? [] : (b.want || []).map((c) => byCode(c)).filter(Boolean);
   const excluded = new Set((b.exclude || []).map((c) => byCode(c)?.id).filter(Boolean));
+  // Everything named after a "no" is out, the whole list ("not Paris or London", "לא יוון ולא קפריסין"), and a country
+  // said that way takes all its places with it (Mykonos too, not only the airports the brief knew).
+  const negatedCountries = new Set();
+  for (const m of ` ${fixed.toLowerCase()} `.matchAll(/(?:^|[\s,])(?:ו?לא|בלי|ללא|חוץ מ-?|not|no|without|except|anywhere but)\s+([^,.;!?()]+)/g)) {
+    // Only when a place comes right after the "no" ("לא משנה המחיר ברודוס", "בלי רכב… בברצלונה" keep their place).
+    const head = namedInText(m[1].trim().split(/\s+/).slice(0, 2).join(' '));
+    if (!head.found.length && !head.countries.length) continue;
+    const span = namedInText(m[1]);
+    span.found.forEach((d) => excluded.add(d.id));
+    span.countries.forEach((c) => { negatedCountries.add(c); destinations.filter((d) => d.country?.en === c).forEach((d) => excluded.add(d.id)); });
+  }
+  named.countries = named.countries.filter((c) => !negatedCountries.has(c));
   // In the order they were named ("רומא, פירנצה וונציה" is that route), whichever list found them.
   const said = ` ${normalize(fixed)} `, at = (d) => Math.min(...[...nameVariants(d), ...(placeByCode(d.code)?.names || []), ...[d.name?.he, d.name?.en].flatMap((x) => normalize(x).split(/\s+ו|\s*&\s*|\s+—\s+|,\s*/))]
     .filter((x) => x && x.length >= 3).map((x) => said.indexOf(x)).filter((i) => i >= 0), 1e6);
-  let wanted = [...new Map([...named.found, ...fromCodes].map((d) => [d.id, d])).values()].filter((d) => !excluded.has(d.id)).sort((a, b) => at(a) - at(b));
+  // A place that only a spelling fix produced, outside the country they named, is a misread ("בתאילנד… טיולים" ≠ Tulum).
+  const saidRaw = new Set(namedInText(raw).found.map((d) => d.id));
+  const desertSafari = /ספארי\s*(?:מדבר|ג'יפים|ג׳יפים)|desert safari/i.test(fixed) && !/קניה|kenya/i.test(fixed);
+  let wanted = [...new Map([...named.found, ...fromCodes].map((d) => [d.id, d])).values()].filter((d) => !excluded.has(d.id))
+    .filter((d) => saidRaw.has(d.id) || !named.countries.length || named.countries.includes(d.country?.en)).filter((d) => !(desertSafari && d.id === 'kenya-safari')).sort((a, b) => at(a) - at(b));
   const forced = byId(destId);
   if (forced) wanted = [forced, ...wanted.filter((d) => d.id !== forced.id)];
   const legs = detectLegs(fixed, { today, origin: b.origin || 'TLV' })?.legs || null;
@@ -112,6 +128,21 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   if (stars) say('stars', 'stars', { stars });
   if (honeymoon) say('occasion', 'honeymoon'); else if (friends) say('occasion', 'friends');
   for (const k of ['ski', 'nature', 'nightlife']) if (styles.includes(k)) say('style', `style.${k}`);
+  // Wishes that name an experience, not a place: the catalog places that have it lead the suggestions.
+  const IDEAS = [[/זוהר (?:ה)?צפוני|northern lights|aurora/i, ['iceland', 'norway-fjords']], [/(?<!מדבר\s)ספארי(?!\s*(?:מדבר|ג'יפים|ג׳יפים|בדובאי))|(?<!desert\s)safari/i, ['kenya-safari', 'cape-town']],
+    [/מגלש|פארק(?:י)? מים|פארק מים|אקוופארק|water ?parks?|water ?slides?|aqua ?park/i, destinations.filter((d) => d.tags.includes('water_slides')).map((d) => d.id)],
+    [/(?:נוף ל|ליד |על )?אגם|lake\b|lakes\b/i, ['milan-lake-como', 'slovenia', 'swiss-alps', 'austrian-alps', 'munich-bavaria']],
+    [/גלישה|לגלוש|גלים|\bsurf/i, ['sri-lanka', 'costa-rica', 'tenerife', 'bali', 'lisbon']],
+    [/לא חם מדי|לא חם|קריר|not too hot|cool weather|escape the heat/i, ['swiss-alps', 'norway-fjords', 'iceland', 'edinburgh', 'copenhagen', 'amsterdam', 'london', 'munich-bavaria', 'slovenia', 'austrian-alps']],
+    [/ויין חם|mulled wine/i, ['vienna', 'prague', 'munich-bavaria', 'berlin', 'budapest']],
+    [/פריחת (?:ה)?דובדבן|cherry blossom|sakura/i, ['japan']], [/שווקי (?:חג )?(?:ה)?מולד|כריסמס|christmas market/i, ['vienna', 'prague', 'munich-bavaria', 'berlin', 'budapest']],
+    [/פיורד|fjord/i, ['norway-fjords']], [/צלילה|שנורקל|snorkel|diving|scuba/i, ['eilat', 'maldives', 'zanzibar', 'seychelles', 'mauritius']],
+    [/פארקי שעשועים|יוניברסל|דיסני|disney|universal|theme park/i, ['florida', 'los-angeles', 'paris', 'dubai']], [/(?:^|\s)(?:תרמיל|תרמילאים|תרמילאי)|backpack/i, ['vietnam', 'sri-lanka', 'georgia', 'bangkok', 'peru']]];
+  const boost = [...new Set(IDEAS.filter(([rx]) => rx.test(fixed)).flatMap(([, ids]) => ids))];
+  // A flight-length limit: "עד 4 שעות טיסה", "לא יותר מ-3 שעות טיסה", "טיסה קצרה", "max 5 hours flight", "short flight".
+  const fh = fixed.match(/(?:עד|לא יותר מ-?|מקסימום|פחות מ-?|max(?:imum)?|up to|under|less than|no more than)\s*(\d{1,2}(?:\.5)?)\s*(?:שעות|שעה|hours?|hrs?|h)\s*(?:טיסה|של טיסה|flight|flying|of flight)|(?:טיסה|flight)\s*(?:של\s*)?(?:עד|לא יותר מ-?|מקסימום|max|up to|under)\s*(\d{1,2}(?:\.5)?)\s*(?:שעות|שעה|hours?|hrs?)/i);
+  const fh2 = !fh && fixed.match(/(?:עד|לא יותר מ-?|מקסימום|within|up to|under|max(?:imum)?)\s*(\d(?:\.5)?)\s*(?:שעות|שעה|hours?|hrs?|h)\b(?!\s*(?:נסיעה|הליכה|ביום|ממלון|drive|driving|walk|a day|from))/i);
+  const maxFlightHours = fh ? Number(fh[1] || fh[2]) : fh2 ? Number(fh2[1]) : /טיסה קצרה|טיסות קצרות|קרוב לארץ|לא רחוק|(?:^|\s)(?:הכי\s+)?קרוב(?=[\s,.!?]|$)|\bshort (?:flight|haul)\b|\bclose to israel\b|\bnot far\b|\bclose by\b|\b(?:cheap|something) and close\b/i.test(fixed) ? 4.5 : 0;
   const pool = has(RX.pool);
   if (pool) extra.push({ field: 'pool', label: t('planner.need.pool', {}, lang) });
   // Budget (spec 28 §א): a cap for everyone in shekels. "$3000" / "€2500" convert at today's rate (the site's /api/fx);
@@ -127,7 +158,7 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
     asked: { stars: stars > 0 },
     destinations: alternatives ? [] : wanted.map((d) => d.id).slice(0, 4), shortlist: alternatives ? wanted.map((d) => d.id) : [], countries: named.countries, exclude: [...excluded],
     regions: b.regions || [], excludeRegions: b.excludeRegions || [],
-    legs, suggest: !wanted.length || has(RX.suggest) && !forced,
+    maxFlightHours, abroad: /חו"ל|חו״ל|חוץ לארץ|לחו"ל|\babroad\b|\boverseas\b/i.test(fixed) || (b.excludeRegions || []).length > 0, ...(boost.length ? { boost } : {}), legs, suggest: !wanted.length || has(RX.suggest) && !forced,
     understood: [...u.understood.filter((x) => !['want', 'exclude'].includes(x.field) || (x.field === 'exclude' && (b.excludeRegions || []).length)).map(({ field, label }) => ({ field, label })), ...extra],
     coverage: u.coverage
   };
@@ -185,6 +216,13 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   // Regions: "באירופה" keeps Europe; "לא אירופה" never offers it.
   if (!pool && request.regions?.length) { const inside = ranked.filter((x) => request.regions.some((id) => inRegion(x.destination, id))); if (inside.length) ranked = inside; }
   if (request.excludeRegions?.length) ranked = ranked.filter((x) => !request.excludeRegions.some((id) => inRegion(x.destination, id)));
+  if (request.abroad) ranked = ranked.filter((x) => x.destination.region !== 'israel');
+  // In season first (a stable move: the ranking order is kept inside each group); the rest stay as a fallback.
+  const month = prefs.month;
+  // Ski has its own season rule (by hemisphere, in the ranking): bestMonths are the general climate, not the snow.
+  if (month && !request.styles.includes('ski')) ranked = [...ranked.filter((x) => x.destination.bestMonths?.includes(month)), ...ranked.filter((x) => !x.destination.bestMonths?.includes(month))];
+  for (const tag of [request.needs.kosher && 'kosher', request.needs.allInclusive && 'all_inclusive']) if (tag) { const ok = ranked.filter((x) => x.destination.tags.includes(tag)); if (ok.length) ranked = [...ok, ...ranked.filter((x) => !ok.includes(x))]; }
+  if (request.maxFlightHours) { const near = ranked.filter((x) => x.destination.flightHours > 0 && x.destination.flightHours <= request.maxFlightHours); if (near.length) ranked = near; }
   // With children, short flights first – unless that leaves nothing (a region or a season that is all long-haul).
   if (request.children > 0 && ranked.length > limit) { const near = ranked.filter((x) => x.destination.flightHours <= 6); if (near.length) ranked = near; }
   // The AI partner's ideas (when the rules understood little) lead the list; they never hide the catalog's ranking.
@@ -193,6 +231,12 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   // cap is not offered; the ones whose HIGH end fits lead; "cheap" orders the best-matching ones by estimated cost.
   const cost = new Map();
   if (request.budget > 0) {
+    // A trip type that defines the place (ski) or an experience they named (northern lights) is not traded for price:
+    // "ski, ₪12,000" is the cheapest ski resort, never Cyprus. Those that lack it only follow.
+    const must = (x) => (!request.styles.includes('ski') || x.destination.tags.includes('ski')) && (!request.boost?.length || request.boost.includes(x.destination.id))
+      && (!request.needs.allInclusive || x.destination.tags.includes('all_inclusive')) && (!request.needs.kosher || x.destination.tags.includes('kosher'));
+    const rest = ranked.some(must) ? ranked.filter((x) => !must(x)) : [];
+    ranked = ranked.filter((x) => !rest.includes(x));
     for (const x of ranked.slice(0, 40)) { const d = x.destination, stops = [{ dest: d, nights: planDates(request, d, today).nights }]; cost.set(d.id, estimateTrip(stops, request, floorConfig(request, baseConfigOf(request, d)))); }
     const known = ranked.filter((x) => cost.has(x.destination.id)), fitting = known.filter((x) => cost.get(x.destination.id).low <= request.budget);
     if (fitting.length) {
@@ -200,6 +244,12 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
       ranked = [...fitting.filter(fits), ...fitting.filter((x) => !fits(x))];
       if (request.budgetLevel === 'low') ranked = [...ranked.slice(0, 8).sort((a, b) => cost.get(a.destination.id).high - cost.get(b.destination.id).high), ...ranked.slice(8)];
     } else ranked = known.sort((a, b) => cost.get(a.destination.id).low - cost.get(b.destination.id).low);
+    ranked = [...ranked, ...rest];
+  } else if (request.budgetLevel === 'low') {
+    // "Cheap" with no amount: the best matches ordered by what the whole trip costs (a cheap hotel 13 hours away is not cheap).
+    const top = ranked[0]?.score || 0, est = (d) => estimateTrip([{ dest: d, nights: request.nights || 5 }], request, floorConfig(request, baseConfigOf(request, d))).high;
+    const head = ranked.slice(0, 8).filter((x) => x.score >= top * 0.6).map((x) => [x, est(x.destination)]).sort((a, b) => a[1] - b[1]).map(([x]) => x);
+    ranked = [...head, ...ranked.filter((x) => !head.includes(x))];
   }
   return ranked.slice(0, limit).map(({ destination: d, score, reasons }) => ({ id: d.id, name: d.name, country: d.country, image: imageOf(d), score,
     reasons: reasons.slice(0, 3).map((r) => L(r, request.lang)), flightHours: d.flightHours, direct: d.direct, budgetLevel: d.budgetLevel, advisory: L(d.advisory, request.lang),

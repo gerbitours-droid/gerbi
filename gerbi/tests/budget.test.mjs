@@ -78,7 +78,8 @@ test('ladder: meal plan → stars (never asked-for stars) → car (never an aske
 function pricedPackage({ budget, car = 'auto', direct = false, flightUsd = 900 } = {}) {
   const request = { ...parse('זוג לרומא 4 לילות במאי'), budget, nights: 4 };
   request.needs = { ...request.needs, car, direct };
-  const p = planPackage(request, { today: TODAY });
+  // The plan is built without the cap (this tests the post-price fit alone, not the pre-search one); the cap is set after.
+  const p = planPackage({ ...request, budget: null }, { today: TODAY });
   const est = (low, high) => ({ perNight: { low: low / 4, high: high / 4 }, stay: { low, high }, currency: 'USD', count: 10, areaScope: false, nights: 4 });
   return { ...p, request: { ...p.request, budget }, insurance: { include: false }, car: { ...p.car, include: true },
     flights: { status: 'live', searchedAt: '2026-11-16T10:00:00Z', selected: 'exp', total: 3, picks: [{ key: 'exp', price: { value: flightUsd, currency: 'USD' }, stops: 0, bag: 'included', carriers: ['AZ'] }, { key: 'mid', price: { value: 700, currency: 'USD' }, stops: 1, bag: 'included', carriers: ['LH'] }],
