@@ -347,7 +347,15 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   } else if (request.budgetLevel === 'low') {
     // "Cheap" with no amount: the best matches ordered by what the whole trip costs (a cheap hotel 13 hours away is not cheap).
     const top = ranked[0]?.score || 0, est = (d) => estimateTrip([{ dest: d, nights: request.nights || 5 }], request, floorConfig(request, baseConfigOf(request, d))).high;
-    const head = ranked.slice(0, 8).filter((x) => x.score >= top * 0.6).map((x) => [x, est(x.destination)]).sort((a, b) => a[1] - b[1]).map(([x]) => x);
+    // Season before price here too: a cheap week in March is never Georgia out of season while in-season places exist.
+    const inSeason = (x) => !month || request.styles.includes('ski') || x.destination.bestMonths?.includes(month);
+    // A ski resort's "season" is the snow: never the cheap answer for someone who did not ask for skiing.
+    const skiOnly = (x) => !request.styles.includes('ski') && x.destination.tags.includes('ski') && !x.destination.tags.includes('city') && !x.destination.tags.includes('beach');
+    // Places the catalog marks as good value compete even with a lower match score ("תקציב מוגבל" is the request).
+    const pool = [...new Set([...ranked.slice(0, 12).filter((x) => x.score >= top * 0.6), ...ranked.filter((x) => x.destination.tags.includes('low_budget') && x.score >= top * 0.4)])], kinds = ['beach', 'city', 'ski', 'nature'].filter((k) => request.styles.includes(k)), fit = (x) => kinds.every((k) => x.destination.tags.includes(k));
+    // The kind of trip asked for (a city, a beach) is kept; price only orders the places of that kind.
+    const asked = pool.some(fit) ? pool.filter(fit) : pool, seasonal = asked.some(inSeason) ? asked.filter(inSeason) : asked;
+    const head = seasonal.filter((x) => !skiOnly(x)).map((x) => [x, est(x.destination)]).sort((a, b) => a[1] - b[1]).map(([x]) => x);
     ranked = [...head, ...ranked.filter((x) => !head.includes(x))];
   }
   return ranked.slice(0, limit).map(({ destination: d, score, reasons }) => ({ id: d.id, name: d.name, country: d.country, image: imageOf(d), score,
