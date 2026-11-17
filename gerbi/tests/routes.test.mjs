@@ -11,7 +11,7 @@ const route = (p) => (p.stops.length ? p.stops : [p.destination]).map((s) => `${
 test('country-sized: bases by length, open-jaw flight, one hotel search per base, day trips from their own base', () => {
   const j = plan('יפן בפריחת הדובדבן, זוג, 12 לילות');
   assert.deepEqual(route(j), ['Tokyo:6', 'Kyoto:4', 'Osaka:2']);
-  assert.deepEqual(legs(j), ['TLV-TYO', 'OSA-TLV']);
+  assert.deepEqual(legs(j), ['TLV-TYO', 'KIX-TLV']);
   assert.deepEqual(j.hotelSearches.map((h) => h.city), ['TYO', 'UKY', 'OSA']);
   const nara = j.itinerary.find((d) => d.kind === 'daytrip' && /נארה/.test(d.items[0].name));
   assert.equal(L(j.stops[nara.stop].name, 'en'), 'Kyoto');

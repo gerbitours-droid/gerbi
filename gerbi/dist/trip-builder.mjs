@@ -307,7 +307,6 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   if (!pool && request.regions?.length) { const inside = ranked.filter((x) => request.regions.some((id) => inRegion(x.destination, id))); if (inside.length) ranked = inside; }
   if (request.excludeRegions?.length) ranked = ranked.filter((x) => !request.excludeRegions.some((id) => inRegion(x.destination, id)));
   if (request.abroad) ranked = ranked.filter((x) => x.destination.region !== 'israel');
-  if (request.needs.car === 'yes') ranked = [...ranked.filter((x) => countrySized(x.destination)), ...ranked.filter((x) => !countrySized(x.destination))];
   if (/המזרח הרחוק|דרום מזרח אסיה|far east|south ?east asia/i.test(request.text)) { const fe = ranked.filter((x) => ['Thailand', 'Vietnam', 'Indonesia', 'Japan'].includes(x.destination.country?.en)); if (fe.length) ranked = fe; }
   // In season first (a stable move: the ranking order is kept inside each group); the rest stay as a fallback.
   const month = prefs.month;
@@ -322,6 +321,8 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   // The model's own picks lead, in its order (it weighed season, flight length, who travels and the budget).
   const ms = request.modelSuggest || [];
   if (ms.length) ranked = [...ranked.filter((x) => ms.includes(x.destination.id)).sort((a, b) => ms.indexOf(a.destination.id) - ms.indexOf(b.destination.id)), ...ranked.filter((x) => !ms.includes(x.destination.id))];
+  // A car asked for: places made for driving first (Tuscany, Sicily – not Rome), whoever proposed them.
+  if (request.needs.car === 'yes') ranked = [...ranked.filter((x) => countrySized(x.destination)), ...ranked.filter((x) => !countrySized(x.destination))];
   // Budget (spec 28 §א.2): a destination whose LOW end – with everything the plan may give up given up – is above the
   // cap is not offered; the ones whose HIGH end fits lead; "cheap" orders the best-matching ones by estimated cost.
   const cost = new Map();
@@ -472,12 +473,13 @@ const REGION_SIZED = new Set(['swiss-alps', 'austrian-alps', 'amalfi-naples', 'g
 export const countrySized = (d) => (d?.countrySized ?? null) !== null ? d.countrySized === true : Array.isArray(d?.bases) || d?.transport?.carRecommended === true
   || REGION_SIZED.has(d?.id) || normalize(d?.name?.en).replace(/^the /, '') === normalize(d?.country?.en);
 // Where a country-sized trip sleeps: its bases in route order. weight → share of the nights; city → the hotel search's city
-// code ('' = no live search there, an agent quotes it); air → the airport to fly home from when the trip ends there;
+// code ('' = no live search there, an agent quotes it); air → the AIRPORT (never a city code: the supplier refuses
+// OSA as an airport) to fly home from when the trip ends there;
 // areas → the catalog attraction areas that belong to the base; trips → its day trips (English name starts).
 // ponytail: hand-written for the destinations whose areas are hours apart; the rest stay one base with day trips.
 const B = (areas, weight, city, air, trips = []) => ({ areas: [].concat(areas), weight, city, air, trips });
 export const BASES = {
-  japan: [B('Tokyo', 3, 'TYO', 'TYO', ['Kamakura', 'Hakone']), B('Fuji & Hakone', 1, '', ''), B('Kyoto', 2.5, 'UKY', 'OSA', ['Nara']), B('Osaka', 1.5, 'OSA', 'OSA', ['Hiroshima', 'Nara'])],
+  japan: [B('Tokyo', 3, 'TYO', 'TYO', ['Kamakura', 'Hakone']), B('Fuji & Hakone', 1, '', ''), B('Kyoto', 2.5, 'UKY', 'KIX', ['Nara']), B('Osaka', 1.5, 'OSA', 'KIX', ['Hiroshima', 'Nara'])],
   vietnam: [B('Hanoi', 3, 'HAN', 'HAN', ['Ha Long', 'Ninh Binh', 'Sapa']), B(['Hoi An', 'Da Nang'], 2.5, 'DAD', 'DAD', ['My Son', 'Hue', 'Ba Na']), B('Ho Chi Minh City (Saigon)', 2, 'SGN', 'SGN', ['Mekong', 'Cu Chi'])],
   'sri-lanka': [B('The Cultural Triangle', 2.5, '', 'CMB'), B('Kandy', 1.5, '', 'CMB'), B('Ella & the tea hills', 1.5, '', 'CMB'), B(['The south coast (Galle & Mirissa)', 'Yala (Tissamaharama)', 'Udawalawe'], 2.5, '', 'CMB')],
   'new-zealand': [B('Auckland', 2, 'AKL', 'AKL'), B(['Rotorua', 'Tongariro National Park'], 2, 'ROT', 'AKL'), B('Queenstown', 3, 'ZQN', 'ZQN', ['Milford']), B('Wanaka & Mount Cook', 1.5, '', 'ZQN')],

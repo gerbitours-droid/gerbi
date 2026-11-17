@@ -96,7 +96,7 @@ test('country-sized destinations: each day stays in one area; a long flight leav
   // 10 nights in Japan are bases (Tokyo → Kyoto → Osaka): each day carries its base's name, flown in to Tokyo and home from Osaka.
   assert.ok(japan.itinerary.some((d) => /היום באזור/.test(d.note)) || japan.stops.length > 1, 'the area of the day is named');
   assert.deepEqual(japan.stops.map((s) => L(s.name, 'en')), ['Tokyo', 'Kyoto', 'Osaka']);
-  assert.deepEqual(japan.flightSearch.originDestinations.map((o) => `${o.origin.code}-${o.destination.code}`), ['TLV-TYO', 'OSA-TLV']);
+  assert.deepEqual(japan.flightSearch.originDestinations.map((o) => `${o.origin.code}-${o.destination.code}`), ['TLV-TYO', 'KIX-TLV']);
   assert.ok(japan.hotelSearches.map((h) => h.city).join() === 'TYO,UKY,OSA');
   // Areas are visited one after the other, never back and forth.
   const seq = japan.itinerary.filter((d) => d.kind === 'full').map((d) => catalogItem(byId('japan'), d.items[0].name).area);
