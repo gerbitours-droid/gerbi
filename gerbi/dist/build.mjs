@@ -14,6 +14,7 @@ import { slingTop } from './sling-top.mjs';
 import { brochureHtml, loadBrochureData } from './brochure.mjs';
 import { fitPackage, upsellOffers, applyUpsell, flightsInBudget } from './budget.mjs';
 import { startDidYouKnow } from './did-you-know.mjs';
+import { describeChange, airlineName } from './trip-prefs.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const L = (v) => (v && typeof v === 'object' ? v[lang] || v.he || v.en || '' : v ?? '');
@@ -82,7 +83,10 @@ async function post(path, payload) {
 }
 function announce(text) { const s = $('#build-status'); if (s) { s.textContent = ''; setTimeout(() => { s.textContent = text; }, 30); } }
 
+let turns = [], pollChoices = []; // the conversation so far: [{ you, said }] – earlier turns, shown above the current plan
 async function build(input) {
+  const before = pkg?.destination ? pkg : null, followUp = (input.thread || []).length > 1;
+  if (!followUp) turns = []; else if (before && lastInput) turns.push({ you: (lastInput.thread || [lastInput.text]).at(-1), said: planLine(before) });
   lastInput = input; const mine = ++version;
   const you = $('.gb-you', view); if (you && input.text) { you.querySelector('p').textContent = input.text; you.hidden = false; } leadOpen = false; showAllHotels = new Set();
   const out = $('#build-result'), err = $('.build-error', view), button = $('.build-submit', view);
@@ -91,7 +95,7 @@ async function build(input) {
   try {
     const plan = await post('/api/build', input);
     if (mine !== version) return;
-    pkg = { ...plan, manual: false, fit: null, extras: [], flights: { status: plan.flightSearch ? 'pending' : 'quote' },
+    pkg = { ...plan, manual: false, fit: null, extras: [], chatReply: followUp ? describeChange(before, plan, lang) : null, flights: { status: plan.flightSearch ? 'pending' : 'quote' },
       hotels: plan.stops?.length ? { stops: plan.hotelSearches.map((s, i) => ({ status: s ? 'pending' : 'quote', stop: i, area: plan.hotelAreas[i] })) } : { status: plan.hotelSearches[0] ? 'pending' : 'quote', area: plan.hotelAreas[0] },
       car: { ...plan.car }, insurance: { include: false }, polish: null };
     if (!pkg.destination) { out.removeAttribute('aria-busy'); out.innerHTML = suggestionsOnlyHtml(); announce(t('build.status.suggest')); return; }
@@ -99,7 +103,8 @@ async function build(input) {
     // never an interim over-budget state. At least THINK_MIN ms (it reads as thought, not a flash), at most THINK_MAX
     // (a slow supplier never holds the page: what has not arrived shows as "pending" and fills in later).
     const place = L(pkg.destination.name), started = Date.now();
-    out.innerHTML = thinkingHtml(place); announce(t('build.think.title', { place }));
+    out.innerHTML = thinkingHtml(place); announce(t('build.think.title', { place })); pollChoices = [];
+    const stopEta = startEta(out, started);
     const stopFacts = startDidYouKnow($('.bk-think-steps', out), pkg.destination.code);
     const tick = (step) => $(`[data-think="${step}"]`, out)?.classList.add('done');
     setTimeout(() => tick('plan'), 400);
@@ -107,7 +112,7 @@ async function build(input) {
     fetchPolish(mine);
     await Promise.race([Promise.allSettled(jobs), new Promise((r) => setTimeout(r, THINK_MAX))]);
     tick('budget'); await new Promise((r) => setTimeout(r, Math.max(350, THINK_MIN - (Date.now() - started))));
-    stopFacts();
+    stopFacts(); stopEta(true);
     if (mine !== version) return;
     fitBudget(); render(); announce(t('build.status.skeleton', { place }));
     $('#build-result h2')?.focus({ preventScroll: false });
@@ -119,7 +124,7 @@ async function build(input) {
 async function fetchFlights(mine) {
   if (!pkg.flightSearch) return;
   try {
-    const result = await post('/api/build/flights', { search: pkg.flightSearch, request: { adults: pkg.request.adults, children: pkg.request.children, needs: pkg.request.needs, budget: pkg.request.budget || null } });
+    const result = await post('/api/build/flights', { search: pkg.flightSearch, request: { adults: pkg.request.adults, children: pkg.request.children, needs: pkg.request.needs, budget: pkg.request.budget || null, prefs: pkg.request.prefs || null } });
     if (mine !== version) return;
     pkg.flights = result.status === 'live' ? result : { status: 'quote', reason: result.reason || result.status };
   } catch (error) { if (mine === version) pkg.flights = { status: 'quote', reason: error.status === 429 ? 'rate_limited' : '' }; }
@@ -160,11 +165,28 @@ async function fetchPolish(mine) {
 }
 
 // ---- rendering
-const THINK_MIN = 2500, THINK_MAX = 20000;
+const THINK_MIN = 2500, THINK_MAX = 20000, ETA_KEY = 'gerbi-build-ms';
+// How long a plan usually takes here: the median of this browser's last builds (a new flight search ~8–15 s, a cached
+// one ~3 s), 10 s before there is any. Shown as "ready in about N seconds" with a bar – a known wait feels shorter.
+function etaMs() { try { const xs = JSON.parse(localStorage.getItem(ETA_KEY) || '[]').filter(Number.isFinite).sort((a, b) => a - b); return xs.length ? Math.min(THINK_MAX, Math.max(THINK_MIN, xs[Math.floor(xs.length / 2)])) : 10000; } catch { return 10000; } }
+function startEta(out, started) {
+  const eta = etaMs(), bar = $('.bk-think-bar span', out), line = $('.bk-think-eta', out);
+  const tick = () => { const left = Math.ceil((eta - (Date.now() - started)) / 1000); if (bar) bar.style.width = `${Math.min(96, ((Date.now() - started) / eta) * 100)}%`; if (line) line.textContent = left > 0 ? t('build.think.eta', { seconds: left }) : t('build.think.almost'); };
+  tick(); const timer = setInterval(tick, 250);
+  return (done) => { clearInterval(timer); if (!done) return; try { const xs = JSON.parse(localStorage.getItem(ETA_KEY) || '[]'); localStorage.setItem(ETA_KEY, JSON.stringify([...xs, Date.now() - started].slice(-7))); } catch { /* convenience only */ } };
+}
+// While it thinks: three one-tap questions (labour that improves the result keeps people in; answers apply in one tap).
+const POLL = [['flight', ['direct', 'cheap', 'noNight']], ['hotel', ['beach', 'center', 'any']], ['pace', ['relaxed', 'balanced', 'packed']]];
+function pollHtml(i = 0) {
+  if (i >= POLL.length) return `<p class="bk-poll-done">${t('build.poll.done')}</p>`;
+  const [q, opts] = POLL[i];
+  return `<fieldset class="bk-poll" data-poll-step="${i}"><legend>${t('build.poll.lead')} ${t(`build.poll.${q}`)}</legend>${opts.map((o) => `<button type="button" class="chip" data-poll="${q}.${o}">${t(`build.poll.${q}.${o}`)}</button>`).join('')}</fieldset>`;
+}
 function thinkingHtml(place) {
   const steps = ['plan', 'flights', 'hotels', 'budget'];
   return `<section class="bk-card bk-think" aria-live="polite"><h2 tabindex="-1"><span class="bk-think-dot" aria-hidden="true"></span>${t('build.think.title', { place: esc(place) })}</h2>
-   <ol class="bk-think-steps">${steps.map((s) => `<li data-think="${s}">${t(`build.think.${s}`)}</li>`).join('')}</ol></section>`;
+   <p class="bk-think-eta micro-copy"></p><div class="bk-think-bar" aria-hidden="true"><span></span></div>
+   <ol class="bk-think-steps">${steps.map((s) => `<li data-think="${s}">${t(`build.think.${s}`)}</li>`).join('')}</ol><div class="bk-poll-host">${pollHtml(0)}</div></section>`;
 }
 function skeletonHtml() {
   return `<div class="build-skeleton" aria-hidden="true">${['where', 'flights', 'hotels', 'itinerary'].map(() => '<div class="bk-card bk-skel"><span></span><span></span><span></span></div>').join('')}</div><p class="micro-copy">${t('build.status.planning')}</p>`;
@@ -183,7 +205,7 @@ function render() {
   out.removeAttribute('aria-busy');
   const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
   const stale = pkg.sharedAt && isStale(pkg.flights?.searchedAt || pkg.sharedAt);
-  out.innerHTML = `<div class="bk-summary">
+  out.innerHTML = `${historyHtml()}${pkg.chatReply ? `<p class="bk-reply">${pkg.chatReply.length ? t('build.chat.reply', { list: esc(pkg.chatReply.join(' · ')) }) : t('build.chat.noChange')}</p>` : ''}<div class="bk-summary">
     ${pkg.destination.image ? `<img class="bk-hero-img" src="${esc(pkg.destination.image)}" alt="" data-fallback>` : ''}
     <div><span class="eyebrow">${t('build.result.kicker')}</span><h2 tabindex="-1">${esc(stops.map((s) => L(s.name)).join(' ← '))}</h2>
     <p>${esc(longDay(r.start))} – ${esc(longDay(r.end))} · ${t('build.nights', { count: r.nights })} · ${esc(travellersText(r))}</p>
@@ -193,6 +215,7 @@ function render() {
     ${stale ? `<p class="notice">${t('build.shared.stale', { time: esc(fmtDate(pkg.sharedAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) })} <button type="button" class="link-button" data-act="refresh">${t('build.shared.refresh')}</button></p>` : ''}
     </div></div>
    <div id="bc-banner" class="bk-banner-host"></div>
+   ${optionsHtml()}
    ${editHtml()}
    <div class="bk-grid">
     <div class="bk-main">
@@ -203,6 +226,7 @@ function render() {
      <section class="bk-card" id="bc-insurance" aria-labelledby="bh-insurance"></section>
      <section class="bk-card" id="bc-itinerary" aria-labelledby="bh-itinerary"></section>
      <section class="bk-card" id="bc-practical" aria-labelledby="bh-practical"></section>
+     ${chatHtml()}
     </div>
     <aside class="bk-side"><section class="bk-card bk-total" id="bc-total" aria-labelledby="bh-total"></section>
      <section class="bk-card bk-upsell" id="bc-upsell" aria-labelledby="bh-upsell"></section>
@@ -221,6 +245,41 @@ function render() {
   if (leadOpen) paintLead();
   wireImages(out);
   loadBrochureData().then((x) => { brochureData = x; }).catch(() => {});
+}
+// ---- the conversation (owner 18.11.2026): options with "נמשיך מפה", a follow-up box with quick chips, the turns so far.
+const planLine = (p) => `${(p.stops?.length ? p.stops : [p.destination]).map((s) => L(s.name)).join(' ← ')} · ${t('build.nights', { count: p.request.nights })}`;
+function historyHtml() {
+  if (!turns.length) return '';
+  return `<ol class="bk-history" aria-label="${esc(t('build.chat.history'))}">${turns.map((x) => `<li><p class="bk-history-you">${esc(x.you)}</p><p class="bk-history-said">${esc(x.said)}</p></li>`).join('')}</ol>`;
+}
+// Up to three other ways to go (the suggestions, else the budget's alternatives); each continues the conversation.
+function optionsHtml() {
+  const list = [...(pkg.suggestions || []), ...(pkg.budgetPlan?.alternatives || [])].filter((s, i, all) => s.id !== pkg.destination.id && all.findIndex((x) => x.id === s.id) === i).slice(0, 3);
+  if (!list.length) return '';
+  return `<section class="bk-options-row" aria-labelledby="bh-options"><h3 id="bh-options">${t('build.options.title')}</h3><ul>${list.map((s) => `<li class="bk-option-card">
+    ${s.image ? `<img src="${esc(s.image)}" alt="" loading="lazy" data-fallback>` : ''}<div><strong>${esc(L(s.name))}</strong>
+    ${s.reasons?.length ? `<small>${esc(s.reasons.slice(0, 2).join(' · '))}</small>` : ''}${s.estimate ? `<small dir="ltr">${esc(formatIls(Math.round((s.estimate.low + s.estimate.high) / 2)))}~</small>` : ''}</div>
+    <button type="button" class="button secondary" data-continue="${esc(s.id)}">${t('build.options.continue')}</button></li>`).join('')}</ul></section>`;
+}
+const FOLLOW_CHIPS = ['cheaper', 'better', 'direct', 'noNight', 'moreNight', 'lessNight', 'relaxed', 'packed', 'beach', 'center', 'bag', 'car'];
+function chatHtml() {
+  const r = pkg.request, n = r.needs, fp = r.prefs?.flight || {};
+  const chips = FOLLOW_CHIPS.filter((c) => !(c === 'direct' && (n.direct || fp.direct)) && !(c === 'noNight' && fp.noNight) && !(c === 'bag' && fp.checkedBag) && !(c === 'car' && pkg.car?.include) && !(c === 'lessNight' && r.nights <= 2));
+  return `<section class="bk-card bk-chat" id="bc-chat" aria-labelledby="bh-chat"><h3 id="bh-chat">${icon('spark')}${t('build.chat.title')}</h3><p class="micro-copy">${t('build.chat.intro')}</p>
+   <div class="bk-chat-chips" role="group" aria-label="${esc(t('build.chat.chipsLabel'))}">${chips.map((c) => `<button type="button" class="chip" data-say="${esc(t(`build.chat.chip.${c}.say`))}">${t(`build.chat.chip.${c}`)}</button>`).join('')}</div>
+   ${pollChoices.length ? `<p class="bk-poll-apply">${t('build.poll.picked', { list: esc(pollChoices.map((x) => x.label).join(' · ')) })} <button type="button" class="button secondary" data-say="${esc(pollChoices.map((x) => x.say).join(', '))}" data-poll-apply>${t('build.poll.apply')}</button></p>` : ''}
+   <form id="build-follow" class="bk-chat-form" novalidate><label class="sr-only" for="build-follow-text">${t('build.chat.title')}</label>
+    <textarea id="build-follow-text" rows="2" maxlength="600" placeholder="${esc(t('build.chat.placeholder'))}"></textarea>
+    <button type="submit" class="button yellow">${t('build.chat.send')}</button></form></section>`;
+}
+// A follow-up turn: the whole conversation goes to the server (it rebuilds the request from the texts), seeded with the
+// plan as it stands so "עוד לילה" counts from the nights on screen.
+function followUp(text) {
+  const said = String(text || '').trim();
+  if (!said || !pkg?.destination) return;
+  const thread = [...(lastInput?.thread || [lastInput?.text || '']), said].filter(Boolean).slice(-8);
+  const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
+  build({ ...lastInput, text: said, thread, chosen: '', current: { dest: [...new Set(stops.map((s) => s.id))], nights: pkg.request.nights, start: pkg.request.start } });
 }
 function wireImages(root) { root.querySelectorAll('img[data-fallback]').forEach((img) => img.addEventListener('error', () => img.classList.add('bk-noimg'), { once: true })); }
 
@@ -259,8 +318,9 @@ const PAINT = {
     if (f.status !== 'live') return head + `<p>${kindPill('quote')} ${t(f.reason === 'not_connected' ? 'build.flights.notConnected' : f.reason === 'rate_limited' ? 'build.err.rateLimited' : 'build.flights.quote')}</p>`;
     const link = pkg.stops?.length ? multiLink({ legs: f.picks[0].legs.map((l) => ({ from: l.from, to: l.to, date: l.date })), adults: pkg.request.adults, children: pkg.request.children })
       : searchLink({ origin: pkg.request.origin, destination: pkg.destination.code, start: pkg.request.start, end: pkg.request.end, type: 'round', adults: pkg.request.adults, children: pkg.request.children });
-    const flightView = flightsInBudget(pkg, getFx());
-    return head + `<p class="micro-copy">${kindPill('live')} ${t('build.flights.found', { count: f.total })} · ${esc(checked(f.searchedAt))}</p>
+    const flightView = flightsInBudget(pkg, getFx()), unmet = f.picks[0]?.unmet || [], fp = pkg.request.prefs?.flight || {};
+    const wish = unmet.map((u) => `<p class="notice bk-unmet">${t(`build.flights.unmet.${u}`, { list: esc((u === 'only' ? fp.only : fp.avoid || []).map((k) => airlineName(k, lang)).join(', ')) })}</p>`).join('');
+    return head + wish + `<p class="micro-copy">${kindPill('live')} ${t('build.flights.found', { count: f.total })} · ${esc(checked(f.searchedAt))}</p>
      ${flightView.hidden ? `<p class="micro-copy bk-over-note">${t('build.flights.hiddenOver', { count: flightView.hidden, budget: esc(formatIls(pkg.request.budget)) })}</p>` : ''}
      ${flightView.allOver ? `<p class="bk-budget bk-budget-over">${t('build.flights.allOver', { budget: esc(formatIls(pkg.request.budget)) })}</p>` : ''}
      <ul class="bk-options">${flightView.shown.map((p) => `<li><button type="button" class="bk-option" data-pick-flight="${esc(p.key)}" aria-pressed="${p.key === f.selected}">
@@ -526,6 +586,8 @@ function page({ view: host, footer, bread }) {
   const grow = () => { area.style.height = 'auto'; area.style.height = Math.min(area.scrollHeight, 240) + 'px'; };
   area.addEventListener('input', grow); grow();
   area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-form', view).requestSubmit(); } });
+  // Enter sends a follow-up too (Shift+Enter for a new line).
+  view.addEventListener('keydown', (e) => { if (e.target.id === 'build-follow-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-follow', view)?.requestSubmit(); } });
   loadFx();
   if (shared && /^[a-f0-9]{16}$/.test(shared)) openShared(shared);
   else if (q || dest) build({ text: q, dest });
@@ -581,9 +643,10 @@ function wire() {
       e.preventDefault(); const text = $('#build-text').value.trim(), month = $('#build-month').value;
       const full = month !== '' ? `${text}${text ? ', ' : ''}${t('build.chip.when.phrase', { month: MONTHS[Number(month)] })}` : text;
       if (!full) { const err = $('.build-error', view); err.textContent = t('build.err.empty'); err.hidden = false; $('#build-text').focus(); return; }
-      history.replaceState(null, '', `#/build?q=${encodeURIComponent(full)}`); build({ text: full });
+      history.replaceState(null, '', `#/build?q=${encodeURIComponent(full)}`); build({ text: full, thread: [full] });
     } else if (e.target.id === 'build-edit') { e.preventDefault(); build({ ...lastInput, chosen: pkg.destination.id, edits: { ...(lastInput?.edits?.budget ? { budget: lastInput.edits.budget } : {}), ...editsFrom(e.target) } }); }
     else if (e.target.id === 'build-lead') { e.preventDefault(); submitLead(e.target); }
+    else if (e.target.id === 'build-follow') { e.preventDefault(); followUp($('#build-follow-text', view)?.value); }
   });
   document.addEventListener('change', (e) => {
     if (!view?.contains(e.target) || !pkg) return;
@@ -599,6 +662,14 @@ function wire() {
     if (el('[data-chip]')) { toggleChip(el('[data-chip]')); return; }
     if (!pkg) return;
     if (el('[data-choose]')) { build({ ...lastInput, chosen: el('[data-choose]').dataset.choose }); return; }
+    // "נמשיך מפה": this option becomes the plan and the conversation goes on from it.
+    if (el('[data-poll]')) {
+      const b = el('[data-poll]'), [q, o] = b.dataset.poll.split('.'), host = b.closest('.bk-poll-host'), step = Number(b.closest('[data-poll-step]').dataset.pollStep);
+      if (!['any', 'balanced'].includes(o)) pollChoices.push({ label: t(`build.poll.${q}.${o}`), say: t(`build.poll.${q}.${o}.say`) });
+      if (host) host.innerHTML = pollHtml(step + 1); host?.querySelector('button')?.focus(); return;
+    }
+    if (el('[data-continue]')) { const id = el('[data-continue]').dataset.continue; build({ ...lastInput, thread: lastInput?.thread || [lastInput?.text || ''], chosen: id, current: undefined }); return; }
+    if (el('[data-say]')) { if (el('[data-poll-apply]')) pollChoices = []; followUp(el('[data-say]').dataset.say); return; }
     if (el('[data-book-flight]')) {
       const button = el('[data-book-flight]'), pick = selectedFlight(pkg), f = pkg.flights;
       button.disabled = true; button.setAttribute('aria-busy', 'true');

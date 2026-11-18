@@ -3,6 +3,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { parseTrip, applyEdits, planPackage, mergeModel, L } from '../dist/trip-builder.mjs';
+import { refineRequest, carrierMatches } from '../dist/trip-prefs.mjs';
 import { sanitizePackage } from '../dist/trip-package.mjs';
 import { byId, byCode } from '../dist/catalog.mjs';
 import { offerFacts } from '../dist/flight-view.mjs';
@@ -22,15 +23,32 @@ const hash = (value) => createHash('sha1').update(JSON.stringify(value)).digest(
 
 // The three flights a package shows: the site's own decision layer (generalized cost, diverse top 3), facts only.
 export function flightPicks(payload, request = {}, l = 'he') {
-  const facts = (Array.isArray(payload?.offers) ? payload.offers : []).map((offer) => offerFacts(offer, payload)).filter((f) => f.price);
-  if (!facts.length) return [];
-  const brief = { adults: request.adults, children: request.children, stops: request.needs?.direct ? '0' : undefined };
+  const all = (Array.isArray(payload?.offers) ? payload.offers : []).map((offer) => offerFacts(offer, payload)).filter((f) => f.price);
+  if (!all.length) return [];
+  const { facts, unmet } = byPrefs(all, request);
+  const fp = request.prefs?.flight || {}, noNight = fp.noNight ? ['morning', 'afternoon', 'evening'] : undefined;
+  const brief = { adults: request.adults, children: request.children, stops: request.needs?.direct || fp.direct ? '0' : undefined,
+    out: fp.out || noNight, back: fp.back || noNight, checkedBag: fp.checkedBag === true, carrier: fp.prefer?.[0] };
   const previous = pageLang;
   setLang(l);
   try {
     const scored = scoreOffers(facts, brief), ranked = rankScored(scored), top = diverseTop(ranked, 3), tags = badges(scored);
-    return top.map((x) => ({ ...pickOf(x.facts), badges: tags.get(x.key) || [], reasons: explain(x, scored, (v) => `${Math.round(v)} ${x.facts.price.currency}`) }));
+    return top.map((x, i) => ({ ...pickOf(x.facts), badges: tags.get(x.key) || [], reasons: explain(x, scored, (v) => `${Math.round(v)} ${x.facts.price.currency}`), ...(i === 0 && unmet.length ? { unmet } : {}) }));
   } finally { setLang(previous); }
+}
+// Hard flight wishes (owner 18.11.2026): "רק אל על" keeps only that airline, "בלי ריינאייר"/"no low-cost" drops them, a
+// direct flight asked for drops connections, "no night flights" drops night departures. When a wish leaves nothing, all
+// offers stay and the wish is reported as unmet (the page says "no El Al flights on these dates – the closest:").
+export function byPrefs(facts, request = {}) {
+  const fp = request.prefs?.flight || {}, unmet = [];
+  let list = facts;
+  const keep = (name, fn) => { const next = list.filter(fn); if (next.length) list = next; else unmet.push(name); };
+  if (fp.only?.length) keep('only', (f) => fp.only.some((k) => carrierMatches(f.carriers, k)));
+  if (fp.avoid?.length) keep('avoid', (f) => !fp.avoid.some((k) => carrierMatches(f.carriers, k)));
+  if (request.needs?.direct || fp.direct) keep('direct', (f) => f.stops === 0);
+  if (fp.noNight) keep('noNight', (f) => f.legs.every((leg) => { const h = Number(String(leg.segments[0]?.departure?.time || '12').slice(0, 2)); return h >= 6 && h < 23; }));
+  if (fp.checkedBag === true) { const bag = list.filter((f) => f.checked === 'included'); if (bag.length) list = bag; }
+  return { facts: list, unmet };
 }
 function pickOf(f) {
   // Spec 29: every segment travels with the pick so the brochure can print flight numbers, airports and times.
@@ -47,7 +65,7 @@ function pickOf(f) {
 export function flightAlternatives(payload, request = {}) {
   const facts = (Array.isArray(payload?.offers) ? payload.offers : []).map((offer) => offerFacts(offer, payload)).filter((f) => f.price && Number.isFinite(f.price.value));
   const cheapest = (list) => list.reduce((a, b) => (!a || b.price.value < a.price.value ? b : a), null);
-  const hard = facts.filter((f) => !request.needs?.direct || f.stops === 0);
+  const hard = byPrefs(facts, request).facts;
   const pick = (f) => (f ? { ...pickOf(f), badges: [] } : null);
   return { cheapest: pick(cheapest(hard)), direct: pick(cheapest(facts.filter((f) => f.stops === 0))), bag: pick(cheapest(hard.filter((f) => f.checked === 'included'))) };
 }
@@ -96,11 +114,22 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     if (!text.trim() && !dest) return { error: 'text_required' };
     // A budget in dollars / euros converts at the site's rate (spec 28 §א.1); no rate in 1.5 s → the amount is asked for.
     const rates = fx && /[$€]|usd|eur|dollar|euro|דולר|יורו/i.test(text) ? await Promise.race([fx.get().catch(() => null), new Promise((r) => setTimeout(r, 1500, null))]) : null;
-    let request = parseTrip(text, { today: t0, lang: l, destId: dest, fx: rates });
+    // A conversation (owner 18.11.2026): the first message, then follow-ups that refine it. Rebuilt from the texts on
+    // every turn (nothing trusted from the page but the texts and the plan's current place/length/date as a seed).
+    const thread = Array.isArray(input.thread) ? input.thread.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.slice(0, 600)).slice(-8) : [];
+    let request = parseTrip(thread[0] || text, { today: t0, lang: l, destId: dest, fx: rates });
+    if (thread.length > 1) {
+      const cur = input.current || {};
+      if (!request.destinations.length && Array.isArray(cur.dest)) { const ids = cur.dest.filter((id) => byId(id)).slice(0, 4); if (ids.length) { request.destinations = ids; request.suggest = false; } }
+      if (!request.nights && Number.isInteger(cur.nights) && cur.nights > 0 && cur.nights <= 90) request.nights = cur.nights;
+      if (!request.start && /^\d{4}-\d{2}-\d{2}$/.test(cur.start || '') && cur.start > t0) request.start = cur.start;
+      for (const msg of thread.slice(1)) request = refineRequest(request, parseTrip(msg, { today: t0, lang: l, fx: rates }), msg);
+    }
     // The model reads the request's meaning (tags, places, travellers) for every request when a provider is set; the
     // rules stay the source of exact dates/amounts and the whole answer without a model (or when it is slow).
-    const tags = tagger && text.trim() ? await Promise.race([tagger(text, l, t0).catch(() => null), new Promise((r) => setTimeout(r, Number(env.GERBI_TAGGER_TIMEOUT_MS) || 6000, null))]) : null;
-    if (tags) request = mergeModel(request, tags, { today: t0 });
+    const said = thread.length > 1 ? thread.map((m, i) => (i ? `(עדכון ${i}) ${m}` : m)).join('\n') : text;
+    const tags = tagger && said.trim() ? await Promise.race([tagger(said, l, t0).catch(() => null), new Promise((r) => setTimeout(r, Number(env.GERBI_TAGGER_TIMEOUT_MS) || 6000, null))]) : null;
+    if (tags) request = mergeModel(request, tags, { today: t0, refine: thread.length > 1 });
     // The older LLM partner only when there was no tagger answer, the rules understood little and named no destination (spec 24 §8).
     if (!tags && partner && !request.destinations.length && request.coverage?.needsPartner) {
       const extra = await partner(text, request, l).catch(() => null);

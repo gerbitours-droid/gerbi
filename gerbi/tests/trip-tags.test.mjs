@@ -9,7 +9,8 @@ import { validateSchema } from '../backend/ai-gateway.mjs';
 const TODAY = '2026-11-17';
 const none = { kosher: false, shabbat: false, accessible: false, allInclusive: false, pool: false, direct: false, car: 'unknown' };
 const answer = (x) => ({ adults: 0, children: 0, childAges: [], infants: 0, nights: 0, nightsPerPlace: [], month: 0, start: '', end: '', budgetIls: 0, budgetLevel: 'unknown',
-  destinations: [], countries: [], regions: [], exclude: [], abroad: false, mustTags: [], niceTags: [], suggest: [], needs: none, maxFlightHours: 0, question: '', ...x });
+  destinations: [], countries: [], regions: [], exclude: [], abroad: false, mustTags: [], niceTags: [], suggest: [], needs: none, maxFlightHours: 0, question: '',
+  airlinesOnly: [], airlinesPrefer: [], airlinesAvoid: [], noNightFlights: false, outTime: '', backTime: '', checkedBag: 'unknown', minStars: 0, board: '', hotelArea: '', hotelType: '', pace: '', avoidKinds: [], moreKinds: [], ...x });
 const plan = (text, v) => planPackage(mergeModel(parseTrip(text, { today: TODAY }), v, { today: TODAY }), { today: TODAY });
 
 test('trip_tags: the schema accepts a full answer and limits ids/tags to the catalog', () => {

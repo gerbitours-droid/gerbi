@@ -252,3 +252,28 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
 @keyframes bk-spin{to{transform:rotate(360deg)}}
 @keyframes bk-pulse{50%{transform:scale(.6);opacity:.5}}
 @media (prefers-reduced-motion:reduce){.bk-think-dot,.bk-think-steps li::before{animation:none}}
+
+/* Conversation (owner 18.11.2026): earlier turns, the agent's reply, options with "continue from here", the follow-up box. */
+.bk-history{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+.bk-history li{display:grid;gap:4px}
+.bk-history-you{justify-self:start;background:var(--surface-2,#eef3fb);border-radius:14px;padding:6px 12px;margin:0;font-size:.92rem}
+.bk-history-said{justify-self:end;color:var(--muted,#5b6475);margin:0;font-size:.85rem}
+.bk-reply{background:#fff8e1;border:1px solid #f5d77a;border-radius:12px;padding:10px 14px;margin:0 0 12px;font-weight:600}
+.bk-options-row{margin:12px 0}
+.bk-options-row ul{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.bk-option-card{display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:center;border:1px solid var(--line,#dfe6f0);border-radius:12px;padding:10px;background:#fff}
+.bk-option-card img{width:56px;height:56px;border-radius:10px;object-fit:cover}
+.bk-option-card div{display:grid;gap:2px;min-width:0}
+.bk-option-card small{color:var(--muted,#5b6475)}
+.bk-option-card button{grid-column:1/-1}
+.bk-chat-chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.bk-chat-form{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.bk-chat-form textarea{width:100%;min-height:52px;border-radius:12px;padding:10px;border:1px solid var(--line,#dfe6f0);font:inherit;resize:vertical}
+.bk-poll-apply{background:#eef8f1;border-radius:12px;padding:8px 12px}
+.bk-unmet{margin:6px 0}
+.bk-think-bar{height:6px;border-radius:6px;background:var(--surface-2,#eef3fb);overflow:hidden;margin:6px 0 4px}
+.bk-think-bar span{display:block;height:100%;width:0;background:var(--accent,#f5b400);transition:width .25s linear}
+.bk-poll{border:0;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bk-poll legend{font-weight:600;margin-bottom:6px;padding:0}
+.bk-poll-done{margin:14px 0 0;color:var(--muted,#5b6475)}
+@media (max-width:560px){.bk-chat-form{grid-template-columns:1fr}}
