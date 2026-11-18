@@ -277,3 +277,16 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
 .bk-poll legend{font-weight:600;margin-bottom:6px;padding:0}
 .bk-poll-done{margin:14px 0 0;color:var(--muted,#5b6475)}
 @media (max-width:560px){.bk-chat-form{grid-template-columns:1fr}}
+
+/* Leaving and coming back (owner 18.11.2026). */
+.bk-notify{margin-top:14px;border-top:1px dashed var(--line,#dfe6f0);padding-top:10px}
+.bk-notify summary{cursor:pointer;font-weight:600;color:var(--brand,#0d3c8a)}
+.bk-notify-form{display:grid;gap:8px;margin-top:10px;max-width:420px}
+.bk-notify-form input[type=text],.bk-notify-form input[type=tel],.bk-notify-form input:not([type]){width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line,#dfe6f0);font:inherit}
+.bk-notify-form .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.bk-notify-done{background:#eef8f1;border-radius:12px;padding:10px 12px;margin:0}
+.bk-exit{border:0;border-radius:18px;padding:24px;max-width:420px;width:calc(100% - 32px);text-align:center;box-shadow:0 20px 60px rgba(13,60,138,.25)}
+.bk-exit::backdrop{background:rgba(10,20,40,.45)}
+.bk-exit h2{margin:8px 0}
+.bk-exit-acts{display:grid;gap:8px;margin-top:14px}
+.bk-resume-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}

@@ -28,6 +28,7 @@ import { createSupport } from './backend/support.mjs';
 import { handleAi } from './backend/ai-routes.mjs';
 import { gateway, tripPolish } from './backend/ai-features.mjs';
 import { createSearchStats } from './backend/search-stats.mjs';
+import { createFunnelStats } from './backend/funnel-stats.mjs';
 import { localizeHtml, normLang } from './dist/i18n.mjs';
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 // A weak owner password is refused in production before any route can use it (backend/admin.mjs).
@@ -59,6 +60,7 @@ const support = createSupport({ dataDirectory, leadStore, llmCache, siteStore: c
 // AI gateway (spec 22): usage counters and kill switches live in the KV store; search counters feed the owner digest.
 gateway.configure({ usageStore: createStore('ai-usage', dataDirectory), flagStore: createStore('ai-control', dataDirectory) });
 const searchStats = createSearchStats(createStore('search-stats', dataDirectory));
+const funnelStats = createFunnelStats(createStore('funnel-stats', dataDirectory));
 const featureVector = (value) => Object.fromEntries(['hour', 'stop', 'longWait', 'overnight', 'offHours', 'nightDeparture'].map((key) => [key, Number.isFinite(value?.[key]) ? Math.max(0, Math.min(100, value[key])) : 0]));
 const placeCodes = new Set(places.map((place) => place.code));
 // The canonical brief the decision endpoints accept: every field re-validated, nothing free-text.
@@ -110,6 +112,7 @@ const deals = createDeals({ search: searchForDeals(voleroFlightSearch, withRetry
 const background = promise => { const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.(); if (ctx?.waitUntil) ctx.waitUntil(promise.catch(() => {})); else promise.catch(() => {}); };
 // Magic trip builder (spec 24): plans from the catalog, then live flights + hotels through its own caches.
 const builder = createBuilder({ store: createStore('build', dataDirectory), llmCache, flightSearch: voleroFlightSearch, hotelSearch: voleroHotelSearch, hotelImage: voleroHotelImage, fx,
+  funnel: { record: (step) => background(funnelStats.record(step)) },
   tagger: (text, l, today) => partnerTripTags(llmCache, text, { today, lang: l }),
   partner: (text, request, l) => partnerUnderstand(llmCache, text, { adults: request.adults, children: request.children, nights: request.nights, month: '', want: [], exclude: [] }, { lang: l }),
   polish: (destination, travellers, days, l) => tripPolish(destination, travellers, days, { store: llmCache, lang: l }), log: entry => logSupplier({ cached: false, ...entry }) });
@@ -265,7 +268,7 @@ export function createServer() {
    if (await handleLeads(req, url, { send, body, store:leadStore, hooks:{ ...accounts.leadHooks, enrich: builder.enrichLead } })) return;
    if (await handleFx(req, url, { send, body, fx, background, res })) return;
    if (await support.handle(req, res, url, { send, body })) return;
-   if (await handleAi(req, res, url, { send, body, leadStore, sessions:adminSessions, llmCache, searchStats })) return;
+   if (await handleAi(req, res, url, { send, body, leadStore, sessions:adminSessions, llmCache, searchStats, funnelStats })) return;
    if (await handleAdmin(req, res, url, { send, body, store:contentStore, sessions:adminSessions, leadStore })) return;
    if (url.pathname.startsWith('/api/')) return send(404,{error:'not_found'});
    if (!['GET','HEAD'].includes(req.method)) return send(405,{error:'method_not_allowed'});

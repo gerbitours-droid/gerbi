@@ -105,7 +105,7 @@ export async function withRetry(run, { retryWithinMs = 15000, delayMs = 800, sle
 
 // Token bucket per client and route, per instance: traffic shaping for the supplier/AI routes (see allowShared below for security limits).
 const buckets = new Map();
-export const LIMITS = { search: [12, 60000], searchMulti: [6, 60000], availability: [30, 60000], ai: [40, 60000], book: [3, 60000], leads: [5, 600000], leadsAdmin: [10, 60000], build: [30, 60000], buildSupplier: [16, 60000] };
+export const LIMITS = { search: [12, 60000], searchMulti: [6, 60000], availability: [30, 60000], ai: [40, 60000], book: [3, 60000], leads: [5, 600000], leadsAdmin: [10, 60000], build: [30, 60000], buildSupplier: [16, 60000], funnel: [90, 60000] };
 export function allow(client, route, now = Date.now()) {
   const [capacity, windowMs] = LIMITS[route] || [60, 60000], key = `${route}:${client}`;
   const bucket = buckets.get(key) || { tokens: capacity, at: now };

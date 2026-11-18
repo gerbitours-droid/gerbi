@@ -335,6 +335,8 @@ function extractTravelers(text) {
   if (found.adults === 2 && PARTNER_HE.test(text) && /(?:^|\s)(?:ו|את|עם)?(?:סבא|סבתא)(?:\s+שלי)?(?=[\s,.]|$)/.test(text)) found.adults = 3;
   if (/(?:^|\s)(?:את\s+)?ההורים שלי/.test(text) && /אני ו(?:אחי|אחותי)/.test(text)) found.adults = 4;
   found.wholeGroup = found.groupOfAdults || /חברים|חברות|חבר'ה|אנחנו \d|משפחה של|לבד|סולו|רק אני|זוגות|\d+\s*(?:נוסעים|אנשים|מטיילים)/.test(found.adultsSource || '');
+  // One flight booking takes up to 9 travellers: a bigger group is remembered (said in the plan), the search uses 9.
+  if ((found.adults || 0) + (found.children || 0) > 9) found.groupSize = (found.adults || 0) + (found.children || 0);
   if (found.adults) found.adults = Math.min(9, found.adults);
   return found;
 }
@@ -611,6 +613,8 @@ function extractTravelersEn(text) {
   }
   if (!found.children && !found.noChildren && /\bwith (?:the |my |our )?(?:kids|children)\b|\bfamily\b/.test(text)) found.childrenUnknown = true;
   found.wholeGroup = /people|persons|travell?ers|passengers|friends|of us|we are|we're|group of|party of|family of|solo|alone|just me|only me|by myself|on my own|couples/.test(found.adultsSource || '');
+  // One flight booking takes up to 9 travellers: a bigger group is remembered (said in the plan), the search uses 9.
+  if ((found.adults || 0) + (found.children || 0) > 9) found.groupSize = (found.adults || 0) + (found.children || 0);
   if (found.adults) found.adults = Math.min(9, found.adults);
   return found;
 }
@@ -771,6 +775,7 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
   if (travelers.childAges) { brief.childAges = travelers.childAges; if (travelers.childAges.length > (travelers.infantAgeAssumed ? travelers.infants : 0)) say('childAges', tr('planner.childAges', { ages: travelers.childAges.join(', ') })); }
   if (travelers.infants) { brief.infants = travelers.infants; say('infants', tr('planner.infants', { count: travelers.infants })); }
   if (travelers.noChildren) { brief.family = false; }
+  if (travelers.groupSize) brief.groupSize = travelers.groupSize;
   // "אנחנו 4 חברים" describes the whole group: children from an earlier message do not carry over.
   if (travelers.wholeGroup && travelers.children === undefined) { brief.children = 0; brief.childAges = []; }
 

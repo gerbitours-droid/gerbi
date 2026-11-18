@@ -199,7 +199,7 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
     asked: { stars: stars > 0 },
     destinations: alternatives ? [] : wanted.map((d) => d.id).slice(0, 4), shortlist: alternatives ? wanted.map((d) => d.id) : [], countries: named.countries, exclude: [...excluded],
     regions: b.regions || [], excludeRegions: b.excludeRegions || [],
-    replaced: [...replaced], prefs: mergePrefs({ flight: { ...(b.carrier ? { prefer: [b.carrier] } : {}), ...(b.out?.length ? { out: b.out } : {}), ...(b.back?.length ? { back: b.back } : {}), ...(b.checkedBag ? { checkedBag: true } : {}) } }, parsePrefs(fixed)),
+    groupSize: b.groupSize || 0, replaced: [...replaced], prefs: mergePrefs({ flight: { ...(b.carrier ? { prefer: [b.carrier] } : {}), ...(b.out?.length ? { out: b.out } : {}), ...(b.back?.length ? { back: b.back } : {}), ...(b.checkedBag ? { checkedBag: true } : {}) } }, parsePrefs(fixed)),
     legNights: legNightsOf(fixed, wanted), maxFlightHours, abroad: /חו"ל|חו״ל|חוץ לארץ|לחו"ל|\babroad\b|\boverseas\b/i.test(fixed) || (b.excludeRegions || []).length > 0, ...(boost.length ? { boost } : {}), legs, suggest: !wanted.length || has(RX.suggest) && !forced,
     understood: [...u.understood.filter((x) => !['want', 'exclude'].includes(x.field) || (x.field === 'exclude' && (b.excludeRegions || []).length)).map(({ field, label }) => ({ field, label })), ...extra],
     coverage: u.coverage
@@ -838,6 +838,7 @@ function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10)
   const ph = r.prefs?.hotel || {};
   const hotelNeeds = [...['accessible', 'pool'].filter((k) => r.needs?.[k]).map((k) => t(`planner.need.${k}`, {}, l)),
     ...(ph.type ? [t(`build.chat.change.type.${ph.type}`, {}, l)] : []), ...(ph.adultsOnly ? [t('build.need.adultsOnly', {}, l)] : []), ...(ph.familyRoom ? [t('build.need.familyRoom', {}, l)] : [])];
+  if (r.groupSize > 9) assumed.unshift(t('build.assumed.bigGroup', { count: r.groupSize }, l));
   if (hotelNeeds.length) assumed.push(t('planner.assumed.needs', { list: hotelNeeds.join(', ') }, l));
   if (!request.understood.some((x) => x.field === 'adults')) assumed.unshift(t('build.assumed.adults', {}, l));
   if (request.children > request.childAges.length) assumed.push(t('build.assumed.ages', {}, l));

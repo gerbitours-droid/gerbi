@@ -83,7 +83,7 @@ export function upsellTrips(destId, l = 'he') {
 // What the booking wizard needs to price the chosen flight again (spec 25 §9). The search token lives an hour.
 const bookingRef = (data) => (data?.srk && data?.tokens?.searchResults ? { srk: data.srk, searchToken: data.tokens.searchResults } : null);
 
-export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, tagger = null, polish = null, fx = null, log = () => {}, now = () => Date.now() }) {
+export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, tagger = null, funnel = null, polish = null, fx = null, log = () => {}, now = () => Date.now() }) {
   const today = () => new Date(now()).toISOString().slice(0, 10);
   const hotels = createHotelSearch({ store, log, now, keyPrefix: fixtures(env) ? 'fixture-h:' : 'h:', search: async (input, options) => {
     if (fixtures(env)) { const f = await fixture('hotels'); return { hotels: f.hotels, totalItems: f.totalItems, complete: true, filtered: !options.fallbackQuery }; }
@@ -167,6 +167,12 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
       return pkg ? send(200, { package: pkg }) : send(404, { error: 'not_found' });
     }
     if (req.method !== 'POST') return send(405, { error: 'method_not_allowed' });
+    // Funnel counters (no personal data): its own small limit, answered at once, written in the background.
+    if (path === '/api/build/event') {
+      if (!allow(client, 'funnel')) return send(429, { error: 'rate_limited' });
+      const input = await body(req, 300).catch(() => ({}));
+      funnel?.record(String(input?.step || '')); return send(200, { ok: true });
+    }
     const supplierRoute = path === '/api/build/flights' || path === '/api/build/hotels';
     if (!allow(client, supplierRoute ? 'buildSupplier' : 'build')) return send(429, { error: 'rate_limited', message: 'יותר מדי בקשות בזמן קצר. נסו שוב בעוד דקה.' });
     const input = await body(req, 64_000);

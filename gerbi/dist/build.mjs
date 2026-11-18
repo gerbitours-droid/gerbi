@@ -83,7 +83,13 @@ async function post(path, payload) {
 }
 function announce(text) { const s = $('#build-status'); if (s) { s.textContent = ''; setTimeout(() => { s.textContent = text; }, 30); } }
 
-let turns = [], pollChoices = []; // the conversation so far: [{ you, said }] – earlier turns, shown above the current plan
+let turns = [], pollChoices = [], thinking = false, leadSent = false;
+// Funnel counters (owner 18.11.2026): a step name only – no text, no ids. Best-effort; never blocks anything.
+const track = (step) => { try { const b = JSON.stringify({ step }); if (!navigator.sendBeacon?.('/api/build/event', b)) fetch('/api/build/event', { method: 'POST', body: b, keepalive: true }).catch(() => {}); } catch { /* counting is optional */ } };
+const LAST_KEY = 'gerbi-build-last-v1', RESUME_DAYS = 14;
+// The conversation is kept on this device so a visitor who leaves can continue later ("ממשיכים מאיפה שעצרנו").
+function remember() { try { if (pkg?.destination && lastInput) localStorage.setItem(LAST_KEY, JSON.stringify({ at: Date.now(), input: lastInput, place: (pkg.stops?.length ? pkg.stops : [pkg.destination]).map((s) => s.name), nights: pkg.request.nights })); } catch { /* private mode */ } }
+function lastConversation() { try { const x = JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); return x?.input && Date.now() - x.at < RESUME_DAYS * 86400000 ? x : null; } catch { return null; } } // the conversation so far: [{ you, said }] – earlier turns, shown above the current plan
 async function build(input) {
   const before = pkg?.destination ? pkg : null, followUp = (input.thread || []).length > 1;
   if (!followUp) turns = []; else if (before && lastInput) turns.push({ you: (lastInput.thread || [lastInput.text]).at(-1), said: planLine(before) });
@@ -106,7 +112,7 @@ async function build(input) {
     const place = L(pkg.destination.name), started = Date.now();
     // A follow-up keeps the conversation on screen while it thinks, and skips the waiting poll (already asked).
     out.innerHTML = historyHtml() + thinkingHtml(place, !followUp); announce(t('build.think.title', { place })); pollChoices = [];
-    const stopEta = startEta(out, started);
+    const stopEta = startEta(out, started); thinking = true;
     const stopFacts = startDidYouKnow($('.bk-think-steps', out), pkg.destination.code);
     const tick = (step) => $(`[data-think="${step}"]`, out)?.classList.add('done');
     setTimeout(() => tick('plan'), 400);
@@ -114,9 +120,9 @@ async function build(input) {
     fetchPolish(mine);
     await Promise.race([Promise.allSettled(jobs), new Promise((r) => setTimeout(r, THINK_MAX))]);
     tick('budget'); await new Promise((r) => setTimeout(r, Math.max(350, THINK_MIN - (Date.now() - started))));
-    stopFacts(); stopEta(true);
+    stopFacts(); stopEta(true); thinking = false;
     if (mine !== version) return;
-    fitBudget(); render(); announce(t('build.status.skeleton', { place }));
+    fitBudget(); render(); remember(); if (!followUp) track('plan_shown'); announce(t('build.status.skeleton', { place }));
     $('#build-result h2')?.focus({ preventScroll: false });
   } catch (error) {
     if (mine !== version) return;
@@ -184,11 +190,56 @@ function pollHtml(i = 0) {
   const [q, opts] = POLL[i];
   return `<fieldset class="bk-poll" data-poll-step="${i}"><legend>${t('build.poll.lead')} ${t(`build.poll.${q}`)}</legend>${opts.map((o) => `<button type="button" class="chip" data-poll="${q}.${o}">${t(`build.poll.${q}.${o}`)}</button>`).join('')}</fieldset>`;
 }
+// "No time to wait?" – a name and a phone; the plan as it stands goes to an agent with the request to send it on
+// WhatsApp (a person sends it: the site does not message customers by itself).
+function notifyHtml() {
+  return `<details class="bk-notify"><summary>${t('build.notify.summary')}</summary><form id="build-notify" class="bk-notify-form" novalidate>
+   <label>${t('leads.field.name')}<input name="name" autocomplete="name" maxlength="80" required></label>
+   <label>${t('leads.field.phone')}<input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
+   <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+   <label class="lead-check"><input type="checkbox" name="consent" required><span>${consentText()}</span></label>
+   <p class="lead-form-error" role="alert" hidden></p><button type="submit" class="button yellow">${t('build.notify.send')}</button></form></details>`;
+}
+async function sendNotify(form) {
+  const d = new FormData(form), snapshot = sanitizePackage(pkg), err = $('.lead-form-error', form);
+  const input = { type: 'package', name: String(d.get('name') || ''), phone: String(d.get('phone') || ''), email: '', channel: 'whatsapp', consent: d.get('consent') === 'on', marketing: false,
+    website: String(d.get('website') || ''), source: '/build#notify', lang, ...packageLeadFields(snapshot, lang), package: snapshot };
+  const { errors } = validateLead(input, { lang });
+  if (Object.keys(errors).length) { err.textContent = Object.values(errors)[0]; err.hidden = false; return; }
+  form.querySelector('[type=submit]').disabled = true;
+  try {
+    const response = await fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(errorText(data.error, data.message, 'leads'));
+    form.closest('details').innerHTML = `<p class="bk-notify-done">${t('build.notify.done', { ref: `<bdi dir="ltr">${esc(data.id)}</bdi>` })}</p>`; leadSent = true; track('notify_request');
+  } catch (error) { err.textContent = error.message || t('build.err.generic'); err.hidden = false; form.querySelector('[type=submit]').disabled = false; }
+}
+// "Before you go": once a session, on a desktop exit gesture, when there is a plan and nothing was sent yet.
+function exitPrompt() {
+  if (!pkg?.destination || leadSent || thinking || sessionStorage.getItem('gerbi-exit-shown')) return;
+  try { sessionStorage.setItem('gerbi-exit-shown', '1'); } catch { /* fine */ }
+  const dlg = document.createElement('dialog'); dlg.className = 'bk-exit'; dlg.setAttribute('aria-labelledby', 'bk-exit-title');
+  dlg.innerHTML = `<img src="/assets/mascot.webp" alt="" width="72" height="72"><h2 id="bk-exit-title">${t('build.exit.title')}</h2><p>${t('build.exit.text', { place: esc((pkg.stops?.length ? pkg.stops : [pkg.destination]).map((s) => L(s.name)).join(' ← ')) })}</p>
+   <div class="bk-exit-acts"><button type="button" class="button yellow" data-exit="send">${t('build.exit.send')}</button><button type="button" class="button secondary" data-exit="save">${t('build.exit.save')}</button><button type="button" class="link-button" data-exit="close">${t('build.exit.close')}</button></div>`;
+  document.body.append(dlg); dlg.showModal(); track('exit_prompt');
+  dlg.addEventListener('click', (e) => {
+    const what = e.target.closest('[data-exit]')?.dataset.exit; if (!what && e.target !== dlg) return;
+    dlg.close(); dlg.remove();
+    if (what === 'send') { track('exit_send'); leadOpen = true; paintLead(); const w = $('#bc-lead input[name="channel"][value="whatsapp"]', view); if (w) w.checked = true; $('#bc-lead', view)?.scrollIntoView({ block: 'center' }); $('#bc-lead h3', view)?.focus(); }
+    else if (what === 'save') { track('exit_save'); $('[data-act="save"]', view)?.click(); }
+  });
+}
+function resumeHtml(last) {
+  const place = last.place.map((n) => L(n)).join(' ← '), when = Math.max(0, Math.round((Date.now() - last.at) / 86400000));
+  return `<section class="bk-card bk-resume"><h2 tabindex="-1">${t('build.resume.title')}</h2><p>${t('build.resume.text', { place: esc(place), nights: last.nights, days: when })}</p>
+   <p class="micro-copy">${esc((last.input.thread || [last.input.text]).join(' · ').slice(0, 220))}</p>
+   <div class="bk-resume-acts"><button type="button" class="button yellow" data-resume="go">${t('build.resume.go')}</button><button type="button" class="button secondary" data-resume="new">${t('build.resume.new')}</button></div></section>`;
+}
 function thinkingHtml(place, poll = true) {
   const steps = ['plan', 'flights', 'hotels', 'budget'];
   return `<section class="bk-card bk-think" aria-live="polite"><h2 tabindex="-1"><span class="bk-think-dot" aria-hidden="true"></span>${t('build.think.title', { place: esc(place) })}</h2>
    <p class="bk-think-eta micro-copy"></p><div class="bk-think-bar" aria-hidden="true"><span></span></div>
-   <ol class="bk-think-steps">${steps.map((s) => `<li data-think="${s}">${t(`build.think.${s}`)}</li>`).join('')}</ol>${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
+   <ol class="bk-think-steps">${steps.map((s) => `<li data-think="${s}">${t(`build.think.${s}`)}</li>`).join('')}</ol>${notifyHtml()}${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
 }
 function skeletonHtml() {
   return `<div class="build-skeleton" aria-hidden="true">${['where', 'flights', 'hotels', 'itinerary'].map(() => '<div class="bk-card bk-skel"><span></span><span></span><span></span></div>').join('')}</div><p class="micro-copy">${t('build.status.planning')}</p>`;
@@ -282,6 +333,7 @@ function followUp(text) {
   if (!said || !pkg?.destination) return;
   const thread = [...(lastInput?.thread || [lastInput?.text || '']), said].filter(Boolean).slice(-8);
   const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
+  track('followup');
   build({ ...lastInput, text: said, thread, chosen: '', current: { dest: [...new Set(stops.map((s) => s.id))], nights: pkg.request.nights, start: pkg.request.start } });
 }
 function wireImages(root) { root.querySelectorAll('img[data-fallback]').forEach((img) => img.addEventListener('error', () => img.classList.add('bk-noimg'), { once: true })); }
@@ -511,7 +563,7 @@ async function submitLead(form) {
     if (!response.ok) throw new Error(errorText(data.error, data.message, 'leads'));
     const host = $('#bc-lead', view);
     host.innerHTML = `<h3 tabindex="-1">${t('build.lead.done')}</h3><p>${t('build.lead.doneText', { ref: `<bdi dir="ltr">${esc(data.id)}</bdi>` })}</p><a class="button secondary" href="#/account">${t('build.lead.account')}</a>`;
-    $('h3', host).focus(); announce(t('build.lead.done'));
+    $('h3', host).focus(); announce(t('build.lead.done')); leadSent = true; track('lead_sent');
   } catch (error) { formError.textContent = error.message || t('build.err.generic'); formError.hidden = false; button.disabled = false; }
 }
 
@@ -591,11 +643,11 @@ function page({ view: host, footer, bread }) {
   area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-form', view).requestSubmit(); } });
   // Enter sends a follow-up too (Shift+Enter for a new line).
   view.addEventListener('keydown', (e) => { if (e.target.id === 'build-follow-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-follow', view)?.requestSubmit(); } });
-  loadFx();
+  loadFx(); track('view');
   if (shared && /^[a-f0-9]{16}$/.test(shared)) openShared(shared);
   else if (q || dest) build({ text: q, dest });
   else {
-    try { const saved = JSON.parse(sessionStorage.getItem(CURRENT_KEY) || 'null'); if (saved?.pkg?.destination) { pkg = saved.pkg; lastInput = saved.input; for (const g of [pkg.flights, ...hotelGroups()]) if (g.status === 'pending') g.status = 'quote'; $('#build-text').value = saved.input?.text || ''; render(); } } catch { /* fresh start */ }
+    try { const saved = JSON.parse(sessionStorage.getItem(CURRENT_KEY) || 'null'); if (saved?.pkg?.destination) { pkg = saved.pkg; lastInput = saved.input; for (const g of [pkg.flights, ...hotelGroups()]) if (g.status === 'pending') g.status = 'quote'; $('#build-text').value = saved.input?.text || ''; render(); } else { const last = lastConversation(); if (last) { $('#build-result').innerHTML = resumeHtml(last); track('resume_shown'); } } } catch { /* fresh start */ }
   }
 }
 
@@ -640,15 +692,19 @@ function wire() {
     const track = e.target?.classList?.contains('bk-car-track') ? e.target : null, pos = track?.closest('.bk-carousel')?.querySelector('[data-car-pos]');
     if (pos) pos.textContent = `${currentSlide(track) + 1} / ${track.children.length}`;
   }, { capture: true, passive: true });
+  // Leaving: a desktop exit gesture offers to save / send the plan; leaving while it thinks is counted (no data).
+  document.addEventListener('mouseout', (e) => { if (view?.isConnected && !e.relatedTarget && e.clientY <= 0) exitPrompt(); });
+  window.addEventListener('pagehide', () => { if (thinking && view?.isConnected) track('abandon_thinking'); });
   document.addEventListener('submit', (e) => {
     if (!view?.contains(e.target)) return;
     if (e.target.id === 'build-form') {
       e.preventDefault(); const text = $('#build-text').value.trim(), month = $('#build-month').value;
       const full = month !== '' ? `${text}${text ? ', ' : ''}${t('build.chip.when.phrase', { month: MONTHS[Number(month)] })}` : text;
       if (!full) { const err = $('.build-error', view); err.textContent = t('build.err.empty'); err.hidden = false; $('#build-text').focus(); return; }
-      history.replaceState(null, '', `#/build?q=${encodeURIComponent(full)}`); build({ text: full, thread: [full] });
+      history.replaceState(null, '', `#/build?q=${encodeURIComponent(full)}`); track('submit'); build({ text: full, thread: [full] });
     } else if (e.target.id === 'build-edit') { e.preventDefault(); build({ ...lastInput, chosen: pkg.destination.id, edits: { ...(lastInput?.edits?.budget ? { budget: lastInput.edits.budget } : {}), ...editsFrom(e.target) } }); }
     else if (e.target.id === 'build-lead') { e.preventDefault(); submitLead(e.target); }
+    else if (e.target.id === 'build-notify') { e.preventDefault(); sendNotify(e.target); }
     else if (e.target.id === 'build-follow') { e.preventDefault(); followUp($('#build-follow-text', view)?.value); }
   });
   document.addEventListener('change', (e) => {
@@ -668,11 +724,13 @@ function wire() {
     // "נמשיך מפה": this option becomes the plan and the conversation goes on from it.
     if (el('[data-poll]')) {
       const b = el('[data-poll]'), [q, o] = b.dataset.poll.split('.'), host = b.closest('.bk-poll-host'), step = Number(b.closest('[data-poll-step]').dataset.pollStep);
+      track('poll_answer');
       if (!['any', 'balanced'].includes(o)) pollChoices.push({ label: t(`build.poll.${q}.${o}`), say: t(`build.poll.${q}.${o}.say`) });
       if (host) host.innerHTML = pollHtml(step + 1); host?.querySelector('button')?.focus(); return;
     }
-    if (el('[data-continue]')) { const id = el('[data-continue]').dataset.continue; build({ ...lastInput, thread: lastInput?.thread || [lastInput?.text || ''], chosen: id, current: undefined }); return; }
-    if (el('[data-say]')) { if (el('[data-poll-apply]')) pollChoices = []; followUp(el('[data-say]').dataset.say); return; }
+    if (el('[data-resume]')) { const last = lastConversation(); if (el('[data-resume]').dataset.resume === 'go' && last) { track('resume_used'); $('#build-text').value = last.input.thread?.[0] || last.input.text || ''; build(last.input); } else { try { localStorage.removeItem(LAST_KEY); } catch { /* fine */ } $('#build-result').innerHTML = ''; $('#build-text').focus(); } return; }
+    if (el('[data-continue]')) { track('option_continue'); const id = el('[data-continue]').dataset.continue; build({ ...lastInput, thread: lastInput?.thread || [lastInput?.text || ''], chosen: id, current: undefined }); return; }
+    if (el('[data-say]')) { track(el('[data-poll-apply]') ? 'poll_apply' : 'chip'); if (el('[data-poll-apply]')) pollChoices = []; followUp(el('[data-say]').dataset.say); return; }
     if (el('[data-book-flight]')) {
       const button = el('[data-book-flight]'), pick = selectedFlight(pkg), f = pkg.flights;
       button.disabled = true; button.setAttribute('aria-busy', 'true');
@@ -708,6 +766,7 @@ function wire() {
     if (el('[data-add-spare]')) { const k = Number(el('[data-add-spare]').dataset.addSpare), [item] = pkg.spare.splice(k, 1); const day = pkg.itinerary.find((d) => d.kind === 'free') || pkg.itinerary.find((d) => d.kind === 'full' && d.items.length < 3) || pkg.itinerary.find((d) => d.kind === 'full') || pkg.itinerary[0]; day.items.push(item); paint('itinerary'); persist(); announce(t('build.itinerary.added', { name: item.name, day: day.day })); return; }
     const act = el('[data-act]')?.dataset.act, status = $('#build-act-status', view);
     if (!act) return;
+    if (['lead', 'save', 'share', 'print'].includes(act)) track(act === 'lead' ? 'lead_open' : act);
     try {
       if (act === 'lead') { leadOpen = true; paintLead(); $('#bc-lead h3', view).focus(); }
       else if (act === 'save') await save(status);

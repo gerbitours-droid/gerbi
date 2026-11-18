@@ -99,12 +99,21 @@ function digestHtml(d) {
    <div class="ai-stats"><div><strong>${esc(f.leads.total)}</strong><span>פניות בתקופה</span></div><div><strong>${esc(f.leads.waitingOver24h)}</strong><span>מחכות מעל יממה</span></div><div><strong>${esc(f.leads.highPriorityOpen)}</strong><span>פתוחות בעדיפות גבוהה</span></div><div><strong>${esc(f.searches.total)}</strong><span>חיפושי טיסות</span></div><div><strong>${esc(f.searches.noResults)}</strong><span>חיפושים בלי תוצאות</span></div></div>
    <div class="ai-columns"><section><h3>יעדים בפניות</h3>${pairs(f.leads.topDestinations)}</section><section><h3>מסלולים בחיפוש</h3>${pairs(f.searches.topRoutes)}</section><section><h3>חודשי יציאה</h3>${pairs(f.searches.topMonths)}</section></div>`;
 }
+const FUNNEL_LABEL = { view: 'נכנסו לבונה', submit: 'שלחו בקשה', plan_shown: 'ראו תוכנית', followup: 'המשיכו לשוחח', lead_open: 'פתחו "שלחו לנציג"', lead_sent: 'שלחו פנייה',
+  abandon_thinking: 'עזבו בזמן ההמתנה', chip: 'לחצו שינוי מהיר', option_continue: '"נמשיך מפה"', poll_answer: 'ענו בסקר ההמתנה', poll_apply: 'החילו את הסקר', notify_request: 'ביקשו "שלחו לי כשמוכן"',
+  resume_shown: 'הוצע להם להמשיך', resume_used: 'חזרו לשיחה שמורה', exit_prompt: 'ראו "רגע לפני שהולכים"', exit_save: 'שמרו ביציאה', exit_send: 'ביקשו שליחה ביציאה', save: 'שמרו', share: 'שיתפו', print: 'הדפיסו' };
+function funnelHtml(f) {
+  const rows = (f.path || []).map((x) => `<li><span>${esc(FUNNEL_LABEL[x.step] || x.step)}</span><b>${esc(x.count)}</b>${x.ofPrevious === null ? '' : `<small>${esc(x.ofPrevious)}% מהשלב הקודם</small>`}</li>`).join('');
+  const side = Object.entries(f.steps || {}).filter(([k]) => !(f.path || []).some((x) => x.step === k)).map(([k, n]) => [FUNNEL_LABEL[k] || k, n]);
+  return `<ol class="ai-pairs ai-funnel">${rows}</ol><h3>עוד פעולות</h3>${pairs(side)}`;
+}
 export async function aiTab() {
   const p = $('#panel');
   p.innerHTML = `<div class="admin-head"><h1>ג׳רבי AI</h1></div><p id="ai-provider" class="soft-notice-inline">טוענים…</p>
    <section class="admin-card ai-section" aria-labelledby="dg-title"><div class="admin-head"><h2 id="dg-title">תמונת מצב</h2>
      <div class="lead-filters" role="group" aria-label="תקופה">${[[1, 'היום'], [7, '7 ימים'], [30, '30 יום']].map(([d, l]) => `<button type="button" data-days="${d}" aria-pressed="${d === 7}">${l}</button>`).join('')}</div>
      <button type="button" class="button yellow" id="dg-ai">ניתוח עם ג׳רבי AI</button></div><div id="digest" role="status" aria-live="polite"><p class="admin-status">טוענים…</p></div></section>
+   <section class="admin-card ai-section" aria-labelledby="fn-title"><h2 id="fn-title">משפך בונה החופשות</h2><p class="micro-copy">כמה הגיעו לכל שלב, ואיזה אחוז מהשלב הקודם המשיך. מונים בלבד, בלי פרטים אישיים.</p><div id="funnel"><p class="admin-status">טוענים…</p></div></section>
    <section class="admin-card ai-section" aria-labelledby="use-title"><h2 id="use-title">שימוש, עלות ומתגים</h2><div id="usage"><p class="admin-status">טוענים…</p></div></section>
    <p class="micro-copy">פרטיות: לפני כל קריאה לספק AI מוסרים טלפונים, מיילים, מספרי כרטיס ות״ז; שם הלקוח לא נשלח לעולם. המונים נשמרים בלי תוכן השיחות.</p>`;
   let days = 7;
@@ -113,9 +122,10 @@ export async function aiTab() {
     try { box.innerHTML = digestHtml(await api(ai ? 'POST' : 'GET', `/api/admin/ai/insights?days=${days}`, ai ? {} : undefined)); }
     catch (error) { if (error.status !== 401) box.innerHTML = `<p class="admin-status" data-kind="error">${esc(failText(error))}</p>`; }
   };
-  $$('[data-days]').forEach((b) => b.onclick = () => { days = Number(b.dataset.days); $$('[data-days]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); loadDigest(false); });
+  const loadFunnel = async () => { const box = $('#funnel'); try { box.innerHTML = funnelHtml(await api('GET', `/api/admin/ai/funnel?days=${days}`)); } catch (error) { if (error.status !== 401) box.innerHTML = `<p class="admin-status" data-kind="error">${esc(failText(error))}</p>`; } };
+  $$('[data-days]').forEach((b) => b.onclick = () => { days = Number(b.dataset.days); $$('[data-days]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); loadDigest(false); loadFunnel(); });
   $('#dg-ai').onclick = () => loadDigest(true);
-  await Promise.all([loadDigest(false), loadUsage()]);
+  await Promise.all([loadDigest(false), loadUsage(), loadFunnel()]);
 }
 async function loadUsage() {
   const box = $('#usage');

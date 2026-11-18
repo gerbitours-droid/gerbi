@@ -20,7 +20,7 @@ async function leadsWithMeta(leadStore) {
   return leads.map((lead) => { const m = meta?.[lead.id]; return { ...lead, status: m?.status || lead.status || 'new', adminNotes: m?.notes || [] }; });
 }
 
-export async function handleAi(req, res, url, { send, body, leadStore, sessions, llmCache, searchStats, env = process.env, gw = gateway, now = () => new Date() }) {
+export async function handleAi(req, res, url, { send, body, leadStore, sessions, llmCache, searchStats, funnelStats = null, env = process.env, gw = gateway, now = () => new Date() }) {
   const path = url.pathname;
   if (path === '/api/ai/features' && req.method === 'GET') { send(200, { features: await featureStatus(gw) }); return true; }
 
@@ -80,6 +80,10 @@ export async function handleAi(req, res, url, { send, body, leadStore, sessions,
     if (useAi) { await body(req, 500); if (!modelCall()) return true; }
     const [leads, searches] = await Promise.all([leadsWithMeta(leadStore), searchStats.summary(days)]);
     send(200, await digest(leads, searches, { days, now: now(), useAi, store: llmCache, gw })); return true;
+  }
+  if (path === '/api/admin/ai/funnel' && req.method === 'GET') {
+    const days = [1, 7, 30].includes(Number(url.searchParams.get('days'))) ? Number(url.searchParams.get('days')) : 7;
+    send(200, funnelStats ? await funnelStats.summary(days) : { days, steps: {}, path: [] }); return true;
   }
   if (path === '/api/admin/ai/usage' && req.method === 'GET') { send(200, { ...(await gw.status()), history: await gw.history(7) }); return true; }
   if (path === '/api/admin/ai/flags' && req.method === 'PUT') {
