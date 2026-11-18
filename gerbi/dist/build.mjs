@@ -88,7 +88,8 @@ async function build(input) {
   const before = pkg?.destination ? pkg : null, followUp = (input.thread || []).length > 1;
   if (!followUp) turns = []; else if (before && lastInput) turns.push({ you: (lastInput.thread || [lastInput.text]).at(-1), said: planLine(before) });
   lastInput = input; const mine = ++version;
-  const you = $('.gb-you', view); if (you && input.text) { you.querySelector('p').textContent = input.text; you.hidden = false; } leadOpen = false; showAllHotels = new Set();
+  // In a conversation the turns (and the latest message) read top to bottom inside the reply; the top bubble is for a first message.
+  const you = $('.gb-you', view); if (you && input.text) { you.querySelector('p').textContent = input.text; you.hidden = followUp; } leadOpen = false; showAllHotels = new Set();
   const out = $('#build-result'), err = $('.build-error', view), button = $('.build-submit', view);
   err.hidden = true; button.disabled = true; button.setAttribute('aria-busy', 'true');
   out.setAttribute('aria-busy', 'true'); out.innerHTML = skeletonHtml(); announce(t('build.status.planning'));
@@ -103,7 +104,8 @@ async function build(input) {
     // never an interim over-budget state. At least THINK_MIN ms (it reads as thought, not a flash), at most THINK_MAX
     // (a slow supplier never holds the page: what has not arrived shows as "pending" and fills in later).
     const place = L(pkg.destination.name), started = Date.now();
-    out.innerHTML = thinkingHtml(place); announce(t('build.think.title', { place })); pollChoices = [];
+    // A follow-up keeps the conversation on screen while it thinks, and skips the waiting poll (already asked).
+    out.innerHTML = historyHtml() + thinkingHtml(place, !followUp); announce(t('build.think.title', { place })); pollChoices = [];
     const stopEta = startEta(out, started);
     const stopFacts = startDidYouKnow($('.bk-think-steps', out), pkg.destination.code);
     const tick = (step) => $(`[data-think="${step}"]`, out)?.classList.add('done');
@@ -182,11 +184,11 @@ function pollHtml(i = 0) {
   const [q, opts] = POLL[i];
   return `<fieldset class="bk-poll" data-poll-step="${i}"><legend>${t('build.poll.lead')} ${t(`build.poll.${q}`)}</legend>${opts.map((o) => `<button type="button" class="chip" data-poll="${q}.${o}">${t(`build.poll.${q}.${o}`)}</button>`).join('')}</fieldset>`;
 }
-function thinkingHtml(place) {
+function thinkingHtml(place, poll = true) {
   const steps = ['plan', 'flights', 'hotels', 'budget'];
   return `<section class="bk-card bk-think" aria-live="polite"><h2 tabindex="-1"><span class="bk-think-dot" aria-hidden="true"></span>${t('build.think.title', { place: esc(place) })}</h2>
    <p class="bk-think-eta micro-copy"></p><div class="bk-think-bar" aria-hidden="true"><span></span></div>
-   <ol class="bk-think-steps">${steps.map((s) => `<li data-think="${s}">${t(`build.think.${s}`)}</li>`).join('')}</ol><div class="bk-poll-host">${pollHtml(0)}</div></section>`;
+   <ol class="bk-think-steps">${steps.map((s) => `<li data-think="${s}">${t(`build.think.${s}`)}</li>`).join('')}</ol>${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
 }
 function skeletonHtml() {
   return `<div class="build-skeleton" aria-hidden="true">${['where', 'flights', 'hotels', 'itinerary'].map(() => '<div class="bk-card bk-skel"><span></span><span></span><span></span></div>').join('')}</div><p class="micro-copy">${t('build.status.planning')}</p>`;
@@ -250,7 +252,8 @@ function render() {
 const planLine = (p) => `${(p.stops?.length ? p.stops : [p.destination]).map((s) => L(s.name)).join(' ← ')} · ${t('build.nights', { count: p.request.nights })}`;
 function historyHtml() {
   if (!turns.length) return '';
-  return `<ol class="bk-history" aria-label="${esc(t('build.chat.history'))}">${turns.map((x) => `<li><p class="bk-history-you">${esc(x.you)}</p><p class="bk-history-said">${esc(x.said)}</p></li>`).join('')}</ol>`;
+  const now = (lastInput?.thread || []).at(-1) || '';
+  return `<ol class="bk-history" aria-label="${esc(t('build.chat.history'))}">${turns.map((x) => `<li><p class="bk-history-you">${esc(x.you)}</p><p class="bk-history-said">${esc(x.said)}</p></li>`).join('')}<li><p class="bk-history-you">${esc(now)}</p></li></ol>`;
 }
 // Up to three other ways to go (the suggestions, else the budget's alternatives); each continues the conversation.
 function optionsHtml() {
