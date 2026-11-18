@@ -239,3 +239,16 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
 @media(min-width:560px) and (max-width:899px){.bk-car-slide{flex-basis:46%}}
 @media(prefers-reduced-motion:reduce){.bk-car-track{scroll-behavior:auto}}
 @media print{.bk-upsell,.bk-budget-acts,.bk-budget-banner a{display:none!important}}
+
+/* "Gerbi is thinking" (owner 18.11.2026): steps tick as live prices arrive; the "Did you know?" card sits under them. */
+.bk-think h2{display:flex;align-items:center;gap:10px}
+.bk-think-dot{width:12px;height:12px;border-radius:50%;background:var(--accent,#f5b400);animation:bk-pulse 1s ease-in-out infinite}
+.bk-think-steps{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.bk-think-steps li{display:flex;align-items:center;gap:10px;opacity:.55;transition:opacity .3s}
+.bk-think-steps li::before{content:"";width:18px;height:18px;flex:none;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:bk-spin .9s linear infinite}
+.bk-think-steps li.done{opacity:1}
+.bk-think-steps li.done::before{content:"✓";display:grid;place-items:center;font-size:12px;border:0;background:var(--ok,#1a7f4b);color:#fff;animation:none}
+.bk-think .did-you-know{margin-top:16px}
+@keyframes bk-spin{to{transform:rotate(360deg)}}
+@keyframes bk-pulse{50%{transform:scale(.6);opacity:.5}}
+@media (prefers-reduced-motion:reduce){.bk-think-dot,.bk-think-steps li::before{animation:none}}

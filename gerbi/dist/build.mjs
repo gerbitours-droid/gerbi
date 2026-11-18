@@ -13,6 +13,7 @@ import { asciiBackground } from './ascii-bg.mjs';
 import { slingTop } from './sling-top.mjs';
 import { brochureHtml, loadBrochureData } from './brochure.mjs';
 import { fitPackage, upsellOffers, applyUpsell, flightsInBudget } from './budget.mjs';
+import { startDidYouKnow } from './did-you-know.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const L = (v) => (v && typeof v === 'object' ? v[lang] || v.he || v.en || '' : v ?? '');
@@ -94,9 +95,22 @@ async function build(input) {
       hotels: plan.stops?.length ? { stops: plan.hotelSearches.map((s, i) => ({ status: s ? 'pending' : 'quote', stop: i, area: plan.hotelAreas[i] })) } : { status: plan.hotelSearches[0] ? 'pending' : 'quote', area: plan.hotelAreas[0] },
       car: { ...plan.car }, insurance: { include: false }, polish: null };
     if (!pkg.destination) { out.removeAttribute('aria-busy'); out.innerHTML = suggestionsOnlyHtml(); announce(t('build.status.suggest')); return; }
-    render(); announce(t('build.status.skeleton', { place: L(pkg.destination.name) }));
+    // "Gerbi is thinking" (owner 18.11.2026): the plan is shown once the live prices are in and fitted to the budget –
+    // never an interim over-budget state. At least THINK_MIN ms (it reads as thought, not a flash), at most THINK_MAX
+    // (a slow supplier never holds the page: what has not arrived shows as "pending" and fills in later).
+    const place = L(pkg.destination.name), started = Date.now();
+    out.innerHTML = thinkingHtml(place); announce(t('build.think.title', { place }));
+    const stopFacts = startDidYouKnow($('.bk-think-steps', out), pkg.destination.code);
+    const tick = (step) => $(`[data-think="${step}"]`, out)?.classList.add('done');
+    setTimeout(() => tick('plan'), 400);
+    const jobs = [fetchFlights(mine).then(() => tick('flights')), Promise.all(hotelGroups().map((_, i) => fetchHotels(mine, i))).then(() => tick('hotels'))];
+    fetchPolish(mine);
+    await Promise.race([Promise.allSettled(jobs), new Promise((r) => setTimeout(r, THINK_MAX))]);
+    tick('budget'); await new Promise((r) => setTimeout(r, Math.max(350, THINK_MIN - (Date.now() - started))));
+    stopFacts();
+    if (mine !== version) return;
+    fitBudget(); render(); announce(t('build.status.skeleton', { place }));
     $('#build-result h2')?.focus({ preventScroll: false });
-    fetchFlights(mine); hotelGroups().forEach((_, i) => fetchHotels(mine, i)); fetchPolish(mine);
   } catch (error) {
     if (mine !== version) return;
     out.removeAttribute('aria-busy'); out.innerHTML = ''; err.textContent = error.message || t('build.err.generic'); err.hidden = false;
@@ -146,6 +160,12 @@ async function fetchPolish(mine) {
 }
 
 // ---- rendering
+const THINK_MIN = 2500, THINK_MAX = 20000;
+function thinkingHtml(place) {
+  const steps = ['plan', 'flights', 'hotels', 'budget'];
+  return `<section class="bk-card bk-think" aria-live="polite"><h2 tabindex="-1"><span class="bk-think-dot" aria-hidden="true"></span>${t('build.think.title', { place: esc(place) })}</h2>
+   <ol class="bk-think-steps">${steps.map((s) => `<li data-think="${s}">${t(`build.think.${s}`)}</li>`).join('')}</ol></section>`;
+}
 function skeletonHtml() {
   return `<div class="build-skeleton" aria-hidden="true">${['where', 'flights', 'hotels', 'itinerary'].map(() => '<div class="bk-card bk-skel"><span></span><span></span><span></span></div>').join('')}</div><p class="micro-copy">${t('build.status.planning')}</p>`;
 }
