@@ -327,12 +327,15 @@ const PAINT = {
 function budgetHtml(pr) {
   const b = pr.budget, money = (v) => esc(formatIls(v)), all = pkg.fit?.steps || [], steps = all.filter((s) => s !== 'restored');
   const restored = all.includes('restored') ? `<p class="micro-copy">${t('build.budget.restored', { stars: hotelGroups()[0]?.minStars || '' })}</p>` : '';
-  if (b.verdict === 'within') return `<div class="bk-budget bk-budget-within"><p>${t('build.budget.within', { budget: money(b.amount), left: money(b.left) })}</p>${restored}${steps.length ? `<p class="micro-copy">${t('build.budget.steps', { list: steps.map((s) => t(`build.budget.step.${s}`)).join(', ') })}</p>` : ''}</div>`;
+  const scope = b.ground ? `<p class="micro-copy">${t('build.budget.scope')}</p>` : '';
+  // Up to 10% over: the perfect trip, said warmly with the gap (owner 18.11.2026) – no alarm, no downgrade.
+  if (b.verdict === 'near') return `<div class="bk-budget bk-budget-within bk-budget-near"><p><strong>${t('build.budget.near', { diff: money(b.diff), budget: money(b.amount) })}</strong></p>${scope}${steps.length ? `<p class="micro-copy">${t('build.budget.steps', { list: steps.map((s) => t(`build.budget.step.${s}`)).join(', ') })}</p>` : ''}</div>`;
+  if (b.verdict === 'within') return `<div class="bk-budget bk-budget-within"><p>${t('build.budget.within', { budget: money(b.amount), left: money(b.left) })}</p>${scope}${restored}${steps.length ? `<p class="micro-copy">${t('build.budget.steps', { list: steps.map((s) => t(`build.budget.step.${s}`)).join(', ') })}</p>` : ''}</div>`;
   if (b.verdict !== 'over') {
     const plan = pkg.budgetPlan;
     return `<p class="bk-budget bk-budget-${b.verdict}">${t(`build.total.budget.${b.verdict}`, { budget: money(b.amount) })}</p>${b.verdict === 'unverified' && plan && !plan.fits ? budgetActions({ overBy: plan.overBy, raiseTo: plan.raiseTo, nights: plan.nights }, b.amount) : ''}`;
   }
-  return budgetActions({ overBy: b.diff, raiseTo: Math.ceil(pr.total.high / 100) * 100, nights: pkg.fit?.nights || pkg.budgetPlan?.nights }, b.amount, steps);
+  return budgetActions({ overBy: b.diff, raiseTo: Math.ceil(b.cost / 100) * 100, nights: pkg.fit?.nights || pkg.budgetPlan?.nights }, b.amount, steps);
 }
 function budgetActions({ overBy, raiseTo, nights }, amount, steps = []) {
   const alts = (pkg.budgetPlan?.alternatives || []).filter((a) => a.id !== pkg.destination.id);

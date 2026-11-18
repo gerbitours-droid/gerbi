@@ -523,10 +523,12 @@ export function check(text, exp, { today = TODAY } = {}) {
   if ('q' in exp && !(r.questionIds || []).includes(exp.q)) f('question', r.questionIds || r.questions, exp.q);
   // ---- end to end: the package keeps what was asked
   if (!p.destination) { if (!exp.q) f('pkg.destination', null, 'a destination'); return { text, fails, r, p }; }
-  if (exp.n && !r.legs && pr.nights !== exp.n) f('pkg.nights', pr.nights, exp.n);
+  // A hard budget may shorten the stay as the last resort – only when the plan says so (budgetPlan.adjusted).
+  const cut = p.budgetPlan?.adjusted?.kind === 'nights';
+  if (exp.n && !r.legs && !cut && pr.nights !== exp.n) f('pkg.nights', pr.nights, exp.n);
   if (exp.n && stops.length && stops.reduce((s, x) => s + x.nights, 0) !== pr.nights) f('pkg.stopNights', stops.map((s) => s.nights), pr.nights);
   if ('s' in exp && !exp.q && pr.start !== exp.s) f('pkg.start', pr.start, exp.s);
-  if ('e' in exp && !exp.q && pr.end !== exp.e) f('pkg.end', pr.end, exp.e);
+  if ('e' in exp && !exp.q && !cut && pr.end !== exp.e) f('pkg.end', pr.end, exp.e);
   if ('anc' in exp && !exp.ancLoose && pr.start !== exp.anc) f('pkg.start(anchor)', pr.start, exp.anc);
   if ('m' in exp && !('s' in exp) && Number(pr.start.slice(5, 7)) !== exp.m && !exp.ancLoose) f('pkg.month', pr.start, exp.m);
   if ('yr' in exp && Number(pr.start.slice(0, 4)) !== exp.yr) f('pkg.year', pr.start, exp.yr);
@@ -544,7 +546,7 @@ export function check(text, exp, { today = TODAY } = {}) {
   if ('x' in exp && stops.some((s) => exp.x.includes(s.id))) f('pkg.excluded', stops.map((s) => s.id), exp.x);
   if ('rg' in exp && !stops.every((s) => exp.rg.some((id) => inRegion(byId(s.id), id)))) f('pkg.region', stops.map((s) => byId(s.id)?.region), exp.rg);
   if ('xrg' in exp && stops.some((s) => exp.xrg.some((id) => inRegion(byId(s.id), id)))) f('pkg.excludedRegion', stops.map((s) => byId(s.id)?.region), exp.xrg);
-  if ('stops' in exp && stops.length < exp.stops) f('pkg.stops', stops.map((s) => `${s.id}:${s.nights}`), `≥ ${exp.stops}`);
+  if ('stops' in exp && !cut && stops.length < exp.stops) f('pkg.stops', stops.map((s) => `${s.id}:${s.nights}`), `≥ ${exp.stops}`);
   if (exp.said) {
     const said = JSON.stringify(p.assumed || []);
     if (!said.includes(exp.said)) f('pkg.said', p.assumed, exp.said);

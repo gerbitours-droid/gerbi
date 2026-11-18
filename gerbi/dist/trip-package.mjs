@@ -61,6 +61,11 @@ export const COST_MODEL = {
 // What a trip typically costs: the middle of its range (owner decision 18.11.2026 – the high end over-estimated, e.g. a ₪10
 // Bangkok room priced as ₪450, and cut trips that fit). The range is still shown.
 export const typical = (x) => Math.round(((x?.low ?? 0) + (x?.high ?? 0)) / 2);
+// The budget is a hard cap with a 10% grace (owner 18.11.2026): up to 10% over, the plan is shown as "the perfect trip,
+// only ₪X over"; beyond that it is adapted until it fits. The cap covers what is bought through us (flights, hotels,
+// car, insurance, transfers, bags, extras) – spending on the ground (food, tickets) is shown apart, not capped.
+export const BUDGET_GRACE = 0.1;
+export const graceOf = (budget) => Math.round(budget * (1 + BUDGET_GRACE));
 const band = (b, n) => ({ low: Math.round(b.low * n), high: Math.round(b.high * n) });
 export const carsFor = (r = {}) => ((r.adults || 0) + (r.children || 0) > 5 ? 2 : 1);
 export const vansFor = (r = {}) => Math.max(1, Math.ceil(((r.adults || 0) + (r.children || 0)) / 4));
@@ -106,8 +111,9 @@ export function pricePackage(pkg, fx) {
   let budget = null;
   if (num(r.budget, 1)) {
     const pending = lines.some((l) => l.kind === 'pending'), known = total && flight && selectedHotels(pkg).every(({ group, pick }) => pick || (group.status === 'estimate' && group.estimate));
+    const g = lines.find((l) => l.id === 'ground')?.range, capped = total && (g ? { low: total.low - g.low, high: total.high - g.high } : total), cost = capped && typical(capped);
     budget = !known ? { amount: r.budget, verdict: pending ? 'pending' : 'unverified' }
-      : { amount: r.budget, verdict: typical(total) <= r.budget ? 'within' : 'over', diff: Math.round(typical(total) - r.budget), left: Math.max(0, Math.round(r.budget - typical(total))) };
+      : { amount: r.budget, verdict: cost <= r.budget ? 'within' : cost <= graceOf(r.budget) ? 'near' : 'over', cost, diff: Math.round(cost - r.budget), left: Math.max(0, Math.round(r.budget - cost)), ground: g || null };
   }
   return { lines, total, perPerson, people, budget, missingFx, pending: lines.some((l) => l.kind === 'pending'), oldestLive: live.map((l) => l.at).filter(Boolean).sort()[0] || null };
 }

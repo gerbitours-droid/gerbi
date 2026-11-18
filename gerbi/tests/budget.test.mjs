@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { parseTrip, planPackage, applyEdits, suggestDestinations } from '../dist/trip-builder.mjs';
-import { pricePackage, typical } from '../dist/trip-package.mjs';
+import { pricePackage, typical, graceOf } from '../dist/trip-package.mjs';
 import { estimateTrip, budgetLadder, fitPackage, upsellOffers, applyUpsell, flightsInBudget, UPSELL_MAX } from '../dist/budget.mjs';
 import { byId } from '../dist/catalog.mjs';
 import { slimHotel, hotelOptions } from '../backend/hotels.mjs';
@@ -47,8 +47,9 @@ test('pre-search cap: the chosen stars/meal plan/car fit at the TYPICAL estimate
     assert.ok(b, text);
     const est = estimateTrip(stops, p.request, b.config);
     assert.equal(est.high, b.estimate.high, text);
-    if (b.fits) assert.ok(typical(est) <= p.request.budget, `${text}: ${typical(est)} > ${p.request.budget}`);
-    else { assert.ok(b.overBy > 0 && b.raiseTo >= typical(est), text); const { step, ...last } = budgetLadder(b.base, p.request).at(-1); assert.deepEqual(b.config, last, 'nothing fits → everything the ladder may give up is given up'); }
+    // The cap covers what is bought (not the spending on the ground), with a 10% grace (owner 18.11.2026).
+    if (b.fits) assert.ok(typical(est.cap) <= graceOf(p.request.budget), `${text}: ${typical(est.cap)} > ${graceOf(p.request.budget)}`);
+    else { assert.ok(b.overBy > 0 && b.raiseTo >= typical(est.cap), text); const { step, ...last } = budgetLadder(b.base, p.request).at(-1); assert.deepEqual(b.config, last, 'nothing fits → everything the ladder may give up is given up'); }
     assert.equal(p.hotelSearches[0].minStars, b.config.stars, 'the hotel search uses the fitted stars'); assert.equal(p.car.include, b.config.car);
   }
   const roomy = plan('זוג לרומא 5 לילות במאי, תקציב 25000 ש"ח');
@@ -89,20 +90,23 @@ function pricedPackage({ budget, car = 'auto', direct = false, flightUsd = 900 }
       { id: 'stars', tier: 'cheap', minStars: 3, board: '', estimate: est(700, 800) },
       { id: 'upStars', tier: 'asked', minStars: 5, board: '', estimate: est(1300, 1700) }, { id: 'upBoard', tier: 'asked', minStars: 4, board: 'BB', estimate: est(1250, 1680) }] } };
 }
-const high = (pkg) => pricePackage(pkg, FX).total.high, cost = (pkg) => typical(pricePackage(pkg, FX).total);
+const high = (pkg) => pricePackage(pkg, FX).total.high;
+// What the cap compares: the typical cost of what is bought (total minus the spending on the ground).
+const cost = (pkg) => { const pr = pricePackage(pkg, FX), g = pr.lines.find((l) => l.id === 'ground')?.range; return typical(g ? { low: pr.total.low - g.low, high: pr.total.high - g.high } : pr.total); };
 
 test('post-price fit: cheapest fitting flight → cheaper hotel (any area) → lower meal plan → a star down → no car; compared at the typical estimate', () => {
   const full = pricedPackage({ budget: 1e6 }), start = cost(full);
   // A budget that only the very last step meets: every step runs, in order.
   const strip = pricedPackage({ budget: 1e6 }); strip.flights.selected = 'cheap'; strip.flights.picks.push(strip.flights.alternatives.cheapest);
   Object.assign(strip.hotels, { estimate: strip.hotels.options[2].estimate }); strip.car.include = false;
-  const floor = cost(strip), pkg = pricedPackage({ budget: floor });
+  // A budget whose 10% grace only the very last step meets: every step runs, in order, and the result is "near".
+  const floor = cost(strip), pkg = pricedPackage({ budget: Math.ceil(floor / 1.1) });
   const t0 = performance.now(), r = fitPackage(pkg, FX), ms = performance.now() - t0;
-  assert.deepEqual(r.steps, ['flight', 'hotel', 'board', 'stars', 'car']); assert.equal(r.verdict, 'within'); assert.ok(cost(pkg) <= floor);
+  assert.deepEqual(r.steps, ['flight', 'hotel', 'board', 'stars', 'car']); assert.ok(['near', 'within'].includes(r.verdict)); assert.ok(cost(pkg) <= floor);
   assert.ok(ms < 10, `fit in ${ms.toFixed(2)} ms`); assert.ok(start > floor);
   assert.equal(pkg.flights.selected, 'cheap'); assert.equal(pkg.hotels.minStars, 3); assert.equal(pkg.car.include, false);
   // A budget the cheaper flight alone meets: nothing else is given up.
-  const one = pricedPackage({ budget: start - 1000 }), r1 = fitPackage(one, FX);
+  const one = pricedPackage({ budget: Math.floor((start - 1000) / 1.1) }), r1 = fitPackage(one, FX);
   assert.deepEqual(r1.steps, ['flight']); assert.equal(one.hotels.minStars, 4); assert.equal(one.car.include, true);
 });
 
@@ -117,13 +121,14 @@ test('post-price fit keeps hard constraints: a direct flight, a car and stars th
   assert.equal(pricePackage(pkg, FX).budget.verdict, 'over');
 });
 
-test('the verdict never says "within" above the cap, and there is no "tight"', () => {
+test('the verdict: within ≤ cap, near ≤ cap + 10% (shown as the perfect trip), over beyond – never "within" above the cap', () => {
   for (const budget of [3000, 6000, 9000, 12000, 15000, 20000]) {
     const pkg = pricedPackage({ budget }); fitPackage(pkg, FX);
     const pr = pricePackage(pkg, FX);
-    assert.ok(['within', 'over'].includes(pr.budget.verdict));
-    if (pr.budget.verdict === 'within') assert.ok(typical(pr.total) <= budget, `${budget}: ${typical(pr.total)}`);
-    else assert.ok(typical(pr.total) > budget);
+    assert.ok(['within', 'near', 'over'].includes(pr.budget.verdict));
+    if (pr.budget.verdict === 'within') assert.ok(cost(pkg) <= budget, `${budget}: ${cost(pkg)}`);
+    else if (pr.budget.verdict === 'near') assert.ok(cost(pkg) > budget && cost(pkg) <= graceOf(budget));
+    else assert.ok(cost(pkg) > graceOf(budget));
   }
   const unknown = pricedPackage({ budget: 1e6 }); unknown.flights = { status: 'quote' };
   assert.equal(pricePackage(unknown, FX).budget.verdict, 'unverified');
@@ -176,7 +181,9 @@ test('regression (owner report): every cap phrasing parses; a ₪4,800 cap never
   const p = plan('עד 4800 שח');
   assert.equal(p.request.budget, 4800);
   assert.ok(p.suggestions.every((s) => s.estimate) && p.suggestions[0].estimate.low <= p.suggestions.at(-1).estimate.low, 'ordered by cost when nothing fits');
-  assert.equal(p.budgetPlan.fits, false); assert.ok(p.budgetPlan.overBy > 0 && p.budgetPlan.raiseTo > 4800);
+  // Never presented as fitting beyond the 10% grace.
+  if (p.budgetPlan.fits) assert.ok(typical(estimateTrip([{ dest: byId(p.destination.id), nights: p.request.nights }], p.request, p.budgetPlan.config).cap) <= graceOf(4800));
+  else assert.ok(p.budgetPlan.overBy > 0 && p.budgetPlan.raiseTo > 4800);
   const far = plan('זוג לתאילנד עד 4800 שח');
   assert.ok(far.budgetPlan.alternatives.length >= 1 && far.budgetPlan.alternatives.every((a) => a.estimate.high < far.budgetPlan.estimate.high), 'nearest cheaper destinations offered');
   // After prices: three ₪48,000-ish flights → only the cheapest is listed, flagged; the verdict is "over", never "within".

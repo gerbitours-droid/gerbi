@@ -120,7 +120,8 @@ test('pricing: live lines carry their time; ground, car, transfers, insurance an
   assert.deepEqual(pr.lines.find((l) => l.id === 'car').range, { low: 170 * 4, high: 300 * 4 });
   assert.deepEqual([pr.total.low, pr.total.high], [2450 + g.low + extra.low, 2450 + g.high + extra.high]);
   assert.equal(pr.perPerson.live, Math.round(2450 / 3));
-  assert.equal(pr.budget.amount, 6000); assert.equal(pr.budget.verdict, pr.total.high <= 6000 ? 'within' : 'over', 'compared at the high end; there is no "tight"');
+  assert.equal(pr.budget.amount, 6000); const capped = Math.round((pr.total.low - g.low + pr.total.high - g.high) / 2);
+  assert.equal(pr.budget.verdict, capped <= 6000 ? 'within' : capped <= 6600 ? 'near' : 'over', 'the typical cost of what is bought (no ground) vs the cap + 10%');
   const noFx = pricePackage(pkg, null);
   assert.equal(noFx.total, null); assert.equal(noFx.missingFx, true, 'no shekel total without a rate');
   const quoteOnly = pricePackage({ ...pkg, flights: { status: 'quote' }, hotels: { status: 'quote' }, car: { include: false } }, fx);

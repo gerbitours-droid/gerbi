@@ -6,7 +6,7 @@ import { detectLegs } from './multi-city-brief.mjs';
 import { destinations, byId, byCode, rank, normalize, monthName, nameVariants, skiSeason } from './catalog.mjs';
 import { placeByCode, placeType } from './places.mjs';
 import { t } from './i18n.mjs';
-import { mapsUrl, typical } from './trip-package.mjs';
+import { mapsUrl, typical, graceOf } from './trip-package.mjs';
 import { estimateTrip, fitTrip, floorConfig } from './budget.mjs';
 
 export const L = (v, l = 'he') => (v && typeof v === 'object' && !Array.isArray(v) ? v[l] || v.he || v.en || '' : v ?? '');
@@ -335,10 +335,12 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
     const rest = ranked.some(must) ? ranked.filter((x) => !must(x)) : [];
     ranked = ranked.filter((x) => !rest.includes(x));
     for (const x of ranked.slice(0, 40)) { const d = x.destination, stops = [{ dest: d, nights: planDates(request, d, today).nights }]; cost.set(d.id, estimateTrip(stops, request, floorConfig(request, baseConfigOf(request, d)))); }
-    const known = ranked.filter((x) => cost.has(x.destination.id)), fitting = known.filter((x) => cost.get(x.destination.id).low <= request.budget);
+    const known = ranked.filter((x) => cost.has(x.destination.id)), fitting = known.filter((x) => cost.get(x.destination.id).cap.low <= request.budget);
     if (fitting.length) {
-      const fits = (x) => typical(cost.get(x.destination.id)) <= request.budget;
+      const fits = (x) => typical(cost.get(x.destination.id).cap) <= graceOf(request.budget);
       ranked = [...fitting.filter(fits), ...fitting.filter((x) => !fits(x))];
+      // Too few within reach (one, out of season): the next cheapest follow, flagged as not fitting – never an empty choice.
+      if (fitting.length < limit + 3) ranked.push(...known.filter((x) => !fitting.includes(x)).sort((a, b) => cost.get(a.destination.id).cap.low - cost.get(b.destination.id).cap.low));
       if (request.budgetLevel === 'low') ranked = [...ranked.slice(0, 8).sort((a, b) => cost.get(a.destination.id).high - cost.get(b.destination.id).high), ...ranked.slice(8)];
     } else ranked = known.sort((a, b) => cost.get(a.destination.id).low - cost.get(b.destination.id).low);
     // Season before price: a beach in December that fits the budget is still the wrong answer.
@@ -360,7 +362,7 @@ export function suggestDestinations(request, { limit = 3, today = new Date().toI
   }
   return ranked.slice(0, limit).map(({ destination: d, score, reasons }) => ({ id: d.id, name: d.name, country: d.country, image: imageOf(d), score,
     reasons: reasons.slice(0, 3).map((r) => L(r, request.lang)), flightHours: d.flightHours, direct: d.direct, budgetLevel: d.budgetLevel, advisory: L(d.advisory, request.lang),
-    ...(cost.has(d.id) ? { estimate: { low: cost.get(d.id).low, high: cost.get(d.id).high }, fitsBudget: typical(cost.get(d.id)) <= request.budget } : {}) }));
+    ...(cost.has(d.id) ? { estimate: { low: cost.get(d.id).low, high: cost.get(d.id).high }, fitsBudget: typical(cost.get(d.id).cap) <= graceOf(request.budget) } : {}) }));
 }
 // The configuration a plan starts from before the budget fit: the hotel search's stars and meal plan, the car advice.
 export const baseConfigOf = (request, dest) => ({ stars: defaultStars(request), board: request.needs.board || '', car: carAdvice(dest, request).include });
@@ -740,8 +742,17 @@ export function planPackage(request, opts = {}) {
       }
     }
   }
-  // The length asked for is never cut (owner decision 18.11.2026): the plan stays, says how far over it is, and offers
-  // fewer nights (budgetPlan.nights) / another place / a higher budget as buttons.
+  // Last resort (owner 18.11.2026, the budget is a hard cap): fewer nights, said in the plan with what the full length
+  // would cost. When even that does not fit, the closest plan stays with the three ways out (buttons).
+  const askedNights = p.request.nights;
+  if (bp.nights && bp.nights < askedNights) {
+    const q = planPackageRaw(request, { ...opts, nights: bp.nights });
+    if (q.budgetPlan?.fits) {
+      q.assumed.unshift(t('build.assumed.budgetNights', { nights: bp.nights, asked: askedNights, budget: request.budget.toLocaleString('en-US'), raise: bp.raiseTo.toLocaleString('en-US') }, l));
+      q.budgetPlan.adjusted = { kind: 'nights', askedNights, raiseTo: bp.raiseTo };
+      return q;
+    }
+  }
   return p;
 }
 function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10), chosenId = '', nights: override = 0 } = {}) {
