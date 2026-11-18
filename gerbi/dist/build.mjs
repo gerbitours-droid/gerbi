@@ -196,7 +196,7 @@ function notifyHtml() {
   return `<details class="bk-notify"><summary>${t('build.notify.summary')}</summary><form id="build-notify" class="bk-notify-form" novalidate>
    <label>${t('leads.field.name')}<input name="name" autocomplete="name" maxlength="80" required></label>
    <label>${t('leads.field.phone')}<input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
-   <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+   <div class="lead-trap" aria-hidden="true"><label>${t('leads.trap')}<input name="website" tabindex="-1" autocomplete="off"></label></div>
    <label class="lead-check"><input type="checkbox" name="consent" required><span>${consentText()}</span></label>
    <p class="lead-form-error" role="alert" hidden></p><button type="submit" class="button yellow">${t('build.notify.send')}</button></form></details>`;
 }
