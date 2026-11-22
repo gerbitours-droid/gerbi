@@ -22,3 +22,20 @@ export async function startBooking({ offer, source = 'flights', insurance = fals
   location.hash = `#/book/${data.id}`;
   return data;
 }
+
+// "Hotel in one click" in the trip builder (spec 25 §9): after a flight booking/request on this device, the package
+// form starts with the same lead traveller's contact details. Read back from the server with the order token; the
+// browser keeps no copy. Fields the customer already typed are left alone.
+export async function latestBookingContact() {
+  const items = rememberedOrders().slice(0, 5).map(({ id, token }) => ({ id, token }));
+  if (!items.length) return null;
+  const data = await fetch('/api/orders/lookup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) }).then((r) => (r.ok ? r.json() : { orders: [] })).catch(() => ({ orders: [] }));
+  const order = (data.orders || []).filter((o) => o.contact?.email).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  return order ? { name: order.contact.name, email: order.contact.email, phone: order.contact.phone, ref: order.ref } : null;
+}
+export async function prefillFromBooking(form) {
+  const contact = form ? await latestBookingContact().catch(() => null) : null;
+  if (!contact || !form.isConnected) return false;
+  for (const key of ['name', 'phone', 'email']) { const input = form.querySelector(`[name="${key}"]`); if (input && !input.value && contact[key]) input.value = contact[key]; }
+  return true;
+}

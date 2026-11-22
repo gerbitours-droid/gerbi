@@ -8,7 +8,7 @@ import { searchLink } from './saved-flights.mjs';
 import { multiLink } from './multi-city-core.mjs';
 import { timeVsIsrael } from './timezone.mjs';
 import { account, ready as accountReady } from './account.mjs';
-import { bookingConfig, startBooking } from './booking-client.mjs';
+import { bookingConfig, startBooking, prefillFromBooking } from './booking-client.mjs';
 import { asciiBackground } from './ascii-bg.mjs';
 import { slingTop } from './sling-top.mjs';
 import { brochureHtml, loadBrochureData } from './brochure.mjs';
@@ -547,6 +547,8 @@ function paintLead() {
     <div class="lead-trap" aria-hidden="true"><label>${t('leads.trap')}<input name="website" tabindex="-1" autocomplete="off"></label></div>
     <p class="lead-form-error" role="alert" hidden></p>
     <button type="submit" class="button yellow full-width">${t('build.lead.submit')}</button></form>`;
+  // After a flight booking on this device: the same lead traveller and contact (hotel in one click, spec 25 §9).
+  prefillFromBooking($('#build-lead', host));
 }
 async function submitLead(form) {
   const d = new FormData(form), snapshot = sanitizePackage(pkg);

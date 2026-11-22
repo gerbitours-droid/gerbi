@@ -1,5 +1,6 @@
 // Owner dashboard → "הזמנות" (spec 25 §6.3): orders list, detail with the full timeline, manual actions,
 // reconciliation flags and CSV export. Hebrew only, like the rest of the admin. Every server value is escaped.
+import { extraLabel } from './booking-core.mjs';
 let api, failText;
 export function setupAdminOrders(deps) { ({ api, failText } = deps); }
 const $ = (s, root = document) => root.querySelector(s);
@@ -45,7 +46,9 @@ async function orderDetail(id) {
   let order;
   try { order = (await api('GET', `/api/orders/admin/${encodeURIComponent(id)}`)).order; }
   catch (error) { p.innerHTML = `<p class="admin-status">${esc(failText(error))}</p><a href="#orders">חזרה</a>`; return; }
-  const pax = (order.passengers || []).map((x) => `<tr><td>${esc(x.ptc)}</td><td dir="ltr">${esc(x.title || '')} ${esc(x.firstName)} ${esc(x.lastName)}</td><td>${esc(x.birthDate || '')}</td><td dir="ltr">${x.document ? `${esc(x.document.type)} ${esc(x.document.number)} · ${esc(x.document.expiryDate)} · ${esc(x.document.nationality)}` : '—'}</td></tr>`).join('');
+  const pax = (order.passengers || []).map((x) => `<tr><td>${esc(x.ptc)}</td><td dir="ltr">${esc(x.title || '')} ${esc(x.firstName)} ${esc(x.lastName)}</td><td>${esc(x.birthDate || '')}</td><td dir="ltr" data-doc="${esc(x.firstName)} ${esc(x.lastName)}">${x.document ? `${esc(x.document.type)} <span data-doc-number>${esc(x.document.number)}</span> · ${esc(x.document.issuingCountry || '')} · ${esc(x.document.nationality)} · ${esc(x.document.issueDate || '-')} → ${esc(x.document.expiryDate)}` : '—'}</td></tr>`).join('');
+  // Extras per traveller, in Hebrew wording (spec 25 §6.2 step 2).
+  const extras = (order.extras || []).filter((x) => order.addons?.extras?.[x.bookingCode] !== undefined).map((x) => { const o = x.options.find((y) => y.code === order.addons.extras[x.bookingCode]); const who = order.passengers?.[x.pax]; return o ? `${esc(who ? `${who.firstName} ${who.lastName}` : `נוסע ${x.pax + 1}`)}: ${esc(extraLabel(o.description, 'he').text)} (<bdi dir="ltr">${esc(x.from)}-${esc(x.to)}</bdi>, ${esc(o.price.value)} ${esc(o.price.currency)})` : ''; }).filter(Boolean);
   const act = (action, label, extra = '') => `<button class="button secondary" type="button" data-action="${action}" ${extra}>${label}</button>`;
   p.innerHTML = `<p><a href="#orders">← כל ההזמנות</a></p><div class="admin-head"><h1>הזמנה <bdi dir="ltr">${esc(order.ref)}</bdi></h1><span class="admin-badge">${esc(STATUS[order.status] || order.status)}</span></div>
    ${order.flags.length ? `<div class="admin-flags">${order.flags.map((f) => `<span class="admin-flag">${esc(FLAGS[f] || f)} <button class="text-button" data-action="resolve_flag" data-flag="${esc(f)}">טופל</button></span>`).join('')}</div>` : ''}
@@ -53,9 +56,10 @@ async function orderDetail(id) {
     <p>מחיר: <strong>${money(order)}</strong> (${esc(order.price?.total?.value)} ${esc(order.price?.total?.currency)}, שער ${esc(order.price?.rate ?? '-')}) · ${order.autoTicketable ? 'מונפק אוטומטית' : 'הנפקה נפרדת'} · מקור: ${esc(order.source)} · אופן: ${esc(MODE[order.mode] || order.mode)}</p>
     <p class="micro-copy">מגבלות זמן: הצעה עד ${esc(when(order.quote?.timeLimits?.offerExpiration))} · הנפקה עד ${esc(when(order.quote?.timeLimits?.ticketingTimeLimit))} · מסגרת אשראי אצל הספק: ${order.quote?.paymentAvailable ? 'זמינה' : '<strong>לא זמינה</strong>'}</p>
     ${order.quote?.notices?.length ? `<p class="micro-copy">הודעות ספק: ${order.quote.notices.map((n) => esc(n.text)).join(' · ')}</p>` : ''}</section>
-   <section class="admin-card-lite"><h2>נוסעים ואיש קשר</h2>${order.piiPurged ? '<p>הפרטים האישיים נמחקו לפי מדיניות השמירה.</p>' : `<table class="ai-table"><thead><tr><th>סוג</th><th>שם</th><th>לידה</th><th>מסמך</th></tr></thead><tbody>${pax}</tbody></table>
+   <section class="admin-card-lite"><h2>נוסעים ואיש קשר</h2>${order.piiPurged ? '<p>הפרטים האישיים נמחקו לפי מדיניות השמירה.</p>' : `<table class="ai-table"><thead><tr><th>סוג</th><th>שם</th><th>לידה</th><th>דרכון (מספר · מנפיקה · אזרחות · הנפקה → תוקף)</th></tr></thead><tbody>${pax}</tbody></table>
+    ${(order.passengers || []).some((x) => x.document) ? '<p><button class="button secondary" type="button" id="order-docs">הצגת מספרי הדרכון המלאים (נרשם ביומן)</button></p>' : ''}
     <p>${esc(order.contact?.name)} · <bdi dir="ltr">${esc(order.contact?.phone)}</bdi> · <bdi dir="ltr">${esc(order.contact?.email)}</bdi></p>`}
-    <p>תוספות: ${Object.entries(order.addons?.bags || {}).map(([r, c]) => `מזוודה ${esc(r)} (${esc(c)})`).join(', ') || 'אין'}${order.addons?.insurance ? ' · <strong>ביקש הצעת ביטוח הראל</strong>' : ''}</p></section>
+    <p>תוספות: ${extras.join(' · ') || 'אין'}${order.addons?.insurance ? ' · <strong>ביקש הצעת ביטוח הראל</strong>' : ''}${order.hotelRequested ? ' · <strong>ביקש מלון בקליק</strong>' : ''}</p></section>
    <section class="admin-card-lite"><h2>ספק ותשלום</h2><p>PNR: <strong dir="ltr">${esc(order.supplier?.pnr || '—')}</strong> · clientRef <code dir="ltr">${esc(order.supplier?.clientRef || '—')}</code> · מזהה הזמנה אצל הספק <code dir="ltr">${esc(order.supplier?.reservationId || '—')}</code> · כרטיסים: <bdi dir="ltr">${esc((order.supplier?.tickets || []).map((t) => t.number).join(', ') || '—')}</bdi></p>
     <p>תשלום: ${order.payment ? `${esc(order.payment.provider)} · ${esc(order.payment.status)} · ₪${esc(order.payment.amount / 100)} · ${esc(order.payment.installments || 1)} תשלומים · ניסיון ${esc(order.payment.attempt)}` : 'אין (מצב בקשה – הנציג גובה מחוץ לאתר)'}</p></section>
    <section class="admin-card-lite"><h2>פעולות</h2><div class="admin-actions">
@@ -78,5 +82,11 @@ async function orderDetail(id) {
     run(body, b);
   });
   $('#order-confirm').onsubmit = (e) => { e.preventDefault(); run({ action: 'confirm', pnr: $('#oc-pnr').value, tickets: $('#oc-tickets').value }, e.submitter); };
+  const docs = $('#order-docs');
+  if (docs) docs.onclick = async () => {
+    if (!confirm('להציג את מספרי הדרכון המלאים? הצפייה נרשמת ביומן הביקורת.')) return;
+    try { const { documents } = await api('GET', `/api/orders/admin/${encodeURIComponent(id)}/documents`); p.querySelectorAll('[data-doc]').forEach((cell, i) => { const n = cell.querySelector('[data-doc-number]'); if (n && documents[i]?.number) n.textContent = documents[i].number; }); docs.disabled = true; }
+    catch (error) { $('#order-status').textContent = failText(error); }
+  };
   $('#order-note').onsubmit = (e) => { e.preventDefault(); run({ action: 'note', note: $('#on-text').value }, e.submitter); };
 }

@@ -57,3 +57,19 @@
   .bo-timeline{border:0}.bo-timeline[open] summary{display:none}
 }
 .bo-person input[autocapitalize=characters]{text-transform:uppercase}
+/* 23.11.2026: full passport block, saved travellers, extras per traveller, hotel in one click. */
+.bo-passport{border-top:1px dashed var(--border);padding-top:12px;display:flex;flex-direction:column;gap:10px}
+.bo-passport .lead-field[hidden],.st-form .lead-field[hidden]{display:none}
+.bo-keep{background:#f5f9fe;border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.bo-pick{max-width:420px}.bo-pick select{width:100%}
+.bo-save-list{display:flex;flex-wrap:wrap;gap:8px 18px}.bo-save-guest{margin:4px 0 0}
+.bo-extras-person{gap:16px}
+.bo-x-group h4{display:flex;align-items:center;gap:8px;margin:0;font-size:16px;color:var(--navy)}
+.bo-x-group .micro-copy{margin:2px 0 8px}
+.bo-x-icon{flex:none;color:var(--blue)}
+.bo-x-group select{width:100%;min-width:0}
+.bo-x-total{font-weight:700;background:#f5f9fe;border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin:4px 0}
+.bo-plain .bo-x-icon{width:18px;height:18px;vertical-align:-4px}
+.bo-hotel{border:2px solid var(--yellow)}.bo-hotel h3{margin:0 0 6px;font-size:19px}
+.st-form{border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:14px;display:flex;flex-direction:column;gap:12px}.st-form h3{margin:0}
+.st-list .account-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}

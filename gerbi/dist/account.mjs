@@ -5,6 +5,7 @@ import { SAVED_FLIGHTS_KEY, parseSearchLink, searchLink } from './saved-flights.
 import { STORAGE_KEY } from './journey.mjs';
 import { resolvePlace } from './places.mjs';
 import { t, lang, locale, errorText } from './i18n.mjs';
+import { travellersSectionHtml, wireTravellers } from './account-travellers.mjs';
 
 const FAVORITES_KEY = 'gerbi-favorites', SYNC_KEY = 'gerbi-account-sync-v1', FLASH_KEY = 'gerbi-account-flash', RELOAD_KEY = 'gerbi-account-reloaded';
 const DEVICE_KEYS = [SAVED_FLIGHTS_KEY, STORAGE_KEY, FAVORITES_KEY, 'gerbi-draft-recovery-v1', 'gerbi-last-flight-search-v1', 'gerbi-preferences'];
@@ -269,11 +270,12 @@ const placeName = (code) => resolvePlace(code)?.label || code;
 function userPanel() {
   const user = account.user;
   return `<section class="surface-panel account-card" aria-labelledby="acc-hello"><div class="account-card-head"><span class="account-avatar" aria-hidden="true">${esc(user.name.trim()[0] || '?')}</span><div><span class="eyebrow">${t('account.user.eyebrow')}</span><h2 id="acc-hello">${t('account.user.hello', { name: esc(user.name.split(/\s+/)[0]) })}</h2><p class="micro-copy" dir="ltr">${esc(user.email)}</p></div><p class="account-sync" id="account-sync" role="status">${esc(syncText())}</p></div>
-   <nav class="account-nav" aria-label="${t('account.nav.aria')}">${[['acc-trips', t('account.nav.trips')], ['acc-leads', t('account.nav.leads')], ['acc-searches', t('account.nav.searches')], ['acc-profile', t('account.nav.profile')], ['acc-privacy', t('account.nav.privacy')]].map(([id, label]) => `<a href="#/account" data-account-jump="${id}">${label}</a>`).join('')}</nav></section>`;
+   <nav class="account-nav" aria-label="${t('account.nav.aria')}">${[['acc-trips', t('account.nav.trips')], ['acc-leads', t('account.nav.leads')], ['acc-travellers', t('booking.saved.title')], ['acc-searches', t('account.nav.searches')], ['acc-profile', t('account.nav.profile')], ['acc-privacy', t('account.nav.privacy')]].map(([id, label]) => `<a href="#/account" data-account-jump="${id}">${label}</a>`).join('')}</nav></section>`;
 }
 function userSections() {
   const user = account.user;
   return `<section class="surface-panel account-section" id="acc-leads" aria-labelledby="acc-leads-title"><div class="panel-heading"><h2 id="acc-leads-title">${t('account.nav.leads')}</h2><a class="button secondary" href="#/contact">${t('account.leads.new')}</a></div><div data-account-leads aria-busy="true"><p class="micro-copy">${t('account.leads.loading')}</p></div></section>
+  ${travellersSectionHtml()}
   <section class="surface-panel account-section" id="acc-searches" aria-labelledby="acc-searches-title"><div class="panel-heading"><h2 id="acc-searches-title">${t('account.nav.searches')}</h2><button type="button" class="text-button" data-clear-searches hidden>${t('account.searches.clear')}</button></div><div data-account-searches aria-busy="true"><p class="micro-copy">${t('account.searches.loading')}</p></div></section>
   <section class="surface-panel account-section" id="acc-profile" aria-labelledby="acc-profile-title"><h2 id="acc-profile-title">${t('account.nav.profile')}</h2>
    <form id="profile-form" class="lead-form" novalidate><div class="lead-grid">${field('profile', 'name', t('account.field.name'), `autocomplete="name" maxlength="80" required value="${esc(user.name)}"`)}${field('profile', 'phone', t('account.field.phone'), `autocomplete="tel" inputmode="tel" dir="ltr" maxlength="20" placeholder="050-1234567" value="${esc(user.phone)}"`, { type: 'tel', optional: true })}
@@ -314,7 +316,7 @@ function wireUser(view) {
   const tripsHeading = [...view.querySelectorAll('.panel-heading h2')].find((h) => h.textContent.includes('הטיולים השמורים') || /saved trips/i.test(h.textContent));
   if (tripsHeading) tripsHeading.id = 'acc-trips';
   view.querySelectorAll('.saved-card .eyebrow').forEach((el) => { el.textContent = t('account.savedPlan'); });
-  fillLeads(view); fillSearches(view);
+  fillLeads(view); fillSearches(view); wireTravellers(view);
   wireForm($('#profile-form', view), { validate: (v) => validateProfile(v).errors, request: (v) => api('POST', '/profile', v),
     done: (data, form, ok) => { account.user = data.user; ok.textContent = t('account.ok.profile'); renderHeader(); } });
   wireForm($('#password-form', view), { validate: (v) => ({ ...(v.current ? {} : { current: t('account.v.current') }), ...(passwordProblem(v.password) ? { password: passwordProblem(v.password) } : {}) }), request: (v) => api('POST', '/password/change', v),
