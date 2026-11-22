@@ -40,7 +40,7 @@
 .dest-hero>div>p{font-size:17px;line-height:1.55;text-shadow:0 1px 8px #0006}
 .dest-hero h1{text-shadow:0 2px 12px #0005}
 .dest-hero img{width:100%;height:100%;object-fit:cover}
-.photo-credit{font-size:12px;color:#6b7690;margin:0 0 26px}
+.photo-credit{font-size:12px;color:var(--muted);margin:0 0 26px}
 .photo-credit a{color:inherit}
 .dest-advisory{margin-bottom:22px}
 .dest-highlights{list-style:none;padding:0;margin:14px 0 30px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -55,22 +55,22 @@
 .dest-attractions{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .dest-attractions li{background:#f6f9fd;border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .dest-attractions strong{color:var(--navy);font-size:14.5px;line-height:1.4}
-.dest-attractions small{color:#6b7690;font-size:12.5px}
+.dest-attractions small{color:var(--muted);font-size:12.5px}
 .dest-daytrips{list-style:none;padding:0;margin:0;display:grid;gap:10px}
 .dest-daytrips li{border-inline-start:3px solid var(--yellow);padding:4px 14px}
 .dest-daytrips p{margin:3px 0 0;color:#4b5876}
-.dest-daytrips small{color:#6b7690}
+.dest-daytrips small{color:var(--muted)}
 .dest-months{list-style:none;padding:0;margin:0 0 12px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px}
-.dest-months li{text-align:center;border-radius:8px;padding:9px 0;background:#eef2f8;color:#7a859c;font-size:12.5px;font-weight:600;min-width:0;overflow:hidden}
+.dest-months li{text-align:center;border-radius:8px;padding:9px 0;background:#eef2f8;color:var(--muted);font-size:12.5px;font-weight:600;min-width:0;overflow:hidden}
 .dest-months li.best{background:#ffe95c;color:var(--navy)}
 .dest-practical{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
 .dest-aside{display:flex;flex-direction:column;gap:18px;align-self:start;position:sticky;top:96px}
 .dest-cta .button{margin-top:10px;display:flex;justify-content:center;gap:8px;align-items:center}
 .dest-cta .button svg{width:18px;height:18px}
 .dest-quick{margin:12px 0 6px;display:grid;gap:10px}
-.dest-quick dt{font-size:12.5px;color:#6b7690}
+.dest-quick dt{font-size:12.5px;color:var(--muted)}
 .dest-quick dd{margin:0;font-weight:700;color:var(--navy)}
-.dest-quick small{display:block;font-weight:400;color:#6b7690;font-size:12px;margin-top:2px}
+.dest-quick small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
 .dest-related{grid-template-columns:repeat(3,minmax(0,1fr))}
 .results-catalog{margin-top:40px}
 .dest-insp-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
