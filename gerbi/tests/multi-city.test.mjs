@@ -55,10 +55,10 @@ test('multi-city has its own, tighter rate bucket; a plain round trip does not c
 
 test('route text, ground gaps, open jaw vs round trip, leg names', () => {
   const route = [L('TLV', 'FCO', '2026-12-10'), L('FCO', 'PAR', '2026-12-14'), L('PAR', 'TLV', '2026-12-18')];
-  assert.equal(routeText(route), 'תל אביב → רומא → פריז → תל אביב');
+  assert.equal(routeText(route), 'תל אביב ← רומא ← פריז ← תל אביב');
   assert.deepEqual(groundGaps(route), []);
   const jaw = [L('TLV', 'FCO', '2026-12-10'), L('PAR', 'TLV', '2026-12-18')];
-  assert.equal(routeText(jaw), 'תל אביב → רומא · פריז → תל אביב');
+  assert.equal(routeText(jaw), 'תל אביב ← רומא · פריז ← תל אביב');
   assert.deepEqual(groundGaps(jaw), [{ index: 1, from: 'FCO', to: 'PAR' }]);
   assert.deepEqual(groundGaps([L('TLV', 'CDG', '2026-12-10'), L('PAR', 'TLV', '2026-12-18')]), [], 'an airport and its city are the same place');
   assert.equal(isRoundShape([L('TLV', 'FCO', 'x'), L('FCO', 'TLV', 'y')]), true);
@@ -72,7 +72,7 @@ test('share link: multi round-trips, bad links are ignored, old links still pars
   assert.match(link, /type=multi/); assert.ok(!/price|srk/i.test(link));
   assert.equal(multiLink({ legs, adults: 2, children: 1 }), link);
   const back = parseSearchLink(link);
-  assert.deepEqual([back.type, back.legs, back.adults, back.children, back.destination], ['multi', legs, 2, 1, 'תל אביב → רומא → פריז → תל אביב']);
+  assert.deepEqual([back.type, back.legs, back.adults, back.children, back.destination], ['multi', legs, 2, 1, 'תל אביב ← רומא ← פריז ← תל אביב']);
   for (const bad of ['#/?type=multi&legs=TLV-FCO-2026-12-10&adults=1', '#/?type=multi&legs=TLV-FCO-2026-12-10,FCO-TLV-2026-12-01&adults=1', '#/?type=multi&legs=TLV-TLV-2026-12-10,FCO-TLV-2026-12-11&adults=1', '#/?type=multi&legs=x&adults=1', '#/?type=multi&legs=TLV-FCO-2026-12-10,FCO-TLV-2026-12-11&adults=0'])
     assert.equal(parseSearchLink(bad), null, bad);
   assert.equal(parseSearchLink('#/?type=multi&' + new URLSearchParams({ legs: Array(6).fill('TLV-FCO-2026-12-10').join(','), adults: '1' })), null);

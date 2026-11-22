@@ -101,3 +101,73 @@ dialog.date-picker{width:min(760px,calc(100% - 24px));padding:24px 24px 20px}
  .fare-deals-list{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding-bottom:6px;margin-inline:-4%;padding-inline:4%}
  .fare-deals-list li{flex:0 0 72%;scroll-snap-align:start}
 }
+/* ---- Flights 2026-11-23: route direction, fare types (branded fares), loading animation ---- */
+/* Route rows follow the page direction (dir on .fc-route): origin at the reading start, arrowhead at the destination. */
+.fc-to{text-align:end}
+.fc-plus{margin-left:0;margin-inline-start:2px}
+.fc-line:after{right:auto;inset-inline-end:0}
+.fc-route[dir=rtl] .fc-line:after{border-left:0;border-right:7px solid #a9c8ea}
+.route-pair{white-space:nowrap}
+.fare-codes{display:inline-flex;gap:4px;align-items:baseline}
+/* Fare types of the same flights: radio tiles in a row that scrolls inside the card. */
+.fare-switch{border:0;margin:10px 0 0;padding:10px 0 0;border-top:1px solid #edf2f8;min-width:0}
+.fare-switch legend{padding:0;font-size:13px;font-weight:800;color:var(--navy,#071751)}
+.fare-switch legend small{font-weight:600;color:#526687;margin-inline-start:4px}
+.fare-options{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 6px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin}
+.fare-option{position:relative;display:block;flex:0 0 172px;scroll-snap-align:start;cursor:pointer}
+.fare-option input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.fo-body{display:flex;flex-direction:column;gap:4px;height:100%;padding:10px 12px;border:1.5px solid #d9e4ef;border-radius:12px;background:#fff;transition:border-color .15s,box-shadow .15s,background .15s}
+.fare-option:hover .fo-body{border-color:#8fb6e2}
+.fare-option input:checked+.fo-body{border-color:var(--blue,#096bd2);background:#f2f8ff;box-shadow:0 0 0 2px #096bd226}
+.fare-option input:focus-visible+.fo-body{outline:3px solid #0b57d0;outline-offset:2px}
+.fo-name{font-size:14px;font-weight:800;color:var(--navy,#071751);line-height:1.25;overflow-wrap:anywhere}
+.fo-split{display:flex;flex-direction:column;font-size:12.5px}
+.fo-cabin{font-size:11.5px;font-weight:700;color:#7a4b00}
+.fo-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:12px;line-height:1.35}
+.fo-yes{color:#1f6337;font-weight:600}.fo-yes:before{content:"✓";margin-inline-end:4px;font-weight:900}
+.fo-part{color:#7a5a00}.fo-paid{color:#4d5870}
+.fo-price{margin-top:auto;padding-top:4px;font-size:14px;font-weight:900;color:var(--navy,#071751);text-align:start}
+.fo-lowest{color:#1f6337}
+.fare-hint{margin:2px 0 0;font-size:11.5px}
+.fare-more{display:inline-flex;align-items:center;min-height:36px;font-size:13px;font-weight:700}
+@media(max-width:760px){.fare-option{flex-basis:150px}}
+/* Deal card while its live search runs: a small plane crosses it in the reading direction. */
+.fare-deal[aria-busy=true]{position:relative;border-color:var(--blue,#096bd2);overflow:hidden}
+.fare-deal[aria-busy=true]:after{content:"✈";position:absolute;bottom:4px;inset-inline-start:-20px;font-size:15px;color:var(--blue,#096bd2);animation:deal-fly 1.6s linear infinite}
+html[dir=rtl] .fare-deal[aria-busy=true]:after{transform:scaleX(-1)}
+@keyframes deal-fly{to{inset-inline-start:calc(100% + 4px)}}
+/* Loading: a plane on a dotted arc from origin to destination (mirrored on the Hebrew page) + the steps in words. */
+.route-loader{display:flex;align-items:center;gap:6px 22px;flex-wrap:wrap}
+.rl-track{position:relative;flex:none;width:220px;height:86px}
+html[dir=rtl] .rl-track,html[dir=rtl] .rl-code{transform:scaleX(-1)}
+.rl-arc{position:absolute;top:0;left:0;width:220px;height:64px;overflow:visible}
+.rl-arc path{fill:none;stroke-linecap:round}
+.rl-arc-base{stroke:#d6e5f6;stroke-width:2}
+.rl-arc-dots{stroke:#096bd2;stroke-width:2.5;stroke-dasharray:1 7;animation:rl-dots 1s linear infinite}
+.rl-pin{position:absolute;top:52px;width:12px;height:12px;border-radius:50%;background:#fff;border:2.5px solid #096bd2}
+.rl-pin-from{left:14px}.rl-pin-to{left:194px;border-color:#c99700;background:#ffdf25}
+.rl-plane{position:absolute;top:0;left:0;width:26px;height:26px;offset-path:path('M20 58 Q110 -6 200 58');offset-rotate:auto;offset-distance:0%;animation:rl-fly 2.6s cubic-bezier(.45,.05,.4,.95) infinite}
+.rl-plane svg{display:block;width:26px;height:26px;fill:#0a1b60;filter:drop-shadow(0 2px 3px #0a1b6040)}
+.rl-code{position:absolute;top:68px;width:40px;text-align:center;font-size:13px;font-weight:900;letter-spacing:.8px;color:var(--navy,#071751)}
+.rl-from{left:0}.rl-to{left:180px}
+.rl-steps{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:14px;font-weight:700;color:#5f6d8a}
+.rl-steps li{display:flex;align-items:center;gap:8px;opacity:.7;animation:rl-step .5s ease forwards}
+.rl-steps li:before{content:"";flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:#c7d6ea;animation:rl-dot .5s ease forwards;animation-delay:inherit}
+.rl-steps li:nth-child(1){animation-delay:.2s}.rl-steps li:nth-child(2){animation-delay:1.8s}.rl-steps li:nth-child(3){animation-delay:3.6s}
+.route-loader[data-kind=search] .rl-steps li:nth-child(2){animation-delay:3s}.route-loader[data-kind=search] .rl-steps li:nth-child(3){animation-delay:7s}
+@keyframes rl-fly{0%{offset-distance:0%;opacity:0}8%,88%{opacity:1}100%{offset-distance:100%;opacity:0}}
+@keyframes rl-dots{to{stroke-dashoffset:-8}}
+@keyframes rl-step{to{opacity:1;color:var(--navy,#071751)}}
+@keyframes rl-dot{to{background:#096bd2}}
+.search-feedback .route-loader{margin-bottom:8px}
+/* In the boarding pass stub (260px): the arc on top, the steps under it. */
+.bp-stub .route-loader{flex-direction:column;align-items:stretch;gap:8px}
+.bp-stub .rl-track{margin-inline:auto}
+.bp-stub .rl-steps{font-size:13px}
+@media(prefers-reduced-motion:reduce){
+ .rl-plane{animation:none;offset-distance:50%}
+ .rl-arc-dots,.fare-deal[aria-busy=true]:after{animation:none}
+ .fare-deal[aria-busy=true]:after{inset-inline-start:auto;inset-inline-end:10px}
+ .rl-steps li,.rl-steps li:before{animation:none;opacity:1;color:var(--navy,#071751)}
+ .rl-steps li:before{background:#096bd2}
+}

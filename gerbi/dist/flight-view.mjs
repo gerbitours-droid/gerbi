@@ -138,3 +138,19 @@ export function sortFacts(list, sort = 'supplier') {
   if (sort !== 'price' || new Set([...basis.values()].map(item => item?.currency).filter(Boolean)).size > 1) return [...list];
   return [...list].sort((a, b) => (basis.get(a)?.value ?? Infinity) - (basis.get(b)?.value ?? Infinity) || (a.totalMinutes ?? Infinity) - (b.totalMinutes ?? Infinity));
 }
+
+// Loading state for a search or an offer check: a plane flying a dotted arc from the origin to the destination
+// (CSS-only, still under prefers-reduced-motion) and the steps in words. The arc is drawn left to right and mirrored
+// on the Hebrew page, so the origin is always where reading starts. Codes are IATA only (never traveler text).
+const IATA = /^[A-Z]{3}$/;
+const PLANE = '<svg viewBox="0 0 24 24" focusable="false"><path transform="rotate(90 12 12)" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
+export function routeLoader({ from, to, kind = 'check' } = {}) {
+  const a = IATA.test(from || '') ? from : '', b = IATA.test(to || '') ? to : '', k = kind === 'search' ? 'search' : 'check';
+  const steps = [1, 2, 3].map(n => `<li>${t(`app.loader.${k}.${n}`)}</li>`).join('');
+  return `<div class="route-loader" data-kind="${k}">`
+    + `<div class="rl-track" aria-hidden="true"><svg class="rl-arc" viewBox="0 0 220 64" focusable="false"><path class="rl-arc-base" d="M20 58 Q110 -6 200 58"/><path class="rl-arc-dots" d="M20 58 Q110 -6 200 58"/></svg>`
+    + `<span class="rl-pin rl-pin-from"></span><span class="rl-pin rl-pin-to"></span><span class="rl-plane">${PLANE}</span>`
+    + `<b class="rl-code rl-from">${a}</b><b class="rl-code rl-to">${b}</b></div>`
+    + (a && b ? `<span class="sr-only">${t('app.loader.route', { from: a, to: b })}</span>` : '')
+    + `<ol class="rl-steps">${steps}</ol></div>`;
+}

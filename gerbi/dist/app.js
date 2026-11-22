@@ -1,5 +1,6 @@
 import { styles } from './personalization.mjs';
-import { offerPrice, formatFare, carrierOf, hoursText, LONG_LAYOVER_MINUTES, offerFacts, emptyFilters, matchesFilters, sortFacts, TIME_BUCKETS } from './flight-view.mjs';
+import { offerPrice, formatFare, carrierOf, hoursText, LONG_LAYOVER_MINUTES, offerFacts, emptyFilters, matchesFilters, sortFacts, TIME_BUCKETS, routeLoader } from './flight-view.mjs';
+import { groupFares, fareHighlights, fareNames, chosenFare } from './fare-families.mjs';
 import { parsePreferences, rankDemoTrips, estimateDemoTotal, validFlightDates } from './planner.mjs';
 import { trips, contact } from './data.mjs';
 import { places, resolvePlace, placeSuggestions, placeType, placeText, placeByCode } from './places.mjs';
@@ -149,8 +150,18 @@ placeCombobox($('#destination'),{kind:'destination',exclude:()=>originPlace()?.c
 document.addEventListener('brief-changed',markStaleResults);
 // ---- Live results: facts once per search; filters, sort, open details and the comparison survive every re-render.
 let flightFilters=emptyFilters(),filtersOpen=!window.matchMedia('(max-width: 760px)').matches;
-const openDetails=new Set(),compareOffers=new Map(),factsCache=new WeakMap();
-const factsOf=payload=>{if(!factsCache.has(payload))factsCache.set(payload,(Array.isArray(payload?.offers)?payload.offers:[]).map(offer=>offerFacts(offer,payload)));return factsCache.get(payload);};
+const openDetails=new Set(),compareOffers=new Map(),factsCache=new WeakMap(),groupCache=new WeakMap();
+// Every supplier offer (one per fare type) and, for the list, one card per itinerary at its cheapest fare
+// (dist/fare-families.mjs). fareChoice: card (its cheapest offer's index) → the fare type the traveler picked.
+const offerFactsOf=payload=>{if(!factsCache.has(payload))factsCache.set(payload,(Array.isArray(payload?.offers)?payload.offers:[]).map(offer=>offerFacts(offer,payload)));return factsCache.get(payload);};
+const factsOf=payload=>{if(!groupCache.has(payload))groupCache.set(payload,groupFares(offerFactsOf(payload)));return groupCache.get(payload);};
+const fareChoice=new Map(),fareMore=new Set();
+const fareOf=f=>chosenFare(f,fareChoice.get(f.index),{wantBag:flightFilters.checkedBag});
+// A card matches when its cheapest fare does, or (bag filter) when one of its fare types includes the bag.
+const cardMatches=(f,filters)=>matchesFilters(f,filters)||(filters.checkedBag&&(f.fares||[]).some(x=>x.checked==='included'&&matchesFilters(x,filters)));
+// Origin → destination in reading order: an isolated run per end, so the Hebrew page reads TLV first (on the right).
+const arrow=lang==='en'?'→':'←';
+const pair=(a,b)=>`<span class="route-pair"><span dir="ltr">${a}</span> ${arrow} <span dir="ltr">${b}</span></span>`;
 const point=p=>`${escapeHTML(p?.time||'—')} <small>${escapeHTML(p?.airport?.code||'')}</small>`;
 const stopsText=n=>n===0?tr('app.stops.direct'):n===1?tr('app.stops.one'):tr('app.stops.many', { count: n });
 const layoverText=l=>`${tr('app.layover.wait', { time: hoursText(l.minutes) })} · <span dir="ltr">${escapeHTML(l.city?`${l.city} (${l.airport})`:l.airport)}</span>${l.overnight?tr('app.layover.overnight'):''}${l.changeAirport?` · <strong>${tr('app.layover.changeAirport', { airport: escapeHTML(l.nextAirport) })}</strong>`:''}`;
@@ -161,18 +172,19 @@ const TROLLEY={included:['yes',tr('app.trolley.included')],paid:['no',tr('app.tr
 const bagPill=([kind,text])=>`<span class="bag bag-${kind}">${text}</span>`;
 // Multi-city: this leg leaves another airport of the city the previous leg landed in (ORY → CDG).
 function legAirportChange(f,i){const landed=f.legs[i-1]?.segments.at(-1)?.arrival,leaves=f.legs[i]?.segments[0]?.departure;if(!i||!landed?.airport?.code||!leaves?.airport?.code||landed.airport.code===leaves.airport.code||(landed.city?.code&&leaves.city?.code&&landed.city.code!==leaves.city.code))return '';return `${tr('app.leg.otherAirport', { from: escapeHTML(landed.airport.code), to: escapeHTML(leaves.airport.code) })}`;}
-// Boarding-pass route row (spec: flight card UX). The route itself is an isolated LTR run, origin left and destination right,
-// so times, codes and the path never flip on the RTL page; the text inside it keeps the page direction.
+// Boarding-pass route row (spec: flight card UX). The row follows the page direction: on the Hebrew page the origin is on
+// the right and the destination on the left (reading order), on /en/ the other way round; the arrowhead points at the
+// destination. Times stay isolated LTR runs so "+1" and the digits never flip.
 const icon=id=>`<svg aria-hidden="true"><use href="#${id}"/></svg>`;
 const textDir=lang==='en'?'ltr':'rtl';
 const shortDay=d=>{const at=new Date(d+'T12:00:00');return Number.isNaN(at.getTime())?d:new Intl.DateTimeFormat(locale(),{weekday:lang==='en'?'short':'narrow',day:'numeric',month:'numeric'}).format(at);};
 const placeName=p=>{const known=placeByCode(p?.airport?.code),city=known?.city?placeByCode(known.city):known;return city?.name||p?.city?.name||'';};
-const routeEnd=(p,cls,plus='',note='')=>`<span class="fc-end ${cls}"><b class="fc-time">${escapeHTML(p?.time||'—')}${plus}</b><span class="fc-code">${escapeHTML(p?.airport?.code||'')}</span>${(n=>n?`<span class="fc-place" dir="auto">${escapeHTML(n)}</span>`:'')(placeName(p))}${note}</span>`;
+const routeEnd=(p,cls,plus='',note='')=>`<span class="fc-end ${cls}"><b class="fc-time" dir="ltr">${escapeHTML(p?.time||'—')}${plus}</b><span class="fc-code">${escapeHTML(p?.airport?.code||'')}</span>${(n=>n?`<span class="fc-place" dir="auto">${escapeHTML(n)}</span>`:'')(placeName(p))}${note}</span>`;
 function legRoute(leg){
  const first=leg.segments[0],last=leg.segments.at(-1),s=leg.summary,via=s.layovers.map(l=>l.airport).filter(Boolean);
  // Landing on another day sits next to the landing time, with the date spelled out.
  const plus=s.dayOffset>0?`<sup class="fc-plus">+${s.dayOffset}</sup>`:'',note=s.dayOffset>0?`<span class="fc-arrdate" dir="${textDir}">${tr('app.leg.landsOn',{date:escapeHTML(shortDay(s.arriveDate))})}</span>`:'';
- return `<div class="fc-route" dir="ltr">${routeEnd(first.departure,'fc-from')}<span class="fc-path"><span class="fc-dur" dir="${textDir}">${Number.isFinite(leg.minutes)?hoursText(leg.minutes):tr('app.duration.unknown')}</span><span class="fc-line${s.stops?'':' is-direct'}" aria-hidden="true">${'<i></i>'.repeat(s.stops)}</span><span class="fc-stops${s.stops?'':' is-direct'}" dir="${textDir}">${stopsText(s.stops)}${via.length?` · <span dir="ltr">${via.map(escapeHTML).join(', ')}</span>`:''}</span></span>${routeEnd(last.arrival,'fc-to',plus,note)}</div>`;
+ return `<div class="fc-route" dir="${textDir}">${routeEnd(first.departure,'fc-from')}<span class="fc-path"><span class="fc-dur" dir="${textDir}">${Number.isFinite(leg.minutes)?hoursText(leg.minutes):tr('app.duration.unknown')}</span><span class="fc-line${s.stops?'':' is-direct'}" aria-hidden="true">${'<i></i>'.repeat(s.stops)}</span><span class="fc-stops${s.stops?'':' is-direct'}" dir="${textDir}">${stopsText(s.stops)}${via.length?` · <span dir="ltr">${via.map(escapeHTML).join(', ')}</span>`:''}</span></span>${routeEnd(last.arrival,'fc-to',plus,note)}</div>`;
 }
 function legRowsOf(f){
  const multi=searchContext?.multi;
@@ -190,7 +202,7 @@ function legDetailsOf(f,key){
  const id=`${key}:all`,multi=searchContext?.multi;
  const body=f.legs.map((leg,i)=>{
   if(!leg.segments[0])return '';const s=leg.summary;
-  return `<div class="fc-seg-leg"><p class="fc-seg-title"><strong>${escapeHTML(legName(i,multi))}</strong> · ${escapeHTML(longDate(s.departDate))}</p>${leg.segments.map((segment,n)=>`${n?`<p class="layover">${layoverText(s.layovers[n-1])}</p>`:''}<p><strong dir="ltr">${point(segment.departure)} → ${point(segment.arrival)}</strong><br><span>${tr('app.leg.times', { dep: escapeHTML(longDate(segment.departure?.date)||tr('app.notGiven')), arr: escapeHTML(longDate(segment.arrival?.date)||tr('app.notGiven')) })}</span><br><span>${carrierLine(segment)}</span></p>`).join('')}<p class="leg-bags">${bagPill(BAG[leg.baggage.checked])}${leg.baggage.pieces>1?` <small>${tr('app.bag.pieces', { count: leg.baggage.pieces })}</small>`:''} ${bagPill(TROLLEY[leg.baggage.trolley])}${leg.baggage.fare?` <small>${tr('app.bag.fare', { fare: escapeHTML(leg.baggage.fare) })}${leg.baggage.cabin?' · '+escapeHTML(leg.baggage.cabin):''}</small>`:''}</p>${(list=>list.length?`<p class="fare-inclusions"><small>${tr('app.fare.includes')}</small> ${list.map(x=>bagPill([x.state==='included'?'yes':x.state==='no'?'no':'unknown',x.text])).join('')}</p>`:'')(fareInclusions(f.offer,leg))}</div>`;
+  return `<div class="fc-seg-leg"><p class="fc-seg-title"><strong>${escapeHTML(legName(i,multi))}</strong> · ${escapeHTML(longDate(s.departDate))}</p>${leg.segments.map((segment,n)=>`${n?`<p class="layover">${layoverText(s.layovers[n-1])}</p>`:''}<p><strong class="seg-route">${pair(point(segment.departure),point(segment.arrival))}</strong><br><span>${tr('app.leg.times', { dep: escapeHTML(longDate(segment.departure?.date)||tr('app.notGiven')), arr: escapeHTML(longDate(segment.arrival?.date)||tr('app.notGiven')) })}</span><br><span>${carrierLine(segment)}</span></p>`).join('')}<p class="leg-bags">${bagPill(BAG[leg.baggage.checked])}${leg.baggage.pieces>1?` <small>${tr('app.bag.pieces', { count: leg.baggage.pieces })}</small>`:''} ${bagPill(TROLLEY[leg.baggage.trolley])}${leg.baggage.fare?` <small>${tr('app.bag.fare', { fare: escapeHTML(leg.baggage.fare) })}${leg.baggage.cabin?' · '+escapeHTML(leg.baggage.cabin):''}</small>`:''}</p>${(list=>list.length?`<p class="fare-inclusions"><small>${tr('app.fare.includes')}</small> ${list.map(x=>bagPill([x.state==='included'?'yes':x.state==='no'?'no':'unknown',x.text])).join('')}</p>`:'')(fareInclusions(f.offer,leg))}</div>`;
  }).join('');
  return `<details class="flight-segments" data-detail="${escapeHTML(id)}" ${openDetails.has(id)?'open':''}><summary>${tr('app.card.details')}</summary>${body}<p class="micro-copy">${tr('app.leg.note')}</p></details>`;
 }
@@ -198,9 +210,9 @@ function legMarkupOf(f,key){return legRowsOf(f)+legDetailsOf(f,key);}
 function legMarkup(offer,payload){return legMarkupOf(offerFacts(offer,payload),'check-'+offer.index);}
 
 // Spec 27: the availability check as a boarding pass – brand band, route rows, a torn perforation and a price stub.
-function openPass({ctx,legs,status,price,old,booking}){
+function openPass({ctx,legs,status,price,old,booking,route,fare}){
  const busy=status==='checking',title=busy?tr('app.pass.checking'):status==='changed'?tr('app.offer.changed'):tr('app.offer.checked');
- const stub=busy?`<div class="bp-price bp-shimmer"><small>${tr('app.pass.searchPrice')}</small><strong dir="ltr">${escapeHTML(price?formatFare(price):'')}</strong></div><p class="bp-wait"><span class="bp-plane" aria-hidden="true">✈</span>${tr('app.pass.wait')}</p>`
+ const stub=busy?`<div class="bp-price bp-shimmer"><small>${tr('app.pass.searchPrice')}</small><strong dir="ltr">${escapeHTML(price?formatFare(price):'')}</strong></div>${routeLoader({...route,kind:'check'})}<p class="bp-wait">${tr('app.pass.wait')}</p>`
   :`<div class="bp-price"><small>${tr('app.offer.priceFor', { count: ctx.travelers })}</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${originalHtml(price)}${old?`<span class="bp-was">${tr('app.offer.was', { price: escapeHTML(formatFare(old)) })}</span>`:''}</div>
    <p class="bp-time">${tr('app.offer.checkedNow', { time: escapeHTML(new Date().toLocaleString(locale(),{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'})) })}</p>
    <div class="bp-actions">${booking?.enabled?`<button class="button yellow" data-book-flight>${tr('booking.offer.book')}</button>`:''}<button class="button ${booking?.enabled?'secondary':'yellow'}" data-save-flight>${tr('app.offer.save')}</button><button class="button secondary" data-close-availability>${tr('app.offer.backToCompare')}</button></div>
@@ -209,21 +221,43 @@ function openPass({ctx,legs,status,price,old,booking}){
  openModal(`<div class="bp" data-state="${status}">
   <header class="bp-top"><span class="bp-brand"><img src="/assets/mascot.webp" alt="" width="34" height="34">${tr('home.brand.name')}</span><span class="bp-kind">${tr('app.pass.kind')}</span></header>
   <div class="bp-body"><p class="bp-status" role="status"><span class="bp-dot" aria-hidden="true"></span>${busy?tr('app.pass.statusChecking'):status==='changed'?tr('app.pass.statusChanged'):tr('app.pass.statusOk')}</p>
-   <h2 tabindex="-1">${title}</h2><p class="bp-sub">${escapeHTML(ctx.destination)} · ${escapeHTML(ctx.dates)} · ${tr('app.pass.travelers', { count: ctx.travelers })}</p>
+   <h2 tabindex="-1">${title}</h2><p class="bp-sub">${escapeHTML(ctx.destination)} · ${escapeHTML(ctx.dates)} · ${tr('app.pass.travelers', { count: ctx.travelers })}${fare?` · ${tr('app.fare.chosen',{fare:`<bdi>${escapeHTML(fare)}</bdi>`})}`:''}</p>
    <div class="bp-legs">${legs}</div></div>
   <div class="bp-tear" aria-hidden="true"></div>
   <div class="bp-stub">${stub}<div class="bp-barcode" aria-hidden="true"></div></div>
  </div>${busy?'':`<p class="notice bp-notice">${tr('app.offer.notice')}</p>`}`);
  if(!busy)$('#modal-content h2')?.focus();
 }
+// Where the trip starts and where it goes: the first leg's ends (multi-city: the first origin and the last landing).
+function routeEnds(f){const first=f.legs[0]?.segments,last=(searchContext?.multi?f.legs.at(-1):f.legs[0])?.segments;return {from:first?.[0]?.departure?.airport?.code||'',to:last?.at(-1)?.arrival?.airport?.code||''};}
 // Spec 10 §7.1: per-person price by passenger type, only when it adds up to the total (and more than one person).
 function paxLine(f){const list=perPassenger(f.offer,f.price);if(!list||(list.length===1&&list[0].count===1))return '';return `<small class="pax-prices">${list.map(x=>`${PTC_LABEL[x.ptc]} <span dir="ltr">${escapeHTML(formatFare({value:x.value,currency:x.currency}))}</span>`).join(' · ')}</small>`;}
 // Baggage, carry-on and refund in one line: icon + words. "Not provided" is never styled as a perk.
 const fact=([kind,text],id)=>`<li class="bag bag-${kind}">${icon(id)}<span>${text}</span></li>`;
 const REFUND={no:['no',tr('app.refund.no')],yes:['yes',tr('app.refund.yes')],unknown:['unknown',tr('app.refund.unknown')]};
+// Branded fares: the other fare types of the same flights, as radio tiles (name per direction, what it includes,
+// the difference from the cheapest). Picking one changes the offer the card checks, books, saves and compares.
+const FARE_ITEM={checked:tr('app.fare.item.checked'),trolley:tr('app.fare.item.trolley'),change:tr('app.fare.item.change'),refund:tr('app.fare.item.refund'),seat:tr('app.fare.item.seat')};
+const fareItem=h=>{const label=FARE_ITEM[h.key];return h.state==='included'?`<li class="fo-yes">${label}</li>`:h.state==='mixed'?`<li class="fo-part">${tr('app.fare.state.mixed',{item:label})}</li>`:h.key==='checked'?`<li class="fo-paid">${h.state==='paid'?tr('app.fare.state.paid',{item:label}):BAG.none[1]}</li>`:'';};
+function fareSwitch(f,shown){
+ const fares=f.fares||[];if(fares.length<2)return '';
+ const base=priceBasis(f.price),multi=searchContext?.multi,leadCabins=f.legs.map(l=>l.baggage.cabin||'');
+ const option=(x,n)=>{
+  const names=fareNames(x),b=priceBasis(x.price),diff=n&&base&&b&&b.currency===base.currency?b.value-base.value:null,hl=fareHighlights(x);
+  const name=names.same?`<span class="fo-name">${names.label?`<bdi>${escapeHTML(names.label)}</bdi>`:escapeHTML(tr('app.fare.unnamed',{n:n+1}))}</span>`:`<span class="fo-name fo-split">${names.names.map((nm,i)=>`<span>${tr('app.fare.leg',{leg:escapeHTML(legName(i,multi)),fare:`<bdi>${escapeHTML(nm||'—')}</bdi>`})}</span>`).join('')}</span>`;
+  const cabins=[...new Set(x.legs.map(l=>l.baggage.cabin).filter((c,i)=>c&&c!==leadCabins[i]))];
+  const items=hl.map(fareItem).join(''),basic=hl.some(h=>h.state==='included')?'':`<li class="fo-paid">${tr('app.fare.basic')}</li>`;
+  const price=!n?`<span class="fo-price fo-lowest">${tr('app.fare.lowest')}</span>`:`<span class="fo-price"><bdi dir="ltr">${escapeHTML(diff!==null?tr('app.fare.more',{price:formatFare({value:diff,currency:base.currency})}):formatFare(x.price))}</bdi></span>`;
+  return `<label class="fare-option"><input type="radio" name="fare-${escapeHTML(f.index)}" value="${escapeHTML(x.index)}" data-fare-for="${escapeHTML(f.index)}" ${x===shown?'checked':''}><span class="fo-body">${name}${cabins.length?`<small class="fo-cabin"><bdi>${escapeHTML(cabins.join(' · '))}</bdi></small>`:''}<ul class="fo-items">${items}${basic}</ul>${price}</span></label>`;
+ };
+ // One fare type both ways first; mixed combinations (a different fare each way) open on request.
+ const extra=fares.filter((x,n)=>n&&!fareNames(x).same&&x!==shown).length,open=fareMore.has(f.index);
+ const listed=open||!extra?fares:fares.filter((x,n)=>!n||fareNames(x).same||x===shown);
+ return `<fieldset class="fare-switch"><legend>${tr('app.fare.title')} <small>${tr('app.fare.count',{count:fares.length})}</small></legend><div class="fare-options">${listed.map(x=>option(x,fares.indexOf(x))).join('')}</div>${extra?`<button type="button" class="link-button fare-more" data-fare-more="${escapeHTML(f.index)}" aria-expanded="${open}">${open?tr('app.fare.fewer'):tr('app.fare.mixedMore',{count:extra})}</button>`:''}<p class="micro-copy fare-hint">${tr('app.fare.hint')}</p></fieldset>`;
+}
 function flightCard(f,payload,scoredItem,badgeList=[],reasons=[]){
- const key=payload?.srk+':'+f.index;
- return `<article class="flight-card" data-offer-card="${escapeHTML(f.index)}" data-itinerary="${escapeHTML(scoredItem?.key||'')}"><div class="flight-details"><div class="fc-head"><h3>${escapeHTML(f.carriers.join(' + ')||tr('app.carrier.none'))}</h3>${badgeList.length?`<p class="flight-badges">${badgeList.map(b=>`<span class="flight-badge badge-${b}">${BADGE_LABELS[b]}</span>`).join('')}</p>`:''}</div>${reasons.length?`<p class="why">${tr('app.card.why', { reasons: reasons.map(escapeHTML).join(' · ') })}</p>`:''}${legRowsOf(f)}<ul class="bag-line" aria-label="${tr('app.card.facts')}">${fact(BAG[f.checked],'i-case')}${fact(TROLLEY[f.trolley],'i-case')}${fact(REFUND[f.refundable]||REFUND.unknown,'i-shield')}</ul>${legDetailsOf(f,f.index)}</div><div class="flight-price"><small>${searchContext.multi?tr('app.price.wholeRoute'):''}${tr('app.price.allTravelers',{count:searchContext.travelers})}</small><strong dir="ltr">${escapeHTML(formatFare(f.price))}</strong>${paxLine(f)}${originalHtml(f.price)}${(n=>n&&n<=FEW_SEATS?`<span class="seats-left">${n===1?tr('app.seats.one'):tr('app.seats.many',{count:n})}</span>`:'')(seatsLeft(f.offer))}<button class="yellow button" data-volero-offer="${escapeHTML(f.index)}"${tr('app.card.check')}${verifiedPrices.has(key)?verifiedStamp(verifiedPrices.get(key)):''}<label class="compare-check"><input type="checkbox" data-compare-offer="${escapeHTML(f.index)}" ${compareOffers.has(f.index)?'checked':''}>${tr('app.card.compare')}</div></article>`;
+ const x=fareOf(f),key=payload?.srk+':'+x.index;
+ return `<article class="flight-card" data-offer-card="${escapeHTML(f.index)}" data-itinerary="${escapeHTML(scoredItem?.key||'')}"><div class="flight-details"><div class="fc-head"><h3>${escapeHTML(f.carriers.join(' + ')||tr('app.carrier.none'))}</h3>${badgeList.length?`<p class="flight-badges">${badgeList.map(b=>`<span class="flight-badge badge-${b}">${BADGE_LABELS[b]}</span>`).join('')}</p>`:''}</div>${reasons.length?`<p class="why">${tr('app.card.why', { reasons: reasons.map(escapeHTML).join(' · ') })}</p>`:''}${legRowsOf(f)}<ul class="bag-line" aria-label="${tr('app.card.facts')}">${fact(BAG[x.checked],'i-case')}${fact(TROLLEY[x.trolley],'i-case')}${fact(REFUND[x.refundable]||REFUND.unknown,'i-shield')}</ul>${fareSwitch(f,x)}${legDetailsOf(x,f.index)}</div><div class="flight-price"><small>${searchContext.multi?tr('app.price.wholeRoute'):''}${tr('app.price.allTravelers',{count:searchContext.travelers})}</small><strong dir="ltr">${escapeHTML(formatFare(x.price))}</strong>${paxLine(x)}${originalHtml(x.price)}${(n=>n&&n<=FEW_SEATS?`<span class="seats-left">${n===1?tr('app.seats.one'):tr('app.seats.many',{count:n})}</span>`:'')(seatsLeft(x.offer))}<button class="yellow button" data-volero-offer="${escapeHTML(x.index)}"${tr('app.card.check')}${verifiedPrices.has(key)?verifiedStamp(verifiedPrices.get(key)):''}<label class="compare-check"><input type="checkbox" data-compare-offer="${escapeHTML(f.index)}" ${compareOffers.has(f.index)?'checked':''}>${tr('app.card.compare')}</div></article>`;
 }
 const filterLabels={stops:{'0':tr('app.stops.direct'),'1':tr('app.filter.upToOne')},bucket:Object.fromEntries(TIME_BUCKETS.map(([id,label,from,to])=>[id,`${label} (${String(from).padStart(2,'0')}–${String(to%24).padStart(2,'0')})`]))};
 function activeChips(){
@@ -240,7 +274,7 @@ function activeChips(){
 const chipMarkup=chips=>chips.map(([k,v,label])=>`<button type="button" class="filter-chip" data-remove-filter="${k}" data-value="${escapeHTML(v)}" aria-label="${tr('app.filter.remove', { label: escapeHTML(label) })}">${escapeHTML(label)} ✕</button>`).join('');
 function filterPanel(all){
  // An option's count = results if that option alone were chosen in its group, everything else unchanged.
- const count=(group,patch)=>all.filter(f=>matchesFilters(f,{...flightFilters,...patch})).length;
+ const count=(group,patch)=>all.filter(f=>cardMatches(f,{...flightFilters,...patch})).length;
  const toggle=(group,value,label,pressed,n)=>`<button type="button" class="filter-option" data-filter="${group}" data-value="${escapeHTML(value)}" aria-pressed="${pressed}" ${n||pressed?'':'disabled'}>${escapeHTML(label)} <small>${n}</small></button>`;
  const carriers=[...all.reduce((m,f)=>{f.carriers.forEach(c=>m.set(c,(m.get(c)||0)+1));return m;},new Map())].sort((a,b)=>b[1]-a[1]).slice(0,10).map(([c])=>c);
  const buckets=group=>TIME_BUCKETS.map(([id])=>toggle(group,id,filterLabels.bucket[id],flightFilters[group].includes(id),count(group,{[group]:[id]}))).join('');
@@ -260,27 +294,27 @@ function compareTray(){
  return `<div class="flight-compare-tray" role="region" ${tr('app.compare.regionAttr')}><span>${tr('app.compare.tray', { count: n })}</span><div><button type="button" class="button yellow" data-open-compare ${n<2?'disabled':''}${tr('app.compare.open')}<button type="button" class="button secondary" data-clear-compare${tr('app.compare.clear')}</div></div>`;
 }
 function openFlightComparison(){
- const list=[...compareOffers.values()];if(list.length<2)return;
+ const cards=[...compareOffers.values()],list=cards.map(fareOf);if(list.length<2)return;
  const basis=new Map(list.map(f=>[f,priceBasis(f.price)])),currencies=new Set([...basis.values()].map(b=>b?.currency).filter(Boolean)),same=currencies.size===1;
  const cheapest=same?Math.min(...list.map(f=>basis.get(f)?.value??Infinity)):null;
  const shortest=Math.min(...list.map(f=>f.totalMinutes??Infinity));
- const leg=(f,i)=>{const l=f.legs[i];if(!l?.segments.length)return tr('app.notGiven');const s=l.summary;return `<span dir="ltr">${escapeHTML(l.segments[0].departure?.time||'')} → ${escapeHTML(l.segments.at(-1).arrival?.time||'')}</span>${s.dayOffset>0?` (+${s.dayOffset})`:''}<br><small>${escapeHTML(longDate(s.departDate))} · ${stopsText(s.stops)} · ${hoursText(l.minutes)}</small>`;};
+ const leg=(f,i)=>{const l=f.legs[i];if(!l?.segments.length)return tr('app.notGiven');const s=l.summary;return `${pair(escapeHTML(l.segments[0].departure?.time||''),escapeHTML(l.segments.at(-1).arrival?.time||''))}${s.dayOffset>0?` (+${s.dayOffset})`:''}<br><small>${escapeHTML(longDate(s.departDate))} · ${stopsText(s.stops)} · ${hoursText(l.minutes)}</small>`;};
  const row=(label,cell)=>`<tr><th scope="row">${label}</th>${list.map(f=>`<td>${cell(f)}</td>`).join('')}</tr>`;
  openModal(`<span class="dialog-kicker">${tr('app.compare.kicker', { count: searchContext.travelers })}</span>${tr('app.compare.title')}<div class="compare-table-wrap"><table class="flight-compare" style="--cols:${list.length}"><thead><tr><th scope="col">${tr('app.compare.topic')}</th>${list.map(f=>`<th scope="col">${escapeHTML(f.carriers.join(' + ')||tr('app.notGiven'))}</th>`).join('')}</tr></thead><tbody>
   ${row(tr('app.compare.total'),f=>(b=>`<strong dir="ltr" class="${same&&b?.value===cheapest?'best':''}">${escapeHTML(formatFare(f.price))}</strong>${originalHtml(f.price)}${same&&b&&b.value>cheapest?`<small dir="ltr" class="fare-diff">+${escapeHTML(formatFare({value:b.value-cheapest,currency:b.currency}))}</small>`:''}`)(basis.get(f)))}
   ${searchContext?.multi?Array.from({length:Math.max(...list.map(f=>f.legs.length))},(_,i)=>row(legName(i,true),f=>leg(f,i))).join(''):`${row(tr('app.leg.out'),f=>leg(f,0))}${list.some(f=>f.legs.length>1)?row(tr('app.leg.back'),f=>leg(f,1)):''}`}
   ${row(searchContext?.multi?tr('app.compare.timeAll'):list.some(f=>f.legs.length>1)?tr('app.compare.timeBoth'):tr('app.compare.time'),f=>`<span class="${f.totalMinutes===shortest?'best':''}">${hoursText(f.totalMinutes)}</span>`)}
   ${row(tr('app.compare.longest'),f=>f.longestLayover?hoursText(f.longestLayover)+(f.overnight?tr('app.layover.overnight'):''):tr('app.compare.none'))}
-  ${row(tr('app.compare.bag'),f=>bagPill(BAG[f.checked]))}${row(tr('app.compare.trolley'),f=>bagPill(TROLLEY[f.trolley]))}
-  ${row('',f=>`<button type="button" class="button secondary" data-goto-offer="${escapeHTML(f.index)}">${tr('app.compare.goto')}</button>`)}
+  ${list.some(f=>fareNames(f).label)?row(tr('app.compare.fare'),f=>`<bdi>${escapeHTML(fareNames(f).label||tr('app.notGiven'))}</bdi>`):''}${row(tr('app.compare.bag'),f=>bagPill(BAG[f.checked]))}${row(tr('app.compare.trolley'),f=>bagPill(TROLLEY[f.trolley]))}
+  ${row('',f=>`<button type="button" class="button secondary" data-goto-offer="${escapeHTML(cards[list.indexOf(f)].index)}">${tr('app.compare.goto')}</button>`)}
  </tbody></table></div>${same?'':tr('app.compare.currencies')}${getFx()?`<p class="micro-copy">${tr('app.compare.fx', { note: escapeHTML(fxNote()) })}</p>`:''}<p class="micro-copy">${tr('app.compare.note')}</p>`);
 }
 function renderVoleroOffers(payload){
  state.voleroResults=payload;
  const all=factsOf(payload),host=$('#live-results');host.hidden=false;
- const focusKey=(el=>el&&host.contains(el)?el.dataset.filter?`[data-filter="${el.dataset.filter}"][data-value="${CSS.escape(el.dataset.value)}"]`:el.id?'#'+el.id:el.dataset.compareOffer?`[data-compare-offer="${CSS.escape(el.dataset.compareOffer)}"]`:null:null)(document.activeElement);
+ const focusKey=(el=>el&&host.contains(el)?el.dataset.filter?`[data-filter="${el.dataset.filter}"][data-value="${CSS.escape(el.dataset.value)}"]`:el.id?'#'+el.id:el.dataset.compareOffer?`[data-compare-offer="${CSS.escape(el.dataset.compareOffer)}"]`:el.dataset.fareMore?`[data-fare-more="${CSS.escape(el.dataset.fareMore)}"]`:el.dataset.fareFor?`[data-fare-for="${CSS.escape(el.dataset.fareFor)}"][value="${CSS.escape(el.value)}"]`:null:null)(document.activeElement);
  const mixed=new Set(all.map(f=>priceBasis(f.price)?.currency).filter(Boolean)).size>1;
- const filtered=all.filter(f=>matchesFilters(f,flightFilters)),chips=activeChips();
+ const filtered=all.filter(f=>cardMatches(f,flightFilters)),chips=activeChips();
  const scored=scoreOffers(filtered,decisionBrief(),{boosts:decision.boosts,partnerPick:decision.pick,learned:decision.learned}),ranked=rankScored(scored),byFacts=new Map(scored.map(x=>[x.facts,x])),tags=badges(scored);
  // Recommended order: the top three are diversified (MMR) so they are not three versions of one flight.
  const leaders=diverseTop(ranked,3);
@@ -305,6 +339,7 @@ liveHost.addEventListener('toggle',e=>{const d=e.target;if(d.id==='flight-filter
 liveHost.addEventListener('change',e=>{
  const payload=state.voleroResults;if(!payload)return;
  if(e.target.id==='flight-sort'){flightSort=e.target.value;renderVoleroOffers(payload);}
+ if(e.target.dataset.fareFor){fareChoice.set(e.target.dataset.fareFor,e.target.value);renderVoleroOffers(payload);return;}
  const id=e.target.dataset.compareOffer;
  if(id){if(!e.target.checked)compareOffers.delete(id);else if(compareOffers.size>=3){e.target.checked=false;toast(tr('app.compare.max'));return;}else{compareOffers.set(id,factsOf(payload).find(f=>f.index===id));aiEvent('compare',e.target.closest('[data-itinerary]')?.dataset.itinerary);}renderVoleroOffers(payload);}
 });
@@ -319,6 +354,7 @@ liveHost.addEventListener('click',e=>{
   else flightFilters[group]=on?[...flightFilters[group],value]:flightFilters[group].filter(v=>v!==value);
   visibleOfferCount=12;renderVoleroOffers(payload);if(remove)$('#flight-filters summary')?.focus();return;
  }
+ const more=e.target.closest('[data-fare-more]');if(more){const id=more.dataset.fareMore;if(fareMore.has(id))fareMore.delete(id);else fareMore.add(id);renderVoleroOffers(payload);return;}
  if(e.target.closest('[data-clear-filters]')){flightFilters=emptyFilters();visibleOfferCount=12;renderVoleroOffers(payload);$('#flight-filters summary')?.focus();return;}
  if(e.target.closest('#more-flights')){const firstNew=visibleOfferCount;visibleOfferCount+=12;renderVoleroOffers(payload);liveHost.querySelectorAll('[data-volero-offer]')[firstNew]?.focus();return;}
  if(e.target.closest('#share-flight-search')){shareSearch();return;}
@@ -349,20 +385,20 @@ $('#search-form').onsubmit=async e=>{
  const controller=new AbortController();activeSearch=controller;let cancelled=false;
  const timer=setTimeout(()=>controller.abort(),45000);
  button.disabled=true;button.setAttribute('aria-busy','true');button.textContent=tr('app.search.busy');
- feedback.innerHTML=tr('app.search.progress');feedback.hidden=false;const started=Date.now(),ticker=setInterval(()=>{const seconds=Math.round((Date.now()-started)/1000),line=$('#search-progress');if(line)line.textContent=tr('app.search.ticker', { seconds, slow: seconds>15?tr('app.search.slow'):'' });},1000);const cancel=document.createElement('button');cancel.type='button';cancel.className='button secondary';cancel.id='cancel-flight-search';cancel.textContent=tr('app.search.cancel');cancel.onclick=()=>{cancelled=true;controller.abort();};feedback.append(' ',cancel);const stopDyk=startDidYouKnow(feedback,request.originDestinations[0].destination.code);
+ const ods=request.originDestinations;feedback.innerHTML=routeLoader({from:ods[0].origin.code,to:(isMulti()?ods.at(-1):ods[0]).destination.code,kind:'search'})+tr('app.search.progress');feedback.hidden=false;const started=Date.now(),ticker=setInterval(()=>{const seconds=Math.round((Date.now()-started)/1000),line=$('#search-progress');if(line)line.textContent=tr('app.search.ticker', { seconds, slow: seconds>15?tr('app.search.slow'):'' });},1000);const cancel=document.createElement('button');cancel.type='button';cancel.className='button secondary';cancel.id='cancel-flight-search';cancel.textContent=tr('app.search.cancel');cancel.onclick=()=>{cancelled=true;controller.abort();};feedback.append(' ',cancel);const stopDyk=startDidYouKnow(feedback,request.originDestinations[0].destination.code);
  $('#live-results').hidden=true;state.voleroResults=null;
  try{
   const response=await fetch('/api/volero/flights/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
   const data=await response.json();if(!response.ok)throw new Error((response.status===429||response.status===400)&&data.message?errorText(data.error,data.message,'app'):tr('app.err.searchFailed'));
   context.cachedAt=data.cached?data.searchedAt:null;
-  searchContext=context;flightSort='recommended';visibleOfferCount=12;flightFilters=emptyFilters();openDetails.clear();compareOffers.clear();decision.boosts={};decision.pick=null;decision.reason='';decision.order=[];
+  searchContext=context;flightSort='recommended';visibleOfferCount=12;flightFilters=emptyFilters();openDetails.clear();compareOffers.clear();fareChoice.clear();fareMore.clear();decision.boosts={};decision.pick=null;decision.reason='';decision.order=[];
   const fromRequest=pendingFilters;pendingFilters=null;
   if(fromRequest){const names=[...new Set(factsOf(data.data).flatMap(f=>f.carriers))];flightFilters={...emptyFilters(),stops:fromRequest.stops||'any',out:fromRequest.out||[],back:fromRequest.back||[],checkedBag:fromRequest.checkedBag===true,carriers:fromRequest.carrier?names.filter(name=>name.toLowerCase().includes(fromRequest.carrier)):[]};}
   renderVoleroOffers(data.data);saveLastSearch();loadBoosts(data.data);aiEvent('impression',[...document.querySelectorAll('#live-results [data-itinerary]')].slice(0,6).map(c=>c.dataset.itinerary));history.replaceState(null,'',searchLink(context.search));
   feedback.textContent=(context.cachedAt?tr('app.search.cached', { minutes: Math.max(1,Math.round((Date.now()-Date.parse(context.cachedAt))/60000)) }):'')+(fromRequest&&activeChips().length?tr('app.search.doneFilters'):tr('app.search.done'));
   if(onHome()){$('#live-results h2').focus({preventScroll:true});$('#live-results').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});}
  }catch(error){pendingFilters=null;feedback.textContent=error.name==='AbortError'?cancelled?tr('app.search.cancelled'):tr('app.search.timeout'):error.message;}
- finally{clearTimeout(timer);clearInterval(ticker);stopDyk();if(cancelled)button.focus();activeSearch=null;button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=icons('search')+tr('app.tab.flights.submit');}
+ finally{clearTimeout(timer);clearInterval(ticker);stopDyk();document.querySelectorAll('.fare-deal[aria-busy]').forEach(b=>b.removeAttribute('aria-busy'));if(cancelled)button.focus();activeSearch=null;button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=icons('search')+tr('app.tab.flights.submit');}
 };
 $('#all-deals').onclick=()=>pages.navigate('/destinations');
 document.addEventListener('click',async e=>{
@@ -376,8 +412,9 @@ document.addEventListener('click',async e=>{
   offerButton.disabled=true;offerButton.textContent=tr('app.offer.checking');
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
   // The ticket opens at once with what we already know; the supplier's answer fills the stub (it can take seconds).
-  const searchLegs=legMarkupOf(offerFacts(selected,result),'check-'+offerIndex);
-  openPass({ctx:offerContext,legs:searchLegs,status:'checking',price:offerPrice(selected)});
+  const selectedFacts=offerFacts(selected,result),searchLegs=legMarkupOf(selectedFacts,'check-'+offerIndex);
+  const fare=(factsOf(result).find(g=>g.fares?.some(x=>x.index===offerIndex))?.fares.length>1&&fareNames(selectedFacts).label)||'';
+  openPass({ctx:offerContext,legs:searchLegs,status:'checking',price:offerPrice(selected),route:routeEnds(selectedFacts),fare});
   modal.addEventListener('close',()=>controller.abort(),{once:true});
   try{
    const response=await fetch('/api/volero/flights/availability',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({srk:result.srk,offerIndex,searchToken:result.tokens.searchResults,input:{itineraryIndex:selected.flightsOverview?.[0]?.itineraryIndex??0}})});
@@ -390,11 +427,11 @@ document.addEventListener('click',async e=>{
    const verified={price,at:new Date(),changed};aiEvent('verify',offerButton.closest('[data-itinerary]')?.dataset.itinerary);verifiedPrices.set(result.srk+':'+offerIndex,verified);
    const priceBox=offerButton.closest('.flight-price');priceBox.querySelector('.verified-stamp')?.remove();priceBox.insertAdjacentHTML('beforeend',verifiedStamp(verified));
    if(!modal.open)return; // closed while checking: keep the stamp on the card, don't reopen
-   openPass({ctx:offerContext,legs:legMarkup(priced,data.data),status:changed?'changed':'ok',price,old:changed?old:null,booking});
+   openPass({ctx:offerContext,legs:legMarkup(priced,data.data),status:changed?'changed':'ok',price,old:changed?old:null,booking,fare});
    $('[data-close-availability]').onclick=()=>modal.close();
    // Spec 25: book this exact offer (the server re-prices it; nothing is charged before the summary step).
    const bookButton=$('[data-book-flight]');if(bookButton)bookButton.onclick=async()=>{bookButton.disabled=true;bookButton.setAttribute('aria-busy','true');try{await startBooking({offer:{srk:result.srk,offerIndex,searchToken:result.tokens.searchResults,itineraryIndex:selected.flightsOverview?.[0]?.itineraryIndex??0},source:offerContext.multi?'multi':'flights'});modal.close();}catch(error){bookButton.disabled=false;bookButton.removeAttribute('aria-busy');$('#save-flight-status').textContent=tr(error.code==='offer_unavailable'?'booking.offer.gone':error.status===429?'booking.offer.busy':'booking.offer.failed');}};
-   $('[data-save-flight]').onclick=e=>{const facts=factsOf(result).find(f=>f.index===offerIndex);if(!facts)return;if(storeSavedFlights(addSavedFlight(savedFlights,flightSnapshot(facts,offerContext.search,verified)))){aiEvent('save',itineraryKey(facts));e.currentTarget.disabled=true;e.currentTarget.textContent=tr('app.offer.saved');$('#save-flight-status').innerHTML=tr('app.offer.savedNote');}};
+   $('[data-save-flight]').onclick=e=>{const facts=offerFactsOf(result).find(f=>f.index===offerIndex);if(!facts)return;if(storeSavedFlights(addSavedFlight(savedFlights,flightSnapshot(facts,offerContext.search,verified)))){aiEvent('save',itineraryKey(facts));e.currentTarget.disabled=true;e.currentTarget.textContent=tr('app.offer.saved');$('#save-flight-status').innerHTML=tr('app.offer.savedNote');}};
   }catch(error){if(!currentOffer()||(error.name==='AbortError'&&!modal.open))return;modal.classList.remove('pass-modal');openModal(`<span class="dialog-kicker">${tr('app.offer.failKicker')}</span>${tr('app.offer.failTitle')}<p>${escapeHTML(error.name==='AbortError'?tr('app.offer.timeout'):error.message)}</p><button class="button secondary full-width" data-close-availability>${tr('app.offer.backToResults')}</button>`);$('[data-close-availability]').onclick=()=>modal.close();}
   finally{clearTimeout(timer);offerButton.disabled=false;offerButton.textContent=tr('app.offer.checkButton');markStaleResults();}
  }

@@ -35,11 +35,11 @@ export const multiRequest = (legs, adults, children) => ({
 
 const cityOf = code => placeByCode(code)?.city || code;
 export const nameOf = code => (lang === 'en' ? placeByCode(code)?.name : placeByCode(code)?.names?.[0]) || placeByCode(code)?.sub || code;
-// "תל אביב → רומא → פריז → תל אביב"; a leg that starts somewhere else than where the last one landed opens a new run.
+// "תל אביב ← רומא ← פריז ← תל אביב" (the arrow points at where the route goes: left on the Hebrew page); a leg that starts somewhere else than where the last one landed opens a new run.
 export function routeText(legs) {
   const runs = [];
   legs.forEach((l, i) => { if (!i || cityOf(legs[i - 1].to) !== cityOf(l.from)) runs.push([l.from]); runs.at(-1).push(l.to); });
-  return runs.map(run => run.map(nameOf).join(' → ')).join(' · ');
+  return runs.map(run => run.map(nameOf).join(lang === 'en' ? ' → ' : ' ← ')).join(' · ');
 }
 // Legs the traveler must reach on their own: landing in Rome, the next flight leaves Paris.
 export const groundGaps = legs => legs.flatMap((l, i) => (i && cityOf(legs[i - 1].to) !== cityOf(l.from) ? [{ index: i, from: legs[i - 1].to, to: l.from }] : []));

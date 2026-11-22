@@ -18,6 +18,7 @@ for f in tests/e2e/*.e2e.mjs; do PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs
 | `p4.e2e.mjs` | package 4: one-way, foreign origin, swap, same-day return |
 | `ai.e2e.mjs` | Gerbi AI reply chips and the hand-off to a live city search |
 | `multi.e2e.mjs` | spec 10: multi-city (3 legs, 2–5 cap, leg calendars), open jaw, avoid-stop filter, share/refresh/saved restore; `OUT=verification/10-multi-city` |
+| `fare-types.e2e.mjs` | branded fares (2026-11-23): one card per itinerary, fare-type switcher (price, check, compare follow the choice), origin at the reading start (he right / en left), search + offer-check loading animation; `W=390`, `EN=1`, `TO=ATH`; `OUT=verification/flights-2026-11-23` |
 | `fare-extras.e2e.mjs` | spec 10 §7: per-passenger prices, fare inclusions, seats left, avoid-stop filter (round trip + child) |
 | `decide.e2e.mjs` | decision layer: badges, reasons, memory events, partner fallback |
 | `destinations.e2e.mjs` | spec 23: destinations catalog he/en at 1440/375 — "only Greece" regression, filters + URL state, show more, destination page CTAs, favorites/compare, inspiration (no supplier calls); `OUT=verification/23-destinations` |
