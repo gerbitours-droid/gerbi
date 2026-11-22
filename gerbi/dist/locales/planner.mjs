@@ -66,7 +66,8 @@ export default {
     'planner.assumed.bases': '{nights, plural, one {לילה אחד} other {# לילות}} – חילקנו ל-{count} בסיסים: {list}',
     'planner.assumed.longStay': 'חיפוש מלון חי מכסה עד 30 לילות לבסיס – את ההמשך נשלים בהצעה מנציג',
     'planner.assumed.needs': 'נבקש מהמלון ונוודא לפני ההזמנה: {list}',
-    'planner.need.accessible': 'נגישות לכיסא גלגלים', 'planner.need.pool': 'בריכה במלון'
+    'planner.need.accessible': 'נגישות לכיסא גלגלים', 'planner.need.pool': 'בריכה במלון',
+    'planner.pricier': 'המחיר פחות קריטי — אפשר להשקיע יותר'
   },
   en: {
     'planner.adults': { one: '1 adult', other: '{count} adults' },
@@ -133,6 +134,7 @@ export default {
     'planner.assumed.bases': '{nights, plural, one {# night} other {# nights}} – split into {count} bases: {list}',
     'planner.assumed.longStay': 'the live hotel search covers up to 30 nights per base – an agent completes the rest',
     'planner.assumed.needs': 'we will request and confirm with the hotel before booking: {list}',
-    'planner.need.accessible': 'wheelchair accessibility', 'planner.need.pool': 'a hotel pool'
+    'planner.need.accessible': 'wheelchair accessibility', 'planner.need.pool': 'a hotel pool',
+    'planner.pricier': 'Price matters less — room to spend a bit more'
   }
 };

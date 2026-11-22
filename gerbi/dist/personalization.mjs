@@ -1,12 +1,13 @@
 import { places } from './places.mjs';
+import { byCode as catalogByCode } from './catalog.mjs';
 import { t, lang } from './i18n.mjs';
 // Curated destination metadata describes inspiration, never verified inventory.
 export const styles = [
   {id:'beach', label:t('app.style.beach'), icon:'sun', destinations:['santorini','maldives','dubai']},
-  {id:'city', label:t('app.style.city'), icon:'globe', destinations:['rome','dubai']},
+  {id:'city', label:t('app.style.city'), icon:'globe', destinations:['rome','dubai','paris']},
   {id:'family', label:t('app.style.family'), icon:'user', destinations:['dubai']},
   {id:'relaxation', label:t('app.style.relaxation'), icon:'heart', destinations:['santorini','maldives']},
-  {id:'couple', label:t('app.style.couple'), icon:'spark', destinations:['santorini','rome','maldives']}
+  {id:'couple', label:t('app.style.couple'), icon:'spark', destinations:['santorini','rome','maldives','paris']}
 ];
 export function selectedStyles(preferences = {}) {
   return styles.filter(style => preferences[style.id] === true ||
@@ -17,7 +18,8 @@ export const SEASONS = {
   santorini: { best: [5, 6, 9, 10], poor: [11, 12, 1, 2, 3], penalty: 2 },
   rome: { best: [4, 5, 6, 9, 10], poor: [7, 8], penalty: 2 },
   maldives: { best: [11, 12, 1, 2, 3, 4], poor: [5, 6, 7, 8, 9, 10], penalty: 2 },
-  dubai: { best: [11, 12, 1, 2, 3], poor: [6, 7, 8, 9], penalty: 4 }
+  dubai: { best: [11, 12, 1, 2, 3], poor: [6, 7, 8, 9], penalty: 4 },
+  paris: { best: [4, 5, 6, 9, 10, 12], poor: [1, 2], penalty: 1 }
 };
 const MONTH_NAMES = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
 // English requests may name the month in English (spec 21); Hebrew names are matched first, as before.
@@ -31,7 +33,7 @@ export function seasonFit(tripId, preferences = {}) {
 
 export function rankInspirations(trips, preferences = {}, limit = 3) {
   const selected = selectedStyles(preferences);
-  const tripOf = code => places.find(place => place.code === code)?.trip;
+  const tripOf = code => places.find(place => place.code === code)?.trip || catalogOf(code)?.trip;
   const wanted = (preferences.want || []).map(tripOf).filter(Boolean);
   const excluded = new Set((preferences.exclude || []).map(tripOf).filter(Boolean));
   return trips.map(trip => {
@@ -50,10 +52,19 @@ export function rankInspirations(trips, preferences = {}, limit = 3) {
     .slice(0,limit);
 }
 
+// A place is "missing" only when the site has nothing for it: no demo trip and none of the 70 catalog destinations
+// (Paris, London, Japan… are catalog destinations: they lead the results instead). An airport or a city of a catalog
+// destination counts as that destination ("CDG" → Paris, "KIX" → Japan).
+const catalogOf = code => catalogByCode(code) || catalogByCode(places.find(place => place.code === code)?.city);
+// The catalog destinations the visitor asked for, in the order named, minus anything they ruled out.
+export function requestedDestinations(preferences = {}) {
+  const excluded = new Set((preferences.exclude || []).map(catalogOf).filter(Boolean).map(d => d.id)), seen = new Set();
+  return (preferences.want || []).map(catalogOf).filter(d => d && !excluded.has(d.id) && !seen.has(d.id) && seen.add(d.id));
+}
 export function constraintSummary(preferences = {}) {
   const byCode = code => places.find(place => place.code === code);
-  const missing = (preferences.want || []).map(byCode).filter(place => place && !place.trip);
+  const missing = (preferences.want || []).map(byCode).filter(place => place && !place.home && !place.trip && !catalogOf(place.code));
   const excluded = (preferences.exclude || []).map(byCode).filter(Boolean);
   const shown = place => (lang === 'en' ? place.name : place.names[0]);
-  return { missing: missing.map(shown), excluded: excluded.map(shown) };
+  return { missing: missing.map(shown), excluded: excluded.map(shown), requested: requestedDestinations(preferences).map(d => d.id) };
 }

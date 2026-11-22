@@ -7,5 +7,7 @@ export const tripsEn = {
   maldives: { name: 'The Maldives', short: 'Maldives', description: '7 nights | All-inclusive', badge: 'Dream getaway', style: 'Calm, sea and a tropical escape',
     days: ['Arrival and settling in', 'A morning on the beach and a turquoise lagoon', 'A free day at the hotel', 'Snorkeling, if you like', 'Time for two by the sea', 'Pool day and rest', 'A last sunset on the island', 'Heading home'] },
   dubai: { name: 'Dubai, UAE', short: 'Dubai', description: '5 nights | Flight + hotel', badge: 'City & beach', style: 'City, beaches and attractions',
-    days: ['Arrival and a stroll in the Marina', 'Beach and pool day', 'City views from above', 'An attraction for the whole family', 'Free time and shopping', 'Breakfast and heading home'] }
+    days: ['Arrival and a stroll in the Marina', 'Beach and pool day', 'City views from above', 'An attraction for the whole family', 'Free time and shopping', 'Breakfast and heading home'] },
+  paris: { name: 'Paris, France', short: 'Paris', description: '4 nights | Flight + hotel', badge: 'Culture & romance', style: 'Museums, cafés and boulevards',
+    days: ['Arrival, the Marais and a first evening in town', 'The Eiffel Tower and a Seine cruise', 'The Louvre and the Tuileries', 'Montmartre, Sacré-Cœur and cafés', 'A last croissant and heading home'] }
 };
