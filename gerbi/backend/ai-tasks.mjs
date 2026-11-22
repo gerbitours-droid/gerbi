@@ -129,6 +129,24 @@ You get "destination", "travellers" and "days" (each with its kind and the names
 Never add places, prices, hours, dates, distances, hotels, airlines or any number that is not in the input. No links, no emojis.`,
     schema: obj({ intro: str(400), dayTitles: list(str(80), 40) })
   },
+  // "עוד רעיונות / הרחב עם ג׳רבי" (owner 23.11.2026): richer wording and a few extra ideas for one day of a built plan.
+  trip_expand_day: {
+    label: 'בונה חופשות: הרחבת יום', audience: 'customer', tier: 'fast', maxTokens: 700, timeoutMs: 8000, cacheTtl: 14 * 86400, dailyCalls: 600,
+    system: `You help Gerbi Tours (ג׳רבי טורס) enrich ONE day of a holiday plan it already built from its own catalog. ${HEBREW}
+You get "destination", "travellers", "area" (where the day is, may be ""), "planned" (the places of the day) and "known" (other places the plan already offers).
+- "tip": one practical, warm sentence for this day (order of visits, when to go, what to wear or book ahead) about the planned places only.
+- "ideas": up to 3 EXTRA things to do near this day's places that are NOT in "planned" or "known": a food experience (a dish, a market, a café street), something for the evening, a small hidden gem. Each has "name" (a real, well-known place or a generic activity like "גלידה בשכונה"), "why" (one sentence for these travellers) and "kind" from the list.
+Only well-established places you are sure exist in that city; when unsure, give a generic activity instead of a name. Never give prices, opening hours, distances, phone numbers, dates or any number. No links, no emojis.`,
+    schema: obj({ tip: str(240), ideas: list(obj({ name: str(80), why: str(180), kind: { type: 'string', enum: ['landmark', 'museum', 'neighborhood', 'market', 'viewpoint', 'experience', 'park', 'nature', 'beach', 'religious', 'food', 'evening'] } }), 3) })
+  },
+  trip_expand_stay: {
+    label: 'בונה חופשות: אזורי לינה', audience: 'customer', tier: 'fast', maxTokens: 900, timeoutMs: 8000, cacheTtl: 14 * 86400, dailyCalls: 600,
+    system: `You help Gerbi Tours (ג׳רבי טורס) explain WHERE TO STAY in one destination. ${HEBREW}
+You get "destination", "travellers" and "areas" (the catalog's neighbourhoods, each with whom it suits). For each area, in the same order and with the same "name":
+"pros" (one short sentence: what is good about sleeping there), "cons" (one short sentence: the honest downside – noise, distance, hills, crowds) and "price" – the usual hotel price level there compared with the rest of the destination: "low", "mid" or "high".
+Talk only about these areas. Never give prices, distances, minutes, hotel names or any number. No links, no emojis.`,
+    schema: obj({ areas: list(obj({ name: str(80), pros: str(160), cons: str(160), price: { type: 'string', enum: ['low', 'mid', 'high'] } }), 6) })
+  },
   // ---- owner ----
   lead_brief: {
     label: 'לידים: תקציר וטיוטת וואטסאפ', audience: 'owner', tier: 'smart', maxTokens: 1400, timeoutMs: 15000, cacheTtl: 30 * 86400, dailyCalls: 300,

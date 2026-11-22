@@ -13,7 +13,7 @@ import { asciiBackground } from './ascii-bg.mjs';
 import { slingTop } from './sling-top.mjs';
 import { brochureHtml, loadBrochureData } from './brochure.mjs';
 import { fitPackage, upsellOffers, applyUpsell, flightsInBudget } from './budget.mjs';
-import { startDidYouKnow } from './did-you-know.mjs';
+import { startDidYouKnow, guessCountry, loadFacts } from './did-you-know.mjs';
 import { describeChange, airlineName } from './trip-prefs.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -25,8 +25,10 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => new Date(2026, i, 15).toLoca
 
 let decor = [];
 const stopDecor = () => { decor.forEach((stop) => stop()); decor = []; };
-if (typeof window !== 'undefined') addEventListener('hashchange', () => { if (!location.hash.startsWith('#/build')) stopDecor(); });
+if (typeof window !== 'undefined') addEventListener('hashchange', () => { if (!location.hash.startsWith('#/build')) { stopDecor(); stopProgress(); } });
 let pkg = null, view = null, version = 0, lastInput = null, showAllHotels = new Set(), leadOpen = false;
+// Expansions (owner 23.11.2026): open "more ideas" days, the AI answers per day / per stay, the full attractions list.
+let openDays = new Set(), dayExpand = {}, stayExpand = {}, showAllAttractions = false;
 // Attraction / day-trip photos ('<destId>|<English name>' → { src }), generated separately; optional (spec 28 §ב).
 let tripImages = {};
 import('./catalog/attraction-images.mjs').then((m) => { tripImages = Object.fromEntries(Object.entries(m.default || {}).filter(([, v]) => typeof v?.src === 'string').map(([k, v]) => [k, '/' + v.src.replace(/^\/+/, '')])); if (pkg?.destination && view?.isConnected) paint('upsell'); }).catch(() => {});
@@ -90,53 +92,135 @@ const LAST_KEY = 'gerbi-build-last-v1', RESUME_DAYS = 14;
 // The conversation is kept on this device so a visitor who leaves can continue later ("ממשיכים מאיפה שעצרנו").
 function remember() { try { if (pkg?.destination && lastInput) localStorage.setItem(LAST_KEY, JSON.stringify({ at: Date.now(), input: lastInput, place: (pkg.stops?.length ? pkg.stops : [pkg.destination]).map((s) => s.name), nights: pkg.request.nights })); } catch { /* private mode */ } }
 function lastConversation() { try { const x = JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); return x?.input && Date.now() - x.at < RESUME_DAYS * 86400000 ? x : null; } catch { return null; } } // the conversation so far: [{ you, said }] – earlier turns, shown above the current plan
+// "Gerbi is thinking" → the plan as soon as the rules have it (owner 23.11.2026). Live flights, hotels and the AI
+// wording arrive into the plan on screen; a live strip keeps ticking the real steps (with did-you-know facts about the
+// destination's country) until the last answer is in. The budget fit runs once every price is in, never in between.
+const STEPS = ['understand', 'route', 'flights', 'hotels', 'budget'];
+const GRACE_MS = 900; // a cached answer (~30 ms) lands with the plan instead of a moment after it
+let progress = null;
+function stopProgress() { if (!progress) return; clearInterval(progress.timer); progress.facts?.(); progress = null; }
+function newProgress(mine, target) {
+  stopProgress();
+  const p = { mine, started: Date.now(), eta: etaMs(), steps: Object.fromEntries(STEPS.map((s, i) => [s, i ? 'wait' : 'active'])), labels: {}, done: false };
+  p.timer = setInterval(() => paintEta(p), 250);
+  progress = p; p.target = target;
+  return p;
+}
+function setStep(step, state, label = '') {
+  if (!progress) return;
+  progress.steps[step] = state; if (label) progress.labels[step] = label;
+  paintSteps();
+}
+const stepText = (s) => (progress?.steps[s] === 'done' || progress?.steps[s] === 'skip') && progress.labels[s] ? progress.labels[s] : t(`build.think.${s === 'understand' ? 'understand' : s === 'route' ? 'route' : s}`);
+const stepsHtml = () => STEPS.map((s) => `<li data-think="${s}" class="is-${progress?.steps[s] || 'wait'}"><span class="bk-step-ico" aria-hidden="true"></span><span class="bk-step-text">${esc(stepText(s))}</span></li>`).join('');
+function paintSteps() {
+  for (const list of view?.querySelectorAll('.bk-think-steps') || []) for (const s of STEPS) {
+    const li = list.querySelector(`[data-think="${s}"]`); if (!li) continue;
+    const cls = `is-${progress?.steps[s] || 'wait'}`;
+    if (!li.classList.contains(cls)) { li.className = cls; li.querySelector('.bk-step-text').textContent = stepText(s); }
+  }
+  paintEta(progress);
+}
+function paintEta(p) {
+  if (!p || p !== progress || !view) return;
+  const states = Object.values(p.steps), doneShare = states.filter((x) => x === 'done' || x === 'skip').length / states.length;
+  const timeShare = Math.min(0.94, (Date.now() - p.started) / p.eta), pct = p.done ? 100 : Math.round(Math.max(doneShare * 100, timeShare * 100, 6));
+  const left = Math.ceil((p.eta - (Date.now() - p.started)) / 1000);
+  for (const bar of view.querySelectorAll('.bk-think-bar span')) bar.style.width = `${pct}%`;
+  for (const line of view.querySelectorAll('.bk-think-eta')) line.textContent = p.done ? t('build.think.ready') : left > 0 ? t('build.think.eta', { seconds: left }) : t('build.think.almost');
+}
+// The supplier calls answer in ~10–20 s the first time, ~30 ms from the cache: the median of this browser's last waits.
+const ETA_KEY = 'gerbi-build-ms', ETA_MAX = 25000;
+function etaMs() { try { const xs = JSON.parse(localStorage.getItem(ETA_KEY) || '[]').filter(Number.isFinite).sort((a, b) => a - b); return xs.length ? Math.min(ETA_MAX, Math.max(1500, xs[Math.floor(xs.length / 2)])) : 15000; } catch { return 15000; } }
+function rememberEta(ms) { try { const xs = JSON.parse(localStorage.getItem(ETA_KEY) || '[]'); localStorage.setItem(ETA_KEY, JSON.stringify([...xs, ms].slice(-7))); } catch { /* convenience only */ } }
+
+// A follow-up keeps what its change did not touch (owner 23.11.2026: "the package updates", not a new one): the same
+// flight search (and flight wishes) keeps the flights and the chosen one, the same hotel search keeps its hotels, the
+// same day plan keeps the visitor's own edits to it, and insurance / a car toggled by hand stay as they were.
+const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+const flightKey = (p) => ({ s: p.flightSearch, f: p.request?.prefs?.flight || {}, d: Boolean(p.request?.needs?.direct), b: (p.request?.budget || 0) > 0 });
+function keepUnchanged(before, next) {
+  const kept = [];
+  if (before.flights?.status === 'live' && same(flightKey(before), flightKey(next))) { next.flights = before.flights; next.manual = before.manual; kept.push('flights'); }
+  const groups = before.hotels?.stops || [before.hotels], nextGroups = next.hotels.stops || [next.hotels];
+  nextGroups.forEach((g, i) => { if (groups[i] && !['pending'].includes(groups[i].status) && same(before.planHotelSearches?.[i], next.hotelSearches?.[i])) { Object.assign(g, groups[i]); next.hotelSearches[i] = before.hotelSearches[i]; kept.push('hotels'); } });
+  if (same(before.planItinerary, next.itinerary)) { next.itinerary = before.itinerary; next.spare = before.spare; next.polish = before.polish; kept.push('itinerary'); }
+  next.insurance = { ...before.insurance };
+  if (before.request?.needs?.car === next.request?.needs?.car && before.destination?.id === next.destination?.id) next.car.include = before.car.include;
+  return kept;
+}
 async function build(input) {
   const before = pkg?.destination ? pkg : null, followUp = (input.thread || []).length > 1;
   if (!followUp) turns = []; else if (before && lastInput) turns.push({ you: (lastInput.thread || [lastInput.text]).at(-1), said: planLine(before) });
   lastInput = input; const mine = ++version;
   // In a conversation the turns (and the latest message) read top to bottom inside the reply; the top bubble is for a first message.
-  const you = $('.gb-you', view); if (you && input.text) { you.querySelector('p').textContent = input.text; you.hidden = followUp; } leadOpen = false; showAllHotels = new Set();
+  const you = $('.gb-you', view); if (you && input.text) { you.querySelector('p').textContent = input.text; you.hidden = followUp; } leadOpen = false; showAllHotels = new Set(); openDays = new Set(); dayExpand = {}; stayExpand = {}; showAllAttractions = false;
   const out = $('#build-result'), err = $('.build-error', view), button = $('.build-submit', view);
   err.hidden = true; button.disabled = true; button.setAttribute('aria-busy', 'true');
-  out.setAttribute('aria-busy', 'true'); out.innerHTML = skeletonHtml(); announce(t('build.status.planning'));
+  out.setAttribute('aria-busy', 'true');
+  // Facts from the first moment: the plan's country on a follow-up, else a guess from the text (Italy for "ברומא").
+  const target = followUp && before ? { id: before.destination.id, code: before.destination.code } : { cc: guessCountry([input.text, ...(input.thread || [])].join(' ')) };
+  const p = newProgress(mine, target), place = followUp && before ? L(before.destination.name) : '';
+  out.innerHTML = historyHtml() + thinkingHtml(place, !followUp); announce(place ? t('build.think.title', { place }) : t('build.think.titleAny')); pollChoices = followUp ? pollChoices : [];
+  p.facts = startDidYouKnow($('.bk-think-facts', out), target, { inside: true }); thinking = true;
   try {
     const plan = await post('/api/build', input);
     if (mine !== version) return;
     pkg = { ...plan, manual: false, fit: null, extras: [], chatReply: followUp ? describeChange(before, plan, lang) : null, flights: { status: plan.flightSearch ? 'pending' : 'quote' },
       hotels: plan.stops?.length ? { stops: plan.hotelSearches.map((s, i) => ({ status: s ? 'pending' : 'quote', stop: i, area: plan.hotelAreas[i] })) } : { status: plan.hotelSearches[0] ? 'pending' : 'quote', area: plan.hotelAreas[0] },
-      car: { ...plan.car }, insurance: { include: false }, polish: null };
-    if (!pkg.destination) { out.removeAttribute('aria-busy'); out.innerHTML = suggestionsOnlyHtml(); announce(t('build.status.suggest')); return; }
-    // "Gerbi is thinking" (owner 18.11.2026): the plan is shown once the live prices are in and fitted to the budget –
-    // never an interim over-budget state. At least THINK_MIN ms (it reads as thought, not a flash), at most THINK_MAX
-    // (a slow supplier never holds the page: what has not arrived shows as "pending" and fills in later).
-    const place = L(pkg.destination.name), started = Date.now();
-    // A follow-up keeps the conversation on screen while it thinks, and skips the waiting poll (already asked).
-    out.innerHTML = historyHtml() + thinkingHtml(place, !followUp); announce(t('build.think.title', { place })); pollChoices = [];
-    const stopEta = startEta(out, started); thinking = true;
-    const stopFacts = startDidYouKnow($('.bk-think-steps', out), pkg.destination.code);
-    const tick = (step) => $(`[data-think="${step}"]`, out)?.classList.add('done');
-    setTimeout(() => tick('plan'), 400);
-    const jobs = [fetchFlights(mine).then(() => tick('flights')), Promise.all(hotelGroups().map((_, i) => fetchHotels(mine, i))).then(() => tick('hotels'))];
-    fetchPolish(mine);
-    await Promise.race([Promise.allSettled(jobs), new Promise((r) => setTimeout(r, THINK_MAX))]);
-    tick('budget'); await new Promise((r) => setTimeout(r, Math.max(350, THINK_MIN - (Date.now() - started))));
-    stopFacts(); stopEta(true); thinking = false;
+      car: { ...plan.car }, insurance: { include: false }, polish: null,
+      planItinerary: JSON.parse(JSON.stringify(plan.itinerary || [])), planHotelSearches: JSON.parse(JSON.stringify(plan.hotelSearches || [])) };
+    if (!pkg.destination) { stopProgress(); thinking = false; out.removeAttribute('aria-busy'); out.innerHTML = suggestionsOnlyHtml(); announce(t('build.status.suggest')); return; }
+    const kept = followUp && before ? keepUnchanged(before, pkg) : [];
+    if (followUp && pkg.chatReply && kept.includes('flights')) pkg.kept = kept;
+    p.facts?.retarget({ id: pkg.destination.id, code: pkg.destination.code });
+    const where = L(pkg.destination.name);
+    for (const h of out.querySelectorAll('.bk-think h2')) h.textContent = t('build.think.title', { place: where });
+    setStep('understand', 'done', t('build.think.done.understand', { place: where }));
+    setStep('route', 'done', t('build.think.done.route', { days: pkg.itinerary.length }));
+    setStep('flights', pkg.flights.status === 'pending' ? 'active' : 'done', pkg.flights.status === 'live' ? t('build.think.done.flights', { count: pkg.flights.total }) : t('build.think.done.flightsQuote'));
+    const pendingHotels = hotelGroups().map((g, i) => (g.status === 'pending' ? i : -1)).filter((i) => i >= 0);
+    setStep('hotels', pendingHotels.length ? 'active' : 'done', t('build.think.done.hotelsQuote'));
+    setStep('budget', 'active');
+    // Everything that is still missing, in parallel; the page shows the plan after GRACE_MS whatever has arrived.
+    const jobs = [fetchFlights(mine), Promise.all(pendingHotels.map((i) => fetchHotels(mine, i))).then(() => { if (mine === version && pendingHotels.length) setStep('hotels', 'done', hotelsLabel()); })];
+    if (!pkg.polish) fetchPolish(mine);
+    const all = Promise.allSettled(jobs).then(() => finishProgress(mine));
+    await Promise.race([all, new Promise((r) => setTimeout(r, GRACE_MS))]);
     if (mine !== version) return;
-    fitBudget(); render(); remember(); if (!followUp) track('plan_shown'); announce(t('build.status.skeleton', { place }));
+    const facts = out.querySelector('.did-you-know');
+    fitBudget(); render(); remember(); if (!followUp) track('plan_shown'); announce(t('build.status.skeleton', { place: where }));
+    if (facts && progress && !progress.done) $('#bc-live .bk-think-facts', view)?.append(facts);
+    paintSteps();
     $('#build-result h2')?.focus({ preventScroll: false });
   } catch (error) {
     if (mine !== version) return;
+    stopProgress(); thinking = false;
     out.removeAttribute('aria-busy'); out.innerHTML = ''; err.textContent = error.message || t('build.err.generic'); err.hidden = false;
   } finally { if (mine === version) { button.disabled = false; button.removeAttribute('aria-busy'); } }
 }
+const hotelsLabel = () => { const gs = hotelGroups(), n = gs.reduce((a, g) => a + (g.status === 'live' ? g.total || g.picks?.length || 0 : g.estimate?.count || 0), 0); return n ? t('build.think.done.hotels', { count: n }) : t('build.think.done.hotelsQuote'); };
+// The last answer is in: the budget fit, then the strip says so and folds (the facts stop).
+function finishProgress(mine) {
+  if (mine !== version || !progress || progress.mine !== mine) return;
+  fitBudget(); if (pkg?.destination && view?.isConnected) repaintPrices(); persist();
+  const b = pkg?.request?.budget ? pricePackage(pkg, getFx()).budget : null;
+  setStep('budget', 'done', b ? t(b.verdict === 'over' ? 'build.think.done.budgetOver' : 'build.think.done.budget') : t('build.think.done.total'));
+  progress.done = true; paintEta(progress); rememberEta(Date.now() - progress.started);
+  clearInterval(progress.timer); progress.facts?.(); progress.facts = null; thinking = false;
+  const live = $('#bc-live', view);
+  if (live) { live.classList.add('bk-live-done'); live.removeAttribute('aria-busy'); live.querySelector('.bk-think-facts')?.remove(); const notify = live.querySelector('.bk-notify'); if (notify && !notify.open) notify.remove(); /* never under someone typing */ const h = live.querySelector('h2, h3'); if (h) h.textContent = t('build.live.done'); }
+  announce(t('build.live.done'));
+}
 async function fetchFlights(mine) {
-  if (!pkg.flightSearch) return;
+  if (!pkg.flightSearch || pkg.flights.status !== 'pending') return;
   try {
     const result = await post('/api/build/flights', { search: pkg.flightSearch, request: { adults: pkg.request.adults, children: pkg.request.children, needs: pkg.request.needs, budget: pkg.request.budget || null, prefs: pkg.request.prefs || null } });
     if (mine !== version) return;
     pkg.flights = result.status === 'live' ? result : { status: 'quote', reason: result.reason || result.status };
   } catch (error) { if (mine === version) pkg.flights = { status: 'quote', reason: error.status === 429 ? 'rate_limited' : '' }; }
   if (mine !== version) return;
+  setStep('flights', 'done', pkg.flights.status === 'live' ? t('build.think.done.flights', { count: pkg.flights.total }) : t('build.think.done.flightsQuote'));
   fitBudget(); repaintPrices(); persist();
   announce(pkg.flights.status === 'live' ? t('build.status.flights', { count: pkg.flights.picks.length }) : t('build.status.flightsQuote'));
 }
@@ -148,7 +232,7 @@ function fitBudget() {
   const result = fitPackage(pkg, getFx());
   if (result) pkg.fit = { ...result, steps: [...new Set([...(pkg.fit?.steps || []), ...result.steps])] };
 }
-function repaintPrices() { for (const part of ['flights', 'hotels', 'car', 'total', 'banner', 'upsell']) paint(part); }
+function repaintPrices() { for (const part of ['flights', 'hotels', 'car', 'total', 'banner', 'upsell', 'stay']) paint(part); }
 async function fetchHotels(mine, i, area) {
   const spec = pkg.hotelSearches?.[i];
   if (!spec) return;
@@ -173,16 +257,6 @@ async function fetchPolish(mine) {
 }
 
 // ---- rendering
-const THINK_MIN = 2500, THINK_MAX = 20000, ETA_KEY = 'gerbi-build-ms';
-// How long a plan usually takes here: the median of this browser's last builds (a new flight search ~8–15 s, a cached
-// one ~3 s), 10 s before there is any. Shown as "ready in about N seconds" with a bar – a known wait feels shorter.
-function etaMs() { try { const xs = JSON.parse(localStorage.getItem(ETA_KEY) || '[]').filter(Number.isFinite).sort((a, b) => a - b); return xs.length ? Math.min(THINK_MAX, Math.max(THINK_MIN, xs[Math.floor(xs.length / 2)])) : 10000; } catch { return 10000; } }
-function startEta(out, started) {
-  const eta = etaMs(), bar = $('.bk-think-bar span', out), line = $('.bk-think-eta', out);
-  const tick = () => { const left = Math.ceil((eta - (Date.now() - started)) / 1000); if (bar) bar.style.width = `${Math.min(96, ((Date.now() - started) / eta) * 100)}%`; if (line) line.textContent = left > 0 ? t('build.think.eta', { seconds: left }) : t('build.think.almost'); };
-  tick(); const timer = setInterval(tick, 250);
-  return (done) => { clearInterval(timer); if (!done) return; try { const xs = JSON.parse(localStorage.getItem(ETA_KEY) || '[]'); localStorage.setItem(ETA_KEY, JSON.stringify([...xs, Date.now() - started].slice(-7))); } catch { /* convenience only */ } };
-}
 // While it thinks: three one-tap questions (labour that improves the result keeps people in; answers apply in one tap).
 const POLL = [['flight', ['direct', 'cheap', 'noNight']], ['hotel', ['beach', 'center', 'any']], ['pace', ['relaxed', 'balanced', 'packed']]];
 function pollHtml(i = 0) {
@@ -235,11 +309,20 @@ function resumeHtml(last) {
    <p class="micro-copy">${esc((last.input.thread || [last.input.text]).join(' · ').slice(0, 220))}</p>
    <div class="bk-resume-acts"><button type="button" class="button yellow" data-resume="go">${t('build.resume.go')}</button><button type="button" class="button secondary" data-resume="new">${t('build.resume.new')}</button></div></section>`;
 }
+// The mascot "thinks": it bobs, a little plane circles it, thought dots pulse (all CSS; still with reduced motion).
+const mascotHtml = (size = 88) => `<div class="bk-think-mascot" aria-hidden="true" style="--m:${size}px"><span class="bk-think-glow"></span><img src="/assets/mascot.webp" alt="" width="${size}" height="${size}"><span class="bk-think-orbit"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><span class="bk-think-bubbles"><i></i><i></i><i></i></span></div>`;
 function thinkingHtml(place, poll = true) {
-  const steps = ['plan', 'flights', 'hotels', 'budget'];
-  return `<section class="bk-card bk-think" aria-live="polite"><h2 tabindex="-1"><span class="bk-think-dot" aria-hidden="true"></span>${t('build.think.title', { place: esc(place) })}</h2>
-   <p class="bk-think-eta micro-copy"></p><div class="bk-think-bar" aria-hidden="true"><span></span></div>
-   <ol class="bk-think-steps">${steps.map((s) => `<li data-think="${s}">${t(`build.think.${s}`)}</li>`).join('')}</ol>${notifyHtml()}${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
+  return `<section class="bk-card bk-think" aria-busy="true"><div class="bk-think-top">${mascotHtml()}<div class="bk-think-head" aria-live="polite"><h2 tabindex="-1">${place ? t('build.think.title', { place: esc(place) }) : t('build.think.titleAny')}</h2>
+   <p class="bk-think-eta micro-copy" aria-live="off"></p></div></div><div class="bk-think-bar" aria-hidden="true"><span></span></div>
+   <ol class="bk-think-steps">${stepsHtml()}</ol><div class="bk-think-facts"></div>${notifyHtml()}${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
+}
+// The same steps above the plan while live prices are still on their way (the poll moves with them).
+function liveHtml() {
+  if (!progress || progress.done) return '';
+  const poll = $('.bk-poll-host', view)?.innerHTML || '';
+  return `<section class="bk-card bk-think bk-live" id="bc-live" aria-busy="true"><div class="bk-think-top">${mascotHtml(56)}<div class="bk-think-head" aria-live="polite"><h3>${t('build.live.title')}</h3>
+   <p class="bk-think-eta micro-copy" aria-live="off"></p></div></div><div class="bk-think-bar" aria-hidden="true"><span></span></div>
+   <ol class="bk-think-steps">${stepsHtml()}</ol><div class="bk-think-facts"></div>${notifyHtml()}${poll ? `<div class="bk-poll-host">${poll}</div>` : ''}</section>`;
 }
 function skeletonHtml() {
   return `<div class="build-skeleton" aria-hidden="true">${['where', 'flights', 'hotels', 'itinerary'].map(() => '<div class="bk-card bk-skel"><span></span><span></span><span></span></div>').join('')}</div><p class="micro-copy">${t('build.status.planning')}</p>`;
@@ -258,13 +341,14 @@ function render() {
   out.removeAttribute('aria-busy');
   const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
   const stale = pkg.sharedAt && isStale(pkg.flights?.searchedAt || pkg.sharedAt);
-  out.innerHTML = `${historyHtml()}${pkg.chatReply ? `<p class="bk-reply">${pkg.chatReply.length ? t('build.chat.reply', { list: esc(pkg.chatReply.join(' · ')) }) : t('build.chat.noChange')}</p>` : ''}<div class="bk-summary">
+  out.innerHTML = `${historyHtml()}${pkg.chatReply ? `<p class="bk-reply">${pkg.chatReply.length ? t('build.chat.reply', { list: esc(pkg.chatReply.join(' · ')) }) : t('build.chat.noChange')}${pkg.kept?.includes('flights') ? ` <small>${t('build.chat.kept')}</small>` : ''}</p>` : ''}${liveHtml()}<div class="bk-summary">
     ${pkg.destination.image ? `<img class="bk-hero-img" src="${esc(pkg.destination.image)}" alt="" data-fallback>` : ''}
     <div><span class="eyebrow">${t('build.result.kicker')}</span><h2 tabindex="-1">${esc(stops.map((s) => L(s.name)).join(' ← '))}</h2>
     <p>${esc(longDay(r.start))} – ${esc(longDay(r.end))} · ${t('build.nights', { count: r.nights })} · ${esc(travellersText(r))}</p>
     ${pkg.understood?.length ? `<p class="bk-understood"><span class="reply-label">${t('build.understood')}</span> ${pkg.understood.map((u) => `<span class="understood-chip">${esc(u.label)}</span>`).join('')}</p>` : ''}
     ${pkg.assumed?.length ? `<p class="micro-copy bk-assumed">${t('build.assumed', { list: esc(pkg.assumed.join(' · ')) })}</p>` : ''}
     ${pkg.questions?.length ? `<p class="next-question">${pkg.questions.map(esc).join('<br>')}</p>` : ''}
+    ${pkg.sharedAt ? '' : `<p class="bk-talk"><button type="button" class="link-button" data-chat-jump>${icon('spark')}${t('build.chat.talk')}</button></p>`}
     ${stale ? `<p class="notice">${t('build.shared.stale', { time: esc(fmtDate(pkg.sharedAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) })} <button type="button" class="link-button" data-act="refresh">${t('build.shared.refresh')}</button></p>` : ''}
     </div></div>
    <div id="bc-banner" class="bk-banner-host"></div>
@@ -275,9 +359,11 @@ function render() {
      <section class="bk-card" id="bc-where" aria-labelledby="bh-where"></section>
      <section class="bk-card" id="bc-flights" aria-labelledby="bh-flights"></section>
      <section class="bk-card" id="bc-hotels" aria-labelledby="bh-hotels"></section>
+     <section class="bk-card bk-stay-card" id="bc-stay" aria-labelledby="bh-stay"></section>
      <section class="bk-card" id="bc-car" aria-labelledby="bh-car"></section>
      <section class="bk-card" id="bc-insurance" aria-labelledby="bh-insurance"></section>
      <section class="bk-card" id="bc-itinerary" aria-labelledby="bh-itinerary"></section>
+     <section class="bk-card bk-att-card" id="bc-attractions" aria-labelledby="bh-attractions"></section>
      <section class="bk-card" id="bc-practical" aria-labelledby="bh-practical"></section>
      ${chatHtml()}
     </div>
@@ -293,11 +379,29 @@ function render() {
      </div>
      <section class="bk-card bk-lead" id="bc-lead" ${leadOpen ? '' : 'hidden'}></section>
     </aside>
-   </div>`;
-  for (const part of ['where', 'flights', 'hotels', 'car', 'insurance', 'itinerary', 'practical', 'total', 'banner', 'upsell']) paint(part);
+   </div>
+   <button type="button" class="bk-chat-fab" data-chat-jump hidden>${icon('spark')}<span>${t('build.chat.fab')}</span></button>`;
+  for (const part of ['where', 'flights', 'hotels', 'stay', 'car', 'insurance', 'itinerary', 'attractions', 'practical', 'total', 'banner', 'upsell']) paint(part);
   if (leadOpen) paintLead();
   wireImages(out);
-  loadBrochureData().then((x) => { brochureData = x; }).catch(() => {});
+  // Details (what it is, a tip, a rough ticket price) fill the attractions and the day ideas once loaded.
+  loadBrochureData().then((x) => { const first = !brochureData; brochureData = x; if (first && pkg?.destination && view?.isConnected) { paint('attractions'); if (openDays.size) paint('itinerary'); } }).catch(() => {});
+  chatFab();
+}
+// "Talk to Gerbi" (owner 23.11.2026): the follow-up box is the last card – on a phone far below. A floating button
+// brings it into view (and focuses it) whenever it is off screen.
+let fabObserver = null;
+function chatFab() {
+  fabObserver?.disconnect();
+  const fab = $('.bk-chat-fab', view), chat = $('#bc-chat', view);
+  if (!fab || !chat || typeof IntersectionObserver === 'undefined') return;
+  fabObserver = new IntersectionObserver(([e]) => { fab.hidden = e.isIntersecting || !pkg?.destination; }, { threshold: 0.1 });
+  fabObserver.observe(chat);
+}
+function jumpToChat() {
+  const chat = $('#bc-chat', view);
+  chat?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  $('#build-follow-text', view)?.focus({ preventScroll: true });
 }
 // ---- the conversation (owner 18.11.2026): options with "נמשיך מפה", a follow-up box with quick chips, the turns so far.
 const planLine = (p) => `${(p.stops?.length ? p.stops : [p.destination]).map((s) => L(s.name)).join(' ← ')} · ${t('build.nights', { count: p.request.nights })}`;
@@ -321,11 +425,14 @@ function chatHtml() {
   const chips = FOLLOW_CHIPS.filter((c) => !(c === 'direct' && (n.direct || fp.direct)) && !(c === 'noNight' && fp.noNight) && !(c === 'bag' && fp.checkedBag) && !(c === 'car' && pkg.car?.include) && !(c === 'lessNight' && r.nights <= 2));
   return `<section class="bk-card bk-chat" id="bc-chat" aria-labelledby="bh-chat"><h3 id="bh-chat">${icon('spark')}${t('build.chat.title')}</h3><p class="micro-copy">${t('build.chat.intro')}</p>
    <div class="bk-chat-chips" role="group" aria-label="${esc(t('build.chat.chipsLabel'))}">${chips.map((c) => `<button type="button" class="chip" data-say="${esc(t(`build.chat.chip.${c}.say`))}">${t(`build.chat.chip.${c}`)}</button>`).join('')}</div>
-   ${pollChoices.length ? `<p class="bk-poll-apply">${t('build.poll.picked', { list: esc(pollChoices.map((x) => x.label).join(' · ')) })} <button type="button" class="button secondary" data-say="${esc(pollChoices.map((x) => x.say).join(', '))}" data-poll-apply>${t('build.poll.apply')}</button></p>` : ''}
+   <div class="bk-poll-apply-host">${pollApplyHtml()}</div>
    <form id="build-follow" class="bk-chat-form" novalidate><label class="sr-only" for="build-follow-text">${t('build.chat.title')}</label>
     <textarea id="build-follow-text" rows="2" maxlength="600" placeholder="${esc(t('build.chat.placeholder'))}"></textarea>
     <button type="submit" class="button yellow">${t('build.chat.send')}</button></form></section>`;
 }
+// The poll can now be answered after the plan is on screen: its "apply" line lives in the chat card and follows it.
+const pollApplyHtml = () => (pollChoices.length ? `<p class="bk-poll-apply">${t('build.poll.picked', { list: esc(pollChoices.map((x) => x.label).join(' · ')) })} <button type="button" class="button secondary" data-say="${esc(pollChoices.map((x) => x.say).join(', '))}" data-poll-apply>${t('build.poll.apply')}</button></p>` : '');
+function paintPollApply() { const host = $('.bk-poll-apply-host', view); if (host) host.innerHTML = pollApplyHtml(); }
 // A follow-up turn: the whole conversation goes to the server (it rebuilds the request from the texts), seeded with the
 // plan as it stands so "עוד לילה" counts from the nights on screen.
 function followUp(text) {
@@ -334,7 +441,11 @@ function followUp(text) {
   const thread = [...(lastInput?.thread || [lastInput?.text || '']), said].filter(Boolean).slice(-8);
   const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
   track('followup');
-  build({ ...lastInput, text: said, thread, chosen: '', current: { dest: [...new Set(stops.map((s) => s.id))], nights: pkg.request.nights, start: pkg.request.start } });
+  const ids = [...new Set(stops.map((s) => s.id))], legNights = ids.map((id) => stops.filter((s) => s.id === id).reduce((a, s) => a + (s.nights || 0), 0));
+  // Nights / start set by hand become the plan's own state (sent as `current`), so a later "one more night" counts from them
+  // instead of being overwritten by the old edit on every turn.
+  const { nights: n, start: s, ...edits } = lastInput?.edits || {}, edited = Boolean(lastInput?.current?.edited || n !== undefined || s !== undefined);
+  build({ ...lastInput, edits, text: said, thread, chosen: '', current: { dest: ids, nights: pkg.request.nights, start: pkg.request.start, legNights, edited } });
 }
 function wireImages(root) { root.querySelectorAll('img[data-fallback]').forEach((img) => img.addEventListener('error', () => img.classList.add('bk-noimg'), { once: true })); }
 
@@ -433,7 +544,7 @@ const PAINT = {
      <ol class="bk-days">${days.map((d, i) => `<li class="bk-day bk-day-${esc(d.kind)}"><div class="bk-day-head"><span class="day-number">${d.day}</span><div><strong>${esc(d.title)}</strong><small>${esc(longDay(d.date))}${pkg.stops?.length ? ' · ' + esc(L(pkg.stops[d.stop]?.name)) : ''}</small></div>
        ${movable(d) ? `<span class="bk-day-move"><button type="button" class="icon-button" data-day-up="${i}" aria-label="${esc(t('build.itinerary.up', { day: d.day }))}" ${i > 0 && movable(days[i - 1]) ? '' : 'disabled'}>▲</button><button type="button" class="icon-button" data-day-down="${i}" aria-label="${esc(t('build.itinerary.down', { day: d.day }))}" ${i < days.length - 1 && movable(days[i + 1]) ? '' : 'disabled'}>▼</button></span>` : ''}</div>
        ${d.items.length ? `<ul>${d.items.map((x, j) => `<li><a href="${esc(x.mapsUrl)}" target="_blank" rel="noopener noreferrer">${esc(x.name)}</a> <small>${x.durationH ? t('build.itinerary.hours', { hours: x.durationH }) : ''}</small><button type="button" class="link-button" data-remove-item="${i}:${j}" aria-label="${esc(t('build.itinerary.remove', { name: x.name }))}">✕</button></li>`).join('')}</ul>` : ''}
-       ${d.note ? `<p class="micro-copy">${esc(d.note)}</p>` : ''}</li>`).join('')}</ol>
+       ${d.note ? `<p class="micro-copy">${esc(d.note)}</p>` : ''}${dayMoreHtml(d, i)}</li>`).join('')}</ol>
      ${pkg.spare?.length ? `<details class="bk-spare"><summary>${t('build.itinerary.spare', { count: pkg.spare.length })}</summary><ul>${pkg.spare.map((x, k) => `<li><a href="${esc(x.mapsUrl)}" target="_blank" rel="noopener noreferrer">${esc(x.name)}</a> <button type="button" class="link-button" data-add-spare="${k}">${t('build.itinerary.add')}</button></li>`).join('')}</ul></details>` : ''}`;
   },
   practical() {
@@ -456,8 +567,121 @@ const PAINT = {
     const b = pricePackage(pkg, getFx()).budget;
     return b?.verdict === 'over' ? `<p class="bk-budget-banner">${t('build.budget.banner', { diff: esc(formatIls(b.diff)), budget: esc(formatIls(b.amount)) })} <a href="#bc-total" data-budget-jump>${t('build.budget.bannerLink')}</a></p>` : '';
   },
-  upsell() { return upsellHtml(); }
+  upsell() { return upsellHtml(); },
+  attractions() { return attractionsHtml(); },
+  stay() { return stayHtml(); }
 };
+
+// ---- variety and expansions (owner 23.11.2026). The rules give every day up to three more ideas of other kinds and
+// the catalog's details (what it is, a tip, a rough ticket price); "הרחב עם ג׳רבי" asks the model for a tip and extra
+// ideas (marked AI, never a price). Everything works without a key.
+const infoOf = (x) => (x?.dest && x?.en ? brochureData?.info?.[`${x.dest}|${x.en}`] : null) || null;
+const imageOf = (x) => (x?.dest && x?.en ? tripImages[`${x.dest}|${x.en}`] : '') || '';
+function ticketText(x) {
+  const p = infoOf(x)?.ticketIls;
+  if (!p || !Number.isFinite(p.high)) return '';
+  return p.high <= 0 ? `<span class="bk-att-free">${t('build.att.free')}</span>` : `<span class="bk-att-price">${range(p.low, p.high)} <small>${t('build.att.perAdult')}</small> ${kindPill('estimate')}</span>`;
+}
+const attKind = (k) => t(`build.att.kind.${['landmark', 'museum', 'neighborhood', 'market', 'viewpoint', 'experience', 'park', 'nature', 'beach', 'religious', 'food', 'evening', 'daytrip'].includes(k) ? k : 'experience'}`);
+const metaLine = (x) => [attKind(x.kind), x.area && !/^#/.test(x.area) ? x.area : '', x.durationH ? t('build.itinerary.hours', { hours: x.durationH }) : ''].filter(Boolean).map(esc).join(' · ');
+function dayMoreHtml(d, i) {
+  const can = ['full', 'arrival', 'move', 'daytrip', 'free', 'rest'].includes(d.kind) && (d.more?.length || pkg.config?.ai || d.items.some(infoOf));
+  if (!can || pkg.sharedAt) return '';
+  const open = openDays.has(i), ai = dayExpand[i];
+  const head = `<button type="button" class="bk-more-toggle" data-day-more="${i}" aria-expanded="${open}" aria-controls="bk-more-${i}">${icon('spark')}${t(d.more?.length ? 'build.more.toggle' : 'build.more.toggleDetails', { count: d.more?.length || 0 })}</button>`;
+  if (!open) return head;
+  const details = d.items.map((x) => ({ x, info: infoOf(x) })).filter((y) => y.info?.about || y.info?.tip);
+  const aiPart = !ai ? (pkg.config?.ai ? `<button type="button" class="button secondary bk-expand" data-expand-day="${i}">${icon('spark')}${t('build.more.expand')}</button>` : '')
+    : ai.state === 'loading' ? `<p class="bk-pending" aria-busy="true">${t('build.more.loading')}</p>`
+    : ai.state === 'none' ? `<p class="micro-copy">${t('build.more.none')}</p>`
+    : `<div class="bk-ai-box">${ai.tip ? `<p><strong>${t('build.more.tip')}</strong> ${esc(ai.tip)}</p>` : ''}${ai.ideas?.length ? `<ul class="bk-more-list">${ai.ideas.map((x, k) => `<li><div><a href="${esc(x.mapsUrl)}" target="_blank" rel="noopener noreferrer">${esc(x.name)}</a> <small>${esc(attKind(x.kind))}</small><p class="micro-copy">${esc(x.why)}</p></div>${x.added ? `<span class="bk-added">${t('build.more.added')}</span>` : `<button type="button" class="button secondary" data-add-idea="${i}:${k}">${t('build.itinerary.add')}</button>`}</li>`).join('')}</ul>` : ''}<p class="micro-copy bk-ai">${t('build.more.aiNote')}</p></div>`;
+  return head + `<div class="bk-day-more" id="bk-more-${i}">
+    ${details.length ? `<ul class="bk-day-details">${details.map(({ x, info }) => `<li><strong>${esc(x.name)}</strong>${info.about ? ` ${esc(L(info.about))}` : ''}${info.tip ? `<br><small><b>${t('build.more.tip')}</b> ${esc(L(info.tip))}</small>` : ''} ${ticketText(x)}</li>`).join('')}</ul>` : ''}
+    ${d.more?.length ? `<h5>${t('build.more.title')}</h5><ul class="bk-more-list">${d.more.map((x, k) => `<li>${imageOf(x) ? `<img src="${esc(imageOf(x))}" alt="" loading="lazy" width="64" height="48" data-fallback>` : ''}<div><a href="${esc(x.mapsUrl)}" target="_blank" rel="noopener noreferrer">${esc(x.name)}</a> <small>${metaLine(x)}</small>${infoOf(x)?.about ? `<p class="micro-copy">${esc(L(infoOf(x).about))}</p>` : ''} ${ticketText(x)}</div><button type="button" class="button secondary" data-add-more="${i}:${k}">${t('build.itinerary.add')}</button></li>`).join('')}</ul>` : ''}
+    ${aiPart}</div>`;
+}
+// Adds an item to a day and takes it out of every list of ideas (spare, other days' ideas).
+function addToDay(day, x) {
+  day.items.push(x);
+  const sameItem = (y) => y.name === x.name && (y.dest || '') === (x.dest || '');
+  pkg.spare = (pkg.spare || []).filter((y) => !sameItem(y));
+  for (const d of pkg.itinerary) if (d.more) d.more = d.more.filter((y) => !sameItem(y));
+  if (day.kind === 'free') { day.kind = 'full'; day.note = ''; day.title = x.name; }
+  for (const a of pkg.attractions || []) if (sameItem(a)) a.day = day.day;
+}
+// Where a place from the attractions list goes: a full day in its area with room, else a free day, else the lightest.
+function bestDayFor(x) {
+  const days = pkg.itinerary.filter((d) => ['full', 'free'].includes(d.kind) && (!pkg.stops?.length || L(pkg.stops[d.stop]?.name) === x.where || pkg.stops[d.stop]?.id === x.dest));
+  const pool = days.length ? days : pkg.itinerary.filter((d) => ['full', 'free'].includes(d.kind));
+  return pool.find((d) => d.kind === 'full' && d.items.length < 4 && d.items.some((y) => y.area && y.area === x.area)) || pool.find((d) => d.kind === 'free')
+    || [...pool].sort((a, b) => a.items.length - b.items.length)[0] || pkg.itinerary[0];
+}
+async function expandDay(i) {
+  const d = pkg.itinerary[i], mine = version;
+  dayExpand[i] = { state: 'loading' }; paint('itinerary'); $(`[data-day-more="${i}"]`, view)?.focus();
+  const known = [...(pkg.spare || []), ...pkg.itinerary.flatMap((x) => [...x.items, ...(x.more || [])])].map((x) => x.name);
+  try {
+    const where = L((pkg.stops?.length ? pkg.stops[d.stop] : pkg.destination)?.name);
+    const data = await post('/api/build/expand', { kind: 'day', destination: where, travellers: travellersText(pkg.request), area: d.items.find((x) => x.area && !/^#/.test(x.area))?.area || '', planned: d.items.map((x) => x.name), known });
+    if (mine !== version) return;
+    dayExpand[i] = data.expand ? { state: 'ok', tip: data.expand.tip, ideas: (data.expand.ideas || []).map((x) => ({ ...x, mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${x.name}, ${where}`)}`, where })) } : { state: 'none' };
+  } catch { if (mine === version) dayExpand[i] = { state: 'none' }; }
+  if (mine !== version) return;
+  paint('itinerary'); announce(dayExpand[i].state === 'ok' ? t('build.more.ready', { day: d.day }) : t('build.more.none'));
+}
+
+// ---- the attractions section: the destination's places that suit these travellers, with photo, area, time, a rough
+// ticket price and whether (and when) they are in the plan; one tap adds one to a day.
+function attractionsHtml() {
+  const list = pkg.attractions || [];
+  if (!list.length) return '';
+  const shown = showAllAttractions ? list : list.slice(0, 6), multi = new Set(list.map((a) => a.dest)).size > 1;
+  return `<h3 id="bh-attractions">${icon('pin')}${t('build.att.title', { place: esc((pkg.stops?.length ? [...new Set(pkg.stops.map((s) => L(s.name)))] : [L(pkg.destination.name)]).join(', ')) })}</h3>
+   <p class="micro-copy">${t('build.att.intro')}</p>
+   <ul class="bk-attractions">${shown.map((a) => { const k = list.indexOf(a), img = imageOf(a), info = infoOf(a); return `<li class="bk-att${a.must ? ' bk-att-must' : ''}">
+    <div class="bk-att-img">${img ? `<img src="${esc(img)}" alt="" loading="lazy" data-fallback>` : `<span class="bk-att-ph" aria-hidden="true">${icon('pin')}</span>`}${a.must ? `<span class="bk-att-badge">${t('build.att.must')}</span>` : ''}</div>
+    <div class="bk-att-body"><h4><a href="${esc(a.mapsUrl)}" target="_blank" rel="noopener noreferrer">${esc(a.name)}</a></h4>
+     <p class="bk-att-meta">${metaLine(a)}${multi ? ` · ${esc(a.where)}` : ''}</p>
+     ${info?.about ? `<p class="bk-att-about">${esc(L(info.about))}</p>` : ''}
+     <p class="bk-att-tags">${ticketText(a)}${a.tags.map((x) => `<span class="pill">${esc(t(`build.att.tag.${x}`))}</span>`).join('')}${a.offSeason ? `<span class="pill pill-warn">${t('build.att.offSeason')}</span>` : ''}</p>
+     ${a.day ? `<p class="bk-att-in">${icon('calendar')}${t('build.att.inPlan', { day: a.day })}</p>` : `<button type="button" class="button secondary" data-add-att="${k}">${t('build.att.add')}</button>`}</div></li>`; }).join('')}</ul>
+   ${list.length > 6 ? `<button type="button" class="link-button" data-more-att aria-expanded="${showAllAttractions}">${showAllAttractions ? t('build.att.less') : t('build.att.more', { count: list.length })}</button>` : ''}`;
+}
+
+// ---- where to sleep: the catalog's areas of each stop – who it suits, how many planned places are there, the one
+// chosen for the hotel search (another one in one tap) and, with Gerbi, pros / cons / price level.
+function stayHtml() {
+  const stops = pkg.stops?.length ? pkg.stops : [pkg.destination], groups = hotelGroups();
+  const blocks = stops.map((s, i) => ({ s, i, areas: pkg.areas?.[i] || [] })).filter((b) => b.areas.length > 1 || (b.areas.length && !pkg.stops?.length));
+  if (!blocks.length || pkg.sharedAt) return '';
+  const planned = pkg.itinerary.flatMap((d) => d.items.map((x) => ({ ...x, stop: d.stop })));
+  return `<h3 id="bh-stay">${icon('hotel')}${t('build.stay.title')}</h3><p class="micro-copy">${t('build.stay.intro')}</p>` + blocks.map(({ s, i, areas }) => {
+    const chosen = groups[i]?.area ? L(groups[i].area.name) : '', ai = stayExpand[i];
+    const pro = (a) => ai?.state === 'ok' ? ai.areas.find((x) => x.name.trim().toLowerCase() === L(a.name).trim().toLowerCase()) : null;
+    return `${blocks.length > 1 ? `<h4>${esc(L(s.name))}</h4>` : ''}<ul class="bk-stay">${areas.map((a) => {
+      const near = planned.filter((x) => x.stop === i && x.area && (x.area === a.name.en || x.area === L(a.name))), here = chosen && chosen === L(a.name), p = pro(a);
+      return `<li class="bk-stay-area${here ? ' current' : ''}"><div><strong>${esc(L(a.name))}</strong>${here ? ` <span class="bk-current">${t('build.stay.chosen')}</span>` : ''}${p?.price ? ` <span class="pill">${t(`build.stay.price.${p.price}`)}</span>` : ''}
+        <p>${esc(L(a.forWhom))}</p>${near.length ? `<p class="micro-copy">${t('build.stay.near', { count: near.length, list: esc(near.slice(0, 3).map((x) => x.name).join(', ')) })}</p>` : ''}
+        ${p ? `<p class="bk-stay-pc"><span>👍 ${esc(p.pros)}</span>${p.cons ? `<span>👎 ${esc(p.cons)}</span>` : ''}</p>` : ''}</div>
+        ${!here && pkg.hotelSearches?.[i] ? `<button type="button" class="button secondary" data-stay-area="${i}" data-value="${esc(a.name.en || L(a.name))}">${t('build.stay.pick')}</button>` : ''}</li>`;
+    }).join('')}</ul>${!ai && pkg.config?.ai ? `<button type="button" class="button secondary bk-expand" data-expand-stay="${i}">${icon('spark')}${t('build.stay.expand')}</button>`
+      : ai?.state === 'loading' ? `<p class="bk-pending" aria-busy="true">${t('build.more.loading')}</p>` : ai?.state === 'none' ? `<p class="micro-copy">${t('build.more.none')}</p>` : ai?.state === 'ok' ? `<p class="micro-copy bk-ai">${t('build.more.aiNote')}</p>` : ''}`;
+  }).join('');
+}
+async function expandStay(i) {
+  const mine = version, s = (pkg.stops?.length ? pkg.stops : [pkg.destination])[i];
+  stayExpand[i] = { state: 'loading' }; paint('stay');
+  try {
+    const data = await post('/api/build/expand', { kind: 'stay', destination: L(s.name), travellers: travellersText(pkg.request), areas: (pkg.areas?.[i] || []).map((a) => ({ name: L(a.name), forWhom: L(a.forWhom) })) });
+    if (mine !== version) return;
+    stayExpand[i] = data.expand?.areas?.length ? { state: 'ok', areas: data.expand.areas } : { state: 'none' };
+  } catch { if (mine === version) stayExpand[i] = { state: 'none' }; }
+  if (mine === version) { paint('stay'); announce(stayExpand[i].state === 'ok' ? t('build.stay.ready') : t('build.more.none')); }
+}
+function setHotelArea(i, value) {
+  const area = (pkg.areas[i] || []).find((a) => (a.name.en || L(a.name)) === value);
+  hotelGroups()[i].area = area || null; fetchHotels(version, i, value); paint('stay');
+}
 // The budget box of the total card: within (with what is left), over (closest + three ways out), or not yet known.
 function budgetHtml(pr) {
   const b = pr.budget, money = (v) => esc(formatIls(v)), all = pkg.fit?.steps || [], steps = all.filter((s) => s !== 'restored');
@@ -596,7 +820,7 @@ function persist() { try { sessionStorage.setItem(CURRENT_KEY, JSON.stringify({ 
 function moveDay(i, delta) {
   const days = pkg.itinerary, j = i + delta, a = days[i], b = days[j];
   if (!b) return;
-  for (const key of ['kind', 'title', 'items', 'note']) [a[key], b[key]] = [b[key], a[key]];
+  for (const key of ['kind', 'title', 'items', 'note', 'more', 'ideas']) [a[key], b[key]] = [b[key], a[key]];
   paint('itinerary'); persist();
   $(`[data-day-${delta < 0 ? 'up' : 'down'}="${j}"]`, view)?.focus();
   announce(t('build.itinerary.moved', { from: a.day, to: b.day }));
@@ -643,7 +867,7 @@ function page({ view: host, footer, bread }) {
   area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-form', view).requestSubmit(); } });
   // Enter sends a follow-up too (Shift+Enter for a new line).
   view.addEventListener('keydown', (e) => { if (e.target.id === 'build-follow-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-follow', view)?.requestSubmit(); } });
-  loadFx(); track('view');
+  loadFx(); track('view'); loadFacts().catch(() => {}); // the first fact shows the moment they send
   if (shared && /^[a-f0-9]{16}$/.test(shared)) openShared(shared);
   else if (q || dest) build({ text: q, dest });
   else {
@@ -711,7 +935,7 @@ function wire() {
     if (!view?.contains(e.target) || !pkg) return;
     if (e.target.matches('[data-insurance]')) { pkg.insurance = { include: e.target.checked }; paint('insurance'); paint('total'); paint('banner'); paint('upsell'); persist(); $('[data-insurance]', view)?.focus(); }
     if (e.target.matches('[data-car]')) { pkg.car.include = e.target.checked; pkg.manual = true; paint('car'); paint('total'); paint('banner'); paint('upsell'); persist(); $('[data-car]', view)?.focus(); }
-    if (e.target.matches('[data-area]')) { const i = Number(e.target.dataset.area), area = (pkg.areas[i] || []).find((a) => (a.name.en || L(a.name)) === e.target.value); hotelGroups()[i].area = area || null; fetchHotels(version, i, e.target.value); }
+    if (e.target.matches('[data-area]')) setHotelArea(Number(e.target.dataset.area), e.target.value);
   });
   document.addEventListener('click', async (e) => {
     if (!view?.contains(e.target)) return;
@@ -726,7 +950,7 @@ function wire() {
       const b = el('[data-poll]'), [q, o] = b.dataset.poll.split('.'), host = b.closest('.bk-poll-host'), step = Number(b.closest('[data-poll-step]').dataset.pollStep);
       track('poll_answer');
       if (!['any', 'balanced'].includes(o)) pollChoices.push({ label: t(`build.poll.${q}.${o}`), say: t(`build.poll.${q}.${o}.say`) });
-      if (host) host.innerHTML = pollHtml(step + 1); host?.querySelector('button')?.focus(); return;
+      if (host) host.innerHTML = pollHtml(step + 1); paintPollApply(); host?.querySelector('button')?.focus(); return;
     }
     if (el('[data-resume]')) { const last = lastConversation(); if (el('[data-resume]').dataset.resume === 'go' && last) { track('resume_used'); $('#build-text').value = last.input.thread?.[0] || last.input.text || ''; build(last.input); } else { try { localStorage.removeItem(LAST_KEY); } catch { /* fine */ } $('#build-result').innerHTML = ''; $('#build-text').focus(); } return; }
     if (el('[data-continue]')) { track('option_continue'); const id = el('[data-continue]').dataset.continue; build({ ...lastInput, thread: lastInput?.thread || [lastInput?.text || ''], chosen: id, current: undefined }); return; }
@@ -762,8 +986,33 @@ function wire() {
     if (el('[data-more-hotels]')) { const i = Number(el('[data-more-hotels]').dataset.moreHotels); showAllHotels.has(i) ? showAllHotels.delete(i) : showAllHotels.add(i); paint('hotels'); $(`[data-more-hotels="${i}"]`, view)?.focus(); return; }
     if (el('[data-day-up]')) { moveDay(Number(el('[data-day-up]').dataset.dayUp), -1); return; }
     if (el('[data-day-down]')) { moveDay(Number(el('[data-day-down]').dataset.dayDown), 1); return; }
-    if (el('[data-remove-item]')) { const [i, j] = el('[data-remove-item]').dataset.removeItem.split(':').map(Number); const [item] = pkg.itinerary[i].items.splice(j, 1); pkg.spare = [item, ...(pkg.spare || [])]; paint('itinerary'); persist(); announce(t('build.itinerary.removed', { name: item.name })); $('#bh-itinerary', view)?.focus?.(); return; }
-    if (el('[data-add-spare]')) { const k = Number(el('[data-add-spare]').dataset.addSpare), [item] = pkg.spare.splice(k, 1); const day = pkg.itinerary.find((d) => d.kind === 'free') || pkg.itinerary.find((d) => d.kind === 'full' && d.items.length < 3) || pkg.itinerary.find((d) => d.kind === 'full') || pkg.itinerary[0]; day.items.push(item); paint('itinerary'); persist(); announce(t('build.itinerary.added', { name: item.name, day: day.day })); return; }
+    if (el('[data-remove-item]')) { const [i, j] = el('[data-remove-item]').dataset.removeItem.split(':').map(Number); const [item] = pkg.itinerary[i].items.splice(j, 1); pkg.spare = [item, ...(pkg.spare || [])]; for (const a of pkg.attractions || []) if (a.name === item.name && a.day === pkg.itinerary[i].day) a.day = 0; paint('itinerary'); paint('attractions'); persist(); announce(t('build.itinerary.removed', { name: item.name })); $('#bh-itinerary', view)?.focus?.(); return; }
+    if (el('[data-chat-jump]')) { jumpToChat(); return; }
+    if (el('[data-day-more]')) { const i = Number(el('[data-day-more]').dataset.dayMore); openDays.has(i) ? openDays.delete(i) : openDays.add(i); paint('itinerary'); $(`[data-day-more="${i}"]`, view)?.focus(); return; }
+    if (el('[data-expand-day]')) { expandDay(Number(el('[data-expand-day]').dataset.expandDay)); return; }
+    if (el('[data-add-more]')) {
+      const [i, k] = el('[data-add-more]').dataset.addMore.split(':').map(Number), day = pkg.itinerary[i], item = day.more?.[k];
+      if (!item) return;
+      addToDay(day, item); paint('itinerary'); paint('attractions'); paint('stay'); persist(); announce(t('build.itinerary.added', { name: item.name, day: day.day })); $(`[data-day-more="${i}"]`, view)?.focus(); return;
+    }
+    if (el('[data-add-idea]')) {
+      const [i, k] = el('[data-add-idea]').dataset.addIdea.split(':').map(Number), day = pkg.itinerary[i], idea = dayExpand[i]?.ideas?.[k];
+      if (!idea || idea.added) return;
+      idea.added = true; addToDay(day, { name: idea.name, kind: idea.kind, durationH: 0, where: idea.where, mapsUrl: idea.mapsUrl, ai: true });
+      paint('itinerary'); persist(); announce(t('build.itinerary.added', { name: idea.name, day: day.day })); $(`[data-day-more="${i}"]`, view)?.focus(); return;
+    }
+    if (el('[data-add-att]')) {
+      const a = pkg.attractions?.[Number(el('[data-add-att]').dataset.addAtt)];
+      if (!a || a.day) return;
+      const day = bestDayFor(a);
+      addToDay(day, { name: a.name, en: a.en, dest: a.dest, kind: a.kind, durationH: a.durationH, area: a.area, where: a.where, mapsUrl: a.mapsUrl });
+      paint('itinerary'); paint('attractions'); paint('stay'); persist(); announce(t('build.itinerary.added', { name: a.name, day: day.day }));
+      $('#bh-attractions', view)?.setAttribute('tabindex', '-1'); $(`#bc-attractions [data-add-att], #bh-attractions`, view)?.focus(); return;
+    }
+    if (el('[data-more-att]')) { showAllAttractions = !showAllAttractions; paint('attractions'); $('[data-more-att]', view)?.focus(); return; }
+    if (el('[data-stay-area]')) { const b = el('[data-stay-area]'); setHotelArea(Number(b.dataset.stayArea), b.dataset.value); announce(t('build.stay.searching')); return; }
+    if (el('[data-expand-stay]')) { expandStay(Number(el('[data-expand-stay]').dataset.expandStay)); return; }
+    if (el('[data-add-spare]')) { const k = Number(el('[data-add-spare]').dataset.addSpare), item = pkg.spare[k]; if (!item) return; const day = pkg.itinerary.find((d) => d.kind === 'free') || pkg.itinerary.find((d) => d.kind === 'full' && d.items.length < 3) || pkg.itinerary.find((d) => d.kind === 'full') || pkg.itinerary[0]; addToDay(day, item); paint('itinerary'); paint('attractions'); persist(); announce(t('build.itinerary.added', { name: item.name, day: day.day })); return; }
     const act = el('[data-act]')?.dataset.act, status = $('#build-act-status', view);
     if (!act) return;
     if (['lead', 'save', 'share', 'print'].includes(act)) track(act === 'lead' ? 'lead_open' : act);

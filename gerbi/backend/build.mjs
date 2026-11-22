@@ -18,6 +18,9 @@ const FLIGHT_TTL = 20 * 60, SHARE_TTL = 30 * 86400, AGENT_TTL = 14 * 86400;
 export const hotelsPublic = (env = process.env) => ['1', 'true'].includes(String(env.HOTELS_PUBLIC_DISPLAY || '').toLowerCase());
 export const insuranceUrl = (env = process.env) => (/^https:\/\/[^\s<>"']{4,300}$/.test(env.INSURANCE_PARTNER_URL || '') ? env.INSURANCE_PARTNER_URL : '');
 const fixtures = (env) => env.GERBI_SUPPLIER_FIXTURES === '1' && !env.VERCEL;
+// GERBI_FIXTURE_DELAY_MS="flights:4000,hotels:7000" (development only): recorded answers arrive as slowly as live ones, so the
+// progressive page (plan first, prices into it) can be seen and tested.
+const slow = (env, name) => { const ms = Number(new RegExp(`${name}:(\\d+)`).exec(env.GERBI_FIXTURE_DELAY_MS || '')?.[1]) || 0; return ms ? new Promise((r) => setTimeout(r, Math.min(ms, 60000))) : null; };
 const fixture = async (name) => JSON.parse(await readFile(new URL(`../tests/fixtures/build/${name}.json`, import.meta.url), 'utf8'));
 const hash = (value) => createHash('sha1').update(JSON.stringify(value)).digest('hex');
 
@@ -83,10 +86,10 @@ export function upsellTrips(destId, l = 'he') {
 // What the booking wizard needs to price the chosen flight again (spec 25 §9). The search token lives an hour.
 const bookingRef = (data) => (data?.srk && data?.tokens?.searchResults ? { srk: data.srk, searchToken: data.tokens.searchResults } : null);
 
-export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, tagger = null, funnel = null, polish = null, fx = null, log = () => {}, now = () => Date.now() }) {
+export function createBuilder({ store, llmCache = null, env = process.env, flightSearch, hotelSearch: rawHotelSearch, hotelImage, partner = null, tagger = null, funnel = null, polish = null, expand = null, aiEnabled = async () => false, fx = null, log = () => {}, now = () => Date.now() }) {
   const today = () => new Date(now()).toISOString().slice(0, 10);
   const hotels = createHotelSearch({ store, log, now, keyPrefix: fixtures(env) ? 'fixture-h:' : 'h:', search: async (input, options) => {
-    if (fixtures(env)) { const f = await fixture('hotels'); return { hotels: f.hotels, totalItems: f.totalItems, complete: true, filtered: !options.fallbackQuery }; }
+    if (fixtures(env)) { await slow(env, 'hotels'); const f = await fixture('hotels'); return { hotels: f.hotels, totalItems: f.totalItems, complete: true, filtered: !options.fallbackQuery }; }
     return rawHotelSearch(input, options);
   } });
 
@@ -94,7 +97,7 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     // Recorded answers never read or write the live cache (one store serves both in development), and an empty
     // supplier answer is never cached: the next build asks again instead of showing nothing for 20 minutes.
     const extras = (data) => (request.budget > 0 ? { alternatives: flightAlternatives(data, request) } : {});
-    if (fixtures(env)) { const data = await fixture('flights'), picks = flightPicks(data, request, l); return { status: picks.length ? 'live' : 'none', searchedAt: new Date(now()).toISOString(), total: data.offers.length, picks, selected: picks[0]?.key || '', cached: false, booking: bookingRef(data), ...extras(data) }; }
+    if (fixtures(env)) { await slow(env, 'flights'); const data = await fixture('flights'), picks = flightPicks(data, request, l); return { status: picks.length ? 'live' : 'none', searchedAt: new Date(now()).toISOString(), total: data.offers.length, picks, selected: picks[0]?.key || '', cached: false, booking: bookingRef(data), ...extras(data) }; }
     const key = 'f:' + hash(search), cachedHit = await store?.get(key).catch(() => null), hit = cachedHit?.data?.offers?.length ? cachedHit : null;
     let data, searchedAt, cached = Boolean(hit);
     if (hit) ({ data, searchedAt } = hit);
@@ -121,8 +124,13 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     if (thread.length > 1) {
       const cur = input.current || {};
       if (!request.destinations.length && Array.isArray(cur.dest)) { const ids = cur.dest.filter((id) => byId(id)).slice(0, 4); if (ids.length) { request.destinations = ids; request.suggest = false; } }
-      if (!request.nights && Number.isInteger(cur.nights) && cur.nights > 0 && cur.nights <= 90) request.nights = cur.nights;
-      if (!request.start && /^\d{4}-\d{2}-\d{2}$/.test(cur.start || '') && cur.start > t0) request.start = cur.start;
+      // The length / start the visitor set by hand ("שנו פרטים") is the plan on screen and wins over the first message.
+      const own = cur.edited === true;
+      if ((own || !request.nights) && Number.isInteger(cur.nights) && cur.nights > 0 && cur.nights <= 90) { request.nights = cur.nights; if (own) request.end = ''; }
+      if ((own || !request.start) && /^\d{4}-\d{2}-\d{2}$/.test(cur.start || '') && cur.start > t0) request.start = cur.start;
+      // The nights each place has on screen, so "add a day in Florence" adds to them instead of re-splitting the trip.
+      const legs = Array.isArray(cur.legNights) ? cur.legNights.filter((n) => Number.isInteger(n) && n > 0 && n <= 30) : [];
+      if (!request.legNights?.length && legs.length > 1 && legs.length === request.destinations.length && Array.isArray(cur.dest) && cur.dest.join() === request.destinations.join()) request.legNights = legs;
       for (const msg of thread.slice(1)) request = refineRequest(request, parseTrip(msg, { today: t0, lang: l, fx: rates }), msg);
     }
     // The model reads the request's meaning (tags, places, travellers) for every request when a provider is set; the
@@ -145,7 +153,7 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     const p = planPackage(request, { today: t0, chosenId: chosen });
     const { coverage, legs, ...publicRequest } = p.request;
     return { id: randomUUID().slice(0, 12), createdAt: new Date(now()).toISOString(), lang: l, ...p, request: publicRequest, upsellTrips: p.request.budget > 0 && p.destination ? upsellTrips(p.destination.id, l) : [],
-      config: { hotelsPublic: hotelsPublic(env), insuranceUrl: insuranceUrl(env) },
+      config: { hotelsPublic: hotelsPublic(env), insuranceUrl: insuranceUrl(env), ai: expand ? await Promise.race([aiEnabled().catch(() => false), new Promise((r) => setTimeout(r, 300, false))]) : false },
       understood: request.understood, questions: request.questions, flightSearch: validSearch(p.flightSearch, t0), hotelSearches: (p.hotelSearches || []).map((s) => validHotelSearch(s, t0) && s) };
   }
 
@@ -211,6 +219,14 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
       const days = Array.isArray(input?.days) ? input.days.slice(0, 40) : [];
       const result = await polish(String(input?.destination || ''), String(input?.travellers || ''), days, l).catch(() => null);
       return send(200, { polish: result ? { intro: result.intro, dayTitles: result.dayTitles } : null });
+    }
+    // "עוד רעיונות / הרחב עם ג׳רבי": wording and extra ideas for a day, pros/cons of the areas to stay in. Without a
+    // provider (or on any failure) { expand: null } – the page already shows the rules-based expansion.
+    if (path === '/api/build/expand') {
+      const kind = input?.kind === 'stay' ? 'stay' : 'day', run = expand?.[kind];
+      if (!run) return send(200, { expand: null });
+      const result = await run(input || {}, l).catch(() => null);
+      return send(200, { expand: result ? (kind === 'stay' ? { areas: result.areas } : { tip: result.tip, ideas: result.ideas }) : null });
     }
     if (path === '/api/build/share') {
       const pkg = sanitizePackage(input?.package);

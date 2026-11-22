@@ -22,6 +22,8 @@ try {
     const tag = `${width}-${l}`;
     const ctx = await browser.newContext({ viewport: { width, height: width > 500 ? 1000 : 820 }, locale: l === 'en' ? 'en-GB' : 'he-IL', deviceScaleFactor: width > 500 ? 1 : 2 });
     await ctx.addInitScript(() => { Object.defineProperty(navigator, 'share', { value: undefined }); });
+    // Every country a "did you know?" card showed while Gerbi thought (23.11.2026: must be the destination's).
+    await ctx.addInitScript(() => { window.__dyk = new Set(); new MutationObserver(() => document.querySelectorAll('.did-you-know[data-country]').forEach((x) => window.__dyk.add(x.dataset.country)) || (window.__think = Math.max(window.__think || 0, document.querySelector('.bk-think .bk-think-mascot img') ? document.querySelectorAll('.bk-think .bk-think-steps li').length : 0))).observe(document, { subtree: true, childList: true, attributes: true }); });
     const page = await ctx.newPage(), errors = [], supplierCalls = [];
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('request', (r) => { if (/\/api\/build\/(flights|hotels)/.test(r.url())) supplierCalls.push(r.url()); });
@@ -34,7 +36,11 @@ try {
     if (!LIVE) await page.screenshot({ path: `${OUT}/${tag}-home-prompt${sfx}.png`, clip: { x: 0, y: 0, width, height: width > 500 ? 520 : 700 } });
     await page.fill('#magic-text', TEXT[l]);
     await page.click('.magic-submit');
-    await page.waitForSelector('#build-result h2', { timeout: 15000 });
+    // 23.11.2026: an animated "Gerbi is thinking" stage with steps that tick, then the plan before the prices.
+    await page.waitForSelector('.bk-think .bk-think-steps li', { timeout: 10000 });
+    check(`${tag} thinking stage: mascot + 5 steps`, await page.evaluate(() => window.__think) === 5);
+    if (!LIVE) await page.locator('.bk-think').first().screenshot({ path: `${OUT}/${tag}-thinking${sfx}.png` }).catch(() => {});
+    await page.waitForSelector('#bc-itinerary .bk-day', { timeout: 15000 });
     check(`${tag} prompt opens #/build and plans immediately`, page.url().includes('#/build?q='));
     await page.waitForSelector('#bc-flights .bk-pending, #bc-flights [data-pick-flight], #bc-flights .bk-quote', { timeout: 10000 });
     check(`${tag} skeleton (itinerary + practical) before supplier answers`, await page.locator('#bc-itinerary .bk-day').count() >= 4 && await page.locator('#bc-practical dt').count() >= 3);
@@ -55,13 +61,42 @@ try {
     check(`${tag} no horizontal scroll`, await noHScroll(page));
     if (LIVE) { check(`${tag} live: flight prices are live and hotels are ${PUBLIC ? 'live' : 'a live-based estimate'}`, flights > 0 && (PUBLIC ? hotels > 0 : await page.locator('#bc-hotels .bk-hotel-est').count() === 1)); await ctx.close(); continue; }
 
+    const dyk = await page.evaluate(() => [...window.__dyk]);
+    check(`${tag} did-you-know facts are about Italy (Rome)`, dyk.every((c) => c === 'IT'), dyk.join(',') || 'not shown (all answers within the grace time)');
+    check(`${tag} live strip finished`, await page.locator('#bc-live').count() === 0 || await page.locator('#bc-live.bk-live-done').count() === 1);
+    // Attractions: photo, meta, rough price, and one tap adds one to a day.
+    const atts = await page.locator('#bc-attractions .bk-att').count();
+    check(`${tag} attractions section: 6+ cards with photos and visit time`, atts >= 6 && await page.locator('#bc-attractions .bk-att-img img').count() >= 3 && await page.locator('#bc-attractions .bk-att-meta').count() === atts);
+    await page.locator('#bc-attractions').screenshot({ path: `${OUT}/${tag}-attractions${sfx}.png` });
+    if (await page.locator('[data-more-att]').count()) await page.click('[data-more-att]');
+    const inPlan = await page.locator('.bk-att-in').count(), planItems = await page.locator('[data-remove-item]').count();
+    await page.locator('[data-add-att]').first().click();
+    check(`${tag} attraction added to a day`, await page.locator('.bk-att-in').count() === inPlan + 1 && await page.locator('[data-remove-item]').count() === planItems + 1);
+    // More ideas per day (rules) and, with a key, "expand with Gerbi".
+    await page.locator('[data-day-more]').first().click();
+    check(`${tag} day "more ideas": catalog ideas of other kinds`, await page.locator('.bk-day-more [data-add-more]').count() >= 1);
+    const beforeMore = await page.locator('[data-remove-item]').count();
+    await page.locator('.bk-day-more [data-add-more]').first().click();
+    check(`${tag} add an idea to the day`, await page.locator('[data-remove-item]').count() === beforeMore + 1);
+    if (!NOKEY) {
+      await page.locator('[data-expand-day]').first().click();
+      await page.waitForSelector('.bk-ai-box [data-add-idea]', { timeout: 15000 });
+      check(`${tag} expand with Gerbi: tip + extra ideas marked AI`, await page.locator('.bk-ai-box [data-add-idea]').count() >= 1 && await page.locator('.bk-ai-box .bk-ai').count() === 1);
+      await page.locator('[data-expand-stay]').first().click();
+      await page.waitForSelector('.bk-stay-pc', { timeout: 15000 });
+      check(`${tag} where to stay with Gerbi: pros / cons / price level`, await page.locator('.bk-stay-pc').count() >= 2);
+    } else check(`${tag} without a key: no "expand with Gerbi" buttons`, await page.locator('[data-expand-day], [data-expand-stay]').count() === 0);
+    await page.locator('.bk-day', { has: page.locator('.bk-day-more') }).first().screenshot({ path: `${OUT}/${tag}-more-ideas${sfx}.png` });
+    check(`${tag} where to stay: areas with whom they suit`, await page.locator('#bc-stay .bk-stay-area').count() >= 2);
+    await page.locator('#bc-stay').screenshot({ path: `${OUT}/${tag}-where-to-stay${sfx}.png` });
+
     // Choose another flight → the total follows.
     if (flights > 1) { const before = await page.textContent('#bc-total'); await page.locator('[data-pick-flight]').nth(1).click(); check(`${tag} picking another flight updates the total`, (await page.textContent('#bc-total')) !== before && await page.locator('[data-pick-flight][aria-pressed=true]').count() === 1); }
     // Itinerary: move a day, remove and re-add an item (keyboard focus stays on the control).
     const firstMovable = page.locator('[data-day-down]:not([disabled])').first();
-    const titleBefore = await page.locator('.bk-day strong').nth(1).textContent();
+    const titleBefore = await page.locator('.bk-day-head strong').nth(1).textContent();
     await firstMovable.focus(); await page.keyboard.press('Enter');
-    check(`${tag} move a day down with the keyboard`, (await page.locator('.bk-day strong').nth(1).textContent()) !== titleBefore && await page.evaluate(() => document.activeElement?.matches('[data-day-down]')));
+    check(`${tag} move a day down with the keyboard`, (await page.locator('.bk-day-head strong').nth(1).textContent()) !== titleBefore && await page.evaluate(() => document.activeElement?.matches('[data-day-down]')));
     const items = await page.locator('[data-remove-item]').count();
     await page.locator('[data-remove-item]').first().click();
     check(`${tag} remove an item → it moves to "more ideas"`, await page.locator('[data-remove-item]').count() === items - 1 && await page.locator('[data-add-spare]').count() >= 1);
@@ -104,6 +139,20 @@ try {
     await page.locator('#bc-lead').screenshot({ path: `${OUT}/${tag}-lead-sent${sfx}.png` });
     }
 
+    // 23.11.2026: keep editing by text after the route is built – the package updates (one more day, in Florence).
+    const daysNow = await page.locator('#bc-itinerary .bk-day').count();
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+    if (width < 500) { await page.waitForTimeout(600); check(`${tag} "talk to Gerbi" button floats on the phone`, await page.locator('.bk-chat-fab').isVisible()); await page.click('.bk-chat-fab'); }
+    else await page.click('.bk-talk [data-chat-jump]');
+    check(`${tag} the follow-up box gets focus`, await page.evaluate(() => document.activeElement?.id === 'build-follow-text'));
+    await page.fill('#build-follow-text', l === 'en' ? 'add a day in Florence' : 'תוסיף יום בפירנצה'); await page.keyboard.press('Enter');
+    await page.waitForFunction((n) => document.querySelectorAll('#bc-itinerary .bk-day').length === n + 1, daysNow, { timeout: 20000 });
+    await settled(page);
+    check(`${tag} follow-up "add a day in Florence" → Rome kept + Florence, one more day`, (l === 'en' ? /Rome[\s\S]*Florence/ : /רומא[\s\S]*פירנצה/).test(await page.textContent('.bk-summary h2')) && await page.locator('.bk-reply').count() === 1 && await page.locator('.bk-history li').count() >= 2);
+    await page.locator('.bk-history').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${OUT}/${tag}-follow-up${sfx}.png` });
+    check(`${tag} no horizontal scroll after the follow-up`, await noHScroll(page));
+
     // "Suggest me": no destination → three suggestions with reasons; choosing another rebuilds.
     await page.goto(BASE + (l === 'en' ? '/en/' : '/') + '#/build?q=' + encodeURIComponent(SUGGEST[l]));
     await page.waitForSelector('#bc-where .bk-suggestion', { timeout: 15000 });
@@ -114,6 +163,8 @@ try {
     await page.waitForFunction((was) => document.querySelector('#build-result h2')?.textContent !== was, chosen, { timeout: 15000 });
     check(`${tag} choosing another suggestion rebuilds for it`, true);
     await settled(page);
+    // The wording arrives into the plan after it is shown (23.11.2026) – wait for it.
+    if (!NOKEY) await page.waitForSelector('#bc-where .bk-ai', { timeout: 8000 }).catch(() => {});
     if (!NOKEY) check(`${tag} AI wording (mock) marked as AI`, await page.locator('.bk-ai').count() >= 1 || await page.locator('#bc-itinerary').textContent().then((x) => /AI/.test(x)));
     else check(`${tag} without a key: rule wording, no AI mark`, await page.locator('.bk-intro').count() === 0);
     await page.screenshot({ path: `${OUT}/${tag}-suggest${sfx}.png`, fullPage: false });

@@ -86,7 +86,7 @@ export function mergePrefs(a = {}, b = {}) {
 
 // ---- a follow-up message on top of the request so far. `next` is the follow-up parsed alone (parseTrip); only what
 // it states changes, plus the relative wishes people say in a conversation ("עוד לילה", "יותר זול", "תחליף לברצלונה").
-const ADD = /(?:^|\s)(?:תוסיף|להוסיף|הוסף|וגם|גם\s+ל|גם\s+ב|ועוד\s+\d|add|also|plus|as well)/i;
+const ADD = /(?:^|\s)(?:תוסיף|להוסיף|הוסף|וגם|גם\s+ל|גם\s+ב|גם(?=\s)|ועוד\s+\d|add|also|plus|as well)/i;
 export function refineRequest(prev, next, text) {
   const s = String(text || ''), has = (f) => (next.understood || []).some((u) => u.field === f);
   const r = { ...prev, needs: { ...prev.needs }, styles: [...prev.styles], exclude: [...(prev.exclude || [])], destinations: [...prev.destinations], prefs: mergePrefs(prev.prefs, next.prefs) };
@@ -94,13 +94,14 @@ export function refineRequest(prev, next, text) {
   if (has('children') || has('childAges') || has('infants')) { r.children = next.children; r.childAges = next.childAges; r.infants = next.infants; }
   if (has('start')) { r.start = next.start; r.end = next.end; r.month = next.month; r.year = next.year; r.anchor = next.anchor; r.holiday = next.holiday; }
   else if (has('month') || next.holiday) { r.month = next.month; r.start = ''; r.end = ''; r.anchor = next.anchor; r.holiday = next.holiday; r.year = next.year; }
-  if (has('nights') && next.nights) { r.nights = next.nights; if (!has('start')) r.end = ''; }
-  // Relative length and dates.
-  const more = s.match(/(?:עוד|תוסיף|להוסיף)\s*(\d+)?\s*לילות?|(?:לילה|יום)\s+(?:נוסף|נוסף אחד|יותר)|(\d+|one|two|an?)\s+(?:more|extra)\s+nights?/i);
+  // Relative length and dates. A relative length ("עוד לילה", "one night less") counts from the plan on screen – the
+  // parser alone reads "עוד לילה" as its default + 1 (23.11.2026: after a hand edit to 7 nights it gave 6).
+  const more = s.match(/(?:עוד|תוסיף|להוסיף)\s*(\d+)?\s*(?:לילה|לילות|ימים|יום(?!\s+ב(?:ה)?(?:ים|טבע|חוף)))|(?:לילה|יום)\s+(?:נוסף|נוסף אחד|יותר)|(\d+|one|two|an?)\s+(?:more|extra)\s+nights?/i);
   const less = s.match(/(?:לילה|יום)\s+(?:פחות|אחד פחות)|(?:פחות|תוריד|להוריד)\s*(\d+)?\s*(?:לילה|לילות|יום|ימים)|(\d+|one|a)\s+(?:night|day)s?\s+(?:less|fewer|shorter)|one night less|shorter by (\d+)/i);
   const num = (x) => (x === undefined ? 1 : /^(?:one|a|an)$/i.test(x) ? 1 : /^two$/i.test(x) ? 2 : Number(x) || 1);
-  if (!has('nights') && more && r.nights) { r.nights = Math.min(90, r.nights + num(more[1] ?? more[2])); r.end = ''; }
-  if (!has('nights') && less && r.nights) { r.nights = Math.max(1, r.nights - num(less[1] ?? less[2] ?? less[3])); r.end = ''; }
+  if (has('nights') && next.nights && !more && !less) { r.nights = next.nights; if (!has('start')) r.end = ''; }
+  if (more && r.nights) { r.nights = Math.min(90, r.nights + num(more[1] ?? more[2])); r.end = ''; }
+  if (less && r.nights) { r.nights = Math.max(1, r.nights - num(less[1] ?? less[2] ?? less[3])); r.end = ''; }
   const shift = /שבוע (?:אחרי|אח״כ|אחר כך|קדימה|מאוחר)|week later/i.test(s) ? 7 : /שבוע (?:לפני|קודם|מוקדם)|week earlier/i.test(s) ? -7 : 0;
   if (shift && r.start) { const d = (iso) => { const x = new Date(iso + 'T12:00:00Z'); x.setUTCDate(x.getUTCDate() + shift); return x.toISOString().slice(0, 10); }; r.start = d(r.start); if (r.end) r.end = d(r.end); }
   // Money and level.
@@ -114,7 +115,20 @@ export function refineRequest(prev, next, text) {
   if (next.needs.car !== 'auto') r.needs.car = next.needs.car;
   if (next.maxFlightHours) r.maxFlightHours = next.maxFlightHours;
   // Places: a new place replaces the route unless they add it; "בלי X" removes it.
-  if (next.destinations.length) { r.destinations = ADD.test(s) ? [...new Set([...r.destinations, ...next.destinations])] : next.destinations; r.suggest = false; r.shortlist = []; }
+  if (next.destinations.length) {
+    const before = r.destinations, adding = ADD.test(s) && before.length > 0;
+    r.destinations = adding ? [...new Set([...before, ...next.destinations])] : next.destinations; r.suggest = false; r.shortlist = [];
+    // "תוסיף יום בפירנצה" / "add 2 nights in Florence" (owner 23.11.2026): the new place gets that many nights ON TOP of
+    // the plan – the places already there keep theirs (not a re-split of the same length).
+    // A length said with the new place ("תוסיף 2 לילות בפירנצה") is that place's, not the whole trip's.
+    const extra = adding ? s.match(/(?:(\d+)\s*)?(?:ימים|יום|לילות|לילה)|(\d+|one|two|a|an)?\s*(?:extra\s+|more\s+)?(?:days?|nights?)\b/i) : null;
+    const added = r.destinations.filter((id) => !before.includes(id));
+    const known = Array.isArray(prev.legNights) && prev.legNights.length === before.length ? prev.legNights : before.length === 1 && prev.nights ? [prev.nights] : null;
+    if (extra && added.length === 1 && known) {
+      const n = Math.min(14, Math.max(1, (has('nights') && next.nights) || Number(extra[1]) || (/^two$/i.test(extra[2] || '') ? 2 : Number(extra[2]) || 1)));
+      r.legNights = [...known, n]; r.nights = Math.min(90, known.reduce((a, b) => a + b, 0) + n); r.end = '';
+    }
+  }
   if (next.replaced?.length) r.destinations = r.destinations.filter((id) => !next.replaced.includes(id));
   if (next.exclude?.length) { r.exclude = [...new Set([...r.exclude, ...next.exclude])]; r.destinations = r.destinations.filter((id) => !next.exclude.includes(id)); }
   if (next.countries.length && !next.destinations.length) { r.countries = next.countries; r.destinations = []; r.suggest = true; }
