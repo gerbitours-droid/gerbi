@@ -40,7 +40,7 @@ const measure = () => {
   for (const el of document.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=hidden]), textarea, select')) {
     if (visible(el) && parseFloat(getComputedStyle(el).fontSize) < 16) out.smallInputs.push(name(el) + ' ' + getComputedStyle(el).fontSize);
   }
-  const fixed = [...document.querySelectorAll('.mobile-bottom, .sb-launcher, #toast, .comparison-tray, #comparison-tray, .flight-compare-tray, .a11y-toggle')].filter(visible).filter((el) => ['fixed', 'sticky'].includes(getComputedStyle(el).position));
+  const fixed = [...document.querySelectorAll('.mobile-bottom, .sb-launcher, #toast, .comparison-tray, #comparison-tray, .flight-compare-tray, .a11y-toggle, .a11y-fab')].filter(visible).filter((el) => ['fixed', 'sticky'].includes(getComputedStyle(el).position));
   for (let i = 0; i < fixed.length; i++) for (let j = i + 1; j < fixed.length; j++) {
     const a = fixed[i].getBoundingClientRect(), b = fixed[j].getBoundingClientRect();
     if (a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom) out.overlaps.push(name(fixed[i]) + ' × ' + name(fixed[j]));
@@ -60,7 +60,7 @@ const report = { label: LABEL, base: BASE, at: new Date().toISOString(), rows: [
 try {
   for (const width of WIDTHS) {
     const phone = width < 700;
-    const context = await browser.newContext({ ...(phone ? devices['Pixel 7'] : {}), viewport: { width, height: phone ? 800 : width < 1000 ? 1024 : 900 }, isMobile: phone, hasTouch: width < 1000, locale: 'he-IL', ...(phone ? { deviceScaleFactor: 2 } : {}) });
+    const context = await browser.newContext({ ...(phone ? devices['Pixel 7'] : {}), viewport: { width, height: phone ? 800 : width < 1000 ? 1024 : 900 }, isMobile: phone, hasTouch: width < 1000, locale: 'he-IL', bypassCSP: true, ...(phone ? { deviceScaleFactor: 2 } : {}) });
     const page = await context.newPage();
     const errors = []; page.on('pageerror', (e) => errors.push(e.message));
     for (let route of ROUTES) {
@@ -103,6 +103,12 @@ try {
       await page.screenshot({ path: `${OUT}/w${width}-support-bot.png` });
       report.rows.push({ width, route: 'dialog:support-bot', dialog: sb, ...sbm, axe: sbAxe });
       console.log(`w${width} support-bot ${JSON.stringify(sb)} small=${sbm.small.length} axe=${sbAxe ? sbAxe.length : '-'}`);
+      await page.keyboard.press('Escape');
+      await page.locator('.a11y-fab').click(); await page.waitForSelector('#a11y-panel:not([hidden])');
+      const am = await page.evaluate(measure); const amAxe = width === 390 ? await runAxe(page) : null;
+      await page.screenshot({ path: `${OUT}/w${width}-a11y-menu.png` });
+      report.rows.push({ width, route: 'dialog:a11y-menu', ...am, axe: amAxe });
+      console.log(`w${width} a11y-menu overflow=${am.overflow} small=${am.small.length} axe=${amAxe ? amAxe.length : '-'}`);
       await page.keyboard.press('Escape');
       if (await page.locator('[name="trip-type"][value="multi"]').count()) {
         await page.locator('label:has([name="trip-type"][value="multi"])').click(); await page.waitForTimeout(300);

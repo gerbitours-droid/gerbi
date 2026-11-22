@@ -48,6 +48,39 @@ try {
   await page.keyboard.press('Escape'); await page.waitForTimeout(150);
   check('support bot: Escape returns focus to the launcher', await page.evaluate(() => document.activeElement.classList.contains('sb-launcher')));
 
+  // Accessibility menu (IS 5568): keyboard open, focus trap, toggles, persistence across reload, reset.
+  await page.goto(BASE + '/#/'); await page.waitForTimeout(400);
+  await page.focus('.skip-link'); await page.keyboard.press('Tab');
+  const fab = await page.evaluate(focusInfo);
+  check('a11y menu: labelled button is the Tab stop right after the skip link, with a focus indicator', fab.cls.includes('a11y-fab') && fab.text === 'תפריט נגישות' && fab.visible, JSON.stringify(fab));
+  await page.keyboard.press('Enter');
+  const opened = await page.evaluate(() => { const d = document.querySelector('#a11y-panel'); return { visible: !d.hidden && d.checkVisibility(), role: d.getAttribute('role'), modal: d.getAttribute('aria-modal'), inside: d.contains(document.activeElement), expanded: document.querySelector('.a11y-fab').getAttribute('aria-expanded') }; });
+  check('a11y menu: Enter opens a modal dialog with focus inside', opened.visible && opened.role === 'dialog' && opened.modal === 'true' && opened.inside && opened.expanded === 'true', JSON.stringify(opened));
+  let trapped = true;
+  for (let i = 0; i < 18; i++) { await page.keyboard.press(i % 6 === 5 ? 'Shift+Tab' : 'Tab'); trapped &&= await page.evaluate(() => document.querySelector('#a11y-panel').contains(document.activeElement)); }
+  check('a11y menu: Tab and Shift+Tab stay inside the dialog (focus trap)', trapped);
+  await page.focus('[data-a11y="contrast"]'); await page.keyboard.press('Enter');
+  await page.focus('[data-a11y-text="1"]'); await page.keyboard.press('Enter'); await page.keyboard.press('Enter');
+  const applied = await page.evaluate(() => ({ cls: document.documentElement.className, pressed: document.querySelector('[data-a11y="contrast"]').getAttribute('aria-pressed'), level: document.querySelector('#a11y-text-level').textContent }));
+  check('a11y menu: keyboard toggles high contrast and text size (2 steps)', /a11y-contrast/.test(applied.cls) && /a11y-text-xl/.test(applied.cls) && applied.pressed === 'true' && /130/.test(applied.level), JSON.stringify(applied));
+  await page.focus('[data-a11y="dark"]'); await page.keyboard.press('Enter');
+  check('a11y menu: dark contrast replaces high contrast', await page.evaluate(() => document.documentElement.classList.contains('a11y-dark') && !document.documentElement.classList.contains('a11y-contrast') && document.querySelector('[data-a11y="contrast"]').getAttribute('aria-pressed') === 'false'));
+  await page.keyboard.press('Enter'); await page.focus('[data-a11y="contrast"]'); await page.keyboard.press('Enter');
+  await page.keyboard.press('Escape'); await page.waitForTimeout(100);
+  check('a11y menu: Escape closes and returns focus to the button', await page.evaluate(() => document.querySelector('#a11y-panel').hidden && document.activeElement.matches('.a11y-fab') && document.activeElement.getAttribute('aria-expanded') === 'false'));
+  await page.reload(); await page.waitForTimeout(500);
+  const kept = await page.evaluate(() => { window.scrollTo(-99999, 0); const a = window.scrollX; window.scrollTo(99999, 0); const b = window.scrollX; window.scrollTo(0, 0); return { cls: document.documentElement.className, sideways: Math.abs(a - b) }; });
+  check('a11y menu: settings persist across reload, no horizontal scroll at the larger text size', /a11y-contrast/.test(kept.cls) && /a11y-text-xl/.test(kept.cls) && kept.sideways <= 3, JSON.stringify(kept));
+  await page.click('.a11y-fab');
+  check('a11y menu: reopened dialog shows the saved state', await page.evaluate(() => document.querySelector('[data-a11y="contrast"]').getAttribute('aria-pressed') === 'true' && /130/.test(document.querySelector('#a11y-text-level').textContent)));
+  await page.click('[data-a11y-reset]');
+  check('a11y menu: reset clears every class and the stored settings', await page.evaluate(() => !document.documentElement.className.includes('a11y-') && localStorage.getItem('gerbi-a11y-v1') === null && [...document.querySelectorAll('[data-a11y]')].every((b) => b.getAttribute('aria-pressed') === 'false')));
+  await page.click('.a11y-statement'); await page.waitForTimeout(300);
+  check('a11y menu: statement link opens #/accessibility and closes the menu', await page.evaluate(() => location.hash === '#/accessibility' && document.querySelector('#a11y-panel').hidden));
+  await page.click('[data-a11y-open]'); await page.waitForTimeout(100);
+  check('statement page: "open the accessibility menu" opens it', await page.evaluate(() => !document.querySelector('#a11y-panel').hidden));
+  await page.keyboard.press('Escape');
+
   // Legal + accessibility pages
   for (const [route, draft] of [['/terms', true], ['/privacy', true], ['/accessibility', false]]) {
     await page.goto(BASE + '/#' + route); await page.waitForTimeout(300);
@@ -97,7 +130,27 @@ try {
   }
   const launcher = await p.evaluate(() => { const r = document.querySelector('.sb-launcher').getBoundingClientRect(), n = document.querySelector('.mobile-bottom').getBoundingClientRect(); return { w: r.width, h: r.height, clear: r.bottom <= n.top }; });
   check('phone: bot launcher ≥ 44px and above the bottom nav', launcher.w >= 44 && launcher.h >= 44 && launcher.clear, JSON.stringify(launcher));
+  const a11yFab = await p.evaluate(() => { const r = document.querySelector('.a11y-fab').getBoundingClientRect(), s = document.querySelector('.sb-launcher').getBoundingClientRect(), n = document.querySelector('.mobile-bottom').getBoundingClientRect(); return { w: r.width, h: r.height, aboveNav: r.bottom <= n.top, apart: r.right <= s.left || r.left >= s.right || r.bottom <= s.top || r.top >= s.bottom, rightSide: r.left > innerWidth / 2 }; });
+  check('phone: accessibility button ≥ 44px, above the bottom nav, clear of the bot launcher (right side in Hebrew)', a11yFab.w >= 44 && a11yFab.h >= 44 && a11yFab.aboveNav && a11yFab.apart && a11yFab.rightSide, JSON.stringify(a11yFab));
+  await p.click('.a11y-fab'); await p.waitForTimeout(150);
+  const sheet = await p.evaluate(() => { const r = document.querySelector('#a11y-panel').getBoundingClientRect(); return { fits: r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight, sideways: document.documentElement.scrollWidth - innerWidth }; });
+  check('phone: menu opens as a sheet inside the screen, no sideways scroll', sheet.fits && sheet.sideways <= 0, JSON.stringify(sheet));
+  await p.keyboard.press('Escape');
+  await p.evaluate(() => window.gerbiA11y.save({ text: 3 })); await p.reload(); await p.waitForTimeout(500);
+  const big = await p.evaluate(() => { window.scrollTo(-99999, 0); const a = window.scrollX; window.scrollTo(99999, 0); const b = window.scrollX; window.scrollTo(0, 0); return { cls: document.documentElement.className, sideways: Math.abs(a - b) }; });
+  check('phone: largest text size keeps the page free of horizontal scroll', /a11y-text-xxl/.test(big.cls) && big.sideways <= 3, JSON.stringify(big));
+  await p.evaluate(() => window.gerbiA11y.save({}));
   await phone.close();
+
+  // English site: English labels, button at the reading-start corner (left in LTR).
+  const enCtx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'en-GB' });
+  const ep = await enCtx.newPage();
+  await ep.goto(BASE + '/en/#/'); await ep.waitForTimeout(500);
+  const en = await ep.evaluate(() => { const f = document.querySelector('.a11y-fab'), r = f.getBoundingClientRect(); return { label: f.getAttribute('aria-label'), left: r.right < innerWidth / 2 }; });
+  await ep.click('.a11y-fab');
+  const enText = await ep.locator('#a11y-panel').innerText();
+  check('English: menu labelled in English, button bottom-left', en.label === 'Accessibility menu' && en.left && /High contrast/.test(enText) && /Accessibility statement/.test(enText), JSON.stringify(en));
+  await enCtx.close();
 } finally { await browser.close(); }
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);

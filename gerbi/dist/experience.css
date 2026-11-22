@@ -2,7 +2,7 @@
    Enhancements here are scoped to internal screens or newly added controls. */
 svg{stroke-width:1.5}
 .home-search-note{font-size:11px;color:#526687;margin:7px 0 0;text-align:center}
-.home-personalization{margin-block:18px;border:1px solid #dce7f3;background:#f6fbff;border-radius:14px}
+.home-personalization{margin-block:18px;border:1px solid var(--border);background:#f6fbff;border-radius:14px}
 .home-personalization>summary{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;font-size:14px;font-weight:600;list-style:none}
 .home-personalization>summary::-webkit-details-marker{display:none}
 .home-personalization>summary>svg:last-child{margin-inline-start:auto;width:18px}
@@ -17,7 +17,7 @@ svg{stroke-width:1.5}
 #home .assistant-main h2{white-space:normal}
 #home .deals{margin-top:14px}
 .live-results{margin-top:32px;scroll-margin-top:20px}.live-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}.live-heading h2{font-size:30px;margin:3px 0}.live-heading p{margin:0;color:#5b7180;font-size:14px}.live-heading label{font-size:12px;display:grid;gap:5px}.live-heading select{border:1px solid #cadada;padding:10px;border-radius:10px;background:#fff}
-.flight-list{display:grid;gap:14px;margin-top:18px}.flight-card{display:grid;grid-template-columns:160px 1fr 230px;align-items:stretch;border:1px solid #d7e1e4;border-radius:18px;overflow:hidden;background:white}.flight-photo{width:100%;height:100%;object-fit:cover}.flight-placeholder{display:grid;place-items:center;background:#eaf3f7;font-size:38px}.flight-details{padding:20px 24px}.flight-details h3{margin:7px 0 10px;font-size:19px;overflow-wrap:anywhere}.live-pill{display:inline-flex;align-items:center;font-size:10px;color:#35684f;background:#eaf6ff;border-radius:100px;padding:3px 9px}.flight-leg{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0}.flight-leg>span{font-size:12px;color:#617885;min-width:28px}.flight-leg b{font-size:16px}.flight-leg small{font-size:11px;color:#617885;font-weight:400}.flight-price{padding:22px;display:flex;flex-direction:column;justify-content:center;gap:12px;border-inline-start:1px dashed #d7e1e4;background:#fcfdfa}.flight-price small{font-size:12px;color:#657986}.flight-price strong{font-size:27px;text-align:right}.flight-price .button{font-size:13px}.more-flights{margin:22px auto;display:flex}.verified-price{display:grid;gap:6px;background:#eaf4ee;border-radius:16px;padding:25px;margin:18px 0}.verified-price strong{font-size:38px;text-align:right}.verified-price small,.verified-price span{font-size:13px}
+.flight-list{display:grid;gap:14px;margin-top:18px}.flight-card{display:grid;grid-template-columns:160px 1fr 230px;align-items:stretch;border:1px solid #d7e1e4;border-radius:18px;overflow:hidden;background:white}.flight-photo{width:100%;height:100%;object-fit:cover}.flight-placeholder{display:grid;place-items:center;background:#eaf3f7;font-size:38px}.flight-details{padding:20px 24px}.flight-details h3{margin:7px 0 10px;font-size:19px;overflow-wrap:anywhere}.live-pill{display:inline-flex;align-items:center;font-size:10px;color:#35684f;background:var(--pale);border-radius:100px;padding:3px 9px}.flight-leg{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0}.flight-leg>span{font-size:12px;color:#617885;min-width:28px}.flight-leg b{font-size:16px}.flight-leg small{font-size:11px;color:#617885;font-weight:400}.flight-price{padding:22px;display:flex;flex-direction:column;justify-content:center;gap:12px;border-inline-start:1px dashed #d7e1e4;background:#fcfdfa}.flight-price small{font-size:12px;color:#657986}.flight-price strong{font-size:27px;text-align:right}.flight-price .button{font-size:13px}.more-flights{margin:22px auto;display:flex}.verified-price{display:grid;gap:6px;background:#eaf4ee;border-radius:16px;padding:25px;margin:18px 0}.verified-price strong{font-size:38px;text-align:right}.verified-price small,.verified-price span{font-size:13px}
 
 /* Inner-page system: compact context, consistent cards and clear next actions. */
 .inner-page{background:#f6f9fd}
@@ -150,7 +150,7 @@ button.swap{border:0;background:none;cursor:pointer;color:var(--blue,#096bd2);mi
 /* Focus: no blue box after a mouse/touch press (html.pointer-nav, set in app.js); keyboard users keep the :focus-visible ring */
 [tabindex="-1"]:focus{outline:none}
 .pointer-nav :is(input,select,textarea,button,a,summary,label,[tabindex]):focus{outline:none}
-:is(.field,.prompt-input,.search-box):focus-within{border-color:#0877e4}
+:is(.field,.prompt-input,.search-box):focus-within{border-color:var(--focus)}
 /* ---- Flight result card: boarding pass (route body + price stub). Route rows (.flight-leg/.fc-*) are shared with the
    offer-check dialog; card-only rules are scoped to .flight-list. */
 .flight-leg{display:block;margin:0;padding:8px 0}
@@ -234,7 +234,7 @@ html[dir=rtl] .bp{--x:var(--stub)}
 .bp-top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 60px 14px 22px;background:linear-gradient(110deg,#0a1b60,#0b3a9a 60%,#096bd2);color:#fff}
 html[dir=rtl] .bp-top{padding:14px 22px 14px 60px}
 .bp-brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px;letter-spacing:-.3px}
-.bp-brand img{width:34px;height:34px;object-fit:contain;background:#ffdf25;border-radius:50%;padding:2px}
+.bp-brand img{width:34px;height:34px;object-fit:contain;background:var(--yellow);border-radius:50%;padding:2px}
 .bp-kind{font-size:11.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;opacity:.85}
 .bp-body{padding:18px 24px 22px;min-width:0}
 .bp-status{display:inline-flex;align-items:center;gap:8px;margin:0 0 6px;font-size:13px;font-weight:800;padding:5px 12px;border-radius:999px;background:#fff6d6;color:#7a5a00}
@@ -250,12 +250,12 @@ html[dir=rtl] .bp-top{padding:14px 22px 14px 60px}
 .bp-stub{grid-column:2;background:#f5f9ff;border-inline-start:2px dashed #c3d6ea;padding:20px 20px 18px;display:flex;flex-direction:column;gap:10px}
 .bp-tear{display:none}
 .bp-price small{display:block;font-size:12px;color:#4f6283}
-.bp-price strong{display:block;font-size:34px;font-weight:900;color:#0a1b60;letter-spacing:-1px;line-height:1.15}
+.bp-price strong{display:block;font-size:34px;font-weight:900;color:var(--navy);letter-spacing:-1px;line-height:1.15}
 .bp-was{display:block;font-size:12.5px;color:#9a4a00;text-decoration:line-through}
 .bp-shimmer strong{background:linear-gradient(90deg,#0a1b60 0%,#7fa9d8 45%,#0a1b60 90%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:bp-shine 1.4s linear infinite}
 @keyframes bp-shine{to{background-position:-200% 0}}
 .bp-wait{margin:0;font-size:13px;color:#4f6283;line-height:1.5;display:flex;gap:8px;align-items:flex-start}
-.bp-plane{display:inline-block;color:#096bd2;animation:bp-fly 1.6s ease-in-out infinite}
+.bp-plane{display:inline-block;color:var(--blue);animation:bp-fly 1.6s ease-in-out infinite}
 html[dir=rtl] .bp-plane{transform:scaleX(-1)}
 @keyframes bp-fly{50%{translate:6px -3px}}
 .bp-time{margin:0;font-size:12px;color:#4f6283}

@@ -16,30 +16,32 @@ const mailText = () => contact.email ? `<a href="mailto:${esc(contact.email)}" d
 const toc = items => `<nav class="legal-toc" aria-label="${t('content.legal.toc')}"><ol>${items.map(([id, label]) => `<li><a href="#${id}" data-legal-jump="${id}">${label}</a></li>`).join('')}</ol></nav>`;
 const section = (id, title, body) => `<section id="${id}" aria-labelledby="${id}-h"><h2 id="${id}-h" tabindex="-1">${title}</h2>${body}</section>`;
 
-// ---- Display settings (a convenience, not a substitute for the real fixes) ----
-const PREFS_KEY = 'gerbi-display-prefs-v1';
-const PREFS = [['text', t('content.display.text'), 'a11y-text-lg'], ['contrast', t('content.display.contrast'), 'a11y-contrast'], ['links', t('content.display.links'), 'a11y-links'], ['motion', t('content.display.motion'), 'a11y-still']];
-function readPrefs() { try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') || {}; } catch { return {}; } }
-export function applyDisplayPrefs(prefs = readPrefs()) {
-  for (const [key, , cls] of PREFS) document.documentElement.classList.toggle(cls, Boolean(prefs[key]));
-}
+// ---- Display settings: a short-cut to four of the accessibility menu's settings (a11y-boot.js keeps the store) ----
+const PREFS = [['text', t('content.display.text')], ['contrast', t('content.display.contrast')], ['links', t('content.display.links')], ['motion', t('content.display.motion')]];
+const store = () => (typeof window !== 'undefined' && window.gerbiA11y) || null;
+const isOn = (p, key) => key === 'text' ? (p.text || 0) > 0 : key === 'motion' ? Boolean(p.still) : Boolean(p[key]);
 function displaySettingsHtml() {
-  const prefs = readPrefs();
+  const prefs = store()?.read() || {};
   return `<section class="surface-panel display-settings" aria-labelledby="display-settings-h"><h2 id="display-settings-h">${t('content.display.title')}</h2>
    <p class="micro-copy">${t('content.display.note')}</p>
-   <div class="display-toggles" role="group" aria-label="${t('content.display.title')}">${PREFS.map(([key, label]) => `<button type="button" class="chip-toggle" data-display-pref="${key}" aria-pressed="${Boolean(prefs[key])}">${label}</button>`).join('')}
-   <button type="button" class="text-button" data-display-reset>${t('content.display.reset')}</button></div></section>`;
+   <div class="display-toggles" role="group" aria-label="${t('content.display.title')}">${PREFS.map(([key, label]) => `<button type="button" class="chip-toggle" data-display-pref="${key}" aria-pressed="${isOn(prefs, key)}">${label}</button>`).join('')}
+   <button type="button" class="text-button" data-display-reset>${t('content.display.reset')}</button>
+   <button type="button" class="text-button" data-a11y-open>${t('a11y.openMenu')}</button></div></section>`;
 }
+const syncDisplayButtons = (p) => document.querySelectorAll('[data-display-pref]').forEach(b => b.setAttribute('aria-pressed', String(isOn(p, b.dataset.displayPref))));
 if (typeof document !== 'undefined') {
-  applyDisplayPrefs();
+  document.addEventListener('gerbi-a11y-change', e => syncDisplayButtons(e.detail || {}));
   document.addEventListener('click', e => {
     const toggle = e.target.closest('[data-display-pref]'), reset = e.target.closest('[data-display-reset]'), jump = e.target.closest('[data-legal-jump]');
     if (jump) { e.preventDefault(); const target = document.getElementById(jump.dataset.legalJump + '-h'); target?.scrollIntoView({ block: 'start' }); target?.focus({ preventScroll: true }); return; }
-    if (!toggle && !reset) return;
-    const prefs = reset ? {} : { ...readPrefs(), [toggle.dataset.displayPref]: toggle.getAttribute('aria-pressed') !== 'true' };
-    try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {}
-    applyDisplayPrefs(prefs);
-    document.querySelectorAll('[data-display-pref]').forEach(b => b.setAttribute('aria-pressed', String(Boolean(prefs[b.dataset.displayPref]))));
+    if (e.target.closest('[data-a11y-open]')) { document.dispatchEvent(new CustomEvent('gerbi-a11y-open')); return; }
+    const s = store();
+    if ((!toggle && !reset) || !s) return;
+    if (reset) { s.save({}); return; }
+    const p = s.read(), key = toggle.dataset.displayPref, on = !isOn(p, key);
+    if (key === 'text') s.save({ ...p, text: on ? 1 : 0 });
+    else if (key === 'motion') s.save({ ...p, still: on });
+    else s.save({ ...p, [key]: on, ...(key === 'contrast' && on ? { dark: false } : {}) });
   });
 }
 
@@ -116,7 +118,7 @@ function privacy() {
 }
 
 function accessibility() {
-  const done = ['קישור „דילוג לתוכן” בראש כל דף, וכותרת ראשית אחת לכל מסך שמקבלת פוקוס במעבר בין דפים.', 'ניווט מלא במקלדת: Tab ו־Shift+Tab, Enter ורווח להפעלה, Escape לסגירת חלונות; מסגרת פוקוס ברורה בכל רכיב.', 'בורר תאריכים נגיש: ניווט בחצים בין ימים (מימין לשמאל), Page Up/Down בין חודשים, ושדות תאריך להקלדה ישירה.', 'חלונות (תאריכים, נוסעים, בדיקת מחיר, צ׳אט השירות) מוכרזים כחלון, מחזירים את הפוקוס לכפתור שפתח אותם ותופסים את כל המסך בטלפון.', 'כל שדה בטפסים עם תווית; הודעות שגיאה מקושרות לשדה ומוכרזות, והפוקוס עובר לשדה הראשון השגוי.', 'הודעות מצב (תוצאות חיפוש, שמירה, תשובות הבוט) מוכרזות לקוראי מסך (aria-live).', 'אזורי דף (כותרת, ניווט, תוכן, כותרת תחתונה) מסומנים, ושפת הדף וכיוונו (עברית, מימין לשמאל) מוגדרים.', 'ניגודיות צבעים לפי רמה AA, טקסט ניתן להגדלה עד 200% בלי אובדן תוכן, ופריסה שמתאימה את עצמה לרוחב 320 פיקסלים.', 'כפתורים ויעדי מגע בגודל 44×44 פיקסלים לפחות בטלפון, ושדות הקלט בגודל שאינו גורם להגדלה אוטומטית.', 'כיבוד הגדרת „הפחתת תנועה” של המכשיר, ואפשרות לעצור אנימציות בהגדרות התצוגה.', 'לתמונות תוכן יש טקסט חלופי; אייקונים קישוטיים מוסתרים מקוראי מסך.'];
+  const done = ['קישור „דילוג לתוכן” בראש כל דף, וכותרת ראשית אחת לכל מסך שמקבלת פוקוס במעבר בין דפים.', 'ניווט מלא במקלדת: Tab ו־Shift+Tab, Enter ורווח להפעלה, Escape לסגירת חלונות; מסגרת פוקוס ברורה בכל רכיב.', 'בורר תאריכים נגיש: ניווט בחצים בין ימים (מימין לשמאל), Page Up/Down בין חודשים, ושדות תאריך להקלדה ישירה.', 'חלונות (תאריכים, נוסעים, בדיקת מחיר, צ׳אט השירות) מוכרזים כחלון, מחזירים את הפוקוס לכפתור שפתח אותם ותופסים את כל המסך בטלפון.', 'כל שדה בטפסים עם תווית; הודעות שגיאה מקושרות לשדה ומוכרזות, והפוקוס עובר לשדה הראשון השגוי.', 'הודעות מצב (תוצאות חיפוש, שמירה, תשובות הבוט) מוכרזות לקוראי מסך (aria-live).', 'אזורי דף (כותרת, ניווט, תוכן, כותרת תחתונה) מסומנים, ושפת הדף וכיוונו (עברית, מימין לשמאל) מוגדרים.', 'ניגודיות צבעים לפי רמה AA, טקסט ניתן להגדלה עד 200% בלי אובדן תוכן, ופריסה שמתאימה את עצמה לרוחב 320 פיקסלים.', 'כפתורים ויעדי מגע בגודל 44×44 פיקסלים לפחות בטלפון, ושדות הקלט בגודל שאינו גורם להגדלה אוטומטית.', 'כיבוד הגדרת „הפחתת תנועה” של המכשיר, ואפשרות לעצור אנימציות בהגדרות התצוגה.', 'תפריט נגישות בכל דף (הכפתור העגול בפינת המסך; במקלדת — מיד אחרי „דילוג לתוכן”): הגדלת טקסט בשלוש דרגות, ניגודיות גבוהה או כהה, גווני אפור, הדגשת קישורים וכותרות, גופן קריא, ריווח שורות ואותיות, סמן גדול, עצירת אנימציות והדגשת פוקוס. ההגדרות נשמרות במכשיר בלבד.', 'לתמונות תוכן יש טקסט חלופי; אייקונים קישוטיים מוסתרים מקוראי מסך.'];
   const limits = ['פרטי טיסות (קודי חברות, שעות ושמות שדות תעופה) מגיעים מהספקים ומוצגים כפי שהתקבלו; ייתכנו קיצורים לועזיים.', 'תמונות בפוסטים בבלוג שמעלה צוות האתר עשויות להיות חסרות תיאור חלופי מלא — אנו פועלים להשלים זאת.', 'תשובות בוט השירות נוצרות אוטומטית; בכל שלב אפשר לבקש נציג אנושי.', 'שירותים חיצוניים (וואטסאפ, אתרי חברות התעופה) אינם בשליטתנו ונגישותם באחריות מפעיליהם.', `טרם בוצעה בדיקה ע״י מורשה/ית נגישות שירות ובדיקה עם משתמשי קוראי מסך. ${fill('תאריך בדיקת מורשה נגישות, אם בוצעה')}`];
   return `<div class="article-body legal-body">
   ${section('a-commit', 'המחויבות שלנו', `<p>ג׳רבי טורס רואה חשיבות במתן שירות שוויוני לכל הלקוחות, ובהם אנשים עם מוגבלות. השקענו בהנגשת האתר כך שיהיה נוח לשימוש עם מקלדת, קורא מסך, הגדלת תצוגה ומכשירים ניידים.</p>`)}

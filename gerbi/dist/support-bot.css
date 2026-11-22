@@ -9,7 +9,7 @@
 .sb-dialog::backdrop{background:#07175124}
 .sb-head{display:flex;align-items:center;gap:12px;padding:16px 18px;background:var(--navy,#071751);color:#fff}
 .sb-head h2{margin:0;font-size:18px;line-height:1.2}
-.sb-head p{margin:2px 0 0;font-size:13px;opacity:.85}
+.sb-head p{margin:2px 0 0;font-size:13px;opacity:.9;color:#fff}
 .sb-avatar{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--yellow,#ffdf25);color:var(--navy,#071751);flex:none}
 .sb-avatar svg{width:22px;height:22px}
 .sb-close{margin-inline-start:auto;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:0;background:#ffffff1f;color:#fff;cursor:pointer}

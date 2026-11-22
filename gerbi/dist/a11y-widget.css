@@ -1,0 +1,102 @@
+/* Accessibility menu (a11y-widget.mjs) and the display settings it applies as classes on <html> (a11y-boot.js).
+   Loaded after a11y-mobile.css. Placement: the reading-start corner (right in Hebrew, left in English); the support
+   bot launcher owns the other corner. */
+
+/* ---- the button ---- */
+.a11y-fab{position:fixed;z-index:22;inset-inline-start:20px;bottom:24px;width:54px;height:54px;padding:0;border-radius:50%;display:grid;place-items:center;background:var(--blue);color:#fff;border:3px solid #fff;box-shadow:0 8px 24px #0b1a5c47;transition:transform .15s ease,box-shadow .15s ease}
+.a11y-fab:hover{transform:scale(1.06);box-shadow:0 12px 28px #0b1a5c59}
+.a11y-fab:focus-visible{outline:3px solid var(--navy);outline-offset:3px}
+.a11y-fab[aria-expanded=true]{background:var(--navy)}
+.a11y-icon{width:30px;height:30px;stroke-width:2.1}
+/* Build page: the "back to top" slingshot sits in the same corner, so the button rises above it. */
+body:has(.sling-top:not([hidden])) .a11y-fab{bottom:100px}
+
+/* ---- the panel ---- */
+.a11y-panel{position:fixed;z-index:40;inset-inline-start:20px;bottom:90px;width:min(392px,calc(100vw - 24px));max-height:calc(100dvh - 110px);overflow:auto;overscroll-behavior:contain;background:#fff;color:var(--navy);border:1px solid var(--border);border-radius:22px;box-shadow:0 24px 70px #0a2a5a40;font-size:15px;text-align:start}
+.a11y-panel[hidden]{display:none}
+body:has(.sling-top:not([hidden])) .a11y-panel{bottom:166px}
+.a11y-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(120deg,var(--blue),var(--blue-deep));color:#fff}
+.a11y-head .a11y-icon{width:26px;height:26px;flex:none}
+.a11y-head h2{margin:0;font-size:19px;line-height:1.2;color:#fff}
+.a11y-close{margin-inline-start:auto;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#ffffff26;color:#fff}
+.a11y-close svg{width:22px;height:22px}
+.a11y-close:focus-visible,.a11y-head :focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.a11y-body{padding:14px 16px 16px}
+.a11y-intro{margin:0 0 12px;font-size:13px;color:var(--muted)}
+.a11y-text{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:12px;background:var(--pale);border-radius:14px}
+.a11y-text>span{font-weight:800;margin-inline-end:auto}
+.a11y-text button{min-width:48px;height:44px;border-radius:12px;background:#fff;border:1.5px solid var(--border);font-weight:900;font-size:16px;color:var(--navy)}
+.a11y-text button[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+.a11y-text output{min-width:78px;text-align:center;font-weight:700;font-size:14px}
+.a11y-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.a11y-toggle{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:78px;padding:10px 8px;border-radius:14px;border:1.5px solid var(--border);background:#fff;color:var(--navy);font-weight:700;font-size:14px;line-height:1.25;text-align:center;transition:background .15s,border-color .15s}
+.a11y-toggle svg{width:26px;height:26px;color:var(--blue)}
+.a11y-toggle:hover{border-color:var(--blue);background:var(--pale)}
+.a11y-toggle[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
+.a11y-toggle[aria-pressed=true] svg{color:var(--yellow)}
+.a11y-toggle[aria-pressed=true]::after{content:"✓";position:absolute;top:6px;inset-inline-end:8px;width:20px;height:20px;border-radius:50%;background:var(--yellow);color:var(--navy);font-size:12px;font-weight:900;line-height:20px;text-align:center}
+.a11y-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px}
+.a11y-reset{min-height:44px;padding:8px 16px;border-radius:12px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);font-weight:800}
+.a11y-reset:hover{background:var(--pale)}
+.a11y-statement{display:inline-flex;align-items:center;min-height:44px;color:var(--blue);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.a11y-panel :is(button,a):focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+@media (max-width:760px){
+ .a11y-fab{inset-inline-start:14px;bottom:calc(78px + env(safe-area-inset-bottom));width:50px;height:50px}
+ body:has(.sling-top:not([hidden])) .a11y-fab{bottom:calc(156px + env(safe-area-inset-bottom))}
+ /* A bottom sheet above the nav bar and the bot launcher. */
+ .a11y-panel,body:has(.sling-top:not([hidden])) .a11y-panel{inset-inline:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:auto;max-height:calc(100dvh - 72px)}
+}
+@media print{.a11y-widget{display:none}}
+
+/* ======== Display settings (classes on <html>) ======== */
+
+/* Text size: three steps. Phones get smaller steps so the page keeps ≥ 300 CSS px of width (no sideways scroll). */
+html.a11y-text-lg{--a11y-zoom:1.15}
+html.a11y-text-xl{--a11y-zoom:1.3}
+html.a11y-text-xxl{--a11y-zoom:1.45}
+@media (max-width:760px){html.a11y-text-lg{--a11y-zoom:1.08}html.a11y-text-xl{--a11y-zoom:1.16}html.a11y-text-xxl{--a11y-zoom:1.24}}
+html:is(.a11y-text-lg,.a11y-text-xl,.a11y-text-xxl){zoom:var(--a11y-zoom)}
+html:is(.a11y-text-lg,.a11y-text-xl,.a11y-text-xxl) .a11y-widget{zoom:calc(1 / var(--a11y-zoom))}
+html:is(.a11y-text-lg,.a11y-text-xl,.a11y-text-xxl) .header{height:auto;min-height:72px}
+html:is(.a11y-text-lg,.a11y-text-xl,.a11y-text-xxl) :is(.brand strong,.brand span){white-space:nowrap}
+@media (max-width:1280px){html:is(.a11y-text-xl,.a11y-text-xxl) .header nav{display:none}}
+@media (max-width:760px){html:is(.a11y-text-lg,.a11y-text-xl,.a11y-text-xxl) .brand strong{font-size:34px}html:is(.a11y-text-lg,.a11y-text-xl,.a11y-text-xxl) .brand span{display:none}}
+
+/* High contrast: darker tokens, plain white page, solid borders. */
+html.a11y-contrast{--navy:#000a2e;--blue:#0036a8;--blue-deep:#002a85;--muted:#1d2840;--border:#3d4a63;--pale:#fff;--sky:#fff;--sand:#fff;--focus:#000a2e}
+html.a11y-contrast body,html.a11y-contrast .scenery{background:#fff!important;background-image:none!important}
+html.a11y-contrast :is(p,li,small,span,label,dd,td,.micro-copy,.breadcrumbs,footer,.lead-hint){color:#111a2e}
+html.a11y-contrast :is(h1,h2,h3,h4){color:#000a2e}
+html.a11y-contrast :is(.yellow,.search-submit,.button.yellow){background:var(--yellow)!important;color:#000a2e!important;border:2px solid #000a2e!important}
+html.a11y-contrast :is(input,select,textarea,.field){border-color:#2c3954!important}
+html.a11y-contrast :is(.a11y-head,.a11y-head h2,.a11y-head .a11y-close){color:#fff}
+html.a11y-contrast :is(.sb-launcher,.search-tabs [aria-selected=true],.message.user,.a11y-toggle[aria-pressed=true],.comparison-tray,.flight-compare-tray,#toast,.chip-toggle[aria-pressed=true]) :is(span,small,p,label,strong){color:#fff}
+
+/* Dark contrast: the page is inverted; photos and the menu itself are inverted back so they look natural. */
+html.a11y-dark{filter:invert(1) hue-rotate(180deg);background:#fff}
+html.a11y-dark :is(img,video,canvas,iframe,.scenery,.a11y-fab,.a11y-panel){filter:invert(1) hue-rotate(180deg)}
+html.a11y-gray{filter:grayscale(1)}
+html.a11y-dark.a11y-gray{filter:invert(1) hue-rotate(180deg) grayscale(1)}
+
+/* Highlighted links and headings */
+html.a11y-links a:not(.button):not(.mobile-bottom a):not(.brand):not(.footer-brand):not(.skip-link){text-decoration:underline!important;text-decoration-thickness:2px!important;text-underline-offset:3px;background:#fff3a3;color:var(--navy)!important;border-radius:3px}
+html.a11y-links a:not(.button):hover{background:#ffe45c}
+html.a11y-links .a11y-statement{background:#fff3a3}
+html.a11y-headings :is(h1,h2,h3,h4,h5,h6):not(.a11y-head h2){outline:2px dashed var(--blue);outline-offset:4px;background:linear-gradient(transparent 62%,#ffe45c99 62%);border-radius:3px}
+
+/* Readable font (system sans, no handwriting face) and WCAG 1.4.12 text spacing */
+html.a11y-font body,html.a11y-font body :not(svg):not(svg *){font-family:Arial,"Helvetica Neue",Helvetica,"Noto Sans Hebrew",sans-serif!important;font-style:normal!important}
+html.a11y-spacing :is(p,li,dd,dt,td,th,label,blockquote,figcaption,h1,h2,h3,h4,h5,h6,small,.field-label,.card-description,.message,.micro-copy){line-height:1.8!important;letter-spacing:.08em!important;word-spacing:.16em!important}
+html.a11y-spacing p{margin-bottom:1.1em}
+
+/* Stop animations (a11y-boot.js also answers prefers-reduced-motion queries for the site's scripts) */
+html.a11y-still *,html.a11y-still *::before,html.a11y-still *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+
+/* Big cursor */
+html.a11y-cursor,html.a11y-cursor *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M6 3l28 16-12 3 8 14-6 3-8-14-9 9z' fill='%23000' stroke='%23fff' stroke-width='2.5' stroke-linejoin='round'/%3E%3C/svg%3E") 6 3,auto!important}
+html.a11y-cursor :is(a,button,summary,label,select,[role=button],[role=tab],[tabindex]:not([tabindex="-1"])),html.a11y-cursor :is(a,button,summary,label,[role=button],[role=tab]) *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M6 3l28 16-12 3 8 14-6 3-8-14-9 9z' fill='%23ffd21a' stroke='%23000' stroke-width='2.5' stroke-linejoin='round'/%3E%3C/svg%3E") 6 3,pointer!important}
+html.a11y-cursor :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){cursor:text!important}
+
+/* Keyboard focus highlight: a thick two-tone ring on whatever has focus, mouse focus included */
+html.a11y-focus :focus{outline:4px solid #ffbf1a!important;outline-offset:3px!important;box-shadow:0 0 0 8px var(--navy)!important}

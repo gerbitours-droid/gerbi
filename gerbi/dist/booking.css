@@ -38,7 +38,7 @@
 .bo-done.bo-ok{border-color:#a8dcb5;background:#f2fbf4}.bo-done.bo-fail{border-color:#f2c4c4;background:#fff7f7}.bo-done.bo-wait{border-color:#f6e7a0;background:#fffcef}
 .bo-pnr strong{font-size:26px;letter-spacing:2px}
 .bo-next{line-height:1.9;padding-inline-start:20px}
-.bo-spinner{width:34px;height:34px;border-radius:50%;border:4px solid #dce7f3;border-top-color:var(--blue);animation:bo-spin 1s linear infinite}
+.bo-spinner{width:34px;height:34px;border-radius:50%;border:4px solid var(--border);border-top-color:var(--blue);animation:bo-spin 1s linear infinite}
 @keyframes bo-spin{to{transform:rotate(360deg)}}
 .bo-cancel,.bo-timeline{margin:12px 0;border:1px solid var(--border);border-radius:14px;padding:10px 14px;background:#fff}
 .bo-cancel summary,.bo-timeline summary{cursor:pointer;font-weight:700}

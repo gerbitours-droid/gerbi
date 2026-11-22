@@ -53,7 +53,7 @@
 .lead-success ol{text-align:right;display:inline-block;margin:0 auto;padding-inline-start:20px;line-height:1.9;max-width:460px}
 .lead-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px}
 /* Home section */
-.tailor-banner{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:16px;padding:24px 28px;border-radius:25px;background:linear-gradient(120deg,#fff7c9,#fffbe6);border:2px solid #fff;box-shadow:var(--shadow)}
+.tailor-banner{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:16px;padding:24px 28px;border-radius:25px;background:linear-gradient(120deg,#ffeccf,var(--sand) 60%,#fff9e0);border:2px solid #fff;box-shadow:var(--shadow)}
 .tailor-banner h2{margin:2px 0 6px;font-size:24px;color:var(--navy)}
 .tailor-banner p{margin:0;max-width:640px;line-height:1.7;color:#43506a}
 .tailor-banner .button{flex-shrink:0}

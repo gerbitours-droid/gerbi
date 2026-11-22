@@ -18,9 +18,10 @@ import planner from './locales/planner.mjs';
 import catalog from './locales/catalog.mjs';
 import build from './locales/build.mjs';
 import booking from './locales/booking.mjs';
+import a11y from './locales/a11y.mjs';
 
 export const LANGS = ['he', 'en'];
-export const AREAS = { core, home, app, search, pages, content, account, leads, support, ai, cms, planner, catalog, build, booking };
+export const AREAS = { core, home, app, search, pages, content, account, leads, support, ai, cms, planner, catalog, build, booking, a11y };
 export const DICTS = { he: {}, en: {} };
 for (const area of Object.values(AREAS)) for (const l of LANGS) Object.assign(DICTS[l], area[l]);
 
