@@ -26,7 +26,7 @@ import { createOrders } from './backend/orders.mjs';
 import { createFx, handleFx } from './backend/fx-rates.mjs';
 import { createSupport } from './backend/support.mjs';
 import { handleAi } from './backend/ai-routes.mjs';
-import { gateway, tripPolish } from './backend/ai-features.mjs';
+import { gateway, tripPolish, tripExpandDay, tripExpandStay } from './backend/ai-features.mjs';
 import { createSearchStats } from './backend/search-stats.mjs';
 import { createFunnelStats } from './backend/funnel-stats.mjs';
 import { localizeHtml, normLang } from './dist/i18n.mjs';
@@ -115,7 +115,8 @@ const builder = createBuilder({ store: createStore('build', dataDirectory), llmC
   funnel: { record: (step) => background(funnelStats.record(step)) },
   tagger: (text, l, today) => partnerTripTags(llmCache, text, { today, lang: l }),
   partner: (text, request, l) => partnerUnderstand(llmCache, text, { adults: request.adults, children: request.children, nights: request.nights, month: '', want: [], exclude: [] }, { lang: l }),
-  polish: (destination, travellers, days, l) => tripPolish(destination, travellers, days, { store: llmCache, lang: l }), log: entry => logSupplier({ cached: false, ...entry }) });
+  polish: (destination, travellers, days, l) => tripPolish(destination, travellers, days, { store: llmCache, lang: l }),
+  aiEnabled: () => gateway.enabled('trip_expand_day'), expand: { day: (input, l) => tripExpandDay(input, { store: llmCache, lang: l }), stay: (input, l) => tripExpandStay(input, { store: llmCache, lang: l }) }, log: entry => logSupplier({ cached: false, ...entry }) });
 const tooMany = (send) => send(429, { error:'rate_limited', message:'יותר מדי בקשות בזמן קצר. נסו שוב בעוד דקה.' });
 
 async function body(req, limit = 32_000) {

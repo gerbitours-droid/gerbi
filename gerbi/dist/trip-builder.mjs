@@ -566,7 +566,8 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
   if (base) dest = { ...dest, attractions: (dest.attractions || []).filter((a) => base.areas.includes(a.area)), dayTrips: (dest.dayTrips || []).filter((dt) => base.trips.some((x) => L(dt.name, 'en').startsWith(x))), countrySized: base.areas.length > 1 };
   const where = L(dest.name, l), p = pace(request), want = wantTags(request, p.profile), asked = styleTags(request, p.profile), month = Number(start.slice(5, 7));
   const sized = countrySized(dest), isMust = mustSeeOf(dest), warnings = new Set();
-  const item = (a) => ({ name: L(a.name, l), kind: a.kind, durationH: a.durationH, area: a.area || '', where, mapsUrl: mapsUrl(L(a.name, l), where) });
+  // en + dest: the keys of the photo and the brochure details ('<destId>|<English name>'), so a card can show them.
+  const item = (a) => ({ name: L(a.name, l), en: L(a.name, 'en'), dest: dest.id, kind: a.kind, durationH: a.durationH, area: a.area || '', where, mapsUrl: mapsUrl(L(a.name, l), where), ...(LATE(a) ? { late: true } : {}) });
   let entries = [];
   const tooLong = []; // kid-friendly or must-see places longer than the pace: offered as free-day ideas, never planned
   const skip = new Set(request.prefs?.avoidKinds || []), extra = new Set(request.prefs?.moreKinds || []);
@@ -615,7 +616,7 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
       if (light) { used.add(light); day.items.push(item(light.a)); zone = light.zone; }
     } else if (day.kind === 'daytrip') {
       const { dt, h } = chosen[trip++];
-      day.items.push({ name: L(dt.name, l), kind: 'daytrip', durationH: h, where, mapsUrl: mapsUrl(L(dt.name, l), where) });
+      day.items.push({ name: L(dt.name, l), en: L(dt.name, 'en'), dest: dest.id, kind: 'daytrip', durationH: h, where, mapsUrl: mapsUrl(L(dt.name, l), where) });
       day.note = L(dt.note, l);
     }
   });
@@ -642,7 +643,7 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
     for (const loose of sized ? [false] : [false, true]) {
       if (loose && hours >= p.hours * 0.5) break;
       for (;;) {
-        const next = entries.filter((e) => fits(e, loose)).map((e) => ({ e, v: e.s + (e.a.area && e.a.area === seed.a.area ? 1.5 : 0) - count(e.a.kind) })).sort((x, y) => y.v - x.v)[0];
+        const next = entries.filter((e) => fits(e, loose)).map((e) => ({ e, v: e.s + (e.a.area && e.a.area === seed.a.area ? 1.5 : 0) - 1.5 * count(e.a.kind) })).sort((x, y) => y.v - x.v)[0];
         if (!next) break;
         used.add(next.e); day.push(next.e); hours += dur(next.e.a);
       }
@@ -675,6 +676,32 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
     if (sized && area && area !== lastZone) { const named = (dest.areas || []).find((x) => x.name?.en === area); day.note = t('build.note.base', { area: named ? L(named.name, l) : area }, l); }
     if (area) lastZone = area;
   });
+  // "More ideas" for each planned day (owner 23.11.2026): up to three unplanned places, the day's own area first and
+  // kinds the day does not have yet (a market, nature, an evening out…), each place offered on one day only.
+  const offered = new Set(), left = entries.filter((e) => !used.has(e));
+  out.forEach((day) => {
+    day.more = [];
+    if (!['full', 'arrival', 'move'].includes(day.kind) || !day.items.length) return;
+    const kinds = new Set(day.items.map((x) => x.kind)), areas = new Set(day.items.map((x) => x.area).filter(Boolean)), late = day.items.some((x) => x.late);
+    day.more = left.filter((e) => !offered.has(e) && (!sized || !areas.size || areas.has(e.a.area)))
+      .map((e) => ({ e, v: e.s + (areas.has(e.a.area) ? 2 : 0) + (kinds.has(e.a.kind) ? -1.5 : 1) + (!late && LATE(e.a) ? 1 : 0) }))
+      .sort((x, y) => y.v - x.v).slice(0, day.kind === 'full' ? 3 : 2).map((x) => { offered.add(x.e); return item(x.e.a); });
+  });
+  // A small catalog runs out of places: those days get everyday ideas instead (a local meal, coffee, an evening walk, a
+  // market) in the day's own area, of kinds the day lacks, rotated so days do not repeat one another. No prices, no names.
+  let g = 0; const generics = new Set();
+  out.forEach((day) => {
+    if (!['full', 'arrival', 'move'].includes(day.kind) || !day.items.length || day.more.length >= 2) return;
+    const area = day.items.find((x) => x.area && !x.area.startsWith('#'))?.area || '', named = (dest.areas || []).find((x) => x.name?.en === area), place = named ? L(named.name, l) : area || where, have = new Set([...day.items, ...day.more].map((x) => x.kind));
+    const pool = [['food', 'restaurants'], ['evening', 'sunset viewpoint'], ['cafe', 'cafe bakery'], ['market', 'market deli']].filter(([k]) => !have.has(k === 'cafe' ? 'food' : k));
+    for (let n = 0; day.more.length < 2 && n < pool.length; n++) {
+      const [k, q] = pool[(g + n) % pool.length], name = t(`build.more.gen.${k}`, { area: l === 'he' && /^[A-Za-z]/.test(place) ? `־${place}` : place }, l);
+      if (generics.has(name)) continue;
+      generics.add(name);
+      day.more.push({ name, kind: k === 'cafe' ? 'food' : k, durationH: k === 'evening' ? 1.5 : 1, area, where, generic: true, mapsUrl: mapsUrl(`${q} ${area || L(dest.name, 'en')}`, L(dest.name, 'en')) });
+    }
+    g++;
+  });
   return { days: out, spare: entries.filter((e) => !used.has(e)).map((e) => item(e.a)), warnings: [...warnings] };
 }
 
@@ -694,6 +721,25 @@ export function buildItinerary(stops, request, l = 'he') {
   });
   return { days: days.map((d, i) => ({ ...d, day: i + 1, title: dayTitle(d, l, L(stops[d.stop] ? baseName(stops[d.stop]) : '', l)),
     note: d.note || (d.kind === 'shabbat' ? t('build.note.shabbat', {}, l) : request.needs.shabbat && weekday(d.date) === 5 && d.kind === 'full' ? t('build.note.friday', {}, l) : request.needs.shabbat && weekday(d.date) === 6 ? t('build.note.travelShabbat', {}, l) : '') })), spare, warnings };
+}
+
+// The package's attractions section (owner 23.11.2026): each destination's places that suit these travellers – the
+// must-sees first, then by fit – with where it is, how long, a few tags and the day it is planned on (0 = not yet).
+// Places they asked to skip and places that do not suit the group (nightlife with children…) are left out.
+const SHOWN_TAGS = ['family', 'teens', 'couple', 'food', 'culture', 'nature', 'adventure', 'beach', 'relaxation', 'shopping', 'evening', 'nightlife', 'luxury'];
+export function attractionsOf(stops, request, days, l = 'he', { limit = 12 } = {}) {
+  const p = pace(request), want = wantTags(request, p.profile), asked = styleTags(request, p.profile), skip = new Set(request.prefs?.avoidKinds || []);
+  const planned = new Map(); days.forEach((d) => d.items.forEach((x) => { if (x.dest && x.en && !planned.has(`${x.dest}|${x.en}`)) planned.set(`${x.dest}|${x.en}`, d.day); }));
+  const seen = new Set();
+  return stops.filter((s) => !seen.has(s.dest.id) && seen.add(s.dest.id)).flatMap((s) => {
+    const dest = s.dest, isMust = mustSeeOf(dest), where = L(dest.name, l), month = Number(String(s.start || '').slice(5, 7)) || 0;
+    return (dest.attractions || []).map((a, i) => ({ a, i, must: isMust(a), s: scoreAttraction(a, request, want, asked) }))
+      .filter(({ a }) => !skip.has(a.kind) && !(skip.has('nightlife') && (a.tags || []).includes('nightlife')) && suitable({ ...a, durationH: Math.min(dur(a), p.hours) }, request, p, want))
+      .sort((x, y) => Number(y.must) - Number(x.must) || y.s - x.s || x.i - y.i).slice(0, limit)
+      .map(({ a, must }) => ({ name: L(a.name, l), en: L(a.name, 'en'), dest: dest.id, kind: a.kind, durationH: a.durationH || 2, area: a.area || '', where, must,
+        tags: (a.tags || []).filter((x) => SHOWN_TAGS.includes(x)).slice(0, 3), mapsUrl: mapsUrl(L(a.name, l), where), day: planned.get(`${dest.id}|${L(a.name, 'en')}`) || 0,
+        ...(month && offSeason(a, dest, month) ? { offSeason: offSeason(a, dest, month) } : {}), ...(LATE(a) ? { late: true } : {}) }));
+  });
 }
 
 // ---- 5. Car, practical card, search specs.
@@ -864,7 +910,7 @@ function planPackageRaw(request, { today = new Date().toISOString().slice(0, 10)
     areas: stops.map((s) => (s.dest.areas || []).filter((a) => !s.base || s.base.areas.includes(a.name?.en)).map((a) => ({ name: a.name, forWhom: a.forWhom }))),
     flightSearch: flightSearchOf(r, stops), hotelSearches: stops.map((s, i) => ({ ...hotelSearchOf(r, s, areas[i]), minStars: cfg.stars, board: cfg.board })),
     hotelAreas: areas.map((a) => (a ? { name: a.name, forWhom: a.forWhom } : null)),
-    car: { ...carAdvice(main, r, l), include: cfg.car }, itinerary: it.days, spare: it.spare, warnings: it.warnings,
+    car: { ...carAdvice(main, r, l), include: cfg.car }, itinerary: it.days, spare: it.spare, warnings: it.warnings, attractions: attractionsOf(stops, r, it.days, l),
     practical: (() => { const pr = practicalOf(main, r, l); if (it.warnings.length) pr.season = [...it.warnings, pr.season].filter(Boolean).join(' '); return pr; })(),
     highlights: (main.highlights || []).slice(0, 4).map((h) => L(h, l))
   };

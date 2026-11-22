@@ -82,6 +82,39 @@ export async function tripPolish(destination, travellers, days, { store = null, 
   return result ? { ...result.value, cached: result.cached } : null;
 }
 
+// ---------- magic trip builder: "expand with Gerbi" (owner 23.11.2026) ----------
+// A day: a tip + up to 3 extra ideas (not already planned/offered, no numbers). Where to stay: pros/cons/price level of
+// the catalog's own areas only. Both return null without a provider (the page keeps its rules-based expansion).
+const sameName = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+export async function tripExpandDay(input, { store = null, gw = gateway, lang = 'he' } = {}) {
+  const clip = (xs, n) => (Array.isArray(xs) ? xs : []).map((x) => String(x || '').slice(0, 120)).filter(Boolean).slice(0, n);
+  const data = { destination: String(input?.destination || '').slice(0, 80), travellers: String(input?.travellers || '').slice(0, 120), area: String(input?.area || '').slice(0, 80),
+    planned: clip(input?.planned, 6), known: clip(input?.known, 24) };
+  if (!data.destination || !data.planned.length) return null;
+  const validate = (v) => {
+    const tip = stripLinks(v.tip || '').slice(0, 240);
+    const ideas = (v.ideas || []).map((x) => ({ name: stripLinks(x.name || '').slice(0, 80), why: stripLinks(x.why || '').slice(0, 180), kind: x.kind || 'experience' }))
+      .filter((x) => x.name.length >= 2 && x.why.length >= 4 && ![...data.planned, ...data.known].some((n) => sameName(n, x.name))).slice(0, 3);
+    if (!numbersGrounded([tip, ...ideas.flatMap((x) => [x.name, x.why])].join(' '), [JSON.stringify(data)])) return null;
+    return tip.length >= 6 || ideas.length ? { tip, ideas } : null;
+  };
+  const result = await gw.run('trip_expand_day', data, { cache: store, validate, lang: normLang(lang) });
+  return result ? { ...result.value, cached: result.cached } : null;
+}
+export async function tripExpandStay(input, { store = null, gw = gateway, lang = 'he' } = {}) {
+  const areas = (Array.isArray(input?.areas) ? input.areas : []).slice(0, 6).map((a) => ({ name: String(a?.name || '').slice(0, 80), forWhom: String(a?.forWhom || '').slice(0, 160) })).filter((a) => a.name);
+  const data = { destination: String(input?.destination || '').slice(0, 80), travellers: String(input?.travellers || '').slice(0, 120), areas };
+  if (!data.destination || !areas.length) return null;
+  const validate = (v) => {
+    const out = (v.areas || []).map((x) => ({ name: String(x.name || ''), pros: stripLinks(x.pros || '').slice(0, 160), cons: stripLinks(x.cons || '').slice(0, 160), price: ['low', 'mid', 'high'].includes(x.price) ? x.price : '' }))
+      .filter((x) => areas.some((a) => sameName(a.name, x.name)) && x.pros.length >= 4);
+    if (!out.length || !numbersGrounded(out.flatMap((x) => [x.pros, x.cons]).join(' '), [JSON.stringify(data)])) return null;
+    return { areas: out };
+  };
+  const result = await gw.run('trip_expand_stay', data, { cache: store, validate, lang: normLang(lang) });
+  return result ? { ...result.value, cached: result.cached } : null;
+}
+
 // ---------- owner: lead brief ----------
 // What the model may see: trip fields and the customer's text (redacted). Never name, phone or e-mail.
 export function leadFacts(lead, now = new Date()) {

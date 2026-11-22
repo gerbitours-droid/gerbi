@@ -240,18 +240,52 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
 @media(prefers-reduced-motion:reduce){.bk-car-track{scroll-behavior:auto}}
 @media print{.bk-upsell,.bk-budget-acts,.bk-budget-banner a{display:none!important}}
 
-/* "Gerbi is thinking" (owner 18.11.2026): steps tick as live prices arrive; the "Did you know?" card sits under them. */
-.bk-think h2{display:flex;align-items:center;gap:10px}
-.bk-think-dot{width:12px;height:12px;border-radius:50%;background:var(--accent,#f5b400);animation:bk-pulse 1s ease-in-out infinite}
-.bk-think-steps{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
-.bk-think-steps li{display:flex;align-items:center;gap:10px;opacity:.55;transition:opacity .3s}
-.bk-think-steps li::before{content:"";width:18px;height:18px;flex:none;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:bk-spin .9s linear infinite}
-.bk-think-steps li.done{opacity:1}
-.bk-think-steps li.done::before{content:"✓";display:grid;place-items:center;font-size:12px;border:0;background:var(--ok,#1a7f4b);color:#fff;animation:none}
-.bk-think .did-you-know{margin-top:16px}
+/* "Gerbi is thinking" (owner 18.11 + 23.11.2026): an alive mascot (bobbing, a plane circling, thought bubbles), a
+   shimmering progress bar and steps that tick as each real call answers. The same strip stays above the plan while live
+   prices arrive. prefers-reduced-motion: everything still (the global rule in style.css + the list below). */
+.bk-think{position:relative;overflow:hidden;background:linear-gradient(135deg,#fffdf1 0%,#f1f8ff 55%,#eaf6ff 100%);border-color:#f1e3a1}
+.bk-think::after{content:"";position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#ffdf2533,transparent 70%);pointer-events:none}
+.bk-think-top{display:flex;align-items:center;gap:16px}
+.bk-think-head{flex:1;min-width:0}
+.bk-think h2,.bk-think h3{margin:0;font-size:clamp(18px,2.2vw,24px);line-height:1.3}
+.bk-think-mascot{--m:88px;position:relative;flex:none;width:calc(var(--m) + 28px);height:calc(var(--m) + 20px);display:grid;place-items:center}
+.bk-think-mascot img{width:var(--m);height:var(--m);object-fit:contain;position:relative;z-index:1;animation:bk-bob 2.4s ease-in-out infinite;transform-origin:50% 90%}
+.bk-think-glow{position:absolute;width:calc(var(--m) * .9);height:calc(var(--m) * .9);border-radius:50%;background:radial-gradient(circle,#ffe86a 0%,#ffdf2500 70%);animation:bk-glow 2.4s ease-in-out infinite}
+.bk-think-orbit{position:absolute;inset:0;animation:bk-orbit 3.6s linear infinite;z-index:2}
+.bk-think-orbit svg{position:absolute;top:-2px;left:50%;width:22px;height:22px;margin-left:-11px;fill:var(--blue);stroke:none;transform:rotate(90deg);filter:drop-shadow(0 2px 2px #0a3a8a33)}
+.bk-think-bubbles{position:absolute;top:2px;inset-inline-end:-2px;display:flex;gap:3px;z-index:2;background:#fff;border-radius:12px;padding:5px 7px;box-shadow:0 2px 8px #0b3a7a22}
+.bk-think-bubbles i{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:bk-dot 1.2s ease-in-out infinite}
+.bk-think-bubbles i:nth-child(2){animation-delay:.15s}.bk-think-bubbles i:nth-child(3){animation-delay:.3s}
+.bk-think-bar{position:relative;height:8px;border-radius:8px;background:#e3edf9;overflow:hidden;margin:14px 0 6px}
+.bk-think-bar span{position:relative;display:block;height:100%;width:6%;border-radius:8px;background:linear-gradient(90deg,#ffd718,#ffe640,#0d6cd5);background-size:200% 100%;transition:width .4s ease;animation:bk-shimmer 1.6s linear infinite}
+.bk-think-steps{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.bk-think-steps li{display:flex;align-items:center;gap:10px;font-weight:500;transition:opacity .3s,transform .3s}
+.bk-think-steps li.is-wait{opacity:.45}
+.bk-think-steps li.is-active{font-weight:700;color:var(--navy)}
+.bk-think-steps li.is-active .bk-step-text::after{content:"";display:inline-block;width:1.2em;text-align:start;animation:bk-ellipsis 1.2s steps(4) infinite}
+.bk-step-ico{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid #b9cbe2;display:grid;place-items:center;font-size:13px;line-height:1}
+.is-active .bk-step-ico{border-color:var(--blue);border-top-color:transparent;animation:bk-spin .8s linear infinite}
+.is-done .bk-step-ico,.is-skip .bk-step-ico{border:0;background:#1a7f4b;color:#fff;animation:bk-pop .35s ease-out}
+.is-done .bk-step-ico::before,.is-skip .bk-step-ico::before{content:"✓"}
+.is-skip .bk-step-ico{background:#8a97ad}
+.bk-think-facts .did-you-know{margin-top:14px;background:#ffffffc9;min-height:0}
+.bk-think-facts .did-you-know img{display:none}
+.bk-live{margin-bottom:14px}
+.bk-live .bk-think-steps{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 14px;font-size:14px}
+.bk-live-done{background:#eef8f1;border-color:#bfe3cc}
+.bk-live-done .bk-think-mascot img,.bk-live-done .bk-think-glow,.bk-live-done .bk-think-orbit,.bk-live-done .bk-think-bubbles i,.bk-live-done .bk-think-bar span{animation:none}
+.bk-live-done .bk-think-bubbles,.bk-live-done .bk-think-orbit{display:none}
 @keyframes bk-spin{to{transform:rotate(360deg)}}
 @keyframes bk-pulse{50%{transform:scale(.6);opacity:.5}}
-@media (prefers-reduced-motion:reduce){.bk-think-dot,.bk-think-steps li::before{animation:none}}
+@keyframes bk-bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+@keyframes bk-glow{0%,100%{transform:scale(.9);opacity:.6}50%{transform:scale(1.12);opacity:1}}
+@keyframes bk-orbit{to{transform:rotate(360deg)}}
+@keyframes bk-dot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-4px);opacity:1}}
+@keyframes bk-shimmer{to{background-position:-200% 0}}
+@keyframes bk-pop{0%{transform:scale(.3)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes bk-ellipsis{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+@media (max-width:560px){.bk-think-mascot{--m:60px!important}.bk-think-top{gap:10px}.bk-live .bk-think-mascot{--m:44px!important}}
+@media (prefers-reduced-motion:reduce){.bk-think-mascot img,.bk-think-glow,.bk-think-orbit,.bk-think-bubbles i,.bk-think-bar span,.is-active .bk-step-ico,.is-done .bk-step-ico,.bk-think-steps li.is-active .bk-step-text::after{animation:none}.bk-think-orbit{display:none}}
 
 /* Conversation (owner 18.11.2026): earlier turns, the agent's reply, options with "continue from here", the follow-up box. */
 .bk-history{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
@@ -271,8 +305,6 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
 .bk-chat-form textarea{width:100%;min-height:52px;border-radius:12px;padding:10px;border:1px solid var(--line,#dfe6f0);font:inherit;resize:vertical}
 .bk-poll-apply{background:#eef8f1;border-radius:12px;padding:8px 12px}
 .bk-unmet{margin:6px 0}
-.bk-think-bar{height:6px;border-radius:6px;background:var(--surface-2,#eef3fb);overflow:hidden;margin:6px 0 4px}
-.bk-think-bar span{display:block;height:100%;width:0;background:var(--accent,#f5b400);transition:width .25s linear}
 .bk-poll{border:0;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .bk-poll legend{font-weight:600;margin-bottom:6px;padding:0}
 .bk-poll-done{margin:14px 0 0;color:var(--muted,#5b6475)}
@@ -289,3 +321,62 @@ p.bk-pending{padding:12px;border-radius:12px;animation:pulse 1.2s infinite}
 .bk-exit h2{margin:8px 0}
 .bk-exit-acts{display:grid;gap:8px;margin-top:14px}
 .bk-resume-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+/* Variety + expansions (owner 23.11.2026): "more ideas" per day, the attractions section, where to stay, talk to Gerbi. */
+.bk-more-toggle{margin-top:8px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--blue);padding:6px 10px;border-radius:10px;background:#eef6ff;min-height:36px}
+.bk-more-toggle svg{width:16px;height:16px}
+.bk-more-toggle[aria-expanded=true]{background:#dfeeff}
+.bk-day-more{margin-top:8px;padding:10px 12px;border-radius:12px;background:#fbfdff;border:1px dashed #c9dcf2}
+.bk-day-more h5{margin:10px 0 6px;font-size:14px}
+.bk-day .bk-day-more ul{padding:0;margin:0;list-style:none;display:grid;gap:8px}
+.bk-day .bk-day-more li{display:flex;align-items:flex-start;gap:10px;flex-wrap:nowrap}
+.bk-day-more li>div{flex:1;min-width:0}
+.bk-day-more li img{width:64px;height:48px;border-radius:8px;object-fit:cover;flex:none}
+.bk-day-more li .button{flex:none;padding:6px 12px;font-size:13px}
+.bk-day-more .micro-copy{margin:2px 0 0}
+.bk-day-details li{display:block!important;font-size:14px;line-height:1.55}
+.bk-expand{margin-top:10px;display:inline-flex;align-items:center;gap:6px}
+.bk-expand svg{width:16px;height:16px}
+.bk-ai-box{margin-top:10px;padding:10px 12px;border-radius:12px;background:linear-gradient(120deg,#fffbe6,#f3f9ff)}
+.bk-ai-box>p{margin:0 0 8px}
+.bk-added{color:#1a7f4b;font-weight:700;font-size:13px;flex:none}
+.bk-attractions{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.bk-att{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;min-width:0}
+.bk-att-must{border-color:#f1d76a}
+.bk-att-img{position:relative;height:130px;background:linear-gradient(135deg,#d9ecff,#fff4c2)}
+.bk-att-img img{width:100%;height:100%;object-fit:cover;display:block}
+.bk-att-img img.bk-noimg{display:none}
+.bk-att-ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--blue)}
+.bk-att-ph svg{width:34px;height:34px}
+.bk-att-badge{position:absolute;top:8px;inset-inline-start:8px;background:var(--yellow);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:800}
+.bk-att-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.bk-att-body h4{margin:0;font-size:16px;line-height:1.35}
+.bk-att-body h4 a{color:var(--navy);text-decoration:underline;text-decoration-color:#bcd3ee;text-underline-offset:3px}
+.bk-att-meta{margin:0;font-size:13px;color:#5c6c88}
+.bk-att-about{margin:2px 0;font-size:14px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.bk-att-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0}
+.bk-att-price,.bk-att-free{font-size:13px;font-weight:700}
+.bk-att-free{color:#1a7f4b}
+.bk-att-in{margin:auto 0 0;display:flex;align-items:center;gap:6px;color:#1a7f4b;font-weight:700;font-size:14px}
+.bk-att-in svg{width:18px;height:18px}
+.bk-att-body>.button{margin-top:auto;align-self:flex-start}
+.bk-stay{list-style:none;padding:0;margin:10px 0;display:grid;gap:10px}
+.bk-stay-area{display:flex;gap:12px;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:14px;padding:10px 12px}
+.bk-stay-area.current{border-color:#0d6cd5;background:#f3f9ff}
+.bk-stay-area>div{flex:1;min-width:0}
+.bk-stay-area p{margin:3px 0}
+.bk-stay-area .button{flex:none}
+.bk-stay-pc{display:grid;gap:2px;font-size:14px}
+.bk-talk{margin:6px 0 0}
+.bk-talk .link-button{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--blue)}
+.bk-talk svg{width:16px;height:16px}
+.bk-chat-fab{position:fixed;z-index:9;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:12px 18px;border-radius:999px;background:var(--navy);color:#fff;font-weight:700;box-shadow:0 8px 24px #07175155;max-width:calc(100% - 140px);white-space:nowrap}
+.bk-chat-fab span{overflow:hidden;text-overflow:ellipsis}
+.bk-chat-fab svg{width:18px;height:18px;color:var(--yellow)}
+.bk-chat-fab[hidden]{display:none}
+@media (max-width:560px){.bk-stay-area{flex-direction:column;align-items:stretch}.bk-att-img{height:150px}.bk-day .bk-day-more li{flex-wrap:wrap}.bk-chat-fab{bottom:18px;padding:11px 14px;font-size:14px}}
+.bk-days{grid-template-columns:minmax(0,1fr)}.bk-days>li{min-width:0}
+.bk-more-toggle{display:flex;width:fit-content;max-width:100%;text-align:start}
+/* A "move" day carries the class bk-day-move – the same as the up/down buttons box: keep the day a block. */
+li.bk-day.bk-day-move{display:block}
+@media (max-width:700px){.bk-chat-fab{bottom:calc(158px + env(safe-area-inset-bottom));z-index:21;max-width:calc(100% - 32px)}}

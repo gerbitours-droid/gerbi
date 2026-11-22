@@ -143,6 +143,9 @@ export function hotelOptions(list, spec, { publicMode = false } = {}) {
 // Search → slim (KV cache 30 min, in-flight de-dup) → rank per request. The cache key holds only what the supplier
 // receives, so another area or family preference re-ranks the same list without a new supplier call.
 const HOTEL_TTL = 30 * 60;
+// The supplier finishes a city in ~12–16 s and its results call refuses a search still in progress (503, measured
+// 23.11.2026), so the wait cannot be cut short – only noticed sooner: progress every second instead of every 3 s.
+export const HOTEL_POLL_MS = 1000;
 const inFlight = new Map();
 // keyPrefix keeps recorded (fixture) answers apart from live ones when both share a store.
 export function createHotelSearch({ store, search, log = () => {}, now = () => Date.now(), keyPrefix = 'h:' }) {
@@ -154,7 +157,7 @@ export function createHotelSearch({ store, search, log = () => {}, now = () => D
     if (inFlight.has(key)) return inFlight.get(key);
     const run = (async () => {
       const started = now(), { query, fallbackQuery } = hotelQueries(spec);
-      const raw = await search(supplierHotelInput(spec), { query, fallbackQuery });
+      const raw = await search(supplierHotelInput(spec), { query, fallbackQuery, pollMs: HOTEL_POLL_MS });
       const entry = { list: raw.hotels.map((h) => slimHotel(h, raw.filtered ? spec.board : '')), total: raw.totalItems, filtered: raw.filtered, searchedAt: new Date(now()).toISOString() };
       log({ route: 'hotels', ok: true, ms: now() - started, hotels: raw.hotels.length, complete: raw.complete });
       if (entry.list.length) await store?.set(key, entry, HOTEL_TTL).catch(() => {}); // an empty answer is asked again next time

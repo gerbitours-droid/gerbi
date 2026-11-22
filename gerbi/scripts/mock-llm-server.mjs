@@ -18,6 +18,9 @@ const englishAnswer = (task, input) => {
       return { destinations: /japan/i.test(t) ? 'Japan' : '', start: '', end: '', flexibility: /april|may|june|august/i.test(t) ? 'month' : 'open', adults: /honeymoon|couple/i.test(t) ? 2 : 0, children: 0,
         budget: 'open', styles: [/food|wine/i.test(t) && 'culinary', /honeymoon/i.test(t) && 'romantic', /luxury/i.test(t) && 'luxury'].filter(Boolean), notes: /honeymoon/i.test(t) ? 'Celebrating a honeymoon — a romantic hotel' : '' };
     }
+    case 'trip_expand_day': return { tip: `Start early at ${input.planned[0]} – it is quieter before the crowds arrive.`,
+      ideas: [{ name: `Gelato near ${input.planned[0]}`, why: 'A sweet break between sights.', kind: 'food' }, { name: 'An evening stroll in the old town', why: 'The streets light up after sunset.', kind: 'evening' }] };
+    case 'trip_expand_stay': return { areas: input.areas.map((a, i) => ({ name: a.name, pros: `Good for ${a.forWhom || 'most travellers'}.`, cons: i ? 'Further from the main sights.' : 'Busy and a little noisy.', price: ['high', 'mid', 'low'][i % 3] })) };
     case 'flight_explain': {
       const [a, b] = input.offers;
       return { summary: `Flight A costs ${a.price} and takes ${a.duration || 'an unknown time'}; flight B costs ${b.price}${b.duration ? ` and takes ${b.duration}` : ''}.`, pick: 'A',
@@ -51,6 +54,9 @@ export function mockAnswer(task, input, system = '') {
     }
     case 'trip_polish': return { intro: `חופשה ב${input.destination} סביב ${input.days.find((d) => d.items.length)?.items[0] || 'המקומות היפים'}, בקצב נעים.`,
       dayTitles: input.days.map((d) => (d.items[0] ? `מגלים את ${d.items[0]}` : { arrival: 'נוחתים ומתמקמים', departure: 'ארוחת בוקר וטסים הביתה', rest: 'יום רגוע לטעינת מצברים', shabbat: 'שבת של מנוחה' }[d.kind] || 'יום חופשי')) };
+    case 'trip_expand_day': return { tip: `כדאי להגיע מוקדם ל${input.planned[0]} – שקט יותר לפני ההמונים.`,
+      ideas: [{ name: `גלידה ליד ${input.planned[0]}`, why: 'הפסקה מתוקה בין האתרים.', kind: 'food' }, { name: 'טיול ערב בעיר העתיקה', why: 'הרחובות נדלקים אחרי השקיעה.', kind: 'evening' }] };
+    case 'trip_expand_stay': return { areas: input.areas.map((a, i) => ({ name: a.name, pros: `מתאים ל${a.forWhom || 'רוב המטיילים'}.`, cons: i ? 'רחוק יותר מהאתרים המרכזיים.' : 'עמוס וקצת רועש.', price: ['high', 'mid', 'low'][i % 3] })) };
     case 'flight_explain': {
       const [a, b] = input.offers;
       return { summary: `הטיסה A עולה ${a.price} ונמשכת ${a.duration || 'זמן לא ידוע'}; הטיסה B עולה ${b.price}${b.duration ? ` ונמשכת ${b.duration}` : ''}.${a.stops !== b.stops ? ` ב־A ${a.stops ? 'יש החלפה' : 'טיסה ישירה'}, וב־B ${b.stops ? 'יש החלפה' : 'טיסה ישירה'}.` : ''}`,
@@ -76,6 +82,16 @@ export function mockAnswer(task, input, system = '') {
   }
 }
 
+// The emptiest valid value for a JSON schema: '' / 'unknown' for strings, 0, false, [], objects field by field.
+export function blankOf(s = {}) {
+  if (s.type === 'object') return Object.fromEntries(Object.entries(s.properties || {}).map(([k, v]) => [k, blankOf(v)]));
+  if (s.type === 'array') return [];
+  if (s.type === 'integer' || s.type === 'number') return 0;
+  if (s.type === 'boolean') return false;
+  if (Array.isArray(s.enum)) return s.enum.includes('') ? '' : s.enum.includes('unknown') ? 'unknown' : s.enum[0];
+  return '';
+}
+
 export function startMockLlm({ port = 0, latencyMs = 0, broken = new Set() } = {}) {
   const requests = [];
   const server = http.createServer(async (req, res) => {
@@ -86,7 +102,9 @@ export function startMockLlm({ port = 0, latencyMs = 0, broken = new Set() } = {
     let input = {}; try { input = JSON.parse(body.messages?.find((m) => m.role === 'user')?.content || '{}'); } catch { /* not JSON */ }
     if (latencyMs) await new Promise((r) => setTimeout(r, latencyMs));
     if (broken.has(task)) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: '{"not":"valid"}' } }], usage: { prompt_tokens: 10, completion_tokens: 3 } })); }
-    const content = JSON.stringify(mockAnswer(task, input, body.messages?.find((m) => m.role === 'system')?.content || ''));
+    // trip_tags (the builder's understanding): an "understood nothing extra" answer built from the schema, so the rules
+    // decide – an empty {} would count as a provider failure and open the breaker for every other task (23.11.2026).
+    const content = JSON.stringify(task === 'trip_tags' ? blankOf(body.response_format?.json_schema?.schema) : mockAnswer(task, input, body.messages?.find((m) => m.role === 'system')?.content || ''));
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content } }], usage: { prompt_tokens: Math.ceil(raw.length / 4), completion_tokens: Math.ceil(content.length / 4) } }));
   });
