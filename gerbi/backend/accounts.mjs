@@ -5,6 +5,8 @@ import { promisify } from 'node:util';
 import { validateSignup, validateProfile, passwordProblem, normalizeEmail, cleanSaved, addSearch, MARKETING_TEXT, PRIVACY_TEXT, marketingText, privacyText } from '../dist/account-core.mjs';
 import { tIn, normLang, homePath } from '../dist/i18n.mjs';
 import { allowShared, clientOf, LIMITS } from './volero-guard.mjs';
+import { createSealer, bookingKey } from './booking-crypto.mjs';
+import { validateTraveller, maskedDocument, MAX_SAVED_TRAVELLERS } from '../dist/booking-core.mjs';
 
 LIMITS.accountAuth ??= [10, 600_000];
 
@@ -83,7 +85,41 @@ const publicUser = (user) => ({ name: user.name, email: user.email, phone: user.
 const leadSummary = (record) => ({ ref: String(record.id).slice(0, 8), createdAt: record.createdAt, type: record.type, source: String(record.source || '').slice(0, 60),
   title: record.type === 'booking' ? `הזמנה ${String(record.orderRef || '').slice(0, 12)}` : record.type === 'package' ? `חבילה: ${String(record.destinations || '').slice(0, 110)}` : record.type === 'tailor' ? String(record.destinations || '').slice(0, 120) || 'טיול בהתאמה אישית' : 'פנייה כללית' });
 
-export function createAccounts({ store, leadStore = null, env = process.env, now = () => Date.now() }) {
+// Saved travellers (spec 25 §6.5): sealed with the booking key (AES-256-GCM, AAD = user + traveller id), so a
+// passport number is unreadable at rest and never leaves the server in full after it was saved.
+const savedConsentText = (l) => tIn(l)('booking.saved.consentText');
+function maskedTraveller(entry, data) {
+  return { id: entry.id, label: data.label || '', self: data.self === true, gender: data.gender, firstName: data.firstName, lastName: data.lastName, birthDate: data.birthDate,
+    phone: data.phone || '', email: data.email || '', document: maskedDocument(data.document), consentAt: entry.consent?.at || null, updatedAt: entry.updatedAt || entry.createdAt };
+}
+
+export function createAccounts({ store, leadStore = null, env = process.env, now = () => Date.now(), dataDirectory = '' }) {
+  let sealer = null;
+  try { const key = bookingKey(env, dataDirectory); sealer = key ? createSealer(key.secret) : null; } catch { sealer = null; }
+  const aad = (userId, id) => `traveller:${userId}:${id}`;
+  const openTraveller = (user, entry) => { try { return sealer.open(entry.sealed, aad(user.id, entry.id)); } catch { return null; } };
+  const travellerList = (user) => (Array.isArray(user.travellers) ? user.travellers : []);
+  const maskedList = (user) => (sealer ? travellerList(user).map((e) => { const d = openTraveller(user, e); return d ? maskedTraveller(e, d) : null; }).filter(Boolean) : []);
+  // Insert or update one traveller (by id, else by the same name + birth date). The old passport number is kept when
+  // the form left it empty with "keep". → the entry id.
+  function upsertTraveller(user, value, l, id = '') {
+    const list = travellerList(user), at = iso();
+    const existing = list.find((e) => e.id === id) || (!id ? list.find((e) => { const d = openTraveller(user, e); return d && d.firstName === value.firstName && d.lastName === value.lastName && d.birthDate === value.birthDate; }) : null);
+    if (id && !existing) return '';
+    const before = existing ? openTraveller(user, existing) || {} : {};
+    const document = value.document ? { ...value.document, number: value.document.number || (value.document.keep ? before.document?.number || '' : '') } : before.document || null;
+    if (document) delete document.keep;
+    if (document && !document.number) return '';
+    const data = { label: value.label || before.label || '', self: value.self === true || before.self === true, gender: value.gender, firstName: value.firstName, lastName: value.lastName, birthDate: value.birthDate || before.birthDate || '',
+      document, phone: value.phone || before.phone || '', email: value.email || before.email || '' };
+    const entryId = existing?.id || randomUUID();
+    const entry = { id: entryId, createdAt: existing?.createdAt || at, updatedAt: at, consent: { at, text: savedConsentText(l) }, sealed: sealer.seal(data, aad(user.id, entryId)) };
+    // Only one traveller is "me".
+    const others = list.filter((e) => e.id !== entryId).map((e) => { if (!data.self) return e; const d = openTraveller(user, e); return d?.self ? { ...e, sealed: sealer.seal({ ...d, self: false }, aad(user.id, e.id)) } : e; });
+    user.travellers = [entry, ...others].slice(0, MAX_SAVED_TRAVELLERS);
+    return entryId;
+  }
+
   const send = emailSender(env);
   const siteUrl = /^https?:\/\//i.test(env.SITE_URL || '') ? env.SITE_URL.replace(/\/+$/, '') : '';
   const iso = () => new Date(now()).toISOString();
@@ -243,14 +279,38 @@ export function createAccounts({ store, leadStore = null, env = process.env, now
       }
       return reply(200, { packages: user.packages || [] });
     }
+    if (path === '/travellers' || path === '/travellers/delete') {
+      if (!sealer) return reply(503, { error: 'travellers_unavailable', message: UNAVAILABLE });
+      if (method === 'POST' && path === '/travellers/delete') {
+        const id = typeof input.id === 'string' ? input.id : '';
+        const before = travellerList(user).length;
+        user.travellers = travellerList(user).filter((e) => e.id !== id);
+        if (user.travellers.length === before) return reply(404, { error: 'not_found' });
+        await saveUser(user);
+        return reply(200, { travellers: maskedList(user) });
+      }
+      if (method === 'POST') {
+        const id = typeof input.id === 'string' && /^[0-9a-f-]{36}$/.test(input.id) ? input.id : '';
+        if (!id && travellerList(user).length >= MAX_SAVED_TRAVELLERS) return reply(409, { error: 'travellers_full', message: tr('booking.saved.full', { max: MAX_SAVED_TRAVELLERS }) });
+        const { value, errors } = validateTraveller({ ...(input.traveller || {}), consent: input.consent === true }, { today: iso().slice(0, 10), lang: l, keepNumber: Boolean(id) });
+        if (!value) return reply(400, { error: 'traveller_invalid', fields: errors, message: 'חלק מהפרטים חסרים או לא תקינים.' });
+        const saved = upsertTraveller(user, value, l, id);
+        if (!saved) return reply(id ? 404 : 400, { error: id ? 'not_found' : 'traveller_invalid', fields: { 'document.number': tr('booking.v.docNumber') } });
+        await saveUser(user);
+        return reply(200, { id: saved, travellers: maskedList(user) });
+      }
+      return reply(200, { travellers: maskedList(user), max: MAX_SAVED_TRAVELLERS });
+    }
     if (method === 'GET' && path === '/leads') return reply(200, { leads: await leadsOf(user) });
     if (method === 'GET' && path === '/export') {
-      const { password, sessionVersion, ...data } = user;
+      const { password, sessionVersion, travellers: sealedTravellers, ...data } = user;
       res.setHeader('Content-Disposition', 'attachment; filename="gerbi-tours-my-data.json"');
-      return reply(200, { exportedAt: iso(), service: 'ג׳רבי טורס', account: { ...data, saved: cleanSaved(user.saved) }, leads: await leadsOf(user) });
+      // Saved travellers: every field, the passport number masked (the export is a file that travels).
+      return reply(200, { exportedAt: iso(), service: 'ג׳רבי טורס', account: { ...data, saved: cleanSaved(user.saved), travellers: maskedList(user) }, leads: await leadsOf(user) });
     }
     if (method === 'POST' && path === '/delete') {
       if (!(await verifyPassword(String(input.password ?? '').slice(0, 200), user.password))) return reply(401, { error: 'invalid_credentials', fields: { password: tr('account.v.passwordWrong') }, message: 'הסיסמה שגויה.' });
+      // The user record holds the sealed saved travellers too: deleting it deletes them.
       await store.del(`user:${user.id}`); await store.del(`email:${sha(user.email)}`); await store.del(`leadsByEmail:${sha(user.email)}`); await store.del(session.key);
       setCookie(res, req, env, '', 0);
       console.log(JSON.stringify({ evt: 'account_deleted' }));
@@ -285,6 +345,28 @@ export function createAccounts({ store, leadStore = null, env = process.env, now
         helpers.send(503, { error: 'account_unavailable', message: UNAVAILABLE });
       }
       return true;
+    },
+    // Hooks for backend/orders.mjs: a saved traveller with the full passport (server-side only), and saving the
+    // travellers of a booking (explicit consent was checked by the caller). Signed-in customers only.
+    travellerHooks: {
+      async get(req, id) {
+        const session = await current(req).catch(() => null), entry = session && sealer ? travellerList(session.user).find((e) => e.id === id) : null;
+        return entry ? openTraveller(session.user, entry) : null;
+      },
+      async save(req, passengers, l = 'he') {
+        const session = await current(req).catch(() => null);
+        if (!session || !sealer) return 0;
+        const user = session.user;
+        let count = 0;
+        for (const p of passengers.slice(0, MAX_SAVED_TRAVELLERS)) {
+          const exists = p.savedId && travellerList(user).some((e) => e.id === p.savedId);
+          if (!exists && travellerList(user).length >= MAX_SAVED_TRAVELLERS) break;
+          const value = { label: '', self: p.self === true, gender: p.gender, firstName: p.firstName, lastName: p.lastName, birthDate: p.birthDate, document: p.document ? { ...p.document } : null, phone: p.phone || '', email: p.email || '' };
+          if (upsertTraveller(user, value, l, exists ? p.savedId : '')) count++;
+        }
+        if (count) await saveUser(user);
+        return count;
+      }
     },
     // Hooks for backend/leads.mjs: who is submitting, and remember the enquiry for the customer area.
     leadHooks: {

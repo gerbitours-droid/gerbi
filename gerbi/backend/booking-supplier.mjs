@@ -8,7 +8,7 @@
 // and the e2e run use it. Nothing here ever talks to the supplier unless liveSupplier() is constructed AND enabled.
 import { readFileSync } from 'node:fs';
 import { getVoleroToken, voleroFlightAvailability, TIMEOUTS } from './volero-client.mjs';
-import { requirementsFrom } from '../dist/booking-core.mjs';
+import { requirementsFrom, extraKind, extrasSelection, PTC_ORDER } from '../dist/booking-core.mjs';
 
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 const text = (v, max = 200) => String(v ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -26,24 +26,35 @@ function legsOf(priced, lists = {}) {
   }).filter(Boolean);
 }
 
-// Checked-bag options per direction (route "TLV-ATH"), merged over passengers: the wizard offers one choice per
-// direction for everyone who can take it. Each choice maps back to one optionalServiceList entry per passenger.
-function bagsOf(services = []) {
-  const byRoute = new Map();
-  for (const s of services) {
-    if (s?.service?.categoryCode !== 'BG' || s.included || !Array.isArray(s.options) || !s.options.length) continue;
-    const route = `${s.route?.departureCode || ''}-${s.route?.arrivalCode || ''}`;
-    const entry = byRoute.get(route) || { route, from: s.route?.departureCode || '', to: s.route?.arrivalCode || '', services: [], options: new Map() };
-    entry.services.push({ bookingCode: String(s.bookingCode || '').slice(0, 80), target: s.target, passengerIndex: s.passengerIndex, selected: s.options.find((o) => o.selected)?.code || '' });
-    for (const o of s.options) {
-      const price = num(o?.price?.amount);
-      if (price === null || !o.code) continue;
-      const option = entry.options.get(o.code) || { code: String(o.code).slice(0, 40), label: text(String(o.description || '').replace(/\([^)]*\)\s*$/, ''), 80), price: { value: price, currency: o.price.currency }, count: 0 };
-      option.count++; entry.options.set(o.code, option);
-    }
-    byRoute.set(route, entry);
+// Every optional service the supplier offers (pricedOffer.optionalServices), one entry per passenger and route:
+//   { bookingCode, kind: bags|cabin|seat|sport|meal|other, name, from, to, target: 'ADT', passengerIndex: 0, pax: 0,
+//     options: [{ code, description, price: { value, currency } }] }
+// `pax` is the passenger's position in the order (ADT…, CHD…, INF…), so the wizard shows each one under its traveller.
+// Included services, services without priced options and unknown passengers are dropped; unknown categories are kept
+// under 'other' with the supplier's own wording.
+export function extrasOf(services = [], pax = {}) {
+  const offset = { ADT: 0, CHD: pax.ADT || 0, INF: (pax.ADT || 0) + (pax.CHD || 0) };
+  const out = [];
+  for (const s of Array.isArray(services) ? services : []) {
+    if (!s || s.included || !Array.isArray(s.options) || !s.options.length || typeof s.bookingCode !== 'string' || !s.bookingCode) continue;
+    const target = PTC_ORDER.includes(s.target) ? s.target : 'ADT', index = Number.parseInt(s.passengerIndex, 10);
+    if (!Number.isInteger(index) || index < 0 || index >= (pax[target] || 0)) continue;
+    const options = s.options.map((o) => ({ code: String(o?.code ?? '').slice(0, 40), description: text(o?.description, 200), price: { value: num(o?.price?.amount), currency: text(o?.price?.currency, 3) } }))
+      .filter((o) => o.code && o.price.value !== null && /^[A-Z]{3}$/.test(o.price.currency)).slice(0, 30);
+    if (!options.length) continue;
+    const selected = s.options.find((o) => o?.selected);
+    out.push({ bookingCode: s.bookingCode.slice(0, 80), kind: extraKind({ ...s.service, options: s.options }), name: text(s.service?.name, 80), category: text(s.service?.categoryCode, 10),
+      from: text(s.route?.departureCode, 3), to: text(s.route?.arrivalCode, 3), target, passengerIndex: index, pax: offset[target] + index, options,
+      ...(selected ? { selected: String(selected.code) } : {}) });
   }
-  return [...byRoute.values()].map((b) => ({ ...b, options: [...b.options.values()].filter((o) => o.count === b.services.length).map(({ count, ...o }) => o).slice(0, 8) })).filter((b) => b.options.length);
+  return out.slice(0, 120);
+}
+// Services the supplier adds to every booking of this offer (pricedOffer.mandatoryServices): shown, never chosen.
+function mandatoryOf(services = []) {
+  return (Array.isArray(services) ? services : []).map((s) => {
+    const amount = num(s?.price?.amount ?? s?.options?.[0]?.price?.amount), currency = text(s?.price?.currency || s?.options?.[0]?.price?.currency, 3);
+    return { name: text(s?.service?.name || s?.name, 80), kind: extraKind({ ...s?.service, options: s?.options || [] }), from: text(s?.route?.departureCode, 3), to: text(s?.route?.arrivalCode, 3), price: amount !== null ? { value: amount, currency } : null };
+  }).filter((s) => s.name).slice(0, 20);
 }
 
 // The parts of an availability answer the order keeps. Throws offer_unavailable when there is no price.
@@ -64,22 +75,20 @@ export function normalizeQuote(raw) {
     timeLimits: { offerExpiration: fare.timeLimits?.offerExpiration || null, ticketingTimeLimit: fare.timeLimits?.ticketingTimeLimit || null, lastTicketingDate: fare.timeLimits?.lastTicketingDate || null },
     autoTicketable: fare.autoTicketable === true, nonRefundable: typeof fare.nonRefundable === 'boolean' ? fare.nonRefundable : null,
     validatingCarrier: text(fare.validatingCarrier?.name || fare.validatingCarrier?.code, 60), brand: text(fare.brandedFare?.[0]?.name, 60),
-    bags: bagsOf(priced.optionalServices), legs: legsOf(priced, raw.dataLists),
+    extras: extrasOf(priced.optionalServices, pax), mandatory: mandatoryOf(priced.mandatoryServices), legs: legsOf(priced, raw.dataLists),
     // Reseller credit available for this offer (admin only). Without a payment method the supplier refuses to book.
     paymentAvailable: Boolean(credit && credit.info?.enabled !== false), credit: credit?.info?.available || null,
     disclaimer: text(raw.disclaimer, 1500), notices: (raw.notifications || []).map((n) => ({ type: n?.type, text: text(n?.text, 200) })).slice(0, 5)
   };
 }
 
-// optionalServiceList for the supplier from the customer's choice { "TLV-ATH": "2", … }.
-export function bagSelection(bags = [], choice = {}) {
-  const list = [];
-  for (const bag of bags) {
-    const code = choice?.[bag.route];
-    if (!code || !bag.options.some((o) => o.code === code)) continue;
-    for (const s of bag.services) list.push({ bookingCode: s.bookingCode, selectedOptionCode: code });
-  }
-  return list;
+// optionalServiceList for the supplier from the customer's choice { [bookingCode]: optionCode, … }.
+export const extrasFor = (extras = [], choice = {}) => extrasSelection(extras, choice);
+// Older clients sent one bag choice per direction { "TLV-ATH": "2" }: the same option for every traveller who can take it.
+export function bagChoice(extras = [], bags = {}) {
+  const choice = {};
+  for (const e of extras || []) { const code = bags?.[`${e.from}-${e.to}`]; if (e.kind === 'bags' && code && e.options.some((o) => o.code === String(code))) choice[e.bookingCode] = String(code); }
+  return choice;
 }
 
 // Booking travellers in the supplier's format (BookingTravelerInputType). Exactly one lead passenger: the first adult.
@@ -88,7 +97,8 @@ export function travellersFor(passengers, contact, clientRef) {
     ptc: p.ptc, reference: `${clientRef}-${i + 1}`.toLowerCase().replace(/[^a-z0-9\-_:.]/g, ''), type: p.type, lead: i === 0, title: p.title, firstName: p.firstName, lastName: p.lastName,
     ...(i === 0 ? { email: contact.email, ...phoneParts(contact.phone) } : {}),
     ...(p.birthDate ? { birthDate: p.birthDate } : {}),
-    ...(p.document ? { identificationDocument: { documentType: p.document.type, number: p.document.number, expiryDate: p.document.expiryDate, issuingCountry: p.document.issuingCountry, nationality: p.document.nationality, ...(p.document.issueDate ? { issuingDate: p.document.issueDate } : {}) } } : {})
+    // BookingTravelerInputType.identificationDocument accepts exactly these fields (gender and names travel above).
+    ...(p.document?.number ? { identificationDocument: { documentType: p.document.type || 'passport', number: p.document.number, expiryDate: p.document.expiryDate, issuingCountry: p.document.issuingCountry, nationality: p.document.nationality, ...(p.document.issueDate ? { issuingDate: p.document.issueDate } : {}) } } : {})
   }));
 }
 function phoneParts(phone) {

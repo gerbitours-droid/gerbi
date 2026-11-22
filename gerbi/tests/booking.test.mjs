@@ -9,8 +9,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { transition, canMove, TRANSITIONS, TERMINAL, EDITABLE } from '../backend/order-machine.mjs';
 import { createSealer, keyFrom, bookingKey } from '../backend/booking-crypto.mjs';
-import { validatePassenger, validatePassengers, validateContact, requirementsFrom, ageOn, ilsOf, titleOf } from '../dist/booking-core.mjs';
-import { normalizeQuote, fakeSupplier, liveSupplier, bagSelection, travellersFor, liveWritesEnabled } from '../backend/booking-supplier.mjs';
+import { validatePassenger, validatePassengers, validateContact, requirementsFrom, ageOn, ilsOf, titleOf, extraLabel, extraKind, extrasSelection, extrasTotal, cleanExtrasChoice, issueDateProblem, validateTraveller, maskedDocument } from '../dist/booking-core.mjs';
+import { normalizeQuote, fakeSupplier, liveSupplier, extrasOf, extrasFor, bagChoice, travellersFor, liveWritesEnabled } from '../backend/booking-supplier.mjs';
 import { mockPayments, paymePayments, notifyToken, hmac } from '../backend/payments.mjs';
 import { createOrders, bookingMode } from '../backend/orders.mjs';
 import { createStore } from '../backend/kv-store.mjs';
@@ -63,8 +63,9 @@ test('passenger data: AES-256-GCM sealed, bound to the order id, tamper-evident'
 });
 
 // ---------------------------------------------------------------- validation
-test('passenger validation: Latin names, DOB against the passenger type, documents when required', () => {
-  const ctx = { requirements: requirementsFrom({ birthdate: { required: true, ptcList: { ADT: false, CHD: true } } }), travelStart: '2027-01-10', travelEnd: '2027-01-15', today: '2026-11-15', lang: 'he' };
+test('passenger validation: Latin names, DOB against the passenger type', () => {
+  // Names and ages on their own (an older order without the passport requirement).
+  const ctx = { requirements: { ...requirementsFrom(), document: false, birthDate: { ADT: false, CHD: true, INF: true } }, travelStart: '2027-01-10', travelEnd: '2027-01-15', today: '2026-11-15', lang: 'he' };
   const adult = { gender: 'f', firstName: ' dana ', lastName: "o'neil-cohen" };
   assert.deepEqual(validatePassenger(adult, { ...ctx, ptc: 'ADT' }).value, { ptc: 'ADT', type: 'adult', gender: 'f', firstName: 'DANA', lastName: "O'NEIL-COHEN", birthDate: '', document: null });
   assert.ok(validatePassenger({ ...adult, firstName: 'דנה' }, { ...ctx, ptc: 'ADT' }).errors.firstName, 'Hebrew name refused');
@@ -77,15 +78,6 @@ test('passenger validation: Latin names, DOB against the passenger type, documen
   assert.equal(validatePassenger({ ...adult, birthDate: '2026-03-01' }, { ...ctx, ptc: 'INF' }).value.birthDate, '2026-03-01');
   assert.ok(validatePassenger({ ...adult, birthDate: '2027-01-01' }, { ...ctx, ptc: 'INF' }).errors.birthDate, 'born after departure');
   assert.equal(ageOn('2015-01-11', '2027-01-10'), 11);
-  // Document rules only when the supplier requires them (data minimisation otherwise).
-  const doc = { ...ctx, ptc: 'ADT', requirements: requirementsFrom({ identificationDocument: { required: true, types: { passport: {} } } }) };
-  const withDoc = (document) => validatePassenger({ ...adult, document }, doc);
-  assert.equal(withDoc({ number: 'ab 123-4567', expiryDate: '2030-01-01', nationality: 'il' }).value.document.number, 'AB1234567');
-  assert.equal(withDoc({ number: 'ab1234567', expiryDate: '2030-01-01', nationality: 'il' }).value.document.issuingCountry, 'IL');
-  assert.ok(withDoc({ number: 'AB1234567', expiryDate: '2027-01-12', nationality: 'IL' }).errors['document.expiryDate'], 'expires during the trip');
-  assert.ok(withDoc({ number: 'AB1234567', expiryDate: '2027-04-01', nationality: 'IL' }).warnings['document.expiryDate'], 'less than 6 months: warning');
-  assert.ok(withDoc({ number: '12', expiryDate: '2030-01-01', nationality: 'IL' }).errors['document.number']);
-  assert.ok(withDoc({ number: 'AB1234567', expiryDate: '2030-01-01', nationality: 'ISR' }).errors['document.nationality']);
   // The list: count per type, duplicates, infants ≤ adults.
   const pax = { ADT: 1, CHD: 0, INF: 0 };
   assert.ok(validatePassengers([], { pax, ...ctx }).errors.form);
@@ -93,6 +85,78 @@ test('passenger validation: Latin names, DOB against the passenger type, documen
   assert.equal(titleOf('ADT', 'f'), 'ms'); assert.equal(titleOf('CHD', 'm'), 'mstr'); assert.equal(titleOf('INF', 'f'), 'miss');
   // English messages for the English page.
   assert.match(validatePassenger({ ...adult, firstName: 'דנה' }, { ...ctx, ptc: 'ADT', lang: 'en' }).errors.firstName, /Latin/);
+});
+
+test('full passport for every traveller, whatever the offer asks; issue date validated; references resolved on the server only', () => {
+  // The recorded offers do not require a document: the site collects it anyway (owner decision 23.11.2026).
+  const req = requirementsFrom(recorded[0].raw.pricedOffer.offerConfiguration);
+  assert.deepEqual([req.document, req.documentIssueDate, req.supplierDocument, req.birthDate.ADT], [true, true, false, true]);
+  const ctx = { ptc: 'ADT', requirements: req, travelStart: '2027-01-10', travelEnd: '2027-01-15', today: '2026-11-15', lang: 'he' };
+  const person = { gender: 'f', firstName: 'DANA', lastName: 'LEVI', birthDate: '1990-05-01' };
+  const passport = { number: 'ab 123-4567', issuingCountry: 'il', nationality: 'il', issueDate: '2022-02-01', expiryDate: '2031-02-01' };
+  const ok = validatePassenger({ ...person, document: passport }, ctx);
+  assert.deepEqual(ok.value.document, { type: 'passport', number: 'AB1234567', expiryDate: '2031-02-01', nationality: 'IL', issuingCountry: 'IL', issueDate: '2022-02-01' });
+  assert.ok(validatePassenger(person, ctx).errors['document.number'], 'no passport → refused');
+  const withDoc = (patch) => validatePassenger({ ...person, document: { ...passport, ...patch } }, ctx);
+  assert.ok(withDoc({ expiryDate: '2027-01-12' }).errors['document.expiryDate'], 'expires during the trip');
+  assert.ok(withDoc({ expiryDate: '2027-04-01', issueDate: '2017-05-01' }).warnings['document.expiryDate'], 'less than 6 months after the return: warning');
+  assert.equal(withDoc({ expiryDate: '2027-04-01', issueDate: '2017-05-01' }).value?.document.expiryDate, '2027-04-01', 'a warning does not block');
+  assert.ok(withDoc({ number: '12' }).errors['document.number']);
+  assert.ok(withDoc({ nationality: 'ISR' }).errors['document.nationality']);
+  assert.equal(withDoc({ issuingCountry: '' }).value.document.issuingCountry, 'IL', 'issuing country defaults to the nationality');
+  // Issue date: required, real, not in the future, after birth, before expiry, at most ~10 years before expiry.
+  assert.match(withDoc({ issueDate: '' }).errors['document.issueDate'], /הנפקה/);
+  assert.ok(withDoc({ issueDate: '2026-12-01' }).errors['document.issueDate'], 'future');
+  assert.ok(withDoc({ issueDate: '1989-01-01' }).errors['document.issueDate'], 'before birth');
+  assert.ok(withDoc({ issueDate: '2031-03-01' }).errors['document.issueDate'], 'after expiry');
+  assert.ok(withDoc({ issueDate: '2015-01-01' }).errors['document.issueDate'], 'longer than 10 years');
+  assert.equal(issueDateProblem('2022-02-30'), 'booking.v.docIssue');
+  assert.equal(issueDateProblem('2022-02-01', { expiryDate: '2032-02-01', birthDate: '1990-05-01', today: '2026-11-15' }), '');
+  assert.match(validatePassenger({ ...person, document: { ...passport, issueDate: '2026-12-01' } }, { ...ctx, lang: 'en' }).errors['document.issueDate'], /future/);
+  // "Use the saved passport": only the browser may skip the number (allowReference); the server never does.
+  const ref = { ...person, document: { ...passport, number: '', useSaved: true, savedId: 'abc' } };
+  assert.equal(validatePassenger(ref, { ...ctx, allowReference: true }).errors['document.number'], undefined);
+  assert.ok(validatePassenger(ref, ctx).errors['document.number']);
+  // Masking: every field but the number.
+  assert.deepEqual(maskedDocument(ok.value.document), { type: 'passport', number: '•••567', expiryDate: '2031-02-01', nationality: 'IL', issuingCountry: 'IL', issueDate: '2022-02-01' });
+  // Sent to the supplier: exactly the identificationDocument fields its API accepts.
+  const [lead] = travellersFor([{ ...ok.value, title: 'ms' }], { email: 'd@e.co', phone: '0501234567' }, 'GBX-1');
+  assert.deepEqual(lead.identificationDocument, { documentType: 'passport', number: 'AB1234567', expiryDate: '2031-02-01', issuingCountry: 'IL', nationality: 'IL', issuingDate: '2022-02-01' });
+  assert.equal('gender' in lead || 'document' in lead || 'savedId' in lead, false);
+});
+
+test('flight extras: every optional service category, per passenger, readable Hebrew, priced selection', () => {
+  const quote = normalizeQuote(recorded[0].raw), extras = quote.extras;
+  // 3 travellers × (cabin bundle + sport + outbound bag + return bag) = 12; none dropped, none unknown.
+  assert.equal(extras.length, 12);
+  assert.deepEqual([...new Set(extras.map((x) => x.kind))].sort(), ['bags', 'cabin', 'sport']);
+  assert.deepEqual([...new Set(extras.map((x) => x.pax))].sort(), [0, 1, 2], 'ADT 0, ADT 1, CHD 0 → positions 0, 1, 2');
+  assert.equal(extras.find((x) => x.target === 'CHD').pax, 2);
+  const cabin = extras.find((x) => x.kind === 'cabin' && x.pax === 0), sport = extras.find((x) => x.kind === 'sport' && x.pax === 0);
+  assert.deepEqual([cabin.from, cabin.to], ['TLV', 'TLV'], 'whole trip');
+  assert.equal(extraLabel(cabin.options[1].description, 'he').text, 'הלוך וחזור: תיק אישי קטן (40×30×20 ס״מ) + טרולי לתא הנוסעים עד 10 ק״ג (55×40×23 ס״מ) + עלייה מועדפת למטוס');
+  assert.equal(extraLabel(sport.options[0].description, 'he').text, 'ציוד ספורט');
+  assert.equal(extraLabel('1 bags - 20Kg total(63.8 USD)', 'he').text, 'מזוודה אחת · עד 20 ק״ג');
+  assert.equal(extraLabel('3 bags - 26Kg+26Kg+26Kg(232.81 USD)', 'he').text, '3 מזוודות · 26 ק״ג כל אחת');
+  assert.equal(extraLabel('2 bags - 20Kg+20Kg(1 USD)', 'en').text, '2 bags · 20 kg each');
+  // Unknown wording falls back to the supplier's own text, cleaned of the price and markup; unknown categories → 'other'.
+  assert.deepEqual(extraLabel('<b>Lounge Access</b>(30 EUR)', 'he'), { text: 'Lounge Access', known: false });
+  assert.equal(extraKind({ name: 'Lounge', categoryCode: 'LG', options: [{ description: 'Lounge Access' }] }), 'other');
+  assert.equal(extraKind({ name: 'Seat Map', categoryCode: 'SE' }), 'seat');
+  const generic = extrasOf([{ bookingCode: 'x-1', route: { departureCode: 'TLV', arrivalCode: 'ATH' }, target: 'ADT', passengerIndex: '0', service: { name: 'Lounge', categoryCode: 'LG' }, options: [{ code: 'L', description: 'Lounge Access(30 EUR)', price: { amount: 30, currency: 'EUR' } }] },
+    { bookingCode: 'x-2', included: true, target: 'ADT', passengerIndex: '0', options: [{ code: '1', price: { amount: 0, currency: 'EUR' } }] },
+    { bookingCode: 'x-3', target: 'ADT', passengerIndex: '5', options: [{ code: '1', price: { amount: 1, currency: 'EUR' } }] }], { ADT: 1 });
+  assert.deepEqual(generic.map((x) => [x.bookingCode, x.kind]), [['x-1', 'other']], 'included and unknown-passenger services dropped');
+  // Selection → optionalServiceList (unknown booking codes / option codes dropped) and the total in the supplier currency.
+  const bagOut = extras.find((x) => x.kind === 'bags' && x.pax === 1 && x.to === 'ATH');
+  const choice = { [cabin.bookingCode]: '1', [sport.bookingCode]: 'SportEquipment', [bagOut.bookingCode]: '2', nope: '1', [cabin.bookingCode + 'x']: '1' };
+  assert.deepEqual(extrasFor(extras, choice), [{ bookingCode: cabin.bookingCode, selectedOptionCode: '1' }, { bookingCode: sport.bookingCode, selectedOptionCode: 'SportEquipment' }, { bookingCode: bagOut.bookingCode, selectedOptionCode: '2' }]);
+  assert.equal(extrasTotal(extras, choice, 'USD'), Math.round((81.55 + 142.1 + 63.8) * 100) / 100);
+  assert.equal(extrasTotal(extras, { [cabin.bookingCode]: '99' }, 'USD'), 0, 'unknown option');
+  assert.deepEqual(Object.keys(cleanExtrasChoice(extras, choice)).length, 3);
+  assert.equal(extrasSelection(extras, { [cabin.bookingCode]: '' }).length, 0, 'empty = no extra');
+  // Older clients: one bag choice per direction for everyone.
+  assert.equal(Object.keys(bagChoice(extras, { 'TLV-ATH': '2' })).length, 3);
 });
 
 test('contact validation and shekel conversion', () => {
@@ -113,10 +177,8 @@ test('a recorded supplier answer becomes a quote: requirements, time limits, bag
   assert.equal(quote.requirements.birthDate.ADT, true);
   assert.equal(quote.autoTicketable, true);
   assert.equal(quote.paymentAvailable, false, 'the recorded account had no credit payment method');
-  assert.ok(quote.bags.length >= 2 && quote.bags[0].options.length >= 1);
+  assert.ok(quote.extras.length >= 6 && quote.extras.every((x) => x.options.length >= 1));
   assert.equal(quote.legs[0].from, 'TLV');
-  const selection = bagSelection(quote.bags, { [quote.bags[0].route]: quote.bags[0].options[0].code, 'XXX-YYY': '1' });
-  assert.equal(selection.length, quote.bags[0].services.length);
   const second = normalizeQuote(recorded[1].raw);
   assert.equal(second.autoTicketable, false);
   assert.ok(second.timeLimits.ticketingTimeLimit);
@@ -191,8 +253,9 @@ async function harness({ mode = 'mock', scenario = null, payFailures = {}, env: 
   const settle = async () => { while (pending.length) await pending.shift(); };
   return { orders, store, leadStore, supplier, payments, mails, logs, call, settle, base, env, close: async () => { await settle(); server.close(); await rm(dir, { recursive: true, force: true }); } };
 }
-const adult = (first, last = 'LEVI') => ({ gender: 'f', firstName: first, lastName: last, birthDate: '1990-05-01' });
-const child = { gender: 'm', firstName: 'NOAM', lastName: 'LEVI', birthDate: '2018-03-02' };
+const passport = (n) => ({ number: `AB12345${n}`, issuingCountry: 'IL', nationality: 'IL', issueDate: '2022-02-01', expiryDate: '2031-02-01' });
+const adult = (first, last = 'LEVI') => ({ gender: 'f', firstName: first, lastName: last, birthDate: '1990-05-01', document: passport(first.length + last.length) });
+const child = { gender: 'm', firstName: 'NOAM', lastName: 'LEVI', birthDate: '2018-03-02', document: { ...passport(9), issueDate: '2023-01-01', expiryDate: '2028-01-01' } };
 const contact = { name: 'Dana Levi', email: 'dana@example.com', phone: '050-1234567' };
 async function toPriced(h, { last = 'LEVI', offer = OFFER, bags } = {}) {
   const created = await h.call('POST', '/api/orders', { offer, source: 'flights', lang: 'he' }, { 'Idempotency-Key': 'key-' + Math.random().toString(36).slice(2, 14) + '-abcdef' });
@@ -409,13 +472,88 @@ test('bags re-price the offer; the expected total follows the selection (no fals
   try {
     const created = await h.call('POST', '/api/orders', { offer: BAG_OFFER }, {});
     assert.equal(created.status, 201, JSON.stringify(created.data));
-    const bag = created.data.order.bags[0];
-    const { id, auth, checked } = await toPriced(h, { offer: BAG_OFFER, bags: { [bag.route]: bag.options[1].code } });
+    const bags = created.data.order.extras.filter((x) => x.kind === 'bags' && x.to === 'ATH');
+    // Older clients still send one bag per direction: it applies to every traveller.
+    const { id, auth, checked } = await toPriced(h, { offer: BAG_OFFER, bags: { 'TLV-ATH': bags[0].options[1].code } });
     assert.equal(checked.data.order.status, 'priced');
     const base = created.data.order.price.total.value;
-    assert.equal(checked.data.order.price.total.value, Math.round((base + bag.options[1].price.value * bag.travellers) * 100) / 100);
+    assert.equal(checked.data.order.price.total.value, Math.round((base + bags[0].options[1].price.value * bags.length) * 100) / 100);
     assert.equal(checked.data.order.addons.insurance, true);
     assert.ok(id && auth);
+  } finally { await h.close(); }
+});
+
+test('extras per traveller: chosen options go to the supplier, the re-checked total includes them, the summary keeps them', async () => {
+  const h = await harness();
+  try {
+    const { id, auth, created } = await toPriced(h, { offer: BAG_OFFER });
+    const extras = created.data.order.extras, base = created.data.order.price.total.value;
+    assert.ok(extras.every((x) => typeof x.bookingCode === 'string' && Number.isInteger(x.pax)), 'the wizard gets booking codes and passenger positions');
+    const pick = (kind, pax, to) => extras.find((x) => x.kind === kind && x.pax === pax && (!to || x.to === to));
+    const choice = { [pick('cabin', 0).bookingCode]: '1', [pick('sport', 1).bookingCode]: 'SportEquipment', [pick('bags', 2, 'ATH').bookingCode]: '2', [pick('bags', 2, 'TLV').bookingCode]: '3', 'not-a-code': '1' };
+    const added = await h.call('POST', `/api/orders/${id}/addons`, { extras: choice, insurance: false }, auth);
+    assert.equal(added.status, 200);
+    assert.equal(Object.keys(added.data.order.addons.extras).length, 4, 'unknown codes dropped');
+    const checked = await h.call('POST', `/api/orders/${id}/recheck`, {}, auth);
+    assert.equal(checked.data.order.status, 'priced', 'no false price change: the expected total already had the extras');
+    const sum = 81.55 + 142.1 + 63.8 + 70.49;
+    assert.equal(checked.data.order.price.total.value, Math.round((base + sum) * 100) / 100);
+    assert.equal(checked.data.order.price.extras, Math.round(sum * 100) / 100);
+    assert.equal(checked.data.order.price.ils, Math.ceil(checked.data.order.price.total.value * 3.7));
+    // The final check before the booking re-prices with the same optionalServiceList.
+    const final = await payAndApprove(h, id, auth, checked.data.order.price.ils);
+    assert.equal(final.status, 'confirmed');
+    const stored = await h.store.get(`order:${id}`);
+    assert.deepEqual(Object.keys(stored.addons.extras).sort(), Object.keys(choice).filter((k) => k !== 'not-a-code').sort());
+  } finally { await h.close(); }
+});
+
+test('passports: masked in every view (customer + admin), full numbers only on the audited admin request, "keep" re-uses the stored number', async () => {
+  const h = await harness({ mode: 'request' });
+  try {
+    const { id, auth } = await toPriced(h);
+    const stored = await h.store.get(`order:${id}`);
+    assert.equal(JSON.stringify(stored).includes('AB12345'), false, 'sealed at rest');
+    const view = (await h.call('GET', `/api/orders/${id}`, undefined, auth)).data.order;
+    assert.equal(view.passengers[0].document.number, '•••458');
+    assert.equal(view.passengers[0].document.issueDate, '2022-02-01');
+    assert.equal(JSON.stringify(view).includes('AB12345'), false);
+    const admin = { Authorization: `Bearer ${h.env.LEADS_ADMIN_TOKEN}` };
+    const adminView = (await h.call('GET', `/api/orders/admin/${id}`, undefined, admin)).data.order;
+    assert.equal(JSON.stringify(adminView.passengers).includes('AB12345'), false, 'admin view masked too');
+    assert.equal((await h.call('GET', `/api/orders/admin/${id}/documents`)).status, 401);
+    const docs = await h.call('GET', `/api/orders/admin/${id}/documents`, undefined, admin);
+    assert.equal(docs.data.documents[0].number, 'AB123458');
+    assert.ok((await h.store.get(`order:${id}`)).timeline.some((e) => e.event === 'documents_viewed'), 'audited');
+    // Editing the travellers again: "keep" uses the number already in the order; nothing typed, nothing returned.
+    const again = [adult('DANA'), adult('ROY'), child].map((p) => ({ ...p, document: { ...p.document, number: '', keep: true } }));
+    const kept = await h.call('POST', `/api/orders/${id}/passengers`, { passengers: again, contact }, auth);
+    assert.equal(kept.status, 200, JSON.stringify(kept.data));
+    assert.equal((await h.call('GET', `/api/orders/admin/${id}/documents`, undefined, admin)).data.documents[1].number, 'AB123457');
+    // Without "keep" and without a number: refused, next to the field.
+    const missing = await h.call('POST', `/api/orders/${id}/passengers`, { passengers: [{ ...adult('DANA'), document: { ...passport(1), number: '' } }, adult('ROY'), child], contact }, auth);
+    assert.equal(missing.status, 400); assert.ok(missing.data.fields['0.document.number']);
+    // "use the saved passport" with no accounts behind it cannot be resolved.
+    const saved = await h.call('POST', `/api/orders/${id}/passengers`, { passengers: [{ ...adult('DANA'), document: { ...passport(1), number: '', useSaved: true, savedId: 'abc' } }, adult('ROY'), child], contact }, auth);
+    assert.equal(saved.status, 400); assert.ok(saved.data.fields['0.document.number']);
+  } finally { await h.close(); }
+});
+
+test('hotel in one click after the flight request: same lead traveller + contact, one lead, no retyping', async () => {
+  const h = await harness({ mode: 'request' });
+  try {
+    const { id, auth, checked } = await toPriced(h);
+    assert.equal((await h.call('POST', `/api/orders/${id}/hotel-request`, {}, auth)).status, 409, 'only after the flight request');
+    await h.call('POST', `/api/orders/${id}/submit`, { terms: true, cancellation: true, expectedTotal: checked.data.order.price.ils }, auth);
+    const sent = await h.call('POST', `/api/orders/${id}/hotel-request`, { stars: '4', board: 'breakfast', note: 'quiet room' }, auth);
+    assert.equal(sent.status, 200); assert.equal(sent.data.order.hotelRequested, true);
+    const leads = await h.leadStore.list('all', 10), hotel = leads.find((l) => l.source === 'booking:hotel');
+    assert.ok(hotel, 'a hotel lead');
+    assert.equal(hotel.email, 'dana@example.com'); assert.equal(hotel.phone, '0501234567');
+    assert.match(hotel.message, /DANA LEVI/); assert.match(hotel.message, /4 כוכבים/); assert.match(hotel.message, /ארוחת בוקר/); assert.match(hotel.message, /צ׳ק־אין/);
+    assert.equal(hotel.message.includes('AB12345'), false, 'no passport in the lead');
+    assert.equal((await h.call('POST', `/api/orders/${id}/hotel-request`, {}, auth)).data.repeated, true);
+    assert.equal((await h.leadStore.list('all', 10)).filter((l) => l.source === 'booking:hotel').length, 1);
   } finally { await h.close(); }
 });
 

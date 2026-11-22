@@ -11,10 +11,10 @@
 //                        anything missing falls back to request (fail closed) and /api/status says why.
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { transition, audit, flag, unflag, EDITABLE, IN_FLIGHT, TERMINAL, canMove } from './order-machine.mjs';
-import { liveSupplier, fakeSupplier, bagSelection, travellersFor, SCENARIOS } from './booking-supplier.mjs';
+import { liveSupplier, fakeSupplier, extrasFor, bagChoice, travellersFor, SCENARIOS } from './booking-supplier.mjs';
 import { paymentProvider, notifyToken, hmac } from './payments.mjs';
 import { createSealer, bookingKey } from './booking-crypto.mjs';
-import { validatePassengers, validateContact, titleOf, maskDocument, ilsOf, STATUS_GROUP, requirementsFrom } from '../dist/booking-core.mjs';
+import { validatePassengers, validateContact, titleOf, maskedDocument, ilsOf, STATUS_GROUP, requirementsFrom, extrasTotal, cleanExtrasChoice } from '../dist/booking-core.mjs';
 import { allow, allowShared, clientOf, LIMITS } from './volero-guard.mjs';
 import { tokenMatches, recordLead } from './leads.mjs';
 import { sameOrigin, emailSender } from './accounts.mjs';
@@ -47,7 +47,9 @@ const clean = (value, max = 300) => String(value ?? '').replace(/[<>\u0000-\u001
 const idOf = (value, max = 200) => (typeof value === 'string' && value.length <= max && /^[A-Za-z0-9._~:=+/-]+$/.test(value) ? value : '');
 async function rawBody(req, limit = 16_000) { let raw = ''; for await (const chunk of req) { raw += chunk; if (raw.length > limit) throw new Error('payload_too_large'); } return raw; }
 
-export function createOrders({ store, leadStore = null, env = process.env, now = () => Date.now(), fx = null, dataDirectory = '', supplier = null, payments = undefined, userOf = async () => null, leadCreated = async () => {}, background = (p) => p.catch(() => {}), log = (entry) => console.log(JSON.stringify(entry)), mail = undefined } = {}) {
+// travellers: the customer area's saved travellers (backend/accounts.mjs travellerHooks) – resolve a saved passport
+// server-side and save the travellers of this booking when the customer asks to; null = no accounts.
+export function createOrders({ store, leadStore = null, env = process.env, now = () => Date.now(), fx = null, dataDirectory = '', supplier = null, payments = undefined, userOf = async () => null, leadCreated = async () => {}, travellers = null, background = (p) => p.catch(() => {}), log = (entry) => console.log(JSON.stringify(entry)), mail = undefined } = {}) {
   const resolved = bookingMode(env), mode = resolved.mode;
   const key = bookingKey(env, dataDirectory), sealer = key ? createSealer(key.secret) : null;
   // Without an encryption key (production without BOOKING_DATA_KEY) no passenger data may be stored: booking is off.
@@ -82,9 +84,10 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
   }
   async function priced(order, quote, by) {
     const fxRate = await rate(quote.total.currency), ils = fxRate ? ilsOf(quote.total, fxRate.rate) : null;
-    const bagsTotal = (quote.bags || []).reduce((sum, b) => sum + (b.options.find((o) => o.code === order.addons?.bags?.[b.route])?.price.value || 0) * b.services.length, 0);
+    // The re-priced total already includes the selected extras (the supplier prices them in): keep the split.
+    const extras = extrasTotal(quote.extras, order.addons?.extras, quote.total.currency);
     return { ...order, quote: { ...quote, availabilityToken: quote.availabilityToken }, quotedAt: iso(), expected: quote.total,
-      price: { total: quote.total, ils, rate: fxRate?.rate ?? null, rateAsOf: fxRate?.asOf ?? null, bags: Math.round(bagsTotal * 100) / 100, base: Math.round((quote.total.value - bagsTotal) * 100) / 100 }, pricedBy: by };
+      price: { total: quote.total, ils, rate: fxRate?.rate ?? null, rateAsOf: fxRate?.asOf ?? null, extras, base: Math.round((quote.total.value - extras) * 100) / 100 }, pricedBy: by };
   }
   const travelDates = (order) => ({ travelStart: order.quote?.legs?.[0]?.date || '', travelEnd: order.quote?.legs?.at(-1)?.arriveDate || order.quote?.legs?.at(-1)?.date || '' });
   const scenarioOf = (order) => (mode === 'mock' ? order.scenario || null : null);
@@ -93,13 +96,14 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
   function publicView(order) {
     const data = openSealed(order) || {};
     const passengers = (data.passengers || []).map((p) => ({ ptc: p.ptc, gender: p.gender, firstName: p.firstName, lastName: p.lastName, birthDate: p.birthDate,
-      ...(p.document ? { document: { type: p.document.type, number: maskDocument(p.document.number), expiryDate: p.document.expiryDate, nationality: p.document.nationality, issuingCountry: p.document.issuingCountry } } : {}) }));
+      ...(p.document ? { document: maskedDocument(p.document) } : {}), ...(p.savedId ? { savedId: p.savedId } : {}) }));
     const q = order.quote || {};
     return { id: order.id, ref: order.ref, status: order.status, group: STATUS_GROUP[order.status] || 'closed', mode: order.mode, online: order.mode !== 'request', createdAt: order.createdAt, updatedAt: order.updatedAt, lang: order.lang, source: order.source,
-      legs: q.legs || [], pax: q.pax || {}, carrier: q.validatingCarrier || '', brand: q.brand || '', requirements: q.requirements || requirementsFrom(), bags: (q.bags || []).map(({ services, ...b }) => ({ ...b, travellers: services.length })),
+      legs: q.legs || [], pax: q.pax || {}, carrier: q.validatingCarrier || '', brand: q.brand || '', requirements: q.requirements || requirementsFrom(),
+      extras: (q.extras || []).map(({ bookingCode, kind, name, from, to, pax, options }) => ({ bookingCode, kind, name, from, to, pax, options })), mandatory: q.mandatory || [],
       nonRefundable: q.nonRefundable ?? null, autoTicketable: q.autoTicketable === true, disclaimer: q.disclaimer || '', items: q.items || [],
       price: order.price || null, priceChange: order.status === 'price_changed' ? order.priceChange || null : null, quotedAt: order.quotedAt || null, quoteExpiresAt: q.timeLimits?.offerExpiration || null,
-      passengers, contact: data.contact || null, addons: order.addons || { bags: {}, insurance: false }, terms: order.terms ? { acceptedAt: order.terms.acceptedAt } : null,
+      passengers, contact: data.contact || null, addons: { extras: order.addons?.extras || {}, insurance: order.addons?.insurance === true }, hotelRequested: order.flags?.includes('hotel_requested') || false, terms: order.terms ? { acceptedAt: order.terms.acceptedAt } : null,
       payment: order.payment ? { status: order.payment.status, amount: order.payment.amount, installments: order.payment.installments || 1 } : null,
       supplier: order.supplier ? { pnr: order.supplier.pnr || '', ticketStatus: order.supplier.ticketStatus || '', tickets: (order.supplier.tickets || []).map((t) => t.number) } : null,
       cancelRequested: order.flags?.includes('cancel_requested') || false, piiPurged: Boolean(order.piiPurgedAt),
@@ -108,7 +112,8 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
   }
   function adminView(order) {
     const data = openSealed(order) || {};
-    return { ...publicView(order), passengers: data.passengers || [], contact: data.contact || null, flags: order.flags || [], timeline: order.timeline || [], offer: { srk: order.offer?.srk, offerIndex: order.offer?.offerIndex },
+    // Passport numbers stay masked on the admin screen too; GET …/admin/<id>/documents shows them (audited).
+    return { ...publicView(order), passengers: (data.passengers || []).map((p) => ({ ...p, ...(p.document ? { document: maskedDocument(p.document) } : {}) })), contact: data.contact || null, flags: order.flags || [], timeline: order.timeline || [], offer: { srk: order.offer?.srk, offerIndex: order.offer?.offerIndex },
       payment: order.payment || null, supplier: order.supplier || null, quote: { timeLimits: order.quote?.timeLimits, paymentAvailable: order.quote?.paymentAvailable, credit: order.quote?.credit, notices: order.quote?.notices }, userId: order.userId || null, leadId: order.leadId || null, scenario: order.scenario || null };
   }
   const summaryOf = (order) => { const legs = order.quote?.legs || []; return { route: legs.map((l) => l.from).concat(legs.at(-1)?.to || []).join(' → '), start: legs[0]?.date || '', end: legs.at(-1)?.date || '' }; };
@@ -128,13 +133,22 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
     const data = openSealed(order) || {}, c = data.contact || {}, s = summaryOf(order), pax = order.quote?.pax || {};
     const total = order.price?.ils ? `₪${order.price.ils}` : `${order.price?.total?.value} ${order.price?.total?.currency}`;
     const lines = [`הזמנה ${order.ref} (${order.mode === 'request' ? 'בקשה – לטיפול נציג' : 'אונליין'})`, `מסלול: ${s.route} · ${s.start}${s.end && s.end !== s.start ? ' – ' + s.end : ''}`, `מחיר שאושר: ${total}`,
-      order.addons?.insurance ? 'מבקש/ת הצעת ביטוח נסיעות (הראל) – לחזור עם הצעה' : '', why === 'cancel' ? 'בקשת ביטול מהלקוח' : ''].filter(Boolean);
+      order.addons?.insurance ? 'מבקש/ת הצעת ביטוח נסיעות (הראל) – לחזור עם הצעה' : '', why === 'cancel' ? 'בקשת ביטול מהלקוח' : '', ...(why === 'hotel' ? hotelLines(order, data) : [])].filter(Boolean);
     const record = { id: randomUUID(), createdAt: iso(), status: 'new', type: 'booking', source: `booking:${why}`, lang: order.lang, name: c.name || '', phone: c.phone || '', email: c.email || '', channel: 'phone',
       destinations: s.route, start: s.start, end: s.end, adults: pax.ADT || 0, children: (pax.CHD || 0) + (pax.INF || 0), message: lines.join('\n'), orderId: order.id, orderRef: order.ref, ...(order.userId ? { userId: order.userId } : {}),
       consent: { given: true, text: 'נוצר מתהליך ההזמנה באתר (תנאי השימוש אושרו בהזמנה).', at: iso() } };
     await recordLead(leadStore, record, env);
     try { await leadCreated(record); } catch { /* the customer area link is a nicety */ }
     return { ...order, leadId: record.id };
+  }
+
+  // The hotel request after a flight: where, when, who – all from the order, nothing re-typed.
+  function hotelLines(order, data) {
+    const legs = order.quote?.legs || [], out = legs[0] || {}, back = legs.length > 1 ? legs.at(-1) : null, lead = data.passengers?.[0];
+    const board = { room: 'לינה בלבד', breakfast: 'לינה וארוחת בוקר', half: 'חצי פנסיון', all: 'הכול כלול' }[order.hotelAsk?.board] || '';
+    return ['בקשת מלון בקליק (אחרי הטיסה)', `יעד: ${out.toCity || out.to || ''}`, `צ׳ק־אין: ${out.arriveDate || out.date || ''}${back ? ` · צ׳ק־אאוט: ${back.date}` : ''}`,
+      `נוסע מוביל: ${lead ? `${lead.firstName} ${lead.lastName}` : '-'} · ${Object.values(order.quote?.pax || {}).reduce((a, b) => a + b, 0)} נוסעים`,
+      order.hotelAsk?.stars ? `דירוג: ${order.hotelAsk.stars} כוכבים` : '', board ? `בסיס: ${board}` : '', order.hotelAsk?.note ? `הערה: ${order.hotelAsk.note}` : ''];
   }
 
   // ---------------------------------------------------------------- fulfilment (live / mock)
@@ -155,7 +169,7 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
         if (order.status === 'payment_authorized') {
           // Final check between the hold and the booking: the customer pays exactly what was shown.
           try {
-            const quote = await supply.price({ ...order.offer, optionalServiceList: bagSelection(order.quote.bags, order.addons?.bags), scenario });
+            const quote = await supply.price({ ...order.offer, optionalServiceList: extrasFor(order.quote.extras, order.addons?.extras), scenario });
             if (Math.abs(quote.total.value - order.quote.total.value) > 0.009 || quote.total.currency !== order.quote.total.currency) {
               // The hold is released and the order re-opens at the new price: the customer accepts it and pays again.
               const released = await releaseHold(order);
@@ -295,7 +309,7 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
     if (!quote.pax.ADT) return [400, { error: 'offer_invalid' }];
     const token = randomBytes(24).toString('base64url'), userId = await userOf(req).catch(() => null);
     let order = { id: randomUUID(), ref: newRef(), mode, kind: 'flight', source: ['flights', 'multi', 'builder', 'saved'].includes(input.source) ? input.source : 'flights', lang: l, status: 'draft', createdAt: iso(), updatedAt: iso(),
-      offer: ref, addons: { bags: {}, insurance: input.insurance === true }, accessHash: sha(token), ...(userId ? { userId } : {}), timeline: [{ at: iso(), to: 'draft', by: 'customer' }] };
+      offer: ref, addons: { extras: {}, insurance: input.insurance === true }, accessHash: sha(token), ...(userId ? { userId } : {}), timeline: [{ at: iso(), to: 'draft', by: 'customer' }] };
     order = await priced(order, quote, 'customer');
     order.sealed = sealer.seal({ accessToken: token }, order.id);
     await save(order);
@@ -308,7 +322,7 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
 
   async function recheck(order, by) {
     try {
-      const quote = await supply.price({ ...order.offer, optionalServiceList: bagSelection(order.quote.bags, order.addons?.bags), scenario: scenarioOf(order) });
+      const quote = await supply.price({ ...order.offer, optionalServiceList: extrasFor(order.quote.extras, order.addons?.extras), scenario: scenarioOf(order) });
       const expected = order.expected || order.price?.total;
       let next = await priced(order, quote, by);
       const changed = expected && (Math.abs(quote.total.value - expected.value) > 0.009 || quote.total.currency !== expected.currency);
@@ -338,26 +352,41 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
     const by = 'customer';
     if (action === 'passengers') {
       if (!EDITABLE.includes(order.status)) return [409, { error: 'not_editable' }];
-      const dates = travelDates(order);
-      const pax = order.quote.pax, { value, errors, warnings } = validatePassengers(input.passengers, { pax, requirements: order.quote.requirements, ...dates, today: iso().slice(0, 10), lang: l });
+      const dates = travelDates(order), previous = openSealed(order) || {};
+      // A passport number the browser does not have: the one already in this order ("keep") or a saved traveller's
+      // ("use saved passport"). Resolved here, never sent to the browser; unresolved → the field asks for it again.
+      const list = Array.isArray(input.passengers) ? input.passengers.slice(0, 9) : [], unresolved = {};
+      const resolvedInput = await Promise.all(list.map(async (p, i) => {
+        const d = p?.document;
+        if (!d || typeof d !== 'object' || String(d.number ?? '').trim()) return p;
+        let number = '';
+        if (d.useSaved === true && travellers && typeof d.savedId === 'string') number = (await travellers.get(req, d.savedId).catch(() => null))?.document?.number || '';
+        else if (d.keep === true) number = previous.passengers?.[i]?.document?.number || '';
+        if (!number && (d.useSaved === true || d.keep === true)) unresolved[`${i}.document.number`] = tIn(l)('booking.v.docAgain');
+        return { ...p, document: { ...d, number } };
+      }));
+      const pax = order.quote.pax, { value, errors, warnings } = validatePassengers(resolvedInput, { pax, requirements: order.quote.requirements, ...dates, today: iso().slice(0, 10), lang: l });
       const contact = validateContact(input.contact, l);
-      if (!value || !contact.value) return [400, { error: 'details_invalid', fields: { ...errors, ...Object.fromEntries(Object.entries(contact.errors).map(([k, v]) => [`contact.${k}`, v])) }, warnings }];
-      const passengers = value.map((p) => ({ ...p, title: titleOf(p.ptc, p.gender) }));
-      const previous = openSealed(order) || {};
+      if (!value || !contact.value) return [400, { error: 'details_invalid', fields: { ...errors, ...unresolved, ...Object.fromEntries(Object.entries(contact.errors).map(([k, v]) => [`contact.${k}`, v])) }, warnings }];
+      const passengers = value.map((p, i) => ({ ...p, title: titleOf(p.ptc, p.gender), ...(typeof list[i]?.savedId === 'string' && /^[a-f0-9-]{8,40}$/.test(list[i].savedId) ? { savedId: list[i].savedId } : {}) }));
+      // "Save these travellers to my account" (explicit consent, signed-in customers only).
+      let savedTravellers = 0;
+      const saveIdx = Array.isArray(input.save?.travellers) ? input.save.travellers.filter((n) => Number.isInteger(n) && n >= 0 && n < passengers.length) : [];
+      if (travellers && input.save?.consent === true && saveIdx.length) savedTravellers = await travellers.save(req, saveIdx.map((n) => ({ ...passengers[n], ...(n === 0 ? { email: contact.value.email, phone: contact.value.phone, self: input.save.self === true } : {}) })), l).catch(() => 0);
       let next = reseal(order, { ...previous, passengers, contact: contact.value });
       next = order.status === 'details' ? audit(next, 'details_updated', { by }) : transition(next, 'details', { by });
       // Mock mode: a passenger surname can script a failure, like a payment gateway's test card numbers.
       if (mode === 'mock') next.scenario = SCENARIOS.find((s) => passengers.some((p) => p.lastName === s)) || null;
-      return [200, { order: publicView(await save(next)), warnings }];
+      return [200, { order: publicView(await save(next)), warnings, savedTravellers }];
     }
     if (action === 'addons') {
       if (!EDITABLE.includes(order.status) || order.status === 'draft') return [409, { error: 'not_editable' }];
-      const bags = {};
-      for (const bag of order.quote.bags || []) { const code = input?.bags?.[bag.route]; if (code && bag.options.some((o) => o.code === code)) bags[bag.route] = code; }
-      // The total the customer now expects: the fare without bags plus the chosen bags (checked again at the re-check).
-      const bagSum = (order.quote.bags || []).reduce((sum, b) => sum + (b.options.find((o) => o.code === bags[b.route])?.price.value || 0) * b.services.length, 0);
-      const expected = { value: Math.round(((order.price?.base ?? order.quote.total.value) + bagSum) * 100) / 100, currency: order.quote.total.currency };
-      const next = audit({ ...order, addons: { bags, insurance: input?.insurance === true }, expected }, 'addons_updated', { by });
+      // Every extra the supplier offers, per passenger: { [bookingCode]: optionCode }. Older clients: { bags: { route: code } }.
+      const offered = order.quote.extras || [];
+      const extras = cleanExtrasChoice(offered, { ...bagChoice(offered, input?.bags), ...(input?.extras && typeof input.extras === 'object' ? input.extras : {}) });
+      // The total the customer now expects: the fare without extras plus the chosen ones (checked again at the re-check).
+      const expected = { value: Math.round(((order.price?.base ?? order.quote.total.value) + extrasTotal(offered, extras, order.quote.total.currency)) * 100) / 100, currency: order.quote.total.currency };
+      const next = audit({ ...order, addons: { extras, insurance: input?.insurance === true }, expected }, 'addons_updated', { by, data: { extras: Object.keys(extras).length } });
       return [200, { order: publicView(await save(next)) }];
     }
     if (action === 'recheck') {
@@ -403,6 +432,17 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
     if (action === 'cancel') {
       if (!EDITABLE.includes(order.status)) return [409, { error: 'not_cancellable' }];
       return [200, { order: publicView(await save(transition({ ...order, sealed: null, piiPurgedAt: iso() }, 'cancelled', { by, note: 'customer_abandoned' }))) }];
+    }
+    if (action === 'hotel-request') {
+      // "Book a hotel in one click" after the flight: the same lead traveller and contact, the flight's dates and
+      // destination – a representative sends hotel options (hotel booking itself is not public, spec 25).
+      if (EDITABLE.includes(order.status) || ['cancelled', 'expired', 'unavailable', 'voided', 'refunded'].includes(order.status) || order.piiPurgedAt) return [409, { error: 'not_ready' }];
+      if (order.flags?.includes('hotel_requested')) return [200, { order: publicView(order), repeated: true }];
+      const stars = ['3', '4', '5'].includes(String(input?.stars)) ? String(input.stars) : '', board = ['room', 'breakfast', 'half', 'all'].includes(input?.board) ? input.board : '';
+      let next = flag(audit(order, 'hotel_requested', { by, note: clean(input?.note, 300) }), 'hotel_requested');
+      next = await leadFor({ ...next, hotelAsk: { stars, board, note: clean(input?.note, 300) } }, 'hotel');
+      delete next.hotelAsk;
+      return [200, { order: publicView(await save(next)) }];
     }
     if (action === 'cancel-request') {
       if (EDITABLE.includes(order.status) || TERMINAL.includes(order.status) || order.flags?.includes('cancel_requested')) return [409, { error: 'not_cancellable' }];
@@ -533,10 +573,19 @@ export function createOrders({ store, leadStore = null, env = process.env, now =
         return res.end(ordersCsv(orders));
       }
       if (method === 'POST' && sub === '/reconcile') return reply(200, await reconcile({ by: 'admin' }));
-      m = /^\/([0-9a-f-]{36})(\/action)?$/.exec(sub);
+      m = /^\/([0-9a-f-]{36})(\/action|\/documents)?$/.exec(sub);
       if (!m) return reply(404, { error: 'not_found' });
       if (method === 'GET' && !m[2]) { const order = await load(m[1]); return order ? reply(200, { order: adminView(order) }) : reply(404, { error: 'not_found' }); }
-      if (method === 'POST' && m[2]) {
+      if (method === 'GET' && m[2] === '/documents') {
+        // Full passport numbers for the agent completing a booking by hand: on request only, and written to the audit trail.
+        const order = await load(m[1]);
+        if (!order) return reply(404, { error: 'not_found' });
+        const data = openSealed(order) || {};
+        await save(audit(order, 'documents_viewed', { by: 'admin' }));
+        log({ evt: 'booking_admin', ref: order.ref, action: 'documents_viewed' });
+        return reply(200, { documents: (data.passengers || []).map((p) => ({ name: `${p.firstName} ${p.lastName}`, ...(p.document || {}) })) });
+      }
+      if (method === 'POST' && m[2] === '/action') {
         const input = await body(req, 8000);
         const result = await locked(m[1], async () => {
           const order = await load(m[1]);

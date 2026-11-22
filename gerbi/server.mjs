@@ -46,12 +46,12 @@ const leadStore = createStore('leads', dataDirectory);
 // Locally only the running server persists them (data/ratelimit.json); a module imported by tests keeps memory counters.
 const limitStore = createStore('ratelimit', dataDirectory);
 if (limitStore.kind === 'upstash' || isMain) configureLimits(limitStore);
-const accounts = createAccounts({ store: createStore('accounts', dataDirectory), leadStore });
+const accounts = createAccounts({ store: createStore('accounts', dataDirectory), leadStore, dataDirectory });
 // Shekel rates (transfers & cheques, sale) for showing supplier prices in ILS: docs/specs/13-pricing-ils-he.md.
 const fx = createFx({ store: createStore('fx', dataDirectory), log: entry => console.log(JSON.stringify(entry)) });
 // Online booking (spec 25): orders, the booking wizard's API, payment notifications and the admin orders tab.
 // BOOKING_MODE=request (default) | mock | live; live falls back to request unless fully configured.
-const orders = createOrders({ store: createStore('orders', dataDirectory), leadStore, fx, dataDirectory, userOf: accounts.leadHooks.userOf, leadCreated: accounts.leadHooks.created,
+const orders = createOrders({ store: createStore('orders', dataDirectory), leadStore, fx, dataDirectory, userOf: accounts.leadHooks.userOf, leadCreated: accounts.leadHooks.created, travellers: accounts.travellerHooks,
   background: promise => { const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.(); if (ctx?.waitUntil) ctx.waitUntil(promise.catch(() => {})); else promise.catch(() => {}); } });
 // Owner admin (spec 18): editable content and owner sessions.
 const contentStore = createStore('content', dataDirectory), adminSessions = createStore('admin', dataDirectory);
