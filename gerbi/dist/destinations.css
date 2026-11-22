@@ -85,3 +85,100 @@
  .dest-months{grid-template-columns:repeat(6,minmax(0,1fr))}
  .dest-insp-grid{grid-template-columns:1fr 1fr;gap:12px}.dest-insp-grid .inspiration-tile{height:210px}.dest-insp-grid .inspiration-tile h2{font-size:19px}.dest-insp-grid .inspiration-tile>div{bottom:14px;inset-inline-start:14px;inset-inline-end:10px}.dest-insp-grid .inspiration-tile p{display:none}
  .dest-home-card .dest-facts li:nth-child(2){display:none}}
+/* Destination page, livelier (2026-11-23): coloured section heads, the short guide as accent cards, attraction / day-trip
+   cards with photos (or a kind icon), kind chips, and where-to-stay cards with price, pros/cons and nearby sights.
+   Accent colours are local to these sections (not global tokens); text stays navy/ink on white or light tints. */
+.dest-sec-top{--acc:#d2452b;--tint:#fff0eb}
+.dest-sec-todo{--acc:#c25a00;--tint:#fff4e6}
+.dest-sec-trips{--acc:#11815a;--tint:#e8f6ef}
+.dest-sec-stay{--acc:#2360d4;--tint:#ebf1ff}
+.dest-sec-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.dest-sec-head h2{margin:0}
+.dest-sec-head p{margin:3px 0 0;color:#4b5876;font-size:14px}
+.sec-badge{flex:none;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--tint);color:var(--acc);box-shadow:inset 0 0 0 1px #07175114}
+.sec-badge svg{width:22px;height:22px}
+.dest-section[class*="dest-sec-"]{position:relative;padding-top:4px}
+.dest-section[class*="dest-sec-"]::before{content:"";position:absolute;inset-inline-start:0;top:-12px;width:56px;height:4px;border-radius:4px;background:var(--acc)}
+/* the short guide */
+.dest-guide dl{grid-template-columns:repeat(3,minmax(0,1fr))}
+.dest-guide dl>div{--acc:#2360d4;--tint:#ebf1ff;border:1px solid #e1e8f2;border-top:4px solid var(--acc);background:linear-gradient(180deg,var(--tint),#fff 70%);padding:14px 16px}
+.dest-guide .guide-fit{--acc:#13804a;--tint:#e9f7ef}.dest-guide .guide-less{--acc:#b9324f;--tint:#fdeef2}.dest-guide .guide-stay{--acc:#2360d4;--tint:#ebf1ff}
+.dest-guide .guide-move{--acc:#6a45d0;--tint:#f1edff}.dest-guide .guide-season{--acc:#a85f00;--tint:#fff5e0}.dest-guide .guide-budget{--acc:#0d7580;--tint:#e6f6f7}
+.dest-guide dt{display:flex;align-items:center;gap:8px}
+.guide-icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#fff;color:var(--acc);box-shadow:0 1px 3px #07175124;flex:none}
+.guide-icon svg{width:17px;height:17px}
+.dest-guide dd{color:#38455f}
+/* attraction & day-trip cards */
+.attr-card{--acc:#2360d4;--tint:#ebf1ff}
+.kind-landmark{--acc:#2360d4;--tint:#ebf1ff}.kind-museum{--acc:#7339cc;--tint:#f3edff}.kind-religious{--acc:#a35a06;--tint:#fff3df}
+.kind-neighborhood{--acc:#bf3f0c;--tint:#fff0e8}.kind-market{--acc:#b8155a;--tint:#fdebf3}.kind-viewpoint{--acc:#0d7580;--tint:#e6f6f7}
+.kind-nature{--acc:#157a3b;--tint:#e8f6ec}.kind-beach{--acc:#0272b3;--tint:#e5f4fd}.kind-park{--acc:#4a7410;--tint:#eef6e2}.kind-experience{--acc:#b4123a;--tint:#fdebef}
+.dest-attractions .attr-card,.dest-daytrips .attr-card{background:#fff;border:1px solid #e1e8f2;border-radius:16px;padding:0;overflow:hidden;display:flex;flex-direction:column;gap:0;min-width:0;box-shadow:0 1px 2px #0717510d;transition:box-shadow .2s,transform .2s}
+.dest-attractions .attr-card:hover,.dest-daytrips .attr-card:hover{box-shadow:0 8px 22px #0717511f;transform:translateY(-2px)}
+.attr-card[hidden]{display:none!important}
+.attr-media{position:relative;aspect-ratio:3/2;background:linear-gradient(135deg,var(--tint),#fff);overflow:hidden}
+.attr-media img{width:100%;height:100%;object-fit:cover;display:block}
+.attr-placeholder{position:absolute;inset:0;display:grid;place-items:center;color:var(--acc);opacity:.55}
+.attr-placeholder svg{width:56px;height:56px}
+.attr-kind{position:absolute;top:10px;inset-inline-start:10px;display:inline-flex;align-items:center;gap:5px;background:#fff;color:#1d2a45;border-radius:30px;padding:4px 10px 4px 9px;font-size:12px;font-weight:700;box-shadow:0 2px 6px #0717512b}
+.attr-kind svg{width:15px;height:15px;color:var(--acc)}
+.attr-must{position:absolute;top:10px;inset-inline-end:10px;background:#ffe95c;color:#071751;border-radius:30px;padding:3px 10px;font-size:12px;font-weight:800;box-shadow:0 2px 6px #0717512b}
+.attr-body{padding:12px 14px 13px;display:flex;flex-direction:column;gap:6px;flex:1;border-top:3px solid var(--acc)}
+.attr-body strong{color:var(--navy);font-size:15.5px;line-height:1.35}
+.attr-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0;font-size:12.5px;color:#4b5876}
+.attr-meta span{display:inline-flex;align-items:center;gap:4px}
+.attr-meta svg{width:14px;height:14px;color:var(--acc);flex:none}
+.attr-note{margin:0;color:#4b5876;font-size:13.5px;line-height:1.5}
+.attr-pills{display:flex;flex-wrap:wrap;gap:5px;margin:0}
+.attr-pill{display:inline-flex;align-items:center;gap:4px;background:var(--tint,#eef3fa);color:#1d2a45;border-radius:30px;padding:3px 9px;font-size:12px;font-weight:600}
+.attr-pill svg{width:13px;height:13px;color:var(--acc,#2360d4)}
+.attr-credit{display:block;margin-top:auto;padding-top:2px;font-size:11px;color:#5d6880;line-height:1.4}
+.attr-credit a{color:inherit}
+.attr-credit-slot:empty{display:none}
+.dest-top{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.dest-top .attr-media{aspect-ratio:16/10}
+.dest-top .attr-body strong{font-size:17px}
+.dest-todo{gap:12px}
+.dest-daytrips{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dest-daytrips .attr-card{padding:0}
+.attr-kinds{margin:0 0 14px}
+.attr-kinds button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.attr-kinds button svg{width:16px;height:16px;color:var(--acc,#2360d4)}
+.attr-kinds button.selected svg{color:#fff}
+.attr-kinds .count{font-size:11.5px;font-weight:700;background:#eef3fa;color:#1d2a45;border-radius:20px;padding:1px 7px}
+.attr-kinds button.selected .count{background:#ffffff2e;color:#fff}
+/* where to stay */
+ul.dest-areas{list-style:none;padding:0}
+.dest-areas>.area-card{background:#fff;border:1px solid #dfe8f5;border-radius:16px;padding:15px 16px;min-width:0;display:flex;flex-direction:column;gap:8px;border-inline-start:4px solid var(--acc)}
+.area-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.area-head h3{margin:0;font-size:17px;color:var(--navy);flex:1;min-width:120px}
+.area-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--tint);color:var(--acc);flex:none}
+.area-icon svg{width:18px;height:18px}
+.area-price{font-size:12px;font-weight:700;border-radius:30px;padding:3px 10px;background:#eef3fa;color:#1d2a45;white-space:nowrap}
+.area-price>span{letter-spacing:1px;color:#0b6b3a}.area-price i{font-style:normal;color:#8d99ad}
+.area-price.p3>span{color:#a13a0a}.area-price.p2>span{color:#1f4fb5}
+.area-for{margin:0;color:#38455f;line-height:1.55;font-size:14px}
+.area-for b{color:var(--navy)}
+.area-proscons{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-size:13.5px;line-height:1.45}
+.area-proscons li{display:flex;gap:7px;align-items:flex-start;color:#38455f}
+.area-proscons svg{width:15px;height:15px;flex:none;margin-top:3px}
+.area-proscons .pro svg{color:#13804a}.area-proscons .con svg{color:#b9324f}
+.area-near{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:12.5px;color:#4b5876}
+.area-near svg{width:14px;height:14px;color:var(--acc);flex:none;margin-top:2px}
+/* the requested destination on the results page */
+.results-requested .destination-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.results-requested .destination-price .button{display:inline-flex;align-items:center;gap:6px}
+.results-requested .destination-price .button svg{width:16px;height:16px}
+@media(max-width:1100px){.dest-guide dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+ .dest-guide dl,.dest-top,.dest-daytrips{grid-template-columns:1fr}
+ .dest-todo .attr-card{flex-direction:row}
+ .dest-todo .attr-media{flex:none;width:112px;aspect-ratio:auto;min-height:112px}
+ .dest-todo .attr-kind{top:auto;bottom:6px;inset-inline-start:6px;padding:3px 7px;font-size:10.5px}
+ .dest-todo .attr-must{top:6px;inset-inline-end:6px}
+ .dest-todo .attr-body{border-top:0;border-inline-start:3px solid var(--acc);padding:10px 12px}
+ .dest-todo .attr-body strong{font-size:14.5px}
+ .attr-kinds{flex-wrap:nowrap;overflow-x:auto;margin-inline:-16px;padding-inline:16px;scrollbar-width:none}
+ .sec-badge{width:36px;height:36px}
+}
+@media(prefers-reduced-motion:reduce){.dest-attractions .attr-card,.dest-daytrips .attr-card{transition:none}.dest-attractions .attr-card:hover,.dest-daytrips .attr-card:hover{transform:none}}

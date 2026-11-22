@@ -7,7 +7,7 @@ const UK_VISA = { he: 'אין צורך בוויזה לביקור קצר, אבל 
 
 export default [
   {
-    id: 'paris', code: 'PAR', airports: ['CDG', 'ORY'],
+    id: 'paris', trip: 'paris', code: 'PAR', airports: ['CDG', 'ORY'],
     name: { he: 'פריז', en: 'Paris' }, country: { he: 'צרפת', en: 'France' }, region: 'europe',
     tags: ['city', 'culture', 'food', 'couple', 'shopping', 'direct_flight', 'kosher', 'luxury', 'family'],
     bestMonths: [4, 5, 6, 9, 10, 12], flightHours: 5, direct: true, budgetLevel: 4, dailyBudgetIls: { low: 250, mid: 450, high: 850 },
@@ -22,11 +22,11 @@ export default [
       { he: 'קניות בשאנז אליזה ובגלרי לאפייט', en: 'Shopping on the Champs-Élysées and at Galeries Lafayette' }
     ],
     areas: [
-      { name: { he: 'המארה', en: 'Le Marais' }, forWhom: { he: 'מרכזי, אופנתי וקרוב למסעדות כשרות ולבתי כנסת', en: 'Central and stylish, close to kosher restaurants and synagogues' } },
-      { name: { he: 'סן ז׳רמן והרובע הלטיני', en: 'Saint-Germain & the Latin Quarter' }, forWhom: { he: 'זוגות וביקור ראשון — בתי קפה, גלריות והכול ברגל', en: 'Couples and first-timers — cafés, galleries and everything on foot' } },
-      { name: { he: 'האופרה והשדרות הגדולות', en: 'Opéra & the Grands Boulevards' }, forWhom: { he: 'מי שבא לקניות ורוצה תחבורה נוחה', en: 'Shoppers who want good transport links' } },
-      { name: { he: 'הרובע ה־7 (ליד מגדל אייפל)', en: '7th arrondissement (near the Eiffel Tower)' }, forWhom: { he: 'משפחות — שקט, ירוק ויקר יחסית', en: 'Families — calm, green and fairly pricey' } },
-      { name: { he: 'מונמרטר', en: 'Montmartre' }, forWhom: { he: 'אווירה של כפר בתוך העיר ומחירים נוחים יותר, עם עליות', en: 'A village feel within the city and lower prices, with hills' } }
+      { name: { he: 'המארה', en: 'Le Marais' }, forWhom: { he: 'מרכזי, אופנתי וקרוב למסעדות כשרות ולבתי כנסת', en: 'Central and stylish, close to kosher restaurants and synagogues' }, price: 3, pros: { he: 'מרכזי ותוסס — אוכל כשר ובתי כנסת ברגל', en: 'Central and lively — kosher food and synagogues on foot' }, cons: { he: 'חדרים קטנים ויקרים, הומה בסופ״ש', en: 'Small, pricey rooms; busy at weekends' } },
+      { name: { he: 'סן ז׳רמן והרובע הלטיני', en: 'Saint-Germain & the Latin Quarter' }, forWhom: { he: 'זוגות וביקור ראשון — בתי קפה, גלריות והכול ברגל', en: 'Couples and first-timers — cafés, galleries and everything on foot' }, price: 3, pros: { he: 'יפה, בטוח והכול ברגל', en: 'Beautiful, safe and walkable' }, cons: { he: 'מהאזורים היקרים בעיר', en: 'Among the priciest areas in town' } },
+      { name: { he: 'האופרה והשדרות הגדולות', en: 'Opéra & the Grands Boulevards' }, forWhom: { he: 'מי שבא לקניות ורוצה תחבורה נוחה', en: 'Shoppers who want good transport links' }, price: 2, pros: { he: 'מטרו לכל הכיוונים וקניות ליד המלון', en: 'Metro in every direction and shopping on the doorstep' }, cons: { he: 'עסוק ופחות אינטימי בערב', en: 'Busy and less charming in the evening' } },
+      { name: { he: 'הרובע ה־7 (ליד מגדל אייפל)', en: '7th arrondissement (near the Eiffel Tower)' }, forWhom: { he: 'משפחות — שקט, ירוק ויקר יחסית', en: 'Families — calm, green and fairly pricey' }, price: 3, pros: { he: 'שקט וירוק, מגדל אייפל במרחק הליכה', en: 'Calm and green, the Eiffel Tower within a walk' }, cons: { he: 'ערבים שקטים, רחוק מהמארה', en: 'Quiet evenings, far from the Marais' } },
+      { name: { he: 'מונמרטר', en: 'Montmartre' }, forWhom: { he: 'אווירה של כפר בתוך העיר ומחירים נוחים יותר, עם עליות', en: 'A village feel within the city and lower prices, with hills' }, price: 1, pros: { he: 'אווירת כפר ומחירים נוחים יותר', en: 'A village feel and lower prices' }, cons: { he: 'עליות ומדרגות; פיגאל הסמוכה פחות נעימה בלילה', en: 'Hills and stairs; nearby Pigalle is seedy at night' } }
     ],
     attractions: [
       { name: { he: 'מגדל אייפל', en: 'The Eiffel Tower' }, area: '7th arrondissement (near the Eiffel Tower)', kind: 'landmark', durationH: 2, tags: ['couple', 'family'], mustSee: true },
@@ -121,11 +121,11 @@ export default [
       { he: 'סיור באולפני הארי פוטר', en: 'The Harry Potter studio tour' }
     ],
     areas: [
-      { name: { he: 'ווסט אנד וקובנט גארדן', en: 'West End & Covent Garden' }, forWhom: { he: 'ביקור ראשון — תיאטראות, קניות ומסעדות', en: 'First-timers — theatres, shopping and restaurants' } },
-      { name: { he: 'סאות׳ קנזינגטון', en: 'South Kensington' }, forWhom: { he: 'משפחות — ליד המוזיאונים והייד פארק', en: 'Families — near the museums and Hyde Park' } },
-      { name: { he: 'סאות׳ בנק', en: 'South Bank' }, forWhom: { he: 'זוגות — טיילת על התמזה, תרבות ותצפיות', en: 'Couples — a Thames-side walk, culture and views' } },
-      { name: { he: 'גולדרס גרין', en: 'Golders Green' }, forWhom: { he: 'מי ששומר כשרות ושבת — מסעדות כשרות ובתי כנסת, רחוק יותר מהמרכז', en: 'Kosher and Shabbat observers — kosher restaurants and synagogues, further from the centre' } },
-      { name: { he: 'שורדיץ׳', en: 'Shoreditch' }, forWhom: { he: 'צעירים — חיי לילה, אמנות רחוב ואוכל', en: 'Younger travellers — nightlife, street art and food' } }
+      { name: { he: 'ווסט אנד וקובנט גארדן', en: 'West End & Covent Garden' }, forWhom: { he: 'ביקור ראשון — תיאטראות, קניות ומסעדות', en: 'First-timers — theatres, shopping and restaurants' }, price: 3, pros: { he: 'תיאטראות, קניות ומסעדות — הכול קרוב', en: 'Theatres, shopping and restaurants, all close by' }, cons: { he: 'יקר ועמוס', en: 'Pricey and crowded' } },
+      { name: { he: 'סאות׳ קנזינגטון', en: 'South Kensington' }, forWhom: { he: 'משפחות — ליד המוזיאונים והייד פארק', en: 'Families — near the museums and Hyde Park' }, price: 3, pros: { he: 'מוזיאונים בחינם והייד פארק ליד המלון', en: 'Free museums and Hyde Park nearby' }, cons: { he: 'יקר ושקט בערב', en: 'Pricey and quiet in the evening' } },
+      { name: { he: 'סאות׳ בנק', en: 'South Bank' }, forWhom: { he: 'זוגות — טיילת על התמזה, תרבות ותצפיות', en: 'Couples — a Thames-side walk, culture and views' }, price: 2, pros: { he: 'טיילת על התמזה ונוף לעיר', en: 'A Thames-side promenade and city views' }, cons: { he: 'בלב התיירות, עמוס בסופ״ש', en: 'Tourist-central; crowded at weekends' } },
+      { name: { he: 'גולדרס גרין', en: 'Golders Green' }, forWhom: { he: 'מי ששומר כשרות ושבת — מסעדות כשרות ובתי כנסת, רחוק יותר מהמרכז', en: 'Kosher and Shabbat observers — kosher restaurants and synagogues, further from the centre' }, price: 1, pros: { he: 'מסעדות כשרות ובתי כנסת ברגל', en: 'Kosher restaurants and synagogues on foot' }, cons: { he: 'כחצי שעה במטרו למרכז', en: 'About half an hour by Tube to the centre' } },
+      { name: { he: 'שורדיץ׳', en: 'Shoreditch' }, forWhom: { he: 'צעירים — חיי לילה, אמנות רחוב ואוכל', en: 'Younger travellers — nightlife, street art and food' }, price: 2, pros: { he: 'חיי לילה, אוכל ואמנות רחוב', en: 'Nightlife, food and street art' }, cons: { he: 'רועש בסופ״ש', en: 'Noisy at weekends' } }
     ],
     attractions: [
       { name: { he: 'המוזיאון הבריטי', en: 'The British Museum' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Bloomsbury', mustSee: true },

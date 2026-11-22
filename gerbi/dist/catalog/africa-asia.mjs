@@ -216,10 +216,10 @@ export default [
       { he: 'האיילות של נארה', en: 'The deer of Nara' }
     ],
     areas: [
-      { name: { he: 'טוקיו', en: 'Tokyo' }, forWhom: { he: 'שינג׳וקו ושיבויה לבילוי וקניות, אסאקוסה לאווירה מסורתית', en: 'Shinjuku and Shibuya for buzz and shopping, Asakusa for a traditional feel' } },
-      { name: { he: 'קיוטו', en: 'Kyoto' }, forWhom: { he: 'מקדשים, גנים ורובע הגיישות — לתרבות ולזוגות', en: 'Temples, gardens and the geisha district — for culture and couples' } },
-      { name: { he: 'אוסקה', en: 'Osaka' }, forWhom: { he: 'אוכל, חיי לילה ובסיס זול יחסית לקיוטו ולנארה', en: 'Food, nightlife and a relatively cheap base for Kyoto and Nara' } },
-      { name: { he: 'אזור פוג׳י והאקונה', en: 'Fuji & Hakone' }, forWhom: { he: 'נוף להר, אגמים ומעיינות חמים — לילה או שניים', en: 'Mountain views, lakes and hot springs — a night or two' } }
+      { name: { he: 'טוקיו', en: 'Tokyo' }, forWhom: { he: 'שינג׳וקו ושיבויה לבילוי וקניות, אסאקוסה לאווירה מסורתית', en: 'Shinjuku and Shibuya for buzz and shopping, Asakusa for a traditional feel' }, price: 2, pros: { he: 'רכבות לכל מקום, אוכל ובילוי בלי סוף', en: 'Trains everywhere, endless food and fun' }, cons: { he: 'חדרי מלון קטנים מאוד', en: 'Very small hotel rooms' } },
+      { name: { he: 'קיוטו', en: 'Kyoto' }, forWhom: { he: 'מקדשים, גנים ורובע הגיישות — לתרבות ולזוגות', en: 'Temples, gardens and the geisha district — for culture and couples' }, price: 3, pros: { he: 'מקדשים וגנים ממש ליד המלון', en: 'Temples and gardens on your doorstep' }, cons: { he: 'עמוס בעונות, מלונות מתמלאים מוקדם', en: 'Crowded in season; hotels book up early' } },
+      { name: { he: 'אוסקה', en: 'Osaka' }, forWhom: { he: 'אוכל, חיי לילה ובסיס זול יחסית לקיוטו ולנארה', en: 'Food, nightlife and a relatively cheap base for Kyoto and Nara' }, price: 1, pros: { he: 'זול יחסית, אוכל רחוב, כחצי שעה ברכבת לקיוטו', en: 'Relatively cheap, street food, about half an hour by train to Kyoto' }, cons: { he: 'פחות מקדשים ונופים בעיר עצמה', en: 'Fewer temples and views in the city itself' } },
+      { name: { he: 'אזור פוג׳י והאקונה', en: 'Fuji & Hakone' }, forWhom: { he: 'נוף להר, אגמים ומעיינות חמים — לילה או שניים', en: 'Mountain views, lakes and hot springs — a night or two' }, price: 2, pros: { he: 'ריוקאן עם מעיינות חמים ונוף להר', en: 'A ryokan with hot springs and mountain views' }, cons: { he: 'עננים מסתירים לעיתים את ההר; פחות תחבורה', en: 'Clouds often hide the mountain; thinner transport' } }
     ],
     attractions: [
       { name: { he: 'מקדש סנסו־ג׳י באסאקוסה', en: 'Senso-ji Temple, Asakusa' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Tokyo', mustSee: true },

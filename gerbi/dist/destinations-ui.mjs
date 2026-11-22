@@ -33,13 +33,13 @@ export const imgSrc = (d, big = false) => (big ? d.image.src : d.image.thumb);
 const altOf = (d) => L(d.image.alt) || `${L(d.name)}, ${L(d.country)}`;
 
 // The destinations-page card (also favorites, inspiration, related, results).
-export function destCard(d, { favorites = [], compare = null, reason = '', heart = true } = {}) {
+export function destCard(d, { favorites = [], compare = null, reason = '', heart = true, actions = false } = {}) {
   const fav = favorites.includes(d.id), name = L(d.name);
   return `<article class="destination-card dest-card" data-dest-card="${d.id}"><a href="#/destination/${d.id}" class="destination-photo" tabindex="-1" aria-hidden="true"><img src="${imgSrc(d)}" alt="" loading="lazy" decoding="async" width="600" height="400"><span class="photo-label">${esc(L(regions[d.region]))}</span></a>`
     + (heart ? `<button class="heart-button" data-page-favorite="${d.id}" aria-label="${esc(fav ? t('catalog.card.unsave', { name }) : t('catalog.card.save', { name }))}" aria-pressed="${fav}">${icon('heart')}</button>` : '')
     + `<div class="destination-body"><span class="eyebrow">${esc(L(d.country))}</span><h2><a href="#/destination/${d.id}">${esc(name)}</a></h2><p>${esc(L(d.summary))}</p>${reason ? `<p class="match-reason">${esc(reason)}</p>` : ''}${factsLine(d)}`
     + `<div class="pills">${d.tags.filter((x) => STYLE_FILTERS.includes(x)).slice(0, 3).map((x) => `<span class="pill">${esc(L(TAG_LABELS[x]))}</span>`).join('')}</div>`
-    + `<div class="destination-price"><a class="button yellow" href="#/destination/${d.id}">${t('catalog.card.open')}</a>${compare ? `<label class="compare-check"><input type="checkbox" data-compare="${d.id}" ${compare.has(d.id) ? 'checked' : ''}>${t('catalog.card.compare')}</label>` : ''}</div></div></article>`;
+    + `<div class="destination-price">${actions ? `<a class="button yellow" href="#/?to=${d.code}">${icon('plane')}${t('catalog.dest.ctaFlights')}</a><a class="button blue" href="#/build?dest=${d.id}">${icon('spark')}${t('catalog.dest.ctaBuild')}</a><a class="button secondary" href="#/destination/${d.id}">${t('catalog.card.open')}</a>` : `<a class="button yellow" href="#/destination/${d.id}">${t('catalog.card.open')}</a>`}${compare ? `<label class="compare-check"><input type="checkbox" data-compare="${d.id}" ${compare.has(d.id) ? 'checked' : ''}>${t('catalog.card.compare')}</label>` : ''}</div></div></article>`;
 }
 
 // Home showcase card: the home `.card` look, catalog content.
@@ -115,9 +115,7 @@ export function destinationMain(d, { guide = '', favorites = [] } = {}) {
     body: (d.advisory ? `<div class="soft-notice dest-advisory" role="note"><strong>${t('catalog.dest.advisory')}:</strong> ${esc(L(d.advisory))}</div>` : '')
       + `<span class="eyebrow">${esc(L(d.country))}</span><h2>${t('catalog.dest.why', { name: esc(name) })}</h2><ul class="dest-highlights">${d.highlights.map((h) => `<li>${icon('spark')}<span>${esc(L(h))}</span></li>`).join('')}</ul>`
       + guide
-      + `<section class="dest-section" aria-labelledby="dest-areas"><h2 id="dest-areas">${t('catalog.dest.areas')}</h2><dl class="dest-areas">${d.areas.map((a) => `<div><dt>${esc(L(a.name))}</dt><dd>${esc(L(a.forWhom))}</dd></div>`).join('')}</dl></section>`
-      + `<section class="dest-section" aria-labelledby="dest-todo"><h2 id="dest-todo">${t('catalog.dest.attractions')}</h2><ul class="dest-attractions">${d.attractions.map((a) => `<li><strong>${esc(L(a.name))}</strong><small>${esc(d.areas.some((x) => x.name.en === a.area) ? L(d.areas.find((x) => x.name.en === a.area).name) + ' · ' : '')}${t('catalog.dest.hoursShort', { hours: hours(a.durationH) })}</small></li>`).join('')}</ul></section>`
-      + (d.dayTrips.length ? `<section class="dest-section" aria-labelledby="dest-trips"><h2 id="dest-trips">${t('catalog.dest.dayTrips')}</h2><ul class="dest-daytrips">${d.dayTrips.map((x) => `<li><strong>${esc(L(x.name))}</strong> <small>${t('catalog.dest.dayTripHours', { hours: hours(x.hours) })}</small><p>${esc(L(x.note))}</p></li>`).join('')}</ul></section>` : '')
+      + topAttractionsHtml(d) + todoHtml(d) + dayTripsHtml(d) + areasHtml(d)
       + `<section class="dest-section" aria-labelledby="dest-when"><h2 id="dest-when">${t('catalog.dest.when')}</h2><ol class="dest-months">${Array.from({ length: 12 }, (_, i) => `<li class="${best.has(i + 1) ? 'best' : ''}"${best.has(i + 1) ? ` title="${t('catalog.dest.bestMonth')}"` : ''}><span>${esc(shortMonth(i + 1))}</span>${best.has(i + 1) ? `<span class="sr-only"> – ${t('catalog.dest.bestMonth')}</span>` : ''}</li>`).join('')}</ol><p>${esc(L(d.seasonsNote))}</p></section>`
       + `<section class="dest-section" aria-labelledby="dest-practical"><h2 id="dest-practical">${t('catalog.dest.practical')}</h2><dl class="dest-practical">`
       + [[t('catalog.dest.transport'), `${d.transport.carRecommended ? t('catalog.dest.car') : t('catalog.dest.noCar')}. ${L(d.transport.note)}`], [t('catalog.dest.currency'), d.practical.currency], [t('catalog.dest.language'), L(d.practical.language)], [t('catalog.dest.timeZone'), timeVsIsrael(d.practical.timeZone)],
@@ -126,6 +124,146 @@ export function destinationMain(d, { guide = '', favorites = [] } = {}) {
     aside: `<span class="eyebrow">${t('catalog.dest.facts')}</span><h2>${esc(name)}</h2><dl class="dest-quick"><div><dt>${t('catalog.dest.flight')}</dt><dd>${d.flightHours ? t('catalog.dest.flightValue', { hours: hours(d.flightHours), kind: flightKind(d) }) : t('catalog.card.domestic')}</dd></div><div><dt>${t('catalog.dest.bestMonths')}</dt><dd>${esc(monthsText(d.bestMonths))}</dd></div><div><dt>${t('catalog.dest.dailyBudget')}</dt><dd>${t('catalog.dest.dailyBudgetValue', { low: d.dailyBudgetIls.low, high: d.dailyBudgetIls.high })}<small>${t('catalog.dest.dailyBudgetNote')}</small></dd></div></dl>`
       + `<a class="button yellow full-width" href="#/?to=${d.code}">${icon('plane')}${t('catalog.dest.ctaFlights')}</a><a class="button blue full-width" href="#/build?dest=${d.id}">${icon('spark')}${t('catalog.dest.ctaBuild')}</a><a class="button secondary full-width" href="#/tailor-made?dest=${d.id}">${t('catalog.dest.ctaTailor')}</a><p class="micro-copy">${t('catalog.dest.ctaNote')}</p>`
   };
+}
+
+// ---------- destination page: attractions, things to do, day trips, where to stay (vivid cards) ----------
+// Icons per kind of place: small inline SVGs (no icon library), drawn in the card's accent colour.
+const SVG = (d) => `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const KIND_ICON = {
+  landmark: '<path d="M3 10l9-6 9 6z"/><path d="M5 10v9M9.5 10v9M14.5 10v9M19 10v9M3 20h18"/>',
+  museum: '<rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 16l5-5 4 4 2-2 5 5"/><circle cx="15.5" cy="9" r="1.5"/>',
+  nature: '<path d="M3 19l6-10 4 6 2-3 6 7z"/><circle cx="17" cy="6" r="1.6"/>',
+  beach: '<path d="M4 12a8 8 0 0116 0z"/><path d="M12 12v8M7 20h10"/>',
+  neighborhood: '<path d="M3 20V11l5-4 5 4v9M13 20v-6l4-3 4 3v6M2 20h20M7 20v-4h2v4"/>',
+  market: '<path d="M4 9h16l-1.5 10h-13z"/><path d="M8 9l2-5M16 9l-2-5M9.5 13v3M14.5 13v3"/>',
+  viewpoint: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  park: '<path d="M12 21v-6"/><path d="M12 3a5 5 0 015 5 4 4 0 01-1 7H8a4 4 0 01-1-7 5 5 0 015-5z"/>',
+  experience: '<path d="M4 8h16v3a2 2 0 000 4v3H4v-3a2 2 0 000-4z"/><path d="M14 8v10" stroke-dasharray="2 2"/>',
+  religious: '<path d="M5 20v-8a7 7 0 0114 0v8M3 20h18M12 2.5v2.5"/><path d="M10 20v-4a2 2 0 014 0v4"/>',
+  food: '<path d="M7 3v8M5 3v5a2 2 0 004 0V3M7 11v10M17 3c-2.5 2-2.5 7 0 9v9"/>',
+  nightlife: '<path d="M5 4h14l-7 8z"/><path d="M12 12v8M8 20h8"/>',
+  family: '<circle cx="8" cy="7" r="2.5"/><circle cx="16.5" cy="9" r="2"/><path d="M3.5 20v-3a4.5 4.5 0 019 0v3M13 20v-2.5a3.5 3.5 0 017 0V20"/>'
+};
+export const kindIcon = (kind) => SVG(KIND_ICON[kind] || KIND_ICON.landmark);
+const KINDS = {
+  landmark: { group: { he: 'אתרים ומונומנטים', en: 'Landmarks' }, one: { he: 'אתר', en: 'Landmark' } },
+  museum: { group: { he: 'מוזיאונים', en: 'Museums' }, one: { he: 'מוזיאון', en: 'Museum' } },
+  religious: { group: { he: 'אתרי דת ומקדשים', en: 'Temples & places of worship' }, one: { he: 'אתר דת', en: 'Place of worship' } },
+  neighborhood: { group: { he: 'שכונות ורובעים', en: 'Neighbourhoods' }, one: { he: 'שכונה', en: 'Neighbourhood' } },
+  market: { group: { he: 'שווקים ואוכל', en: 'Markets & food' }, one: { he: 'שוק', en: 'Market' } },
+  viewpoint: { group: { he: 'תצפיות', en: 'Viewpoints' }, one: { he: 'תצפית', en: 'Viewpoint' } },
+  nature: { group: { he: 'טבע ונופים', en: 'Nature' }, one: { he: 'טבע', en: 'Nature' } },
+  beach: { group: { he: 'חופים', en: 'Beaches' }, one: { he: 'חוף', en: 'Beach' } },
+  park: { group: { he: 'פארקים וגנים', en: 'Parks & gardens' }, one: { he: 'פארק', en: 'Park' } },
+  experience: { group: { he: 'חוויות', en: 'Experiences' }, one: { he: 'חוויה', en: 'Experience' } }
+};
+const KIND_ORDER = Object.keys(KINDS);
+const kindOf = (x) => (KINDS[x.kind] ? x.kind : 'landmark');
+// "Good for" pills on an attraction: the visitor-facing tags only, at most three.
+const EXTRA_TAG_LABELS = { teens: { he: 'נוער', en: 'Teens' }, evening: { he: 'בערב', en: 'Evening' }, adults: { he: 'מבוגרים', en: 'Adults' } };
+const ATTR_PILLS = ['family', 'couple', 'teens', 'culture', 'food', 'nightlife', 'evening', 'shopping', 'nature', 'relaxation', 'adventure', 'beach', 'kosher', 'luxury', 'low_budget'];
+const tagLabel = (x) => L(TAG_LABELS[x] || EXTRA_TAG_LABELS[x]);
+const PILL_ICON = { family: 'family', couple: null, food: 'food', nightlife: 'nightlife', evening: 'nightlife', nature: 'nature', beach: 'beach' };
+const pills = (tags = [], max = 3) => tags.filter((x) => ATTR_PILLS.includes(x)).slice(0, max).map((x) => `<span class="attr-pill tag-${x}">${PILL_ICON[x] ? SVG(KIND_ICON[PILL_ICON[x]]) : ''}${esc(tagLabel(x))}</span>`).join('');
+const areaName = (d, en) => { const a = (d.areas || []).find((x) => x.name.en === en); return a ? L(a.name) : en || ''; };
+
+// Attraction / day-trip photos (dist/catalog/attraction-images.mjs, ~180KB): loaded once, on the first destination page.
+let attrImages = null, attrImagesLoading = null;
+const loadAttrImages = () => attrImagesLoading ||= import('./catalog/attraction-images.mjs').then((m) => (attrImages = m.default || {})).catch(() => (attrImages = {}));
+const photoKey = (d, x) => `${d.id}|${x.name.en}`;
+function photoHtml(meta, alt) {
+  return `<img src="${esc(meta.src)}" alt="${esc(alt)}" loading="lazy" decoding="async" width="640" height="427">`;
+}
+const creditHtml = (meta) => (meta?.credit ? `<small class="attr-credit">${t('catalog.dest.attrPhoto', { credit: `<bdi data-allow-hebrew>${esc(meta.credit)}</bdi>`, license: meta.source ? `<a href="${esc(meta.source)}" target="_blank" rel="noopener">${esc(meta.license)}</a>` : esc(meta.license) })}</small>` : '');
+// The media block of a card: the photo when we have one (or once the photo list arrives), else the kind's icon on its colour.
+function mediaHtml(d, x, alt) {
+  const meta = attrImages?.[photoKey(d, x)];
+  return `<div class="attr-media" data-attr-photo="${esc(photoKey(d, x))}" data-alt="${esc(alt)}">${meta ? photoHtml(meta, alt) : `<span class="attr-placeholder">${kindIcon(kindOf(x))}</span>`}<span class="attr-kind">${kindIcon(kindOf(x))}${esc(L(KINDS[kindOf(x)].one))}</span>${x.mustSee ? `<span class="attr-must">${t('catalog.dest.mustSee')}</span>` : ''}</div>`;
+}
+function attractionCard(d, a, { hidden = false } = {}) {
+  const name = L(a.name), meta = attrImages?.[photoKey(d, a)];
+  const where = a.area ? `<span>${icon('pin')}${esc(areaName(d, a.area))}</span>` : '';
+  return `<li class="attr-card kind-${kindOf(a)}" data-kind="${kindOf(a)}"${hidden ? ' hidden data-more' : ''}>${mediaHtml(d, a, name)}<div class="attr-body"><strong>${esc(name)}</strong>`
+    + `<p class="attr-meta">${where}<span>${icon('clock')}${t('catalog.dest.hoursShort', { hours: hours(a.durationH) })}</span>${a.months?.length ? `<span>${icon('calendar')}${esc(monthsText(a.months))}</span>` : ''}</p>`
+    + `${pills(a.tags).length ? `<p class="attr-pills">${pills(a.tags)}</p>` : ''}<span class="attr-credit-slot">${creditHtml(meta)}</span></div></li>`;
+}
+const secHead = (id, title, sub, iconSvg) => `<div class="dest-sec-head"><span class="sec-badge">${iconSvg}</span><div><h2 id="${id}">${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
+const mustSee = (d) => { const top = d.attractions.filter((a) => a.mustSee); return top.length ? top : d.attractions.slice(0, 3); };
+
+function topAttractionsHtml(d) {
+  const top = mustSee(d);
+  return `<section class="dest-section dest-sec-top" aria-labelledby="dest-top">${secHead('dest-top', t('catalog.dest.top'), t('catalog.dest.topSub'), icon('spark'))}<ul class="dest-attractions dest-top">${top.map((a) => attractionCard(d, a)).join('')}</ul></section>`;
+}
+const TODO_SHOWN = 6;
+function todoHtml(d) {
+  const top = new Set(mustSee(d));
+  // Same kinds sit together (landmarks, museums, markets…); the chips narrow the list to one kind.
+  const rest = d.attractions.filter((a) => !top.has(a)).sort((a, b) => KIND_ORDER.indexOf(kindOf(a)) - KIND_ORDER.indexOf(kindOf(b)));
+  if (!rest.length) return '';
+  const kinds = [...new Set(rest.map(kindOf))];
+  const chips = kinds.length > 1 ? `<div class="filter-chips attr-kinds" role="group" aria-label="${t('catalog.dest.kindsLabel')}"><button type="button" class="selected" aria-pressed="true" data-attr-kind="all">${t('catalog.dest.allKinds')} <span class="count">${rest.length}</span></button>${kinds.map((k) => `<button type="button" aria-pressed="false" data-attr-kind="${k}" class="kind-${k}">${kindIcon(k)}${esc(L(KINDS[k].group))} <span class="count">${rest.filter((a) => kindOf(a) === k).length}</span></button>`).join('')}</div>` : '';
+  const more = rest.length - TODO_SHOWN;
+  return `<section class="dest-section dest-sec-todo" aria-labelledby="dest-todo">${secHead('dest-todo', t('catalog.dest.attractions'), t('catalog.dest.todoSub', { count: rest.length }), SVG(KIND_ICON.experience))}${chips}`
+    + `<ul class="dest-attractions dest-todo" id="dest-todo-list">${rest.map((a, i) => attractionCard(d, a, { hidden: i >= TODO_SHOWN })).join('')}</ul>`
+    + (more > 0 ? `<div class="dest-more-wrap"><button type="button" class="button secondary" id="dest-todo-more" aria-expanded="false" aria-controls="dest-todo-list" data-more="${t('catalog.dest.showMore', { count: more })}" data-less="${t('catalog.dest.showLess')}">${t('catalog.dest.showMore', { count: more })}</button></div>` : '')
+    + `</section>`;
+}
+function dayTripsHtml(d) {
+  if (!d.dayTrips.length) return '';
+  return `<section class="dest-section dest-sec-trips" aria-labelledby="dest-trips">${secHead('dest-trips', t('catalog.dest.dayTrips'), '', icon('case'))}<ul class="dest-daytrips">${d.dayTrips.map((x) => {
+    const name = L(x.name), meta = attrImages?.[photoKey(d, x)];
+    return `<li class="attr-card kind-${kindOf(x)}">${mediaHtml(d, x, name)}<div class="attr-body"><strong>${esc(name)}</strong><p class="attr-meta"><span>${icon('clock')}${t('catalog.dest.dayTripHours', { hours: hours(x.hours) })}</span>${x.priceIls ? `<span>${icon('tag')}${t('catalog.dest.dayTripPrice', { low: x.priceIls.low, high: x.priceIls.high })}</span>` : ''}${x.months?.length ? `<span>${icon('calendar')}${esc(monthsText(x.months))}</span>` : ''}</p><p class="attr-note">${esc(L(x.note))}</p><span class="attr-credit-slot">${creditHtml(meta)}</span></div></li>`;
+  }).join('')}</ul></section>`;
+}
+// Where to stay: who each area suits, a price level (written in the data, or read from words like "pricey" / "cheaper"),
+// pros and cons when the data has them, and which of the destination's attractions are in that area.
+const AREA_FOR = [
+  ['family', /\bfamil/i], ['couple', /\bcouple/i], ['first', /first[- ]tim/i], ['nightlife', /nightlife|bars|clubs|party/i], ['shopping', /shop/i],
+  ['kosher', /kosher|shabbat/i], ['beach', /beach|seafront|sea\b/i], ['quiet', /\bquiet|\bcalm/i], ['food', /food|restaurant/i]
+];
+const AREA_TAG = { first: { he: 'ביקור ראשון', en: 'First-timers' }, quiet: { he: 'שקט', en: 'Quiet' } };
+export function areaPrice(a) {
+  if ([1, 2, 3].includes(a.price)) return a.price;
+  const en = a.forWhom?.en || '';
+  return /pricey|expensive|upscale|luxur|exclusive|high-end|posh/i.test(en) ? 3 : /cheap|budget|lower prices|affordable|good value|inexpensive|backpack/i.test(en) ? 1 : 0;
+}
+export const areaTags = (a) => AREA_FOR.filter(([, re]) => re.test(a.forWhom?.en || '')).map(([k]) => k).slice(0, 3);
+function areasHtml(d) {
+  if (!d.areas?.length) return '';
+  return `<section class="dest-section dest-sec-stay" aria-labelledby="dest-areas">${secHead('dest-areas', t('catalog.dest.areas'), t('catalog.dest.areasSub', { count: d.areas.length }), icon('hotel'))}<ul class="dest-areas">${d.areas.map((a) => {
+    const price = areaPrice(a), near = d.attractions.filter((x) => x.area === a.name.en).slice(0, 3).map((x) => L(x.name));
+    const tags = areaTags(a).map((k) => `<span class="attr-pill">${esc(L(AREA_TAG[k] || TAG_LABELS[k]))}</span>`).join('');
+    return `<li class="area-card"><div class="area-head"><span class="area-icon">${icon('hotel')}</span><h3>${esc(L(a.name))}</h3>${price ? `<span class="area-price p${price}" title="${t(`catalog.dest.price${price}`)}"><span aria-hidden="true">${'₪'.repeat(price)}<i>${'₪'.repeat(3 - price)}</i></span> ${t(`catalog.dest.price${price}`)}</span>` : ''}</div>`
+      + `<p class="area-for"><b>${t('pages.destination.7')}:</b> ${esc(L(a.forWhom))}</p>${tags ? `<p class="attr-pills">${tags}</p>` : ''}`
+      + (a.pros || a.cons ? `<ul class="area-proscons">${a.pros ? `<li class="pro">${icon('check')}<span><b>${t('catalog.dest.pros')}:</b> ${esc(L(a.pros))}</span></li>` : ''}${a.cons ? `<li class="con">${icon('shield')}<span><b>${t('catalog.dest.cons')}:</b> ${esc(L(a.cons))}</span></li>` : ''}</ul>` : '')
+      + (near.length ? `<p class="area-near">${icon('pin')}${esc(t('catalog.dest.nearby', { list: near.join(', ') }))}</p>` : '') + `</li>`;
+  }).join('')}</ul></section>`;
+}
+
+// Destination page wiring: kind chips + "show more" on things to do, and the attraction photos once their list arrives.
+export function wireDestination(root) {
+  const list = root.querySelector('#dest-todo-list'), more = root.querySelector('#dest-todo-more');
+  let expanded = false, kind = 'all';
+  const apply = () => {
+    if (!list) return;
+    [...list.children].forEach((li) => { li.hidden = kind === 'all' ? !expanded && li.hasAttribute('data-more') : li.dataset.kind !== kind; });
+    if (more) { more.hidden = kind !== 'all'; more.textContent = expanded ? more.dataset.less : more.dataset.more; more.setAttribute('aria-expanded', String(expanded)); }
+  };
+  root.querySelectorAll('[data-attr-kind]').forEach((b) => b.addEventListener('click', () => {
+    kind = b.dataset.attrKind;
+    root.querySelectorAll('[data-attr-kind]').forEach((x) => { x.classList.toggle('selected', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    apply();
+  }));
+  more?.addEventListener('click', () => { const first = [...list.children].find((li) => li.hasAttribute('data-more')); expanded = !expanded; apply(); if (expanded) first?.querySelector('strong')?.scrollIntoView({ block: 'nearest' }); });
+  const fill = () => root.querySelectorAll('[data-attr-photo]').forEach((el) => {
+    const meta = attrImages?.[el.dataset.attrPhoto];
+    if (!meta || el.querySelector('img')) return;
+    el.querySelector('.attr-placeholder')?.remove();
+    el.insertAdjacentHTML('afterbegin', photoHtml(meta, el.dataset.alt || ''));
+    const slot = el.parentElement.querySelector('.attr-credit-slot');
+    if (slot && !slot.innerHTML) slot.innerHTML = creditHtml(meta);
+  });
+  if (attrImages) fill(); else loadAttrImages().then(() => { if (root.isConnected) fill(); });
 }
 
 export function relatedOf(d, limit = 3) {

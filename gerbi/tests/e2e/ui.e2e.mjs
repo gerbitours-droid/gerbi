@@ -33,7 +33,7 @@ log('unknown msg:', await page.locator('#search-feedback').innerText());
 await page.goto(base + '/#/planner'); await page.locator('#page-chat-input').fill('זוג עם שני ילדים, חמישה לילות בפריז ביוני, תקציב 12000 שקל, בלי ים ובלי דובאי'); await page.locator('#page-chat-form button[type=submit], #page-chat-form button').first().click();
 await page.waitForTimeout(1500); log('bot:', (await page.locator('#page-chat .message.assistant').last().innerText()).replace(/\n/g, ' / '));
 await page.goto(base + '/#/results'); await page.waitForSelector('#recommendation-list');
-log('results:', await page.locator('#recommendation-list h2').allInnerTexts(), '| reasons:', await page.locator('#recommendation-list .match-reason').allInnerTexts(), '| note:', await page.locator('.constraint-note').innerText().catch(() => 'none'));
+log('results:', await page.locator('#recommendation-list h2').allInnerTexts(), '| reasons:', await page.locator('#recommendation-list .match-reason').allInnerTexts(), '| note:', await page.locator('.constraint-note').innerText().catch(() => 'none'), '| requested (Paris is a catalog destination, never "missing"):', await page.locator('.results-requested .dest-card h2').allInnerTexts());
 // F01: draft for rome with 2 adults, change home brief to 4, then open update dialog
 await page.goto(base + '/#/trip/rome'); await page.waitForSelector('#update-trip-brief');
 await page.locator('#update-trip-brief').click(); const f = page.locator('#trip-brief-form');

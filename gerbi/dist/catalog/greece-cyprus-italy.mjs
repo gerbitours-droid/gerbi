@@ -64,11 +64,11 @@ export default [
       { he: 'פסטה, פיצה וג׳לטו בכל רחוב', en: 'Pasta, pizza and gelato on every street' }
     ],
     areas: [
-      { name: { he: 'המרכז ההיסטורי (פנתאון–נבונה)', en: 'Centro Storico (Pantheon–Navona)' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' } },
-      { name: { he: 'טרסטוורה', en: 'Trastevere' }, forWhom: { he: 'זוגות שאוהבים מסעדות ואווירה בערב', en: 'Couples who love restaurants and evening buzz' } },
-      { name: { he: 'מונטי', en: 'Monti' }, forWhom: { he: 'קרוב לקולוסיאום, שכונה צעירה עם בוטיקים', en: 'Near the Colosseum, a young area with boutiques' } },
-      { name: { he: 'פראטי', en: 'Prati' }, forWhom: { he: 'משפחות — שקט יחסית וליד הוותיקן', en: 'Families — calmer and close to the Vatican' } },
-      { name: { he: 'ליד טרמיני', en: 'Around Termini' }, forWhom: { he: 'תקציב ונוחות תחבורה, פחות אווירה', en: 'Budget and transport links, less charm' } }
+      { name: { he: 'המרכז ההיסטורי (פנתאון–נבונה)', en: 'Centro Storico (Pantheon–Navona)' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' }, price: 3, pros: { he: 'הכול ברגל — כיכרות, מזרקות ומסעדות', en: 'Everything on foot — piazzas, fountains and restaurants' }, cons: { he: 'יקר והומה תיירים', en: 'Pricey and packed with tourists' } },
+      { name: { he: 'טרסטוורה', en: 'Trastevere' }, forWhom: { he: 'זוגות שאוהבים מסעדות ואווירה בערב', en: 'Couples who love restaurants and evening buzz' }, price: 2, pros: { he: 'סמטאות ציוריות ומסעדות טובות', en: 'Picturesque lanes and good restaurants' }, cons: { he: 'רועש בלילה, רחוק מהמטרו', en: 'Noisy at night, far from the metro' } },
+      { name: { he: 'מונטי', en: 'Monti' }, forWhom: { he: 'קרוב לקולוסיאום, שכונה צעירה עם בוטיקים', en: 'Near the Colosseum, a young area with boutiques' }, price: 2, pros: { he: 'ליד הקולוסיאום, שכונה צעירה עם בוטיקים', en: 'Near the Colosseum, young and full of boutiques' }, cons: { he: 'חדרים קטנים יחסית', en: 'Fairly small rooms' } },
+      { name: { he: 'פראטי', en: 'Prati' }, forWhom: { he: 'משפחות — שקט יחסית וליד הוותיקן', en: 'Families — calmer and close to the Vatican' }, price: 2, pros: { he: 'שקט, ליד הוותיקן ועם מטרו', en: 'Calm, near the Vatican, on the metro' }, cons: { he: 'פחות אווירה בערב', en: 'Less buzz in the evening' } },
+      { name: { he: 'ליד טרמיני', en: 'Around Termini' }, forWhom: { he: 'תקציב ונוחות תחבורה, פחות אווירה', en: 'Budget and transport links, less charm' }, price: 1, pros: { he: 'זול, רכבת לשדה ומטרו', en: 'Cheaper, with the airport train and the metro' }, cons: { he: 'פחות אווירה ופחות נעים בלילה', en: 'Less charm and less pleasant at night' } }
     ],
     attractions: [
       { name: { he: 'הקולוסיאום', en: 'The Colosseum' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Monti', mustSee: true },

@@ -27,7 +27,7 @@ test('every code and airport resolves in places.mjs; every tag is in the tag cat
   for (const d of destinations) assert.deepEqual(destinationTags[d.id], d.tags);
 });
 
-test('the 4 demo trips stay linked to their catalog destinations (saved plans and links keep working)', () => {
+test('the demo trips stay linked to their catalog destinations (saved plans and links keep working)', () => {
   for (const t of trips) { assert.equal(byId(t.id)?.trip, t.id, t.id); }
   assert.deepEqual(destinationTags.dubai.filter((x) => ['city', 'beach', 'family', 'with_children', 'water_slides'].includes(x)).length, 5);
 });

@@ -239,6 +239,29 @@ function extractDuration(text) {
   return null;
 }
 
+// A follow-up that changes the length relative to the brief so far: "תוסיף יומיים", "עוד 2 לילות", "לילה פחות",
+// "add 2 days", "one night less". A day added to a stay is a night added (unlike "5 ימים" = 4 nights).
+// Returns { delta, source } or null; the absolute extractors then leave the length alone.
+const REL_UNIT_HE = '(?:(\\d+)\\s*(?:לילות|ימים|יום|לילה)|(יומיים|שבועיים|שבוע|לילה|יום)(?:\\s+(?:אחד|נוסף|נוספים))?)';
+function relativeNights(text, english) {
+  const size = (n, word) => (n ? +n : { יומיים: 2, שבועיים: 14, שבוע: 7, לילה: 1, יום: 1, week: 7, fortnight: 14 }[word] ?? 1);
+  if (english) {
+    const unit = '(?:(\\d+|a|an|one|another)\\s+)?(?:(?:more|extra|additional)\\s+)?(nights?|days?|week|fortnight)';
+    const num = (n) => (/^\d+$/.test(n || '') ? +n : 1);
+    let m = text.match(new RegExp(`\\b(?:add|plus|extend (?:it |the trip |by )?(?:by )?)\\s*${unit}\\b`)) || text.match(/\b(\d+|a|an|one|another)\s+(?:more|extra|additional)\s+(nights?|days?|week)\b/);
+    if (m) return { delta: num(m[1]) * (/^week/.test(m[2]) ? 7 : /^fortnight/.test(m[2]) ? 14 : 1), source: m[0] };
+    m = text.match(/\b(?:remove|drop|cut|minus|take off|shorten (?:it |the trip )?by)\s+(\d+|a|an|one)\s+(nights?|days?)\b/) || text.match(/\b(\d+|a|an|one)\s+(nights?|days?)\s+(?:less|fewer|shorter)\b/) || text.match(/\b(\d+)\s+fewer\s+(nights?|days?)\b/);
+    if (m) return { delta: -num(m[1]), source: m[0] };
+    return null;
+  }
+  let m = text.match(new RegExp(`(?:^|\\s)(?:ו)?(?:תוסיף|תוסיפי|תוסיפו|להוסיף|הוסף|הוסיפו|עוד|פלוס|\\+)\\s*(?:עוד\\s+)?${REL_UNIT_HE}(?=[\\s,.!?]|$)`));
+  if (m && !/(?:^|\s)(?:בעוד)\s*$/.test(text.slice(0, m.index + 1))) return { delta: size(m[1], m[2]), source: m[0].trim() };
+  m = text.match(new RegExp(`(?:^|\\s)(?:פחות|תוריד|תורידי|תורידו|להוריד|תקצר|תקצרו|לקצר|מינוס)\\s*(?:ב-?)?\\s*${REL_UNIT_HE}(?=[\\s,.!?]|$)`))
+    || text.match(new RegExp(`(?:^|\\s)${REL_UNIT_HE}\\s+(?:פחות)(?=[\\s,.!?]|$)`));
+  if (m) return { delta: -size(m[1], m[2]), source: m[0].trim() };
+  return null;
+}
+
 // Ages after "בן/בת/בני/בגילאי": "בני 2,5,9", "בני 3 ו-6", "בני 2, 5 ו-9" – never a count of nights/days/money after them.
 const AGE_TAIL = '(?!\\d)(?!\\s*-\\s*\\d)(?!\\s*(?:לילות|ימים|לילה|שבועות|חודשים|₪|שקל|ש"ח|שח|אלף|כוכבים|%|מבוגרים|מבוגרות|אנשים|נוסעים|חברים|חברות))';
 function agesIn(text) {
@@ -795,7 +818,15 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
           : dates.season ? tr('planner.dates.season', { season: l === 'en' ? SEASON_EN_LABEL[dates.season] : dates.season, month }) : tr('planner.dates.month', { month }), dates.source);
   }
   const rest = dates?.source ? base.replace(dates.source, ' ') : base;
-  const duration = english ? extractDurationEn(rest) : extractDuration(rest);
+  // A relative change needs a length to change: only on a follow-up to a brief that already has nights.
+  const rel = previous.nights ? relativeNights(rest, english) : null;
+  const duration = rel ? null : english ? extractDurationEn(rest) : extractDuration(rest);
+  if (rel) {
+    brief.nights = clampNights(Math.max(1, previous.nights + rel.delta));
+    delete brief.nightsRange;
+    if (brief.start && !dates?.end) brief.end = addDays(brief.start, brief.nights);
+    say('nights', tr('planner.nights', { count: brief.nights }), rel.source);
+  }
   if (duration) {
     if (duration.days) duration.note = tr('planner.daysToNights', { days: duration.days, nights: duration.nights });
     else if (duration.note) duration.note = tr('planner.daysToNights', { days: +duration.note.split(' ')[0], nights: duration.nights });
@@ -824,7 +855,10 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
     say('budget', tr('planner.budget', { perPerson: budget.scope === 'person' ? tr('planner.budget.perPerson', { amount: l === 'en' ? symbol + num(budget.amount) : num(budget.amount) }) : '', total: num(total), currency: symbol }), budget.source);
   }
   if (english ? /\b(?:cheap|cheaper|cheapest|affordable|inexpensive|low[- ]cost|low price|lowest price|best price|budget[- ]friendly|bargain|good deal|not expensive|on a (?:tight |small |low )?budget|low budget|tight budget|backpack(?:ing|er)?)\b/.test(base)
-    : /זול|משתלם|תוריד|מחיר נמוך|הכי זול|לא יקר|במחיר נוח|תקציב (?:מוגבל|נמוך|קטן|צנוע)|בלי מיליון|תרמיל/.test(base)) { brief.cheaper = true; say('cheaper', tr('planner.cheaper')); }
+    : /(?<!לא\s+(?:הכי\s+)?)זול|משתלם|תוריד(?!\s*(?:ב-?)?\s*(?:\d+\s*)?(?:לילה|לילות|יום|ימים|יומיים|שבוע))|מחיר נמוך|לא יקר|במחיר נוח|תקציב (?:מוגבל|נמוך|קטן|צנוע)|בלי מיליון|תרמיל/.test(base)) { brief.cheaper = true; say('cheaper', tr('planner.cheaper')); }
+  // A follow-up that lifts the price focus: "משהו יותר יקר", "שדרוג", "לא חייב זול" / "something pricier", "upgrade".
+  if (english ? /\b(?:more expensive|pricier|fancier|more upscale|upgrade|upgraded|splurge|doesn'?t have to be cheap|not the cheapest)\b/.test(base)
+    : /יותר יקר|יקר יותר|יותר יוקרתי|יוקרתי יותר|שדרוג|תשדרג|לא (?:חייב|צריך) (?:להיות )?זול|לא (?:הכי )?זול/.test(base)) { if (brief.cheaper) { delete brief.cheaper; say('cheaper', tr('planner.pricier')); } }
   // "לא משנה המחיר" / "money is no object": no cap, and the plan may go up a level.
   if (english ? /\b(?:money is no object|price is not an issue|price doesn'?t matter|no budget limit|whatever it costs|regardless of (?:the )?(?:price|cost)|no matter the (?:price|cost)|sky'?s the limit|money (?:isn'?t|is not) an (?:issue|object)|budget (?:isn'?t|is not) an (?:issue|object))\b/.test(base)
     : /לא משנה (?:ה?מחיר|כמה|ה?תקציב)|ה?מחיר לא משנה|ה?תקציב לא משנה|בלי הגבלת תקציב|בלי הגבלה|אין הגבלת תקציב|לא משנה לנו כמה|לא מוגבלים (?:ב)?תקציב|תקציב לא מוגבל|תקציב פתוח/.test(base)) { brief.noBudgetLimit = true; delete brief.cheaper; say('budget', tr('planner.noBudgetLimit')); }
@@ -868,7 +902,7 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
   for (const [key, pattern] of needs) if (pattern.test(base)) { brief[key] = true; say(key, tr(`planner.${key}`)); }
 
   // Relative edits in a follow-up: "עוד לילה", "תוסיף ילד" / "one more night", "add a kid".
-  if ((english ? /\b(?:1 more|another|an extra|extra|add (?:a|1|another)) night\b/ : /עוד לילה|תוסיף לילה|לילה נוסף/).test(base) && !duration) { brief.nights = Math.min(30, (brief.nights || 5) + 1); say('nights', tr('planner.nights', { count: brief.nights })); }
+  if ((english ? /\b(?:1 more|another|an extra|extra|add (?:a|1|another)) night\b/ : /עוד לילה|תוסיף לילה|לילה נוסף/).test(base) && !duration && !rel) { brief.nights = Math.min(30, (brief.nights || 5) + 1); say('nights', tr('planner.nights', { count: brief.nights })); }
   if ((english ? /\b(?:1 more|another|add (?:a|1|another)|plus (?:a|1)) (?:kid|child)\b/ : /(?:עוד|תוסיף|ועוד) (?:ילד|ילדה)(?=\s|$)/).test(base) && travelers.children === undefined) { brief.children = Math.min(9 - (brief.adults || 2), (brief.children || 0) + 1); say('children', tr('planner.children.count', { count: brief.children })); }
 
   if (travelers.adults) delete brief.adultsAssumed;
@@ -878,7 +912,9 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
   // Only a country was named ("שבוע ביוון"): `want` then lists every place in it – a choice to make, not a route.
   const countryOnly = where.countries.length > 0 && !where.sources.some(hit => !hit.country && !hit.negated);
   const allQuestions = nextQuestions(brief, travelers, where, dates, l);
-  return { brief, understood, assumed, countryOnly, coverage: coverage(raw, understood), questions: allQuestions.slice(0, 2), allQuestions, flightSearch: flightSearchFrom(brief, where) };
+  // One chip per fact: "בלי ילדים" read by two rules is said once.
+  const said = understood.filter((u, i) => understood.findIndex((x) => x.label === u.label) === i);
+  return { brief, understood: said, assumed, countryOnly, coverage: coverage(raw, understood), questions: allQuestions.slice(0, 2), allQuestions, flightSearch: flightSearchFrom(brief, where) };
 }
 
 // One or two questions, most decision-changing first; never a question whose answer the text already gave.

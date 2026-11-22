@@ -61,5 +61,5 @@ test('demo trips are English on the English site; ids, prices and Hebrew origina
     assert.equal(trip.he.days.length, trip.days.length);
     assert.ok(trip.price > 0 && trip.image);
   }
-  assert.deepEqual(trips.map((t) => t.id), ['santorini', 'rome', 'maldives', 'dubai']);
+  assert.deepEqual(trips.map((t) => t.id), ['santorini', 'rome', 'maldives', 'dubai', 'paris']);
 });
