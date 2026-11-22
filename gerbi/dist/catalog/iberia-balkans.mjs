@@ -20,10 +20,10 @@ export default [
       { he: 'טאפאס וארוחות ערב מאוחרות', en: 'Tapas and late dinners' }
     ],
     areas: [
-      { name: { he: 'אישמפלה', en: 'Eixample' }, forWhom: { he: 'ביקור ראשון — מרכזי, רחובות רחבים וקניות', en: 'First-timers — central, wide streets and shopping' } },
-      { name: { he: 'הרובע הגותי ואל בורן', en: 'Gothic Quarter & El Born' }, forWhom: { he: 'מי שרוצה אווירה, ברים ומסעדות ליד הבית', en: 'Those who want atmosphere, bars and restaurants on the doorstep' } },
-      { name: { he: 'גרסיה', en: 'Gràcia' }, forWhom: { he: 'זוגות שאוהבים כיכרות שכונתיות ותחושה מקומית', en: 'Couples who like neighbourhood squares and a local feel' } },
-      { name: { he: 'ברצלונטה', en: 'Barceloneta' }, forWhom: { he: 'מי שבא בשביל הים, בקיץ', en: 'Beach-first summer visitors' } }
+      { name: { he: 'אישמפלה', en: 'Eixample' }, forWhom: { he: 'ביקור ראשון — מרכזי, רחובות רחבים וקניות', en: 'First-timers — central, wide streets and shopping' }, price: 2, pros: { he: 'מרכזי, מטרו מצוין ובנייני גאודי', en: 'Central, great metro and Gaudí buildings' }, cons: { he: 'פחות אווירה של סמטאות, רחובות סואנים', en: 'Less old-town charm, busy roads' } },
+      { name: { he: 'הרובע הגותי ואל בורן', en: 'Gothic Quarter & El Born' }, forWhom: { he: 'מי שרוצה אווירה, ברים ומסעדות ליד הבית', en: 'Those who want atmosphere, bars and restaurants on the doorstep' }, price: 2, pros: { he: 'סמטאות, ברים ומסעדות בפתח', en: 'Alleys, bars and restaurants on the doorstep' }, cons: { he: 'רועש בלילה וכייסים רבים', en: 'Noisy at night and lots of pickpockets' } },
+      { name: { he: 'גרסיה', en: 'Gràcia' }, forWhom: { he: 'זוגות שאוהבים כיכרות שכונתיות ותחושה מקומית', en: 'Couples who like neighbourhood squares and a local feel' }, price: 2, pros: { he: 'כיכרות שכונתיות ואווירה מקומית', en: 'Neighbourhood squares and local feel' }, cons: { he: 'רחוק מהים, קצת עליות', en: 'Far from the beach, some uphill' } },
+      { name: { he: 'ברצלונטה', en: 'Barceloneta' }, forWhom: { he: 'מי שבא בשביל הים, בקיץ', en: 'Beach-first summer visitors' }, price: 3, pros: { he: 'החוף ממש ליד המלון', en: 'The beach right by your hotel' }, cons: { he: 'צפוף, רועש וכייסים בקיץ', en: 'Crowded, noisy and pickpockets in summer' } }
     ],
     attractions: [
       { name: { he: 'הסגרדה פמיליה', en: 'Sagrada Família' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Eixample', mustSee: true },
@@ -69,10 +69,10 @@ export default [
       { he: 'טיול יום לטולדו', en: 'A day trip to Toledo' }
     ],
     areas: [
-      { name: { he: 'סול ומרכז העיר', en: 'Sol & Centro' }, forWhom: { he: 'ביקור ראשון — הכול במרחק הליכה', en: 'First-timers — everything within walking distance' } },
-      { name: { he: 'בריו דה לאס לטרס', en: 'Barrio de las Letras' }, forWhom: { he: 'זוגות — ליד המוזיאונים, עם מסעדות ואווירה', en: 'Couples — close to the museums, with restaurants and atmosphere' } },
-      { name: { he: 'סלמנקה', en: 'Salamanca' }, forWhom: { he: 'קניות ושכונה מסודרת ושקטה יחסית', en: 'Shopping and a smart, relatively quiet district' } },
-      { name: { he: 'מלסניה וצ׳ואקה', en: 'Malasaña & Chueca' }, forWhom: { he: 'צעירים וחיי לילה', en: 'Younger travellers and nightlife' } }
+      { name: { he: 'סול ומרכז העיר', en: 'Sol & Centro' }, forWhom: { he: 'ביקור ראשון — הכול במרחק הליכה', en: 'First-timers — everything within walking distance' }, price: 2, pros: { he: 'הכול ברגל ומטרו מכל כיוון', en: 'Everything walkable, metro everywhere' }, cons: { he: 'הומה ורועש עד מאוחר', en: 'Crowded and noisy until late' } },
+      { name: { he: 'בריו דה לאס לטרס', en: 'Barrio de las Letras' }, forWhom: { he: 'זוגות — ליד המוזיאונים, עם מסעדות ואווירה', en: 'Couples — close to the museums, with restaurants and atmosphere' }, price: 2, pros: { he: 'ליד הפראדו, טאפס ואווירה', en: 'Near the Prado, tapas and atmosphere' }, cons: { he: 'רחובות צרים ורועשים בלילה', en: 'Narrow streets, noisy at night' } },
+      { name: { he: 'סלמנקה', en: 'Salamanca' }, forWhom: { he: 'קניות ושכונה מסודרת ושקטה יחסית', en: 'Shopping and a smart, relatively quiet district' }, price: 3, pros: { he: 'אלגנטי, בטוח ושקט', en: 'Elegant, safe and quiet' }, cons: { he: 'יקר ופחות חיי לילה', en: 'Pricey with little nightlife' } },
+      { name: { he: 'מלסניה וצ׳ואקה', en: 'Malasaña & Chueca' }, forWhom: { he: 'צעירים וחיי לילה', en: 'Younger travellers and nightlife' }, price: 1, pros: { he: 'ברים, חיי לילה ומחירים נוחים', en: 'Bars, nightlife and fair prices' }, cons: { he: 'רועש מאוד בסופ״ש', en: 'Very noisy at weekends' } }
     ],
     attractions: [
       { name: { he: 'מוזיאון הפראדו', en: 'Museo del Prado' }, kind: 'museum', durationH: 3, tags: ['culture'], area: 'Barrio de las Letras', mustSee: true },
@@ -117,10 +117,10 @@ export default [
       { he: 'כפרי ההרים ולדמוסה ודאייה', en: 'The mountain villages of Valldemossa and Deià' }
     ],
     areas: [
-      { name: { he: 'פלמה', en: 'Palma' }, forWhom: { he: 'מי שרוצה עיר, מסעדות וחוף קרוב', en: 'Those who want a city, restaurants and a nearby beach' } },
-      { name: { he: 'אלקודיה ונמל אלקודיה', en: 'Alcúdia & Port d’Alcúdia' }, forWhom: { he: 'משפחות — מפרץ רדוד וארוך', en: 'Families — a long, shallow bay' } },
-      { name: { he: 'סויר ונמל סויר', en: 'Sóller & Port de Sóller' }, forWhom: { he: 'זוגות ומטיילים בהרים', en: 'Couples and mountain walkers' } },
-      { name: { he: 'החוף הדרום-מזרחי (סנטניי וקאלה ד׳אור)', en: 'South-east coast (Santanyí & Cala d’Or)' }, forWhom: { he: 'מי שבא בשביל המפרצונים והשקט', en: 'Cove-hunters who want quiet' } }
+      { name: { he: 'פלמה', en: 'Palma' }, forWhom: { he: 'מי שרוצה עיר, מסעדות וחוף קרוב', en: 'Those who want a city, restaurants and a nearby beach' }, price: 2, pros: { he: 'עיר, מסעדות וחופים קרובים', en: 'City life, restaurants and nearby beaches' }, cons: { he: 'חוף עירוני צפוף, תנועה בקיץ', en: 'Crowded city beach, summer traffic' } },
+      { name: { he: 'אלקודיה ונמל אלקודיה', en: 'Alcúdia & Port d’Alcúdia' }, forWhom: { he: 'משפחות — מפרץ רדוד וארוך', en: 'Families — a long, shallow bay' }, price: 2, pros: { he: 'מפרץ רדוד וארוך לילדים', en: 'Long, shallow bay for kids' }, cons: { he: 'שעה מהשדה, תיירותי', en: 'An hour from the airport, touristy' } },
+      { name: { he: 'סויר ונמל סויר', en: 'Sóller & Port de Sóller' }, forWhom: { he: 'זוגות ומטיילים בהרים', en: 'Couples and mountain walkers' }, price: 3, pros: { he: 'הרים, מסלולים ורכבת עתיקה', en: 'Mountains, trails and the vintage train' }, cons: { he: 'חוף קטן, יקר ועמוס ביום', en: 'Small beach, pricey and busy by day' } },
+      { name: { he: 'החוף הדרום-מזרחי (סנטניי וקאלה ד׳אור)', en: 'South-east coast (Santanyí & Cala d’Or)' }, forWhom: { he: 'מי שבא בשביל המפרצונים והשקט', en: 'Cove-hunters who want quiet' }, price: 2, pros: { he: 'מפרצונים טורקיז ושקט', en: 'Turquoise coves and quiet' }, cons: { he: 'חייבים רכב, חניה צפופה ליד המפרצים', en: 'Car essential, cove parking is tight' } }
     ],
     attractions: [
       { name: { he: 'קתדרלת פלמה (לה סאו)', en: 'Palma Cathedral (La Seu)' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Palma', mustSee: true },
@@ -164,9 +164,9 @@ export default [
       { he: 'קיץ נעים גם בחורף', en: 'Mild, summery weather even in winter' }
     ],
     areas: [
-      { name: { he: 'קוסטה אדחה', en: 'Costa Adeje' }, forWhom: { he: 'משפחות וזוגות — חופים, טיילת ושמש', en: 'Families and couples — beaches, promenade and sunshine' } },
-      { name: { he: 'לוס כריסטיאנוס ופלאיה דה לאס אמריקס', en: 'Los Cristianos & Playa de las Américas' }, forWhom: { he: 'מי שרוצה הכול קרוב, כולל חיי לילה', en: 'Those who want everything close, nightlife included' } },
-      { name: { he: 'פוארטו דה לה קרוס', en: 'Puerto de la Cruz' }, forWhom: { he: 'צפון ירוק ומקומי יותר, ליד לורו פארק', en: 'The greener, more local north, near Loro Parque' } }
+      { name: { he: 'קוסטה אדחה', en: 'Costa Adeje' }, forWhom: { he: 'משפחות וזוגות — חופים, טיילת ושמש', en: 'Families and couples — beaches, promenade and sunshine' }, price: 3, pros: { he: 'חופים, טיילת ומזג אוויר שמשי', en: 'Beaches, promenade and reliable sun' }, cons: { he: 'יקר יחסית ומאוד תיירותי', en: 'Relatively pricey and very touristy' } },
+      { name: { he: 'לוס כריסטיאנוס ופלאיה דה לאס אמריקס', en: 'Los Cristianos & Playa de las Américas' }, forWhom: { he: 'מי שרוצה הכול קרוב, כולל חיי לילה', en: 'Those who want everything close, nightlife included' }, price: 1, pros: { he: 'הכול קרוב והמחירים נוחים', en: 'Everything close and good prices' }, cons: { he: 'חיי לילה רועשים, בנייה צפופה', en: 'Noisy nightlife, dense development' } },
+      { name: { he: 'פוארטו דה לה קרוס', en: 'Puerto de la Cruz' }, forWhom: { he: 'צפון ירוק ומקומי יותר, ליד לורו פארק', en: 'The greener, more local north, near Loro Parque' }, price: 1, pros: { he: 'אותנטי, ירוק וליד לורו פארק', en: 'Authentic, green and near Loro Parque' }, cons: { he: 'יותר עננים, חופים שחורים פחות נוחים', en: 'Cloudier, rougher black-sand beaches' } }
     ],
     attractions: [
       { name: { he: 'הפארק הלאומי טיידה', en: 'Teide National Park' }, kind: 'nature', durationH: 5, tags: ['nature', 'adventure'], area: 'Teide National Park', mustSee: true },
@@ -209,10 +209,10 @@ export default [
       { he: 'ערב פאדו', en: 'An evening of fado' }
     ],
     areas: [
-      { name: { he: 'באישה ושיאדו', en: 'Baixa & Chiado' }, forWhom: { he: 'ביקור ראשון — מרכזי ושטוח יחסית', en: 'First-timers — central and relatively flat' } },
-      { name: { he: 'אלפמה', en: 'Alfama' }, forWhom: { he: 'זוגות שרוצים אווירה ותצפיות, ולא מפחדים ממדרגות', en: 'Couples after atmosphere and views, who don’t mind steps' } },
-      { name: { he: 'פרינסיפה ריאל', en: 'Príncipe Real' }, forWhom: { he: 'שכונה שיקית עם מסעדות וגנים', en: 'A chic area with restaurants and gardens' } },
-      { name: { he: 'פארק האומות', en: 'Parque das Nações' }, forWhom: { he: 'משפחות — מודרני, שטוח וליד האוקיינריום', en: 'Families — modern, flat and near the Oceanarium' } }
+      { name: { he: 'באישה ושיאדו', en: 'Baixa & Chiado' }, forWhom: { he: 'ביקור ראשון — מרכזי ושטוח יחסית', en: 'First-timers — central and relatively flat' }, price: 2, pros: { he: 'מרכזי, שטוח יחסית ומטרו', en: 'Central, fairly flat, metro' }, cons: { he: 'תיירותי ורועש', en: 'Touristy and noisy' } },
+      { name: { he: 'אלפמה', en: 'Alfama' }, forWhom: { he: 'זוגות שרוצים אווירה ותצפיות, ולא מפחדים ממדרגות', en: 'Couples after atmosphere and views, who don’t mind steps' }, price: 2, pros: { he: 'פאדו, תצפיות ואווירה', en: 'Fado, viewpoints and atmosphere' }, cons: { he: 'עליות תלולות ומרוצפות, קשה עם מזוודות', en: 'Steep cobbled hills, hard with luggage' } },
+      { name: { he: 'פרינסיפה ריאל', en: 'Príncipe Real' }, forWhom: { he: 'שכונה שיקית עם מסעדות וגנים', en: 'A chic area with restaurants and gardens' }, price: 3, pros: { he: 'גנים, מסעדות ובטוח בלילה', en: 'Gardens, restaurants and safe at night' }, cons: { he: 'יקר ובראש גבעה', en: 'Pricey and up a hill' } },
+      { name: { he: 'פארק האומות', en: 'Parque das Nações' }, forWhom: { he: 'משפחות — מודרני, שטוח וליד האוקיינריום', en: 'Families — modern, flat and near the Oceanarium' }, price: 2, pros: { he: 'מודרני, שטוח וקרוב לשדה ולאוקיאנריום', en: 'Modern, flat, near the airport and Oceanarium' }, cons: { he: 'רחוק מהעיר העתיקה, חסר אופי', en: 'Far from the old town, lacks character' } }
     ],
     attractions: [
       { name: { he: 'מנזר ז׳רונימוש', en: 'Jerónimos Monastery' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Belém', mustSee: true },
@@ -256,10 +256,10 @@ export default [
       { he: 'טיול יום לעמק הדורו', en: 'A day trip to the Douro Valley' }
     ],
     areas: [
-      { name: { he: 'ריביירה', en: 'Ribeira' }, forWhom: { he: 'זוגות שרוצים נוף לנהר ואווירה', en: 'Couples who want river views and atmosphere' } },
-      { name: { he: 'המרכז (באישה)', en: 'Baixa' }, forWhom: { he: 'ביקור ראשון — הכי נוח להתנייד ברגל', en: 'First-timers — easiest base on foot' } },
-      { name: { he: 'וילה נובה דה גאיה', en: 'Vila Nova de Gaia' }, forWhom: { he: 'נוף על העיר ומרתפי היין, שקט יותר בערב', en: 'Views of the city and the wine cellars, quieter at night' } },
-      { name: { he: 'פוז דו דורו', en: 'Foz do Douro' }, forWhom: { he: 'מי שרוצה ים וטיילת, קצת מחוץ למרכז', en: 'Those who want the sea and a promenade, a little out of the centre' } }
+      { name: { he: 'ריביירה', en: 'Ribeira' }, forWhom: { he: 'זוגות שרוצים נוף לנהר ואווירה', en: 'Couples who want river views and atmosphere' }, price: 3, pros: { he: 'נוף לנהר ואווירה על הגדה', en: 'River views and waterfront atmosphere' }, cons: { he: 'עמוס תיירים ותלול', en: 'Crowded and steep' } },
+      { name: { he: 'המרכז (באישה)', en: 'Baixa' }, forWhom: { he: 'ביקור ראשון — הכי נוח להתנייד ברגל', en: 'First-timers — easiest base on foot' }, price: 2, pros: { he: 'מרכזי והכול ברגל', en: 'Central, everything on foot' }, cons: { he: 'גבעות ורעש בלילה', en: 'Hills and some night noise' } },
+      { name: { he: 'וילה נובה דה גאיה', en: 'Vila Nova de Gaia' }, forWhom: { he: 'נוף על העיר ומרתפי היין, שקט יותר בערב', en: 'Views of the city and the wine cellars, quieter at night' }, price: 2, pros: { he: 'נוף לעיר ומרתפי היין, שקט בלילה', en: 'City views and wine cellars, quiet at night' }, cons: { he: 'עלייה תלולה בחזרה מהנהר', en: 'Steep climb back from the river' } },
+      { name: { he: 'פוז דו דורו', en: 'Foz do Douro' }, forWhom: { he: 'מי שרוצה ים וטיילת, קצת מחוץ למרכז', en: 'Those who want the sea and a promenade, a little out of the centre' }, price: 2, pros: { he: 'ים, טיילת ושקט', en: 'Sea, promenade and calm' }, cons: { he: 'רחוק מהמרכז, תלוי בחשמלית או מונית', en: 'Far from the centre, tram or taxi' } }
     ],
     attractions: [
       { name: { he: 'רובע ריביירה', en: 'Ribeira' }, kind: 'neighborhood', durationH: 2, tags: ['culture', 'food'], area: 'Ribeira', mustSee: true },
@@ -305,9 +305,9 @@ export default [
       { he: 'העיר העתיקה של פונשל', en: 'Funchal’s old town' }
     ],
     areas: [
-      { name: { he: 'פונשל', en: 'Funchal' }, forWhom: { he: 'בסיס נוח — מסעדות, תחבורה וסיורים', en: 'A convenient base — restaurants, transport and tours' } },
-      { name: { he: 'קאלטה', en: 'Calheta' }, forWhom: { he: 'זוגות שמחפשים שמש ושקט בדרום-מערב', en: 'Couples after sun and quiet in the south-west' } },
-      { name: { he: 'סנטנה והצפון', en: 'Santana & the north' }, forWhom: { he: 'מטיילים שרוצים להיות קרובים למסלולים', en: 'Walkers who want to be close to the trails' } }
+      { name: { he: 'פונשל', en: 'Funchal' }, forWhom: { he: 'בסיס נוח — מסעדות, תחבורה וסיורים', en: 'A convenient base — restaurants, transport and tours' }, price: 2, pros: { he: 'מסעדות, תחבורה וסיורים מכל מקום', en: 'Restaurants, transport and tours from everywhere' }, cons: { he: 'גבעות תלולות, חופים מעטים', en: 'Steep hills, few beaches' } },
+      { name: { he: 'קאלטה', en: 'Calheta' }, forWhom: { he: 'זוגות שמחפשים שמש ושקט בדרום-מערב', en: 'Couples after sun and quiet in the south-west' }, price: 2, pros: { he: 'שמש, שקט וחוף חול מלאכותי', en: 'Sun, quiet and an artificial sand beach' }, cons: { he: 'רחוק מפונשל, צריך רכב', en: 'Far from Funchal, car needed' } },
+      { name: { he: 'סנטנה והצפון', en: 'Santana & the north' }, forWhom: { he: 'מטיילים שרוצים להיות קרובים למסלולים', en: 'Walkers who want to be close to the trails' }, price: 1, pros: { he: 'קרוב למסלולים ולטבע', en: 'Close to trails and nature' }, cons: { he: 'יותר גשם ועננים, מעט מסעדות', en: 'More rain and clouds, few restaurants' } }
     ],
     attractions: [
       { name: { he: 'פיקו דו אריירו', en: 'Pico do Arieiro' }, kind: 'viewpoint', durationH: 2, tags: ['nature'], area: 'Pico do Arieiro', mustSee: true },
@@ -351,10 +351,10 @@ export default [
       { he: 'בית הכנסת העתיק של דוברובניק', en: 'Dubrovnik’s historic synagogue' }
     ],
     areas: [
-      { name: { he: 'העיר העתיקה של דוברובניק', en: 'Dubrovnik Old Town' }, forWhom: { he: 'זוגות לביקור קצר — יקר ועמוס, אבל קסום', en: 'Couples on a short visit — pricey and busy, but magical' } },
-      { name: { he: 'לאפאד (דוברובניק)', en: 'Lapad (Dubrovnik)' }, forWhom: { he: 'משפחות — חופים וטיילת, אוטובוס לעיר העתיקה', en: 'Families — beaches and a promenade, a bus to the Old Town' } },
-      { name: { he: 'מרכז ספליט', en: 'Split centre' }, forWhom: { he: 'בסיס לאיים ולפארקים, עם חיי ערב', en: 'A base for islands and parks, with evening life' } },
-      { name: { he: 'ריביירת מקרסקה', en: 'Makarska Riviera' }, forWhom: { he: 'חופשת חוף משפחתית בין שתי הערים', en: 'A family beach holiday between the two cities' } }
+      { name: { he: 'העיר העתיקה של דוברובניק', en: 'Dubrovnik Old Town' }, forWhom: { he: 'זוגות לביקור קצר — יקר ועמוס, אבל קסום', en: 'Couples on a short visit — pricey and busy, but magical' }, price: 3, pros: { he: 'קסום, בתוך החומות', en: 'Magical, inside the walls' }, cons: { he: 'יקר מאוד, צפוף ומדרגות', en: 'Very pricey, crowded and steep steps' } },
+      { name: { he: 'לאפאד (דוברובניק)', en: 'Lapad (Dubrovnik)' }, forWhom: { he: 'משפחות — חופים וטיילת, אוטובוס לעיר העתיקה', en: 'Families — beaches and a promenade, a bus to the Old Town' }, price: 2, pros: { he: 'חופים, טיילת ואוטובוס לעיר העתיקה', en: 'Beaches, promenade and a bus to the Old Town' }, cons: { he: 'לא ברגל לעיר העתיקה', en: 'Not walkable to the Old Town' } },
+      { name: { he: 'מרכז ספליט', en: 'Split centre' }, forWhom: { he: 'בסיס לאיים ולפארקים, עם חיי ערב', en: 'A base for islands and parks, with evening life' }, price: 2, pros: { he: 'ארמון דיוקלטיאנוס ומעבורות לאיים', en: 'Diocletian’s Palace and island ferries' }, cons: { he: 'רועש בקיץ ומחירים עולים', en: 'Noisy in summer, rising prices' } },
+      { name: { he: 'ריביירת מקרסקה', en: 'Makarska Riviera' }, forWhom: { he: 'חופשת חוף משפחתית בין שתי הערים', en: 'A family beach holiday between the two cities' }, price: 1, pros: { he: 'חופים יפים במחיר נוח', en: 'Lovely beaches at good prices' }, cons: { he: 'רחוק משני השדות, עמוס באוגוסט', en: 'Far from both airports, packed in August' } }
     ],
     attractions: [
       { name: { he: 'חומות דוברובניק', en: 'Dubrovnik city walls' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Dubrovnik Old Town', mustSee: true },
@@ -400,10 +400,10 @@ export default [
       { he: 'אגם סקאדר', en: 'Lake Skadar' }
     ],
     areas: [
-      { name: { he: 'קוטור ומפרץ קוטור', en: 'Kotor & the Bay of Kotor' }, forWhom: { he: 'זוגות ומי שרוצה נוף ותרבות', en: 'Couples and those after scenery and history' } },
-      { name: { he: 'בודווה', en: 'Budva' }, forWhom: { he: 'חופים וחיי לילה, קרוב להכול', en: 'Beaches and nightlife, close to everything' } },
-      { name: { he: 'טיבאט', en: 'Tivat' }, forWhom: { he: 'מרינה מטופחת וקרבה לשדה התעופה', en: 'A polished marina and close to the airport' } },
-      { name: { he: 'פטרובאץ', en: 'Petrovac' }, forWhom: { he: 'משפחות — עיירת חוף שקטה יותר', en: 'Families — a quieter beach town' } }
+      { name: { he: 'קוטור ומפרץ קוטור', en: 'Kotor & the Bay of Kotor' }, forWhom: { he: 'זוגות ומי שרוצה נוף ותרבות', en: 'Couples and those after scenery and history' }, price: 2, pros: { he: 'נוף מפרץ דרמטי ועיר עתיקה', en: 'Dramatic bay views and an old town' }, cons: { he: 'אוניות קרוז ממלאות את העיר ביום', en: 'Cruise crowds fill town by day' } },
+      { name: { he: 'בודווה', en: 'Budva' }, forWhom: { he: 'חופים וחיי לילה, קרוב להכול', en: 'Beaches and nightlife, close to everything' }, price: 1, pros: { he: 'חופים, חיי לילה ומחירים נוחים', en: 'Beaches, nightlife and fair prices' }, cons: { he: 'רועש ובנוי בצפיפות', en: 'Noisy and overdeveloped' } },
+      { name: { he: 'טיבאט', en: 'Tivat' }, forWhom: { he: 'מרינה מטופחת וקרבה לשדה התעופה', en: 'A polished marina and close to the airport' }, price: 3, pros: { he: 'מרינה מטופחת, קרוב לשדה', en: 'Polished marina, close to the airport' }, cons: { he: 'יקר יחסית ופחות אופי', en: 'Pricier, less character' } },
+      { name: { he: 'פטרובאץ', en: 'Petrovac' }, forWhom: { he: 'משפחות — עיירת חוף שקטה יותר', en: 'Families — a quieter beach town' }, price: 2, pros: { he: 'עיירת חוף שקטה למשפחות', en: 'Quiet beach town for families' }, cons: { he: 'מעט אטרקציות, צפוף בשיא העונה', en: 'Few attractions, crowded in peak season' } }
     ],
     attractions: [
       { name: { he: 'העיר העתיקה של קוטור', en: 'Kotor Old Town' }, kind: 'neighborhood', durationH: 2, tags: ['culture'], area: 'Kotor & the Bay of Kotor', mustSee: true },
@@ -448,10 +448,10 @@ export default [
       { he: 'פיראן על חוף האדריאטי', en: 'Piran on the Adriatic coast' }
     ],
     areas: [
-      { name: { he: 'ליובליאנה', en: 'Ljubljana' }, forWhom: { he: 'בסיס עירוני נוח עם מסעדות, טוב לכמה לילות', en: 'A comfortable city base with restaurants, good for a few nights' } },
-      { name: { he: 'בלד', en: 'Bled' }, forWhom: { he: 'זוגות ומשפחות — אגם, טבע ומסלולים קלים', en: 'Couples and families — a lake, nature and easy walks' } },
-      { name: { he: 'בוהיני', en: 'Bohinj' }, forWhom: { he: 'מי שמחפש שקט וטבע פראי יותר', en: 'Those after quiet and wilder nature' } },
-      { name: { he: 'בובץ ועמק הסוצ׳ה', en: 'Bovec & the Soča Valley' }, forWhom: { he: 'אקטיביים — רפטינג, הליכות ורכיבה', en: 'Active travellers — rafting, hiking and cycling' } }
+      { name: { he: 'ליובליאנה', en: 'Ljubljana' }, forWhom: { he: 'בסיס עירוני נוח עם מסעדות, טוב לכמה לילות', en: 'A comfortable city base with restaurants, good for a few nights' }, price: 2, pros: { he: 'עיר נעימה, מסעדות ותחבורה', en: 'Pleasant city, restaurants and transport' }, cons: { he: 'אין ים או אגם, צריך טיולי יום', en: 'No lake or sea; day trips needed' } },
+      { name: { he: 'בלד', en: 'Bled' }, forWhom: { he: 'זוגות ומשפחות — אגם, טבע ומסלולים קלים', en: 'Couples and families — a lake, nature and easy walks' }, price: 3, pros: { he: 'אגם ציורי ומסלולים קלים', en: 'Picture-perfect lake and easy walks' }, cons: { he: 'יקר ועמוס בקיץ', en: 'Pricey and crowded in summer' } },
+      { name: { he: 'בוהיני', en: 'Bohinj' }, forWhom: { he: 'מי שמחפש שקט וטבע פראי יותר', en: 'Those after quiet and wilder nature' }, price: 2, pros: { he: 'טבע פראי ושקט', en: 'Wild nature and quiet' }, cons: { he: 'מעט מסעדות, צריך רכב', en: 'Few restaurants, car needed' } },
+      { name: { he: 'בובץ ועמק הסוצ׳ה', en: 'Bovec & the Soča Valley' }, forWhom: { he: 'אקטיביים — רפטינג, הליכות ורכיבה', en: 'Active travellers — rafting, hiking and cycling' }, price: 1, pros: { he: 'רפטינג, טיולים ומחירים נוחים', en: 'Rafting, hiking and good prices' }, cons: { he: 'מרוחק, דרכים הרריות ארוכות', en: 'Remote, long mountain roads' } }
     ],
     attractions: [
       { name: { he: 'אגם בלד', en: 'Lake Bled' }, kind: 'nature', durationH: 3, tags: ['nature', 'couple', 'family'], area: 'Bled', mustSee: true },

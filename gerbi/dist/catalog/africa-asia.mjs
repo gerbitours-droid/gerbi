@@ -18,11 +18,11 @@ export default [
       { he: 'צלילה עם מנטות וכרישי לווייתן (בעונה)', en: 'Diving with mantas and whale sharks (in season)' }
     ],
     areas: [
-      { name: { he: 'אטול מאלה הצפוני', en: 'North Malé Atoll' }, forWhom: { he: 'העברה קצרה בסירה מהשדה — טוב לחופשה קצרה', en: 'A short speedboat transfer — good for shorter stays' } },
-      { name: { he: 'אטול מאלה הדרומי', en: 'South Malé Atoll' }, forWhom: { he: 'ריזורטים במרחק סירה, צלילה טובה', en: 'Resorts reached by speedboat, good diving' } },
-      { name: { he: 'אטול ארי', en: 'Ari Atoll' }, forWhom: { he: 'צוללנים ושנורקלינג עם כרישי לווייתן — מטוס ימי', en: 'Divers and whale-shark snorkelling — by seaplane' } },
-      { name: { he: 'אטול בא', en: 'Baa Atoll' }, forWhom: { he: 'שמורת ביוספרה, מנטות בעונה', en: 'A biosphere reserve, mantas in season' } },
-      { name: { he: 'איים מקומיים (מאפושי ואחרים)', en: 'Local islands (Maafushi and others)' }, forWhom: { he: 'תקציב נמוך יותר — עם כללים מקומיים (למשל בלי אלכוהול)', en: 'Lower budgets — with local rules (e.g. no alcohol)' } }
+      { name: { he: 'אטול מאלה הצפוני', en: 'North Malé Atoll' }, forWhom: { he: 'העברה קצרה בסירה מהשדה — טוב לחופשה קצרה', en: 'A short speedboat transfer — good for shorter stays' }, price: 3, pros: { he: 'העברה קצרה בסירה, בלי טיסה ימית יקרה', en: 'Quick speedboat transfer, no costly seaplane' }, cons: { he: 'ריזורטים ותיקים ועמוסים יותר, ונוף שדה התעופה מחלק מהם', en: 'Some resorts are older and busier, with airport views' } },
+      { name: { he: 'אטול מאלה הדרומי', en: 'South Malé Atoll' }, forWhom: { he: 'ריזורטים במרחק סירה, צלילה טובה', en: 'Resorts reached by speedboat, good diving' }, price: 3, pros: { he: 'קרוב לשדה, ערוצים עשירים לצלילה', en: 'Close to the airport, rich channels for diving' }, cons: { he: 'פחות בחירה של ריזורטים יוקרתיים חדשים', en: 'Fewer of the newer luxury resorts' } },
+      { name: { he: 'אטול ארי', en: 'Ari Atoll' }, forWhom: { he: 'צוללנים ושנורקלינג עם כרישי לווייתן — מטוס ימי', en: 'Divers and whale-shark snorkelling — by seaplane' }, price: 3, pros: { he: 'כרישי לווייתן ומנטות כל השנה, שוניות מעולות', en: 'Whale sharks and mantas year-round, superb reefs' }, cons: { he: 'טיסה ימית יקרה ורק באור יום', en: 'Pricey seaplane, daylight-only flights' } },
+      { name: { he: 'אטול בא', en: 'Baa Atoll' }, forWhom: { he: 'שמורת ביוספרה, מנטות בעונה', en: 'A biosphere reserve, mantas in season' }, price: 3, pros: { he: 'מפרץ חניפארו — עשרות מנטות ביוני–נובמבר', en: 'Hanifaru Bay — dozens of mantas June–November' }, cons: { he: 'רחוק — טיסה ימית או פנימית, יקר במיוחד', en: 'Remote — seaplane or domestic flight, very expensive' } },
+      { name: { he: 'איים מקומיים (מאפושי ואחרים)', en: 'Local islands (Maafushi and others)' }, forWhom: { he: 'תקציב נמוך יותר — עם כללים מקומיים (למשל בלי אלכוהול)', en: 'Lower budgets — with local rules (e.g. no alcohol)' }, price: 1, pros: { he: 'גסטהאוסים בחלק מהמחיר, מעבורת זולה מהבירה', en: 'Guesthouses at a fraction of the price, cheap ferry from Malé' }, cons: { he: 'בלי אלכוהול, ובחוף הציבורי צריך לבוש צנוע', en: 'No alcohol, and modest dress off the bikini beach' } }
     ],
     attractions: [
       { name: { he: 'שנורקלינג בשונית הבית של הריזורט', en: 'Snorkelling the resort’s house reef' }, kind: 'nature', durationH: 2, tags: ['beach', 'nature'], mustSee: true },
@@ -64,11 +64,11 @@ export default [
       { he: 'עיסוי תאילנדי', en: 'A Thai massage' }
     ],
     areas: [
-      { name: { he: 'סוקומוויט', en: 'Sukhumvit' }, forWhom: { he: 'קרוב לרכבת העילית, מסעדות וחיי לילה — נוח לרוב המטיילים', en: 'Close to the Skytrain, restaurants and nightlife — convenient for most travellers' } },
-      { name: { he: 'סיאם', en: 'Siam' }, forWhom: { he: 'מרכז העיר והקניונים — טוב למשפחות ולקניות', en: 'The city centre and its malls — good for families and shoppers' } },
-      { name: { he: 'גדת הנהר (ריברסייד)', en: 'Riverside' }, forWhom: { he: 'נוף לנהר וגישה בסירה למקדשים — לזוגות', en: 'River views and boat access to the temples — for couples' } },
-      { name: { he: 'באנגלמפו וחאו סאן', en: 'Banglamphu & Khao San' }, forWhom: { he: 'קרוב לארמון ולמקדשים; תרמילאים ותקציב נמוך', en: 'Near the palace and temples; backpackers and low budgets' } },
-      { name: { he: 'סילום וסאתורן', en: 'Silom & Sathorn' }, forWhom: { he: 'אזור העסקים, עם פארק לומפיני ושוק לילה', en: 'The business district, with Lumphini Park and a night market' } }
+      { name: { he: 'סוקומוויט', en: 'Sukhumvit' }, forWhom: { he: 'קרוב לרכבת העילית, מסעדות וחיי לילה — נוח לרוב המטיילים', en: 'Close to the Skytrain, restaurants and nightlife — convenient for most travellers' }, price: 2, pros: { he: 'BTS ליד המלון, אינסוף מסעדות ומלונות בכל תקציב', en: 'BTS at the door, endless restaurants and hotels at every budget' }, cons: { he: 'פקקים ורעש, וחלק מהרחובות הצדדיים עם בארים מפוקפקים', en: 'Traffic and noise; some side sois have seedy bars' } },
+      { name: { he: 'סיאם', en: 'Siam' }, forWhom: { he: 'מרכז העיר והקניונים — טוב למשפחות ולקניות', en: 'The city centre and its malls — good for families and shoppers' }, price: 2, pros: { he: 'מרכזי — קניונים ומחלף ה־BTS במרחק הליכה', en: 'Central — malls and the main BTS interchange on foot' }, cons: { he: 'מעט אווירה מקומית, שקט בלילה מחוץ לקניונים', en: 'Little local character; quiet at night outside the malls' } },
+      { name: { he: 'גדת הנהר (ריברסייד)', en: 'Riverside' }, forWhom: { he: 'נוף לנהר וגישה בסירה למקדשים — לזוגות', en: 'River views and boat access to the temples — for couples' }, price: 3, pros: { he: 'מלונות יוקרה עם נוף ושאטלים בסירה לארמון', en: 'Luxury hotels with views and boat shuttles to the palace' }, cons: { he: 'רחוק מה־BTS, תלוי בסירות ובמוניות', en: 'Far from the BTS; you rely on boats and taxis' } },
+      { name: { he: 'באנגלמפו וחאו סאן', en: 'Banglamphu & Khao San' }, forWhom: { he: 'קרוב לארמון ולמקדשים; תרמילאים ותקציב נמוך', en: 'Near the palace and temples; backpackers and low budgets' }, price: 1, pros: { he: 'זול מאוד, ברגל לארמון הגדול ולוואט פו', en: 'Very cheap, walkable to the Grand Palace and Wat Pho' }, cons: { he: 'רועש עד מאוחר, בלי רכבת עילית', en: 'Noisy until late, no Skytrain' } },
+      { name: { he: 'סילום וסאתורן', en: 'Silom & Sathorn' }, forWhom: { he: 'אזור העסקים, עם פארק לומפיני ושוק לילה', en: 'The business district, with Lumphini Park and a night market' }, price: 2, pros: { he: 'BTS ו־MRT, פארק לומפיני ומסעדות טובות', en: 'BTS and MRT, Lumphini Park and good restaurants' }, cons: { he: 'מתרוקן בסופ״ש, ופטפונג ברחוב הסמוך', en: 'Empties at weekends; Patpong next door' } }
     ],
     attractions: [
       { name: { he: 'הארמון הגדול ו־וואט פרה קאו', en: 'Grand Palace & Wat Phra Kaew' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Banglamphu & Khao San', mustSee: true },
@@ -115,11 +115,11 @@ export default [
       { he: 'חופים שקטים בקטה ובקרון', en: 'Quieter beaches at Kata and Karon' }
     ],
     areas: [
-      { name: { he: 'פטונג', en: 'Patong' }, forWhom: { he: 'מרכז הבילוי והקניות — לצעירים ולחיי לילה', en: 'The hub for nightlife and shopping — for younger travellers' } },
-      { name: { he: 'קטה וקרון', en: 'Kata & Karon' }, forWhom: { he: 'חופים רחבים ואווירה רגועה יותר — טוב למשפחות', en: 'Wide beaches and a calmer feel — good for families' } },
-      { name: { he: 'קמלה ובאנג טאו', en: 'Kamala & Bang Tao' }, forWhom: { he: 'ריזורטים שקטים בחוף המערבי — לזוגות', en: 'Quiet resorts on the west coast — for couples' } },
-      { name: { he: 'העיר פוקט והעיר העתיקה', en: 'Phuket Town & Old Town' }, forWhom: { he: 'אוכל מקומי, שווקים ותקציב נמוך — רחוק מהחוף', en: 'Local food, markets and low budgets — away from the beach' } },
-      { name: { he: 'ראוואי וצ׳לונג', en: 'Rawai & Chalong' }, forWhom: { he: 'הדרום השקט, נקודת יציאה לסירות', en: 'The quiet south, a departure point for boats' } }
+      { name: { he: 'פטונג', en: 'Patong' }, forWhom: { he: 'מרכז הבילוי והקניות — לצעירים ולחיי לילה', en: 'The hub for nightlife and shopping — for younger travellers' }, price: 2, pros: { he: 'החוף הכי מרכזי, בילוי וקניות ברגל', en: 'The most central beach, nightlife and shopping on foot' }, cons: { he: 'רועש וצפוף, ובנגלה רואד לא לכולם', en: 'Loud and crowded; Bangla Road is not for everyone' } },
+      { name: { he: 'קטה וקרון', en: 'Kata & Karon' }, forWhom: { he: 'חופים רחבים ואווירה רגועה יותר — טוב למשפחות', en: 'Wide beaches and a calmer feel — good for families' }, price: 2, pros: { he: 'חופים יפים ונקיים יחסית, אווירה משפחתית', en: 'Pretty, relatively clean beaches, family feel' }, cons: { he: 'גלים חזקים במונסון (מאי–אוקטובר), גבעות לטיפוס', en: 'Rough surf in monsoon (May–Oct), hilly streets' } },
+      { name: { he: 'קמלה ובאנג טאו', en: 'Kamala & Bang Tao' }, forWhom: { he: 'ריזורטים שקטים בחוף המערבי — לזוגות', en: 'Quiet resorts on the west coast — for couples' }, price: 3, pros: { he: 'ריזורטים שקטים ומרווחים, קרוב יותר לשדה', en: 'Quiet, spacious resorts, closer to the airport' }, cons: { he: 'צריך מונית לכל דבר מחוץ למלון', en: 'You need a taxi for anything beyond the hotel' } },
+      { name: { he: 'העיר פוקט והעיר העתיקה', en: 'Phuket Town & Old Town' }, forWhom: { he: 'אוכל מקומי, שווקים ותקציב נמוך — רחוק מהחוף', en: 'Local food, markets and low budgets — away from the beach' }, price: 1, pros: { he: 'זול, אוכל מקומי מעולה ובתים צבעוניים', en: 'Cheap, great local food and colourful shophouses' }, cons: { he: 'כ־20–30 דקות נסיעה לחוף הקרוב', en: 'About 20–30 minutes drive to the nearest beach' } },
+      { name: { he: 'ראוואי וצ׳לונג', en: 'Rawai & Chalong' }, forWhom: { he: 'הדרום השקט, נקודת יציאה לסירות', en: 'The quiet south, a departure point for boats' }, price: 2, pros: { he: 'שקט, קרוב לרציפים לפי פי ולאיים', en: 'Quiet, close to the piers for Phi Phi and the islands' }, cons: { he: 'החופים כאן פחות טובים לשחייה', en: 'The beaches here are poor for swimming' } }
     ],
     attractions: [
       { name: { he: 'הבודהה הגדול', en: 'The Big Buddha' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Rawai & Chalong', mustSee: true },
@@ -165,10 +165,10 @@ export default [
       { he: 'מנהרות קו צ׳י ודלתת המקונג', en: 'The Cu Chi tunnels and the Mekong Delta' }
     ],
     areas: [
-      { name: { he: 'האנוי', en: 'Hanoi' }, forWhom: { he: 'בסיס לצפון: הא לונג ונין בין; היסטוריה ואוכל רחוב', en: 'The base for the north: Ha Long and Ninh Binh; history and street food' } },
-      { name: { he: 'הוי אן', en: 'Hoi An' }, forWhom: { he: 'עיירה ציורית, תופרים וחוף קרוב — לזוגות ולמשפחות', en: 'A picturesque town, tailors and a nearby beach — for couples and families' } },
-      { name: { he: 'דה נאנג', en: 'Da Nang' }, forWhom: { he: 'עיר חוף מודרנית עם חוף ארוך — נוח למשפחות', en: 'A modern beach city with a long beach — easy for families' } },
-      { name: { he: 'הו צ׳י מין סיטי (סייגון)', en: 'Ho Chi Minh City (Saigon)' }, forWhom: { he: 'עיר תוססת, קניות וחיי לילה; יציאה לדלתת המקונג', en: 'A lively city, shopping and nightlife; the gateway to the Mekong Delta' } }
+      { name: { he: 'האנוי', en: 'Hanoi' }, forWhom: { he: 'בסיס לצפון: הא לונג ונין בין; היסטוריה ואוכל רחוב', en: 'The base for the north: Ha Long and Ninh Binh; history and street food' }, price: 1, pros: { he: 'זול מאוד, אוכל רחוב ובסיס נוח להא לונג', en: 'Very cheap, street food and an easy base for Ha Long' }, cons: { he: 'תנועת קטנועים מטורפת וקר בחורף', en: 'Chaotic scooter traffic, chilly in winter' } },
+      { name: { he: 'הוי אן', en: 'Hoi An' }, forWhom: { he: 'עיירה ציורית, תופרים וחוף קרוב — לזוגות ולמשפחות', en: 'A picturesque town, tailors and a nearby beach — for couples and families' }, price: 2, pros: { he: 'עיר עתיקה מוארת בפנסים, חוף אן באנג קרוב באופניים', en: 'Lantern-lit old town, An Bang beach a short cycle away' }, cons: { he: 'הומה תיירים בערב, והצפות באוקטובר–נובמבר', en: 'Packed with tourists at night; floods in Oct–Nov' } },
+      { name: { he: 'דה נאנג', en: 'Da Nang' }, forWhom: { he: 'עיר חוף מודרנית עם חוף ארוך — נוח למשפחות', en: 'A modern beach city with a long beach — easy for families' }, price: 2, pros: { he: 'חוף ארוך ומלונות חדשים בתמורה טובה', en: 'Long beach and new hotels at good value' }, cons: { he: 'פחות אופי מקומי, עונת גשמים בסתיו', en: 'Less local character; rainy season in autumn' } },
+      { name: { he: 'הו צ׳י מין סיטי (סייגון)', en: 'Ho Chi Minh City (Saigon)' }, forWhom: { he: 'עיר תוססת, קניות וחיי לילה; יציאה לדלתת המקונג', en: 'A lively city, shopping and nightlife; the gateway to the Mekong Delta' }, price: 1, pros: { he: 'חיי לילה, קניות ומלונות זולים במחוז 1', en: 'Nightlife, shopping and cheap hotels in District 1' }, cons: { he: 'חם ולח, רעש וחטיפות טלפונים מקטנועים', en: 'Hot and humid, noisy, phone snatching from scooters' } }
     ],
     attractions: [
       { name: { he: 'אגם הואן קיאם והרובע העתיק', en: 'Hoan Kiem Lake & the Old Quarter' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'food', 'evening'], area: 'Hanoi', mustSee: true },
@@ -266,11 +266,11 @@ export default [
       { he: 'הצוקים של נוסה פנידה', en: 'The cliffs of Nusa Penida' }
     ],
     areas: [
-      { name: { he: 'אובוד', en: 'Ubud' }, forWhom: { he: 'ג׳ונגל, טרסות, יוגה ותרבות — לזוגות ולשקט', en: 'Jungle, terraces, yoga and culture — for couples and quiet' } },
-      { name: { he: 'סמיניאק', en: 'Seminyak' }, forWhom: { he: 'מסעדות, בוטיקים ומועדוני חוף', en: 'Restaurants, boutiques and beach clubs' } },
-      { name: { he: 'צ׳אנגו', en: 'Canggu' }, forWhom: { he: 'גולשים, בתי קפה ואווירה צעירה', en: 'Surfers, cafés and a young vibe' } },
-      { name: { he: 'אולואוואטו', en: 'Uluwatu' }, forWhom: { he: 'צוקים, חופים קטנים ונוף — לזוגות ולגולשים מנוסים', en: 'Cliffs, small beaches and views — for couples and experienced surfers' } },
-      { name: { he: 'נוסה דואה וסאנור', en: 'Nusa Dua & Sanur' }, forWhom: { he: 'ים רגוע וריזורטים — הכי נוח למשפחות', en: 'Calm sea and resorts — the easiest for families' } }
+      { name: { he: 'אובוד', en: 'Ubud' }, forWhom: { he: 'ג׳ונגל, טרסות, יוגה ותרבות — לזוגות ולשקט', en: 'Jungle, terraces, yoga and culture — for couples and quiet' }, price: 2, pros: { he: 'וילות עם בריכה בג׳ונגל במחירים טובים', en: 'Jungle pool villas at good prices' }, cons: { he: 'רחוק מהים, פקקים במרכז', en: 'Far from the sea, traffic in the centre' } },
+      { name: { he: 'סמיניאק', en: 'Seminyak' }, forWhom: { he: 'מסעדות, בוטיקים ומועדוני חוף', en: 'Restaurants, boutiques and beach clubs' }, price: 3, pros: { he: 'מסעדות, ביץ׳ קלאבים וקניות ברגל', en: 'Restaurants, beach clubs and shopping on foot' }, cons: { he: 'יקר יחסית לבאלי, פקקים קשים', en: 'Pricey for Bali, heavy traffic' } },
+      { name: { he: 'צ׳אנגו', en: 'Canggu' }, forWhom: { he: 'גולשים, בתי קפה ואווירה צעירה', en: 'Surfers, cafés and a young vibe' }, price: 2, pros: { he: 'בתי קפה, גלישה ווילות במחיר סביר', en: 'Cafés, surf and reasonably priced villas' }, cons: { he: 'בנייה ופקקים, הים לא טוב לשחייה', en: 'Construction and traffic; sea poor for swimming' } },
+      { name: { he: 'אולואוואטו', en: 'Uluwatu' }, forWhom: { he: 'צוקים, חופים קטנים ונוף — לזוגות ולגולשים מנוסים', en: 'Cliffs, small beaches and views — for couples and experienced surfers' }, price: 3, pros: { he: 'צוקים, שקיעות וחופים קטנים ויפים', en: 'Cliffs, sunsets and small, beautiful beaches' }, cons: { he: 'מפוזר — צריך קטנוע או נהג לכל דבר', en: 'Spread out — you need a scooter or driver for everything' } },
+      { name: { he: 'נוסה דואה וסאנור', en: 'Nusa Dua & Sanur' }, forWhom: { he: 'ים רגוע וריזורטים — הכי נוח למשפחות', en: 'Calm sea and resorts — the easiest for families' }, price: 2, pros: { he: 'ים רגוע ושטוח, מתאים לילדים', en: 'Calm, shallow sea, good for kids' }, cons: { he: 'פחות חיי לילה, אווירה סטרילית בנוסה דואה', en: 'Little nightlife; Nusa Dua feels sterile' } }
     ],
     attractions: [
       { name: { he: 'יער הקופים הקדוש באובוד', en: 'Sacred Monkey Forest Sanctuary, Ubud' }, kind: 'park', durationH: 1.5, tags: ['nature', 'family'], area: 'Ubud' },
@@ -316,10 +316,10 @@ export default [
       { he: 'צפייה בלווייתנים במיריסה (בעונה)', en: 'Whale watching off Mirissa (in season)' }
     ],
     areas: [
-      { name: { he: 'המשולש התרבותי', en: 'The Cultural Triangle' }, forWhom: { he: 'סיגיריה, דמבולה ופולונארווה — היסטוריה ומקדשים', en: 'Sigiriya, Dambulla and Polonnaruwa — history and temples' } },
-      { name: { he: 'קנדי', en: 'Kandy' }, forWhom: { he: 'מקדש השן וגנים בוטניים; שער לאזור ההרים', en: 'The Temple of the Tooth and botanical gardens; gateway to the hills' } },
-      { name: { he: 'אלה והרי התה', en: 'Ella & the tea hills' }, forWhom: { he: 'מסלולי הליכה, נוף ומזג אוויר קריר — לזוגות ולמטיילים', en: 'Walks, views and cooler weather — for couples and hikers' } },
-      { name: { he: 'החוף הדרומי (גאלה ומיריסה)', en: 'The south coast (Galle & Mirissa)' }, forWhom: { he: 'חופים, מבצר קולוניאלי ולווייתנים — לסיום רגוע', en: 'Beaches, a colonial fort and whales — for a relaxed finish' } }
+      { name: { he: 'המשולש התרבותי', en: 'The Cultural Triangle' }, forWhom: { he: 'סיגיריה, דמבולה ופולונארווה — היסטוריה ומקדשים', en: 'Sigiriya, Dambulla and Polonnaruwa — history and temples' }, price: 1, pros: { he: 'ברגל או בטוקטוק לסיגיריה ולמקדשים', en: 'Close to Sigiriya and the temples by tuk-tuk' }, cons: { he: 'חם מאוד באמצע היום, מעט חיי לילה', en: 'Very hot at midday, little nightlife' } },
+      { name: { he: 'קנדי', en: 'Kandy' }, forWhom: { he: 'מקדש השן וגנים בוטניים; שער לאזור ההרים', en: 'The Temple of the Tooth and botanical gardens; gateway to the hills' }, price: 1, pros: { he: 'מרכז עירוני נוח, צומת לרכבת להרים', en: 'Handy town centre, a hub for the hill-country train' }, cons: { he: 'פקקים ורעש במרכז, מלונות טובים על הגבעות', en: 'Traffic and noise in the centre; good hotels are up the hills' } },
+      { name: { he: 'אלה והרי התה', en: 'Ella & the tea hills' }, forWhom: { he: 'מסלולי הליכה, נוף ומזג אוויר קריר — לזוגות ולמטיילים', en: 'Walks, views and cooler weather — for couples and hikers' }, price: 1, pros: { he: 'נופים, טיולים ואוויר קריר בזול', en: 'Views, walks and cool air on a budget' }, cons: { he: 'כפר קטן ומתוייר, ערפל וגשם לעיתים', en: 'A small, touristy village; mist and rain at times' } },
+      { name: { he: 'החוף הדרומי (גאלה ומיריסה)', en: 'The south coast (Galle & Mirissa)' }, forWhom: { he: 'חופים, מבצר קולוניאלי ולווייתנים — לסיום רגוע', en: 'Beaches, a colonial fort and whales — for a relaxed finish' }, price: 2, pros: { he: 'חופים, המבצר של גאלה ולווייתנים', en: 'Beaches, Galle Fort and whales' }, cons: { he: 'עונת המונסון במאי–ספטמבר, ים סוער', en: 'Monsoon May–September brings rough seas' } }
     ],
     attractions: [
       { name: { he: 'סלע סיגיריה', en: 'Sigiriya Rock Fortress' }, kind: 'landmark', durationH: 3, tags: ['culture', 'adventure'], area: 'The Cultural Triangle', mustSee: true },
@@ -365,10 +365,10 @@ export default [
       { he: 'אוכל גואני ופירות ים', en: 'Goan cooking and seafood' }
     ],
     areas: [
-      { name: { he: 'צפון גואה (אנג׳ונה, וגאטור, ארמבול)', en: 'North Goa (Anjuna, Vagator, Arambol)' }, forWhom: { he: 'מסיבות, שווקים ואווירה צעירה — הישראלים מכירים', en: 'Parties, markets and a young vibe — familiar to Israelis' } },
-      { name: { he: 'קלנגוט ובאגה', en: 'Calangute & Baga' }, forWhom: { he: 'חופים עמוסים, מסעדות וחיי לילה', en: 'Busy beaches, restaurants and nightlife' } },
-      { name: { he: 'פנג׳ים וגואה העתיקה', en: 'Panaji & Old Goa' }, forWhom: { he: 'היסטוריה, כנסיות ותרבות — ליום או שניים', en: 'History, churches and culture — for a day or two' } },
-      { name: { he: 'דרום גואה (פאלולם, אגונדה)', en: 'South Goa (Palolem, Agonda)' }, forWhom: { he: 'חופים שקטים ומנוחה — לזוגות ולמשפחות', en: 'Quiet beaches and rest — for couples and families' } }
+      { name: { he: 'צפון גואה (אנג׳ונה, וגאטור, ארמבול)', en: 'North Goa (Anjuna, Vagator, Arambol)' }, forWhom: { he: 'מסיבות, שווקים ואווירה צעירה — הישראלים מכירים', en: 'Parties, markets and a young vibe — familiar to Israelis' }, price: 1, pros: { he: 'זול, מסיבות ושווקים — קהל ישראלי', en: 'Cheap, parties and markets — an Israeli crowd' }, cons: { he: 'רעש מסיבות, ואיכות הלינה משתנה מאוד', en: 'Party noise and very variable lodging quality' } },
+      { name: { he: 'קלנגוט ובאגה', en: 'Calangute & Baga' }, forWhom: { he: 'חופים עמוסים, מסעדות וחיי לילה', en: 'Busy beaches, restaurants and nightlife' }, price: 1, pros: { he: 'הכל ליד — מסעדות, חוף ובילוי', en: 'Everything close — restaurants, beach and fun' }, cons: { he: 'צפוף, מלוכלך יחסית ופקקים', en: 'Crowded, fairly dirty and congested' } },
+      { name: { he: 'פנג׳ים וגואה העתיקה', en: 'Panaji & Old Goa' }, forWhom: { he: 'היסטוריה, כנסיות ותרבות — ליום או שניים', en: 'History, churches and culture — for a day or two' }, price: 2, pros: { he: 'רובע פורטוגזי צבעוני, כנסיות ואוכל', en: 'Colourful Portuguese quarter, churches and food' }, cons: { he: 'אין חוף בעיר — נסיעה לים', en: 'No beach in town — you drive to the sea' } },
+      { name: { he: 'דרום גואה (פאלולם, אגונדה)', en: 'South Goa (Palolem, Agonda)' }, forWhom: { he: 'חופים שקטים ומנוחה — לזוגות ולמשפחות', en: 'Quiet beaches and rest — for couples and families' }, price: 2, pros: { he: 'חופים נקיים ושקטים, בקתות על החול', en: 'Clean, quiet beaches, huts on the sand' }, cons: { he: 'רחוק מהצפון ומהבילוי, שקט מאוד בערב', en: 'Far from the north and nightlife, very quiet at night' } }
     ],
     attractions: [
       { name: { he: 'בזיליקת בום ג׳יזוס', en: 'Basilica of Bom Jesus' }, kind: 'religious', durationH: 1, tags: ['culture'], area: 'Panaji & Old Goa', mustSee: true },

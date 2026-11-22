@@ -19,10 +19,10 @@ export default [
       { he: 'שווקי חג המולד בדצמבר', en: 'Christmas markets in December' }
     ],
     areas: [
-      { name: { he: 'העיר הפנימית (רובע 1)', en: 'Innere Stadt (1st district)' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' } },
-      { name: { he: 'לאופולדשטאט (רובע 2)', en: 'Leopoldstadt (2nd district)' }, forWhom: { he: 'מי שמחפש אוכל כשר וקהילה יהודית, ליד הפראטר', en: 'Those looking for kosher food and the Jewish community, near the Prater' } },
-      { name: { he: 'נויבאו ושפיטלברג (רובע 7)', en: 'Neubau & Spittelberg (7th district)' }, forWhom: { he: 'צעירים וזוגות — בוטיקים, בתי קפה וקרוב לרובע המוזיאונים', en: 'Young travellers and couples — boutiques, cafés and close to the MuseumsQuartier' } },
-      { name: { he: 'ליד הנאשמרקט (רבעים 4 ו־6)', en: 'Around the Naschmarkt (4th & 6th districts)' }, forWhom: { he: 'אוהבי אוכל, מרכזי ומעט זול יותר', en: 'Food lovers — central and a little cheaper' } }
+      { name: { he: 'העיר הפנימית (רובע 1)', en: 'Innere Stadt (1st district)' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' }, price: 3, pros: { he: 'כל האתרים ברגל, יפה ובטוח בלילה', en: 'All the sights on foot, beautiful and safe at night' }, cons: { he: 'היקר בעיר, תיירותי ושקט מדי בערב', en: 'The priciest district, touristy and sleepy at night' } },
+      { name: { he: 'לאופולדשטאט (רובע 2)', en: 'Leopoldstadt (2nd district)' }, forWhom: { he: 'מי שמחפש אוכל כשר וקהילה יהודית, ליד הפראטר', en: 'Those looking for kosher food and the Jewish community, near the Prater' }, price: 2, pros: { he: 'אוכל כשר ובתי כנסת, מטרו ישיר למרכז', en: 'Kosher food and synagogues, direct U-Bahn to the centre' }, cons: { he: 'אזור הפראטר והתחנה פחות מטופח', en: 'The Prater and station area are scruffier' } },
+      { name: { he: 'נויבאו ושפיטלברג (רובע 7)', en: 'Neubau & Spittelberg (7th district)' }, forWhom: { he: 'צעירים וזוגות — בוטיקים, בתי קפה וקרוב לרובע המוזיאונים', en: 'Young travellers and couples — boutiques, cafés and close to the MuseumsQuartier' }, price: 2, pros: { he: 'סמטאות מקסימות ובתי קפה, מרכזי ברגל', en: 'Charming lanes and cafés, walkable to the centre' }, cons: { he: 'מעט מלונות גדולים, בעיקר בוטיק ודירות', en: 'Few big hotels — mostly boutiques and apartments' } },
+      { name: { he: 'ליד הנאשמרקט (רבעים 4 ו־6)', en: 'Around the Naschmarkt (4th & 6th districts)' }, forWhom: { he: 'אוהבי אוכל, מרכזי ומעט זול יותר', en: 'Food lovers — central and a little cheaper' }, price: 2, pros: { he: 'שוק ומסעדות ליד הבית, הליכה קצרה למרכז', en: 'Market and restaurants on the doorstep, walk to the centre' }, cons: { he: 'רחובות עמוסים ורועשים, בעיקר בשבת', en: 'Busy, noisy streets, especially on Saturdays' } }
     ],
     attractions: [
       { name: { he: 'ארמון שנברון', en: 'Schönbrunn Palace' }, kind: 'landmark', durationH: 3, tags: ['culture', 'family'], area: 'Schönbrunn', mustSee: true },
@@ -69,10 +69,10 @@ export default [
       { he: 'שייט ערב על הדנובה', en: 'An evening cruise on the Danube' }
     ],
     areas: [
-      { name: { he: 'רובע 5 (המרכז בצד פשט)', en: 'District V (central Pest)' }, forWhom: { he: 'ביקור ראשון — קרוב לפרלמנט ולטיילת', en: 'First-timers — near the Parliament and the riverside' } },
-      { name: { he: 'רובע 7 (הרובע היהודי)', en: 'District VII (Jewish Quarter)' }, forWhom: { he: 'חיי לילה, מסעדות ואוכל כשר — פחות שקט', en: 'Nightlife, restaurants and kosher food — not the quietest' } },
-      { name: { he: 'רובע 6 ושדרות אנדרשי', en: 'District VI & Andrássy Avenue' }, forWhom: { he: 'זוגות ומשפחות — מרכזי, עם בתי קפה ואופרה', en: 'Couples and families — central, with cafés and the opera' } },
-      { name: { he: 'רובע הטירה בבודה', en: 'Buda Castle District' }, forWhom: { he: 'שקט ורומנטי, עם נוף לעיר', en: 'Quiet and romantic, with city views' } }
+      { name: { he: 'רובע 5 (המרכז בצד פשט)', en: 'District V (central Pest)' }, forWhom: { he: 'ביקור ראשון — קרוב לפרלמנט ולטיילת', en: 'First-timers — near the Parliament and the riverside' }, price: 3, pros: { he: 'הכי מרכזי — נהר, פרלמנט ובזיליקה ברגל', en: 'The most central — river, Parliament and basilica on foot' }, cons: { he: 'יקר ותיירותי יחסית לבודפשט', en: 'Pricey and touristy by Budapest standards' } },
+      { name: { he: 'רובע 7 (הרובע היהודי)', en: 'District VII (Jewish Quarter)' }, forWhom: { he: 'חיי לילה, מסעדות ואוכל כשר — פחות שקט', en: 'Nightlife, restaurants and kosher food — not the quietest' }, price: 2, pros: { he: 'בתי כנסת, כשר ואוכל טוב בכל פינה', en: 'Synagogues, kosher food and great eating on every corner' }, cons: { he: 'ברים ומסיבות עד מאוחר — רעש בלילה', en: 'Ruin bars and stag parties — noisy at night' } },
+      { name: { he: 'רובע 6 ושדרות אנדרשי', en: 'District VI & Andrássy Avenue' }, forWhom: { he: 'זוגות ומשפחות — מרכזי, עם בתי קפה ואופרה', en: 'Couples and families — central, with cafés and the opera' }, price: 2, pros: { he: 'שדרה יפה עם מטרו, קרוב לכל מקום', en: 'An elegant avenue with metro, close to everything' }, cons: { he: 'חלק מהרחובות הצדדיים רועשים בלילה', en: 'Some side streets get loud at night' } },
+      { name: { he: 'רובע הטירה בבודה', en: 'Buda Castle District' }, forWhom: { he: 'שקט ורומנטי, עם נוף לעיר', en: 'Quiet and romantic, with city views' }, price: 3, pros: { he: 'שקט, ציורי ונוף מרהיב לדנובה', en: 'Quiet, picturesque, stunning Danube views' }, cons: { he: 'על גבעה, רחוק מהמסעדות וחיי הערב', en: 'Up a hill, far from restaurants and evening life' } }
     ],
     attractions: [
       { name: { he: 'בניין הפרלמנט ההונגרי', en: 'Hungarian Parliament Building' }, area: 'District V (central Pest)', kind: 'landmark', durationH: 1.5, tags: ['culture'], mustSee: true },
@@ -118,10 +118,10 @@ export default [
       { he: 'מפעל האמייל של אוסקר שינדלר', en: 'Oskar Schindler’s Enamel Factory' }
     ],
     areas: [
-      { name: { he: 'העיר העתיקה', en: 'Old Town (Stare Miasto)' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' } },
-      { name: { he: 'קזימייז', en: 'Kazimierz' }, forWhom: { he: 'אווירה, מסעדות וקרבה לבתי הכנסת ולחב״ד', en: 'Atmosphere, restaurants and close to the synagogues and Chabad' } },
-      { name: { he: 'פודגוז׳ה', en: 'Podgórze' }, forWhom: { he: 'שקט יותר, מעבר לנהר וליד מפעל שינדלר', en: 'Quieter, across the river and near Schindler’s Factory' } },
-      { name: { he: 'ליד התחנה המרכזית', en: 'Around the main station' }, forWhom: { he: 'תקציב ונוחות תחבורה לטיולי יום', en: 'Budget and easy transport for day trips' } }
+      { name: { he: 'העיר העתיקה', en: 'Old Town (Stare Miasto)' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' }, price: 3, pros: { he: 'הכיכר והאתרים ברגל, אווירה מיוחדת', en: 'The square and sights on foot, great atmosphere' }, cons: { he: 'הומה תיירים ורועש בלילות סופ״ש', en: 'Crowded and noisy on weekend nights' } },
+      { name: { he: 'קזימייז', en: 'Kazimierz' }, forWhom: { he: 'אווירה, מסעדות וקרבה לבתי הכנסת ולחב״ד', en: 'Atmosphere, restaurants and close to the synagogues and Chabad' }, price: 2, pros: { he: 'בתי כנסת, חב״ד ומסעדות, 10 דקות לכיכר', en: 'Synagogues, Chabad and restaurants, 10 minutes to the square' }, cons: { he: 'ברים עד מאוחר — רעש בחלק מהרחובות', en: 'Late-night bars — noisy on some streets' } },
+      { name: { he: 'פודגוז׳ה', en: 'Podgórze' }, forWhom: { he: 'שקט יותר, מעבר לנהר וליד מפעל שינדלר', en: 'Quieter, across the river and near Schindler’s Factory' }, price: 1, pros: { he: 'שקט וזול יותר, 15 דקות הליכה לקזימייז', en: 'Quieter and cheaper, a 15-minute walk to Kazimierz' }, cons: { he: 'פחות מסעדות בערב, צריך לחצות את הנהר', en: 'Fewer restaurants at night; you cross the river for most things' } },
+      { name: { he: 'ליד התחנה המרכזית', en: 'Around the main station' }, forWhom: { he: 'תקציב ונוחות תחבורה לטיולי יום', en: 'Budget and easy transport for day trips' }, price: 1, pros: { he: 'זול, רכבות ואוטובוסים לאושוויץ ולוויליצ׳קה', en: 'Cheap, with trains and buses to Auschwitz and Wieliczka' }, cons: { he: 'פחות אווירה, אזור עמוס ולא יפה', en: 'Little charm — busy and not pretty' } }
     ],
     attractions: [
       { name: { he: 'הכיכר המרכזית ואולם הבדים', en: 'Main Market Square & Cloth Hall' }, area: 'Old Town (Stare Miasto)', kind: 'landmark', durationH: 1.5, tags: ['culture', 'shopping'], mustSee: true },
@@ -168,10 +168,10 @@ export default [
       { he: 'שוקולד ופונדו שווייצרי', en: 'Swiss chocolate and fondue' }
     ],
     areas: [
-      { name: { he: 'ציריך', en: 'Zurich' }, forWhom: { he: 'לילה ראשון או אחרון, עיר, קניות ואוכל כשר', en: 'A first or last night — city, shopping and kosher food' } },
-      { name: { he: 'לוצרן', en: 'Lucerne' }, forWhom: { he: 'בסיס מרכזי ליד האגם, נוח לטיולי יום ברכבת', en: 'A central lakeside base, handy for day trips by train' } },
-      { name: { he: 'אינטרלאקן', en: 'Interlaken' }, forWhom: { he: 'משפחות ומי שרוצה בסיס נוח לאזור יונגפראו', en: 'Families and anyone wanting an easy base for the Jungfrau region' } },
-      { name: { he: 'גרינדלוולד, ונגן ולאוטרברונן', en: 'Grindelwald, Wengen & Lauterbrunnen' }, forWhom: { he: 'כפרי הרים — למטיילים ולגולשי סקי', en: 'Mountain villages — for hikers and skiers' } }
+      { name: { he: 'ציריך', en: 'Zurich' }, forWhom: { he: 'לילה ראשון או אחרון, עיר, קניות ואוכל כשר', en: 'A first or last night — city, shopping and kosher food' }, price: 3, pros: { he: 'אוכל כשר, קניות ורכבת ישירה משדה התעופה', en: 'Kosher food, shopping and a direct airport train' }, cons: { he: 'מהיקרות באירופה, רחוק מההרים', en: 'One of Europe’s priciest cities, far from the mountains' } },
+      { name: { he: 'לוצרן', en: 'Lucerne' }, forWhom: { he: 'בסיס מרכזי ליד האגם, נוח לטיולי יום ברכבת', en: 'A central lakeside base, handy for day trips by train' }, price: 2, pros: { he: 'אגם ועיר עתיקה, רכבות לכל הכיוונים', en: 'Lake and old town, trains in every direction' }, cons: { he: 'עמוס בתיירים בקיץ, מלונות יקרים', en: 'Crowded in summer, hotels are pricey' } },
+      { name: { he: 'אינטרלאקן', en: 'Interlaken' }, forWhom: { he: 'משפחות ומי שרוצה בסיס נוח לאזור יונגפראו', en: 'Families and anyone wanting an easy base for the Jungfrau region' }, price: 2, pros: { he: 'בסיס נוח ליונגפראו, הרבה פעילויות למשפחות', en: 'Easy Jungfrau base, lots of family activities' }, cons: { he: 'עיירה תיירותית, לא כפר הררי אמיתי', en: 'Touristy town rather than a real mountain village' } },
+      { name: { he: 'גרינדלוולד, ונגן ולאוטרברונן', en: 'Grindelwald, Wengen & Lauterbrunnen' }, forWhom: { he: 'כפרי הרים — למטיילים ולגולשי סקי', en: 'Mountain villages — for hikers and skiers' }, price: 3, pros: { he: 'נוף הרים מטורף ממש מהחלון', en: 'Jaw-dropping mountain views from your window' }, cons: { he: 'יקר, ומעט מסעדות ושירותים', en: 'Expensive, with few restaurants and services' } }
     ],
     attractions: [
       { name: { he: 'יונגפראויוך', en: 'Jungfraujoch' }, area: 'Grindelwald, Wengen & Lauterbrunnen', kind: 'viewpoint', durationH: 6, tags: ['nature', 'family'], mustSee: true },
@@ -217,11 +217,11 @@ export default [
       { he: 'בקיץ: מפלי קרימל ואגמים בצבע טורקיז', en: 'In summer: the Krimml Waterfalls and turquoise lakes' }
     ],
     areas: [
-      { name: { he: 'צילרטל (מיירהופן)', en: 'Zillertal (Mayrhofen)' }, forWhom: { he: 'משפחות ומי שרוצה מגוון מסלולים וגישה לקרחון', en: 'Families and anyone wanting varied slopes and glacier access' } },
-      { name: { he: 'קיצביל וסקיוולט', en: 'Kitzbühel & SkiWelt' }, forWhom: { he: 'גולשים בכל הרמות — אזור ענק ומחובר', en: 'Skiers of every level — a huge linked area' } },
-      { name: { he: 'שלבאך–הינטרגלם', en: 'Saalbach-Hinterglemm' }, forWhom: { he: 'מעגל סקי גדול ואפרה־סקי שמח', en: 'A big ski circuit and lively après-ski' } },
-      { name: { he: 'סנט אנטון אם ארלברג', en: 'St Anton am Arlberg' }, forWhom: { he: 'גולשים מנוסים ושטח פתוח', en: 'Experienced skiers and off-piste terrain' } },
-      { name: { he: 'אינסברוק', en: 'Innsbruck' }, forWhom: { he: 'בסיס עירוני עם סקי יומי ותרבות', en: 'A city base with day skiing and culture' } }
+      { name: { he: 'צילרטל (מיירהופן)', en: 'Zillertal (Mayrhofen)' }, forWhom: { he: 'משפחות ומי שרוצה מגוון מסלולים וגישה לקרחון', en: 'Families and anyone wanting varied slopes and glacier access' }, price: 2, pros: { he: 'מגוון מסלולים וקרחון הינטרטוקס לשלג בטוח', en: 'Varied slopes and the Hintertux glacier for reliable snow' }, cons: { he: 'מעליות מפוזרות לאורך העמק — נסיעות בסקיבאס', en: 'Lifts spread along the valley — ski-bus rides' } },
+      { name: { he: 'קיצביל וסקיוולט', en: 'Kitzbühel & SkiWelt' }, forWhom: { he: 'גולשים בכל הרמות — אזור ענק ומחובר', en: 'Skiers of every level — a huge linked area' }, price: 2, pros: { he: 'אזור ענק עם מסלולים קלים ובינוניים', en: 'A huge area with plenty of easy and medium runs' }, cons: { he: 'גובה נמוך — שלג פחות בטוח בתחילת ובסוף העונה', en: 'Low altitude — less reliable snow early and late season' } },
+      { name: { he: 'שלבאך–הינטרגלם', en: 'Saalbach-Hinterglemm' }, forWhom: { he: 'מעגל סקי גדול ואפרה־סקי שמח', en: 'A big ski circuit and lively après-ski' }, price: 2, pros: { he: 'מעגל סקי מחובר ונוח, אפרה־סקי שמח', en: 'A well-linked ski circuit and lively après-ski' }, cons: { he: 'רועש בערבים, פחות מתאים למשפחות עם קטנים', en: 'Loud evenings, less suited to young families' } },
+      { name: { he: 'סנט אנטון אם ארלברג', en: 'St Anton am Arlberg' }, forWhom: { he: 'גולשים מנוסים ושטח פתוח', en: 'Experienced skiers and off-piste terrain' }, price: 3, pros: { he: 'שלג טוב ושטח ענק לגולשים מנוסים', en: 'Great snow and huge terrain for experienced skiers' }, cons: { he: 'יקר וקשה למתחילים', en: 'Expensive and tough for beginners' } },
+      { name: { he: 'אינסברוק', en: 'Innsbruck' }, forWhom: { he: 'בסיס עירוני עם סקי יומי ותרבות', en: 'A city base with day skiing and culture' }, price: 1, pros: { he: 'עיר מלאה עם מחירים נוחים יותר, קרובה לשדה', en: 'A real city with better prices, near the airport' }, cons: { he: 'צריך לנסוע כל יום לאתרי הסקי', en: 'You drive or bus to the slopes every day' } }
     ],
     attractions: [
       { name: { he: 'קרחון הינטרטוקס', en: 'Hintertux Glacier' }, area: 'Zillertal (Mayrhofen)', kind: 'nature', durationH: 6, tags: ['ski', 'adventure'] },
@@ -266,10 +266,10 @@ export default [
       { he: 'צפייה בלווייתנים בצפון', en: 'Whale watching in the north' }
     ],
     areas: [
-      { name: { he: 'רייקיאוויק', en: 'Reykjavík' }, forWhom: { he: 'הימים הראשונים והאחרונים — מסעדות, סיורים יוצאים מכאן', en: 'The first and last days — restaurants, tours leave from here' } },
-      { name: { he: 'החוף הדרומי (ויק)', en: 'The South Coast (Vík)' }, forWhom: { he: 'מפלים, חופים שחורים וקרחונים', en: 'Waterfalls, black beaches and glaciers' } },
-      { name: { he: 'אקוריירי והצפון', en: 'Akureyri & the North' }, forWhom: { he: 'מי שמקיף את האי — אגם מיוואטן ולווייתנים', en: 'Those circling the island — Lake Mývatn and whales' } },
-      { name: { he: 'חצי האי סנייפלסנס', en: 'Snæfellsnes Peninsula' }, forWhom: { he: '״איסלנד בקטן״ — טוב לטיול קצר יותר', en: '“Iceland in miniature” — good for a shorter trip' } }
+      { name: { he: 'רייקיאוויק', en: 'Reykjavík' }, forWhom: { he: 'הימים הראשונים והאחרונים — מסעדות, סיורים יוצאים מכאן', en: 'The first and last days — restaurants, tours leave from here' }, price: 2, pros: { he: 'הכי הרבה מסעדות, וכל הסיורים אוספים מכאן', en: 'The most restaurants, and every tour picks up here' }, cons: { he: 'רחוק מהטבע הדרמטי, ויקר מאוד', en: 'Far from the dramatic nature, and very expensive' } },
+      { name: { he: 'החוף הדרומי (ויק)', en: 'The South Coast (Vík)' }, forWhom: { he: 'מפלים, חופים שחורים וקרחונים', en: 'Waterfalls, black beaches and glaciers' }, price: 3, pros: { he: 'מפלים, חופים שחורים וקרחונים בטווח קצר', en: 'Waterfalls, black beaches and glaciers close by' }, cons: { he: 'מעט מקומות לינה — מתמלאים ויקרים', en: 'Few places to stay — they fill up and cost a lot' } },
+      { name: { he: 'אקוריירי והצפון', en: 'Akureyri & the North' }, forWhom: { he: 'מי שמקיף את האי — אגם מיוואטן ולווייתנים', en: 'Those circling the island — Lake Mývatn and whales' }, price: 2, pros: { he: 'עיר נעימה, לווייתנים ומיוואטן קרובים', en: 'A pleasant town, whales and Mývatn nearby' }, cons: { he: 'רחוק מרייקיאוויק, כבישים קשים בחורף', en: 'Far from Reykjavík, tough roads in winter' } },
+      { name: { he: 'חצי האי סנייפלסנס', en: 'Snæfellsnes Peninsula' }, forWhom: { he: '״איסלנד בקטן״ — טוב לטיול קצר יותר', en: '“Iceland in miniature” — good for a shorter trip' }, price: 2, pros: { he: 'נופים מגוונים במרחק נסיעה קצר מרייקיאוויק', en: 'Varied scenery a short drive from Reykjavík' }, cons: { he: 'מעט מסעדות ומלונות, שקט מאוד בערב', en: 'Few restaurants or hotels, very quiet at night' } }
     ],
     attractions: [
       { name: { he: 'כנסיית הלגרימסקירקיה', en: 'Hallgrímskirkja' }, area: 'Reykjavík', kind: 'religious', durationH: 1, tags: ['culture'] },
@@ -315,10 +315,10 @@ export default [
       { he: 'מפלים ומטעים בהרדנגרפיורד', en: 'Waterfalls and orchards on the Hardangerfjord' }
     ],
     areas: [
-      { name: { he: 'ברגן', en: 'Bergen' }, forWhom: { he: 'בסיס עירוני עם מסעדות, נוח לטיולי יום', en: 'A city base with restaurants, handy for day trips' } },
-      { name: { he: 'פלאם ואורלנד', en: 'Flåm & Aurland' }, forWhom: { he: 'בלב הסוגנפיורד — זוגות ומשפחות', en: 'In the heart of the Sognefjord — couples and families' } },
-      { name: { he: 'ווס', en: 'Voss' }, forWhom: { he: 'אוהבי אקסטרים ופעילויות בטבע', en: 'Adventure-sports and outdoor lovers' } },
-      { name: { he: 'הרדנגר (אודה ולופטהוס)', en: 'Hardanger (Odda & Lofthus)' }, forWhom: { he: 'מטיילים בדרך לטרולטונגה', en: 'Hikers heading to Trolltunga' } }
+      { name: { he: 'ברגן', en: 'Bergen' }, forWhom: { he: 'בסיס עירוני עם מסעדות, נוח לטיולי יום', en: 'A city base with restaurants, handy for day trips' }, price: 2, pros: { he: 'עיר יפה עם מסעדות, רכבות ומעבורות לפיורדים', en: 'A pretty city with restaurants, trains and ferries to the fjords' }, cons: { he: 'גשום ברוב ימות השנה ויקר', en: 'Rainy most of the year, and expensive' } },
+      { name: { he: 'פלאם ואורלנד', en: 'Flåm & Aurland' }, forWhom: { he: 'בלב הסוגנפיורד — זוגות ומשפחות', en: 'In the heart of the Sognefjord — couples and families' }, price: 3, pros: { he: 'בלב הפיורד, ליד רכבת פלאם והשייט', en: 'In the heart of the fjord, by the Flåm Railway and cruises' }, cons: { he: 'כפר קטן, יקר ועמוס בימי אוניות קרוז', en: 'A tiny village, pricey and packed on cruise-ship days' } },
+      { name: { he: 'ווס', en: 'Voss' }, forWhom: { he: 'אוהבי אקסטרים ופעילויות בטבע', en: 'Adventure-sports and outdoor lovers' }, price: 2, pros: { he: 'פעילויות אקסטרים ורכבת ישירה מברגן', en: 'Adventure sports and a direct train from Bergen' }, cons: { he: 'פחות נוף פיורד מהחלון', en: 'Less fjord scenery from the window' } },
+      { name: { he: 'הרדנגר (אודה ולופטהוס)', en: 'Hardanger (Odda & Lofthus)' }, forWhom: { he: 'מטיילים בדרך לטרולטונגה', en: 'Hikers heading to Trolltunga' }, price: 2, pros: { he: 'הכי קרוב לטרולטונגה, מטעים ונוף שקט', en: 'Closest to Trolltunga, orchards and quiet views' }, cons: { he: 'רחוק מהכול ומעט מסעדות', en: 'Remote, with few restaurants' } }
     ],
     attractions: [
       { name: { he: 'בריגן', en: 'Bryggen' }, area: 'Bergen', kind: 'landmark', durationH: 1.5, tags: ['culture'], mustSee: true },
@@ -364,11 +364,11 @@ export default [
       { he: 'רחצה במים הפתוחים של הנמל בקיץ', en: 'Swimming in the harbour baths in summer' }
     ],
     areas: [
-      { name: { he: 'המרכז (אינדרה בי)', en: 'Indre By (city centre)' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' } },
-      { name: { he: 'וסטרברו', en: 'Vesterbro' }, forWhom: { he: 'אוכל וחיי לילה, ליד טיבולי והתחנה המרכזית', en: 'Food and nightlife, near Tivoli and the central station' } },
-      { name: { he: 'נרברו', en: 'Nørrebro' }, forWhom: { he: 'צעירים — בתי קפה ואווירה שכונתית', en: 'Younger travellers — cafés and a local feel' } },
-      { name: { he: 'כריסטיאנסהאבן', en: 'Christianshavn' }, forWhom: { he: 'זוגות — תעלות ושקט יחסי', en: 'Couples — canals and relative quiet' } },
-      { name: { he: 'אוסטרברו', en: 'Østerbro' }, forWhom: { he: 'משפחות — פארקים ושכונה רגועה', en: 'Families — parks and a calm neighbourhood' } }
+      { name: { he: 'המרכז (אינדרה בי)', en: 'Indre By (city centre)' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' }, price: 3, pros: { he: 'נייהאבן והאתרים ברגל', en: 'Nyhavn and the sights on foot' }, cons: { he: 'יקר מאוד ועמוס תיירים', en: 'Very expensive and crowded' } },
+      { name: { he: 'וסטרברו', en: 'Vesterbro' }, forWhom: { he: 'אוכל וחיי לילה, ליד טיבולי והתחנה המרכזית', en: 'Food and nightlife, near Tivoli and the central station' }, price: 2, pros: { he: 'מסעדות וברים, ליד טיבולי והרכבת לשדה', en: 'Restaurants and bars, near Tivoli and the airport train' }, cons: { he: 'סביב התחנה פחות נעים ורועש בלילה', en: 'Around the station is grittier and loud at night' } },
+      { name: { he: 'נרברו', en: 'Nørrebro' }, forWhom: { he: 'צעירים — בתי קפה ואווירה שכונתית', en: 'Younger travellers — cafés and a local feel' }, price: 1, pros: { he: 'אווירה מקומית ומחירים נוחים יחסית', en: 'Local feel and relatively good prices' }, cons: { he: 'רחוק יותר מהאתרים, מעט מלונות', en: 'Further from the sights, few hotels' } },
+      { name: { he: 'כריסטיאנסהאבן', en: 'Christianshavn' }, forWhom: { he: 'זוגות — תעלות ושקט יחסי', en: 'Couples — canals and relative quiet' }, price: 2, pros: { he: 'תעלות יפות, שקט ומטרו מהיר למרכז', en: 'Pretty canals, quiet, fast metro to the centre' }, cons: { he: 'מעט מלונות, בעיקר דירות', en: 'Few hotels — mostly apartments' } },
+      { name: { he: 'אוסטרברו', en: 'Østerbro' }, forWhom: { he: 'משפחות — פארקים ושכונה רגועה', en: 'Families — parks and a calm neighbourhood' }, price: 2, pros: { he: 'פארקים, ביטחון ושקט — טוב למשפחות', en: 'Parks, safe and calm — great for families' }, cons: { he: 'מעט חיי ערב, צריך תחבורה למרכז', en: 'Little nightlife; you ride into the centre' } }
     ],
     attractions: [
       { name: { he: 'נייהאבן', en: 'Nyhavn' }, area: 'Indre By (city centre)', kind: 'neighborhood', durationH: 1, tags: ['couple', 'food'], mustSee: true },

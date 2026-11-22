@@ -18,10 +18,10 @@ export default [
       { he: 'העיר הפרהיסטורית אקרוטירי', en: 'The prehistoric town of Akrotiri' }
     ],
     areas: [
-      { name: { he: 'אויה', en: 'Oia' }, forWhom: { he: 'זוגות שרוצים את הנוף המפורסם ומוכנים לשלם עליו', en: 'Couples who want the famous view and will pay for it' } },
-      { name: { he: 'פירה ופירוסטפני', en: 'Fira & Firostefani' }, forWhom: { he: 'מי שרוצה מרכז, מסעדות ותחבורה ציבורית', en: 'Those who want a central base, restaurants and buses' } },
-      { name: { he: 'אימרוביגלי', en: 'Imerovigli' }, forWhom: { he: 'נוף לקלדרה בשקט יחסי', en: 'Caldera views with relative quiet' } },
-      { name: { he: 'קמארי ופריסה', en: 'Kamari & Perissa' }, forWhom: { he: 'משפחות ומי שמעדיף חוף, בלי מדרגות ובמחיר נמוך יותר', en: 'Families and beach lovers — no steps and lower prices' } }
+      { name: { he: 'אויה', en: 'Oia' }, forWhom: { he: 'זוגות שרוצים את הנוף המפורסם ומוכנים לשלם עליו', en: 'Couples who want the famous view and will pay for it' }, price: 3, pros: { he: 'נוף השקיעה המפורסם ממרפסת החדר', en: 'The famous sunset view from your terrace' }, cons: { he: 'הכי יקר באי, עמוס מאוד בשקיעה', en: 'Priciest spot on the island, packed at sunset' } },
+      { name: { he: 'פירה ופירוסטפני', en: 'Fira & Firostefani' }, forWhom: { he: 'מי שרוצה מרכז, מסעדות ותחבורה ציבורית', en: 'Those who want a central base, restaurants and buses' }, price: 2, pros: { he: 'תחנת האוטובוסים המרכזית, מסעדות ונוף לקלדרה', en: 'Main bus hub, restaurants and caldera views' }, cons: { he: 'הומה ורועש בערב, הרבה מדרגות', en: 'Crowded and noisy at night, lots of steps' } },
+      { name: { he: 'אימרוביגלי', en: 'Imerovigli' }, forWhom: { he: 'נוף לקלדרה בשקט יחסי', en: 'Caldera views with relative quiet' }, price: 3, pros: { he: 'נוף קלדרה מרהיב בשקט, הליכה לפירה', en: 'Stunning caldera views in quiet, walkable to Fira' }, cons: { he: 'יקר, מעט מסעדות ומדרגות רבות', en: 'Pricey, few restaurants and many steps' } },
+      { name: { he: 'קמארי ופריסה', en: 'Kamari & Perissa' }, forWhom: { he: 'משפחות ומי שמעדיף חוף, בלי מדרגות ובמחיר נמוך יותר', en: 'Families and beach lovers — no steps and lower prices' }, price: 1, pros: { he: 'על החוף, שטוח ומשתלם', en: 'On the beach, flat and good value' }, cons: { he: 'אין נוף לקלדרה, צריך רכב או אוטובוס לפירה', en: 'No caldera view; car or bus to Fira' } }
     ],
     attractions: [
       { name: { he: 'תצפית השקיעה בטירת אויה', en: 'Oia Castle sunset viewpoint' }, kind: 'viewpoint', durationH: 1.5, tags: ['couple', 'evening'], area: 'Oia', mustSee: true },
@@ -116,11 +116,11 @@ export default [
       { he: 'סובלקי, מזה ואוזו בטברנות', en: 'Souvlaki, meze and ouzo in the tavernas' }
     ],
     areas: [
-      { name: { he: 'פלאקה', en: 'Plaka' }, forWhom: { he: 'ביקור ראשון — מתחת לאקרופוליס והכול ברגל', en: 'First-timers — right below the Acropolis, all on foot' } },
-      { name: { he: 'קוקאקי', en: 'Koukaki' }, forWhom: { he: 'זוגות ומשפחות — שקט יחסית, ליד מוזיאון האקרופוליס', en: 'Couples and families — calmer, next to the Acropolis Museum' } },
-      { name: { he: 'מונסטירקי ופסירי', en: 'Monastiraki & Psyrri' }, forWhom: { he: 'צעירים ותקציב — ברים, אוכל רחוב ואווירה בלילה', en: 'Young travellers and budgets — bars, street food and nightlife' } },
-      { name: { he: 'קולונאקי', en: 'Kolonaki' }, forWhom: { he: 'מי שאוהב שופינג, בתי קפה ושכונה אלגנטית', en: 'Shoppers and café lovers who like an elegant area' } },
-      { name: { he: 'הריביירה — גליפדה וואולאגמני', en: 'The Riviera — Glyfada & Vouliagmeni' }, forWhom: { he: 'מי שרוצה ים ומלון חוף, עם חשמלית או מונית לעיר', en: 'Those who want the sea and a beach hotel, with a tram or taxi into town' } }
+      { name: { he: 'פלאקה', en: 'Plaka' }, forWhom: { he: 'ביקור ראשון — מתחת לאקרופוליס והכול ברגל', en: 'First-timers — right below the Acropolis, all on foot' }, price: 3, pros: { he: 'מתחת לאקרופוליס, יפה ובטוח ברגל', en: 'Below the Acropolis, pretty and safe on foot' }, cons: { he: 'תיירותי ויקר, מסעדות מלכודת תיירים', en: 'Touristy and pricey, tourist-trap tavernas' } },
+      { name: { he: 'קוקאקי', en: 'Koukaki' }, forWhom: { he: 'זוגות ומשפחות — שקט יחסית, ליד מוזיאון האקרופוליס', en: 'Couples and families — calmer, next to the Acropolis Museum' }, price: 2, pros: { he: 'שקט, ליד מוזיאון האקרופוליס והמטרו', en: 'Quiet, by the Acropolis Museum and metro' }, cons: { he: 'פחות חיי לילה, קצת עליות', en: 'Less nightlife, some uphill streets' } },
+      { name: { he: 'מונסטירקי ופסירי', en: 'Monastiraki & Psyrri' }, forWhom: { he: 'צעירים ותקציב — ברים, אוכל רחוב ואווירה בלילה', en: 'Young travellers and budgets — bars, street food and nightlife' }, price: 1, pros: { he: 'מטרו מהשדה, אוכל רחוב וברים ברגל', en: 'Airport metro, street food and bars on foot' }, cons: { he: 'רועש בלילה, חלק מהרחובות מוזנחים', en: 'Noisy at night, some scruffy streets' } },
+      { name: { he: 'קולונאקי', en: 'Kolonaki' }, forWhom: { he: 'מי שאוהב שופינג, בתי קפה ושכונה אלגנטית', en: 'Shoppers and café lovers who like an elegant area' }, price: 3, pros: { he: 'אלגנטי ובטוח, בתי קפה וחנויות מעצבים', en: 'Elegant and safe, cafés and designer shops' }, cons: { he: 'יקר ותלול לכיוון ליקביטוס', en: 'Pricey and steep towards Lycabettus' } },
+      { name: { he: 'הריביירה — גליפדה וואולאגמני', en: 'The Riviera — Glyfada & Vouliagmeni' }, forWhom: { he: 'מי שרוצה ים ומלון חוף, עם חשמלית או מונית לעיר', en: 'Those who want the sea and a beach hotel, with a tram or taxi into town' }, price: 3, pros: { he: 'חופים, מלונות על הים וקרוב לשדה', en: 'Beaches, seafront hotels, near the airport' }, cons: { he: 'כ־40 דק׳ למרכז בחשמלית או מונית', en: 'About 40 min to the centre by tram or taxi' } }
     ],
     attractions: [
       { name: { he: 'האקרופוליס', en: 'The Acropolis' }, kind: 'landmark', durationH: 2.5, tags: ['culture'], area: 'Plaka', mustSee: true },
@@ -167,11 +167,11 @@ export default [
       { he: 'המטבח הכרתי — שמן זית, דאקוס וראקי', en: 'Cretan food — olive oil, dakos and raki' }
     ],
     areas: [
-      { name: { he: 'חאניה', en: 'Chania' }, forWhom: { he: 'זוגות ומי שרוצה עיר עתיקה יפה וקרבה לחופי המערב', en: 'Couples, and anyone wanting a pretty old town near the western beaches' } },
-      { name: { he: 'הרקליון', en: 'Heraklion' }, forWhom: { he: 'בסיס עירוני ליד השדה, קנוסוס והמוזיאון', en: 'A city base near the airport, Knossos and the museum' } },
-      { name: { he: 'רתימנו', en: 'Rethymno' }, forWhom: { he: 'באמצע האי — עיר עתיקה קטנה וחוף ארוך', en: 'Mid-island — a small old town and a long beach' } },
-      { name: { he: 'אגיוס ניקולאוס ואלונדה', en: 'Agios Nikolaos & Elounda' }, forWhom: { he: 'משפחות ונופש במלונות חוף, חלקם הכול כלול', en: 'Families and beach-resort stays, some all-inclusive' } },
-      { name: { he: 'חרסוניסוס ומאליה', en: 'Hersonissos & Malia' }, forWhom: { he: 'צעירים, חיי לילה ומלונות הכול כלול', en: 'Young travellers, nightlife and all-inclusive hotels' } }
+      { name: { he: 'חאניה', en: 'Chania' }, forWhom: { he: 'זוגות ומי שרוצה עיר עתיקה יפה וקרבה לחופי המערב', en: 'Couples, and anyone wanting a pretty old town near the western beaches' }, price: 2, pros: { he: 'נמל ונציאני יפהפה, קרוב לבאלוס ואלאפונסי', en: 'Gorgeous Venetian harbour, near Balos and Elafonisi' }, cons: { he: 'עמוס בקיץ, החופים הגדולים דורשים רכב', en: 'Crowded in summer; top beaches need a car' } },
+      { name: { he: 'הרקליון', en: 'Heraklion' }, forWhom: { he: 'בסיס עירוני ליד השדה, קנוסוס והמוזיאון', en: 'A city base near the airport, Knossos and the museum' }, price: 1, pros: { he: 'קרוב לשדה, לקנוסוס ולמוזיאון, משתלם', en: 'Near the airport, Knossos and museum; good value' }, cons: { he: 'עירוני ופחות ציורי, חוף לא בעיר', en: 'Urban and less pretty, no town beach' } },
+      { name: { he: 'רתימנו', en: 'Rethymno' }, forWhom: { he: 'באמצע האי — עיר עתיקה קטנה וחוף ארוך', en: 'Mid-island — a small old town and a long beach' }, price: 2, pros: { he: 'עיר עתיקה קטנה וחוף ארוך ליד המלון', en: 'Small old town with a long beach nearby' }, cons: { he: 'החוף העירוני צפוף, רחוק משני השדות', en: 'Busy town beach, far from both airports' } },
+      { name: { he: 'אגיוס ניקולאוס ואלונדה', en: 'Agios Nikolaos & Elounda' }, forWhom: { he: 'משפחות ונופש במלונות חוף, חלקם הכול כלול', en: 'Families and beach-resort stays, some all-inclusive' }, price: 3, pros: { he: 'מלונות יוקרה ומפרצים שקטים', en: 'Luxury resorts and calm bays' }, cons: { he: 'יקר ושקט מאוד בערב, רחוק ממערב האי', en: 'Pricey, very quiet at night, far from the west' } },
+      { name: { he: 'חרסוניסוס ומאליה', en: 'Hersonissos & Malia' }, forWhom: { he: 'צעירים, חיי לילה ומלונות הכול כלול', en: 'Young travellers, nightlife and all-inclusive hotels' }, price: 1, pros: { he: 'הכול כלול במחיר טוב, חיי לילה', en: 'Good-value all-inclusive and nightlife' }, cons: { he: 'רועש ומסיבתי, פחות אותנטי', en: 'Loud party scene, not very authentic' } }
     ],
     attractions: [
       { name: { he: 'ארמון קנוסוס', en: 'Palace of Knossos' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Heraklion', mustSee: true },
@@ -216,11 +216,11 @@ export default [
       { he: 'עמק הפרפרים', en: 'The Valley of the Butterflies' }
     ],
     areas: [
-      { name: { he: 'העיר רודוס', en: 'Rhodes Town' }, forWhom: { he: 'זוגות ומי שרוצה עיר עתיקה, מסעדות וחיי לילה', en: 'Couples and anyone who wants the old town, restaurants and nightlife' } },
-      { name: { he: 'פלירקי', en: 'Faliraki' }, forWhom: { he: 'צעירים ומשפחות — חוף ארוך ופארק מים', en: 'Young travellers and families — a long beach and the water park' } },
-      { name: { he: 'לינדוס', en: 'Lindos' }, forWhom: { he: 'זוגות שמחפשים כפר לבן ורומנטי', en: 'Couples looking for a romantic whitewashed village' } },
-      { name: { he: 'קולימביה', en: 'Kolymbia' }, forWhom: { he: 'משפחות במלונות הכול כלול, שקט יחסית', en: 'Families in all-inclusive hotels, relatively quiet' } },
-      { name: { he: 'איקסיה ויאליסוס', en: 'Ixia & Ialysos' }, forWhom: { he: 'גלישת רוח ומלונות קרובים לעיר ולשדה', en: 'Windsurfing and hotels close to town and the airport' } }
+      { name: { he: 'העיר רודוס', en: 'Rhodes Town' }, forWhom: { he: 'זוגות ומי שרוצה עיר עתיקה, מסעדות וחיי לילה', en: 'Couples and anyone who wants the old town, restaurants and nightlife' }, price: 2, pros: { he: 'העיר העתיקה, מסעדות ואוטובוסים לכל האי', en: 'Old town, restaurants and buses island-wide' }, cons: { he: 'רוח חזקה בחוף הצפוני, הומה בקיץ', en: 'Windy north beach, crowded in summer' } },
+      { name: { he: 'פלירקי', en: 'Faliraki' }, forWhom: { he: 'צעירים ומשפחות — חוף ארוך ופארק מים', en: 'Young travellers and families — a long beach and the water park' }, price: 1, pros: { he: 'חוף ארוך, פארק מים ומחירים נוחים', en: 'Long beach, water park and fair prices' }, cons: { he: 'רצועת ברים רועשת בלילה', en: 'Noisy bar strip at night' } },
+      { name: { he: 'לינדוס', en: 'Lindos' }, forWhom: { he: 'זוגות שמחפשים כפר לבן ורומנטי', en: 'Couples looking for a romantic whitewashed village' }, price: 3, pros: { he: 'כפר לבן ציורי, אקרופוליס ומפרץ יפה', en: 'Picturesque white village, acropolis and bay' }, cons: { he: 'יקר, צפוף ביום ומלא מדרגות', en: 'Pricey, packed by day and full of steps' } },
+      { name: { he: 'קולימביה', en: 'Kolymbia' }, forWhom: { he: 'משפחות במלונות הכול כלול, שקט יחסית', en: 'Families in all-inclusive hotels, relatively quiet' }, price: 2, pros: { he: 'מלונות הכול כלול שקטים וחוף רגוע', en: 'Quiet all-inclusive hotels and a calm beach' }, cons: { he: 'מעט מה לעשות מחוץ למלון', en: 'Little to do outside the hotel' } },
+      { name: { he: 'איקסיה ויאליסוס', en: 'Ixia & Ialysos' }, forWhom: { he: 'גלישת רוח ומלונות קרובים לעיר ולשדה', en: 'Windsurfing and hotels close to town and the airport' }, price: 2, pros: { he: 'קרוב לשדה ולעיר, מצוין לגלישת רוח', en: 'Close to the airport and town, great windsurfing' }, cons: { he: 'חוף חלוקים ורוח חזקה, רעש מטוסים', en: 'Pebbly, windy beach and some plane noise' } }
     ],
     attractions: [
       { name: { he: 'העיר העתיקה של רודוס', en: 'Rhodes Old Town' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'shopping'], area: 'Rhodes Town', mustSee: true },
@@ -265,10 +265,10 @@ export default [
       { he: 'מסעדות דגים על המים', en: 'Seafood restaurants on the water' }
     ],
     areas: [
-      { name: { he: 'כורה (העיר)', en: 'Chora (Mykonos Town)' }, forWhom: { he: 'מי שרוצה הכול ברגל — מסעדות, ברים ושקיעה', en: 'Those who want everything on foot — restaurants, bars and sunsets' } },
-      { name: { he: 'אורנוס', en: 'Ornos' }, forWhom: { he: 'משפחות וזוגות — מפרץ רגוע קרוב לעיר', en: 'Families and couples — a calm bay close to town' } },
-      { name: { he: 'פלטיס יאלוס ופסרו', en: 'Platys Gialos & Psarou' }, forWhom: { he: 'חוף מסודר ומלונות יוקרה, עם סירות לחופים אחרים', en: 'Organised beaches and upmarket hotels, with boats to other beaches' } },
-      { name: { he: 'אליה וקלפאס', en: 'Elia & Kalafatis' }, forWhom: { he: 'שקט יחסי וחופים ארוכים, צריך רכב', en: 'Relative quiet and long beaches; you need a car' } }
+      { name: { he: 'כורה (העיר)', en: 'Chora (Mykonos Town)' }, forWhom: { he: 'מי שרוצה הכול ברגל — מסעדות, ברים ושקיעה', en: 'Those who want everything on foot — restaurants, bars and sunsets' }, price: 3, pros: { he: 'מסעדות, ברים ושקיעה ברגל', en: 'Restaurants, bars and sunsets on foot' }, cons: { he: 'יקר מאוד ורועש עד מאוחר', en: 'Very pricey and loud until late' } },
+      { name: { he: 'אורנוס', en: 'Ornos' }, forWhom: { he: 'משפחות וזוגות — מפרץ רגוע קרוב לעיר', en: 'Families and couples — a calm bay close to town' }, price: 2, pros: { he: 'מפרץ רגוע וקרוב לעיר באוטובוס', en: 'Calm bay a short bus ride from town' }, cons: { he: 'חוף קטן וצפוף בעונה', en: 'Small, crowded beach in season' } },
+      { name: { he: 'פלטיס יאלוס ופסרו', en: 'Platys Gialos & Psarou' }, forWhom: { he: 'חוף מסודר ומלונות יוקרה, עם סירות לחופים אחרים', en: 'Organised beaches and upmarket hotels, with boats to other beaches' }, price: 3, pros: { he: 'חופים מאורגנים וסירות לחופים אחרים', en: 'Organised beaches and boats to other beaches' }, cons: { he: 'מיטות שיזוף ומלונות במחירים גבוהים', en: 'Expensive sunbeds and hotels' } },
+      { name: { he: 'אליה וקלפאס', en: 'Elia & Kalafatis' }, forWhom: { he: 'שקט יחסי וחופים ארוכים, צריך רכב', en: 'Relative quiet and long beaches; you need a car' }, price: 2, pros: { he: 'חופים ארוכים ושקטים יחסית', en: 'Long, relatively quiet beaches' }, cons: { he: 'רחוק מהעיר, חייבים רכב', en: 'Far from town; you need a car' } }
     ],
     attractions: [
       { name: { he: 'ונציה הקטנה', en: 'Little Venice' }, kind: 'neighborhood', durationH: 1.5, tags: ['couple', 'nightlife', 'evening'], area: 'Chora (Mykonos Town)', mustSee: true },
@@ -313,11 +313,11 @@ export default [
       { he: 'פארק המים ווטרוורלד', en: 'WaterWorld water park' }
     ],
     areas: [
-      { name: { he: 'לרנקה', en: 'Larnaca' }, forWhom: { he: 'סופ״ש קצר — קרוב לשדה, טיילת וחב״ד', en: 'Short breaks — close to the airport, a promenade and Chabad' } },
-      { name: { he: 'איה נאפה', en: 'Ayia Napa' }, forWhom: { he: 'צעירים — חופים ומסיבות', en: 'Young travellers — beaches and parties' } },
-      { name: { he: 'פרוטרס', en: 'Protaras' }, forWhom: { he: 'משפחות — מפרצים רגועים ומלונות חוף', en: 'Families — calm bays and beach hotels' } },
-      { name: { he: 'לימסול', en: 'Limassol' }, forWhom: { he: 'זוגות ומי שאוהב עיר, מסעדות ומרינה', en: 'Couples and city lovers — restaurants and a marina' } },
-      { name: { he: 'פאפוס', en: 'Paphos' }, forWhom: { he: 'תרבות, עתיקות וטבע, קצב רגוע', en: 'Culture, antiquities and nature at a slower pace' } }
+      { name: { he: 'לרנקה', en: 'Larnaca' }, forWhom: { he: 'סופ״ש קצר — קרוב לשדה, טיילת וחב״ד', en: 'Short breaks — close to the airport, a promenade and Chabad' }, price: 1, pros: { he: '10 דק׳ מהשדה, טיילת וחב״ד', en: '10 min from the airport, promenade and Chabad' }, cons: { he: 'חוף עירוני פשוט, פחות מרשים', en: 'Plain city beach, less impressive' } },
+      { name: { he: 'איה נאפה', en: 'Ayia Napa' }, forWhom: { he: 'צעירים — חופים ומסיבות', en: 'Young travellers — beaches and parties' }, price: 2, pros: { he: 'חופים מהיפים באי ומועדונים', en: 'Some of the island’s best beaches and clubs' }, cons: { he: 'רועש ומסיבתי בקיץ', en: 'Loud party scene in summer' } },
+      { name: { he: 'פרוטרס', en: 'Protaras' }, forWhom: { he: 'משפחות — מפרצים רגועים ומלונות חוף', en: 'Families — calm bays and beach hotels' }, price: 2, pros: { he: 'מפרצים רגועים ומים צלולים למשפחות', en: 'Calm bays and clear water for families' }, cons: { he: 'שקט בערב ורחוק מהערים', en: 'Quiet at night, far from the cities' } },
+      { name: { he: 'לימסול', en: 'Limassol' }, forWhom: { he: 'זוגות ומי שאוהב עיר, מסעדות ומרינה', en: 'Couples and city lovers — restaurants and a marina' }, price: 3, pros: { he: 'מרינה, מסעדות טובות וטיילת', en: 'Marina, good restaurants and a promenade' }, cons: { he: 'יקר, החופים פחות יפים', en: 'Pricey; beaches are average' } },
+      { name: { he: 'פאפוס', en: 'Paphos' }, forWhom: { he: 'תרבות, עתיקות וטבע, קצב רגוע', en: 'Culture, antiquities and nature at a slower pace' }, price: 2, pros: { he: 'אתרי עתיקות, טבע ושדה תעופה קרוב', en: 'Antiquities, nature and its own airport' }, cons: { he: 'רחוק מלרנקה, שקט יחסית בערב', en: 'Far from Larnaca, quiet in the evening' } }
     ],
     attractions: [
       { name: { he: 'חוף ניסי', en: 'Nissi Beach' }, kind: 'beach', durationH: 4, tags: ['beach', 'nightlife', 'teens'], area: 'Ayia Napa', months: [5, 6, 7, 8, 9, 10] },
@@ -364,11 +364,11 @@ export default [
       { he: 'קהילה יהודית גדולה ואוכל כשר', en: 'A large Jewish community and kosher food' }
     ],
     areas: [
-      { name: { he: 'מרכז — דואומו', en: 'Centro — Duomo' }, forWhom: { he: 'ביקור ראשון וקצר — הכול ברגל', en: 'Short first visits — all on foot' } },
-      { name: { he: 'ברה', en: 'Brera' }, forWhom: { he: 'זוגות — גלריות, בתי קפה וסמטאות יפות', en: 'Couples — galleries, cafés and pretty streets' } },
-      { name: { he: 'נבילי', en: 'Navigli' }, forWhom: { he: 'מי שאוהב ברים, אפריטיבו וחיי ערב', en: 'Those who love bars, aperitivo and evenings out' } },
-      { name: { he: 'פורטה נואובה ואיזולה', en: 'Porta Nuova & Isola' }, forWhom: { he: 'מילאנו המודרנית, קרוב לתחנה המרכזית', en: 'Modern Milan, near Centrale station' } },
-      { name: { he: 'אגם קומו — בלאג׳ו, ורנה או העיר קומו', en: 'Lake Como — Bellagio, Varenna or Como town' }, forWhom: { he: 'זוגות שרוצים לילה־שניים של נוף ושקט', en: 'Couples wanting a night or two of views and quiet' } }
+      { name: { he: 'מרכז — דואומו', en: 'Centro — Duomo' }, forWhom: { he: 'ביקור ראשון וקצר — הכול ברגל', en: 'Short first visits — all on foot' }, price: 3, pros: { he: 'הדואומו והגלריה ברגל, מטרו טוב', en: 'Duomo and Galleria on foot, good metro' }, cons: { he: 'יקר ותיירותי', en: 'Pricey and touristy' } },
+      { name: { he: 'ברה', en: 'Brera' }, forWhom: { he: 'זוגות — גלריות, בתי קפה וסמטאות יפות', en: 'Couples — galleries, cafés and pretty streets' }, price: 3, pros: { he: 'רחובות יפים, גלריות ובתי קפה', en: 'Pretty streets, galleries and cafés' }, cons: { he: 'מלונות יקרים ומעט מקום', en: 'Expensive, limited hotels' } },
+      { name: { he: 'נבילי', en: 'Navigli' }, forWhom: { he: 'מי שאוהב ברים, אפריטיבו וחיי ערב', en: 'Those who love bars, aperitivo and evenings out' }, price: 2, pros: { he: 'אפריטיבו ובארים על התעלות', en: 'Aperitivo and canal-side bars' }, cons: { he: 'רועש בלילה, רחוק יותר מהמטרו', en: 'Noisy at night, further from the metro' } },
+      { name: { he: 'פורטה נואובה ואיזולה', en: 'Porta Nuova & Isola' }, forWhom: { he: 'מילאנו המודרנית, קרוב לתחנה המרכזית', en: 'Modern Milan, near Centrale station' }, price: 2, pros: { he: 'ליד תחנת צנטרלה ומלונות מודרניים', en: 'Near Centrale station, modern hotels' }, cons: { he: 'פחות היסטורי וקסום', en: 'Less historic and charming' } },
+      { name: { he: 'אגם קומו — בלאג׳ו, ורנה או העיר קומו', en: 'Lake Como — Bellagio, Varenna or Como town' }, forWhom: { he: 'זוגות שרוצים לילה־שניים של נוף ושקט', en: 'Couples wanting a night or two of views and quiet' }, price: 3, pros: { he: 'נוף אגם מדהים ושקט', en: 'Stunning lake views and quiet' }, cons: { he: 'יקר בקיץ, תלוי בלוח הזמנים של המעבורות', en: 'Pricey in summer, ferry-timetable dependent' } }
     ],
     attractions: [
       { name: { he: 'הדואומו של מילאנו והגג', en: 'Milan Cathedral & rooftop' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Centro — Duomo', mustSee: true },
@@ -416,11 +416,11 @@ export default [
       { he: 'צ׳יקטי ויין בבארים מקומיים', en: 'Cicchetti and wine in local bacari' }
     ],
     areas: [
-      { name: { he: 'סן מרקו', en: 'San Marco' }, forWhom: { he: 'ביקור ראשון קצר — במרכז, אבל יקר ועמוס', en: 'A short first visit — central but pricey and crowded' } },
-      { name: { he: 'קנאריג׳ו', en: 'Cannaregio' }, forWhom: { he: 'שומרי כשרות ושבת, ומי שרוצה אווירה מקומית', en: 'Kosher and Shabbat observers, and anyone after a local feel' } },
-      { name: { he: 'דורסודורו', en: 'Dorsoduro' }, forWhom: { he: 'זוגות וחובבי אמנות — מוזיאונים ושקט יחסי', en: 'Couples and art lovers — museums and relative calm' } },
-      { name: { he: 'קסטלו', en: 'Castello' }, forWhom: { he: 'ונציה שקטה ופחות תיירותית', en: 'A quieter, less touristy Venice' } },
-      { name: { he: 'מסטרה', en: 'Mestre' }, forWhom: { he: 'תקציב — ביבשה, עשר דקות ברכבת לעיר', en: 'Budget — on the mainland, ten minutes by train' } }
+      { name: { he: 'סן מרקו', en: 'San Marco' }, forWhom: { he: 'ביקור ראשון קצר — במרכז, אבל יקר ועמוס', en: 'A short first visit — central but pricey and crowded' }, price: 3, pros: { he: 'בלב הכול, ליד הכיכר', en: 'At the heart of it all, by the piazza' }, cons: { he: 'הכי יקר וצפוף בעיר', en: 'The priciest and most crowded area' } },
+      { name: { he: 'קנאריג׳ו', en: 'Cannaregio' }, forWhom: { he: 'שומרי כשרות ושבת, ומי שרוצה אווירה מקומית', en: 'Kosher and Shabbat observers, and anyone after a local feel' }, price: 2, pros: { he: 'הגטו, אוכל כשר וקרוב לתחנת הרכבת', en: 'The Ghetto, kosher food, near the station' }, cons: { he: 'רחוק מעט מסן מרקו', en: 'A walk from San Marco' } },
+      { name: { he: 'דורסודורו', en: 'Dorsoduro' }, forWhom: { he: 'זוגות וחובבי אמנות — מוזיאונים ושקט יחסי', en: 'Couples and art lovers — museums and relative calm' }, price: 2, pros: { he: 'מוזיאונים, אווירה מקומית ושקט יחסי', en: 'Museums, local feel and relative calm' }, cons: { he: 'גשרים ומדרגות עם מזוודות', en: 'Bridges and steps with luggage' } },
+      { name: { he: 'קסטלו', en: 'Castello' }, forWhom: { he: 'ונציה שקטה ופחות תיירותית', en: 'A quieter, less touristy Venice' }, price: 2, pros: { he: 'אותנטי ושקט, קרוב לסן מרקו', en: 'Authentic and quiet, close to San Marco' }, cons: { he: 'החלק המזרחי רחוק מהתחנה', en: 'Eastern end is far from the station' } },
+      { name: { he: 'מסטרה', en: 'Mestre' }, forWhom: { he: 'תקציב — ביבשה, עשר דקות ברכבת לעיר', en: 'Budget — on the mainland, ten minutes by train' }, price: 1, pros: { he: 'זול בהרבה, רכבת לונציה בעשר דקות', en: 'Much cheaper, 10 min train to Venice' }, cons: { he: 'עיר מודרנית ולא יפה, אין קסם בערב', en: 'Plain modern town, no evening magic' } }
     ],
     attractions: [
       { name: { he: 'כיכר סן מרקו', en: 'St Mark’s Square' }, kind: 'landmark', durationH: 1, tags: ['culture'], area: 'San Marco', mustSee: true },
@@ -467,11 +467,11 @@ export default [
       { he: 'בית הכנסת הגדול של פירנצה', en: 'The Great Synagogue of Florence' }
     ],
     areas: [
-      { name: { he: 'המרכז ההיסטורי', en: 'Historic centre' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' } },
-      { name: { he: 'אולטרארנו וסנטו ספיריטו', en: 'Oltrarno & Santo Spirito' }, forWhom: { he: 'זוגות — סדנאות אומנים, טרטוריות ואווירה מקומית', en: 'Couples — artisan workshops, trattorias and a local feel' } },
-      { name: { he: 'סנטה קרוצ׳ה וסנט׳אמברוג׳ו', en: 'Santa Croce & Sant’Ambrogio' }, forWhom: { he: 'קרוב לבית הכנסת ולשוק, חיי ערב', en: 'Near the synagogue and the market, lively evenings' } },
-      { name: { he: 'אגריטוריזמו בקיאנטי', en: 'An agriturismo in Chianti' }, forWhom: { he: 'זוגות עם רכב שרוצים כרמים ושקט', en: 'Couples with a car who want vineyards and quiet' } },
-      { name: { he: 'לוקה', en: 'Lucca' }, forWhom: { he: 'בסיס שקט בתוך חומות, קרוב לפיזה', en: 'A quiet walled base close to Pisa' } }
+      { name: { he: 'המרכז ההיסטורי', en: 'Historic centre' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' }, price: 3, pros: { he: 'הדואומו והאופיצי ברגל', en: 'Duomo and Uffizi on foot' }, cons: { he: 'יקר, צפוף ורועש', en: 'Pricey, crowded and noisy' } },
+      { name: { he: 'אולטרארנו וסנטו ספיריטו', en: 'Oltrarno & Santo Spirito' }, forWhom: { he: 'זוגות — סדנאות אומנים, טרטוריות ואווירה מקומית', en: 'Couples — artisan workshops, trattorias and a local feel' }, price: 2, pros: { he: 'אווירה מקומית, טרטוריות ואומנים', en: 'Local feel, trattorias and artisans' }, cons: { he: 'כיכר סנטו ספיריטו רועשת בלילה', en: 'Santo Spirito square is loud at night' } },
+      { name: { he: 'סנטה קרוצ׳ה וסנט׳אמברוג׳ו', en: 'Santa Croce & Sant’Ambrogio' }, forWhom: { he: 'קרוב לבית הכנסת ולשוק, חיי ערב', en: 'Near the synagogue and the market, lively evenings' }, price: 2, pros: { he: 'ליד בית הכנסת והשוק, ערבים תוססים', en: 'Near the synagogue and market, lively evenings' }, cons: { he: 'רועש בלילות סופ״ש', en: 'Noisy on weekend nights' } },
+      { name: { he: 'אגריטוריזמו בקיאנטי', en: 'An agriturismo in Chianti' }, forWhom: { he: 'זוגות עם רכב שרוצים כרמים ושקט', en: 'Couples with a car who want vineyards and quiet' }, price: 2, pros: { he: 'כרמים, שקט ואוכל ביתי', en: 'Vineyards, quiet and home cooking' }, cons: { he: 'חייבים רכב, רחוק מהערים', en: 'Car essential, far from towns' } },
+      { name: { he: 'לוקה', en: 'Lucca' }, forWhom: { he: 'בסיס שקט בתוך חומות, קרוב לפיזה', en: 'A quiet walled base close to Pisa' }, price: 2, pros: { he: 'עיר חומה רגועה, נוח לאופניים', en: 'Calm walled town, great for cycling' }, cons: { he: 'שעה ברכבת לפירנצה', en: 'An hour by train to Florence' } }
     ],
     attractions: [
       { name: { he: 'הדואומו והעלייה לכיפה', en: 'Florence Cathedral & dome climb' }, kind: 'landmark', durationH: 2, tags: ['culture'], area: 'Historic centre', mustSee: true },
@@ -519,11 +519,11 @@ export default [
       { he: 'לימונצ׳לו ולימוני סורנטו', en: 'Limoncello and Sorrento lemons' }
     ],
     areas: [
-      { name: { he: 'נאפולי — המרכז ההיסטורי', en: 'Naples — historic centre' }, forWhom: { he: 'אוהבי אוכל ועיר אמיתית, ותקציב נמוך יותר', en: 'Food lovers who like a real city, and lower budgets' } },
-      { name: { he: 'סורנטו', en: 'Sorrento' }, forWhom: { he: 'משפחות — בסיס נוח עם רכבת ומעבורות לכל הכיוונים', en: 'Families — a handy base with trains and ferries everywhere' } },
-      { name: { he: 'פוזיטנו', en: 'Positano' }, forWhom: { he: 'זוגות ויוקרה — הנוף המפורסם, הרבה מדרגות', en: 'Couples and luxury — the famous view, lots of steps' } },
-      { name: { he: 'אמאלפי וראוולו', en: 'Amalfi & Ravello' }, forWhom: { he: 'מרכז החוף לנסיעות; ראוולו שקטה ורומנטית', en: 'Central for getting around; Ravello is quiet and romantic' } },
-      { name: { he: 'קאפרי', en: 'Capri' }, forWhom: { he: 'לילה על האי, אחרי שהמבקרים היומיים עוזבים', en: 'A night on the island after the day-trippers leave' } }
+      { name: { he: 'נאפולי — המרכז ההיסטורי', en: 'Naples — historic centre' }, forWhom: { he: 'אוהבי אוכל ועיר אמיתית, ותקציב נמוך יותר', en: 'Food lovers who like a real city, and lower budgets' }, price: 1, pros: { he: 'פיצה, תחבורה ומחירים נמוכים', en: 'Pizza, transport and low prices' }, cons: { he: 'צפוף ורועש, זהירות בלילה', en: 'Chaotic and noisy; take care at night' } },
+      { name: { he: 'סורנטו', en: 'Sorrento' }, forWhom: { he: 'משפחות — בסיס נוח עם רכבת ומעבורות לכל הכיוונים', en: 'Families — a handy base with trains and ferries everywhere' }, price: 2, pros: { he: 'רכבת ומעבורות לכל הכיוונים', en: 'Trains and ferries in every direction' }, cons: { he: 'עמוס תיירים, מעט חופים', en: 'Very touristy, few beaches' } },
+      { name: { he: 'פוזיטנו', en: 'Positano' }, forWhom: { he: 'זוגות ויוקרה — הנוף המפורסם, הרבה מדרגות', en: 'Couples and luxury — the famous view, lots of steps' }, price: 3, pros: { he: 'הנוף המפורסם והאווירה', en: 'The famous view and atmosphere' }, cons: { he: 'יקר מאוד ומאות מדרגות', en: 'Very pricey and hundreds of steps' } },
+      { name: { he: 'אמאלפי וראוולו', en: 'Amalfi & Ravello' }, forWhom: { he: 'מרכז החוף לנסיעות; ראוולו שקטה ורומנטית', en: 'Central for getting around; Ravello is quiet and romantic' }, price: 3, pros: { he: 'מרכזי למעבורות; ראוולו שקטה ורומנטית', en: 'Central for ferries; Ravello quiet and romantic' }, cons: { he: 'יקר, וראוולו מבודדת בלי רכב', en: 'Pricey; Ravello is isolated without a car' } },
+      { name: { he: 'קאפרי', en: 'Capri' }, forWhom: { he: 'לילה על האי, אחרי שהמבקרים היומיים עוזבים', en: 'A night on the island after the day-trippers leave' }, price: 3, pros: { he: 'האי שקט וקסום אחרי שהמבקרים עוזבים', en: 'Quiet and magical once day-trippers leave' }, cons: { he: 'מהיקרים באיטליה', en: 'Among the priciest in Italy' } }
     ],
     attractions: [
       { name: { he: 'פומפיי', en: 'Pompeii' }, kind: 'landmark', durationH: 4, tags: ['culture'], area: 'Pompeii', mustSee: true },
@@ -570,11 +570,11 @@ export default [
       { he: 'קנולי, ארנצ׳יני וגרניטה', en: 'Cannoli, arancini and granita' }
     ],
     areas: [
-      { name: { he: 'טאורמינה', en: 'Taormina' }, forWhom: { he: 'זוגות — נוף לים ולאטנה, אווירה רומנטית', en: 'Couples — views of the sea and Etna, a romantic feel' } },
-      { name: { he: 'קטניה', en: 'Catania' }, forWhom: { he: 'בסיס עירוני ותקציבי, קרוב לשדה ולאטנה', en: 'A budget city base near the airport and Etna' } },
-      { name: { he: 'סירקוזה — אורטיג׳ה', en: 'Syracuse — Ortigia' }, forWhom: { he: 'מי שרוצה עיר עתיקה על הים ואוכל טוב', en: 'Those who want an old town on the sea and good food' } },
-      { name: { he: 'פלרמו', en: 'Palermo' }, forWhom: { he: 'אוהבי עיר, שווקים ותרבות', en: 'City, market and culture lovers' } },
-      { name: { he: 'צ׳פאלו', en: 'Cefalù' }, forWhom: { he: 'משפחות — עיירת חוף עם חוף עירוני', en: 'Families — a seaside town with a town beach' } }
+      { name: { he: 'טאורמינה', en: 'Taormina' }, forWhom: { he: 'זוגות — נוף לים ולאטנה, אווירה רומנטית', en: 'Couples — views of the sea and Etna, a romantic feel' }, price: 3, pros: { he: 'נוף לים ולאטנה, רומנטי', en: 'Sea and Etna views, romantic' }, cons: { he: 'יקר ועמוס, החוף למטה ברכבל', en: 'Pricey and busy, beach is down by cable car' } },
+      { name: { he: 'קטניה', en: 'Catania' }, forWhom: { he: 'בסיס עירוני ותקציבי, קרוב לשדה ולאטנה', en: 'A budget city base near the airport and Etna' }, price: 1, pros: { he: 'משתלם, קרוב לשדה ולאטנה', en: 'Good value, near the airport and Etna' }, cons: { he: 'עירוני ומוזנח בחלקו', en: 'Gritty and urban in parts' } },
+      { name: { he: 'סירקוזה — אורטיג׳ה', en: 'Syracuse — Ortigia' }, forWhom: { he: 'מי שרוצה עיר עתיקה על הים ואוכל טוב', en: 'Those who want an old town on the sea and good food' }, price: 2, pros: { he: 'עיר עתיקה על הים ואוכל מצוין', en: 'Old town on the sea and excellent food' }, cons: { he: 'רחוק מהשדה, חניה קשה', en: 'Far from the airport, hard parking' } },
+      { name: { he: 'פלרמו', en: 'Palermo' }, forWhom: { he: 'אוהבי עיר, שווקים ותרבות', en: 'City, market and culture lovers' }, price: 1, pros: { he: 'שווקים, תרבות ומחירים טובים', en: 'Markets, culture and good prices' }, cons: { he: 'תנועה כאוטית, חוף רחוק מהמרכז', en: 'Chaotic traffic, beach is out of town' } },
+      { name: { he: 'צ׳פאלו', en: 'Cefalù' }, forWhom: { he: 'משפחות — עיירת חוף עם חוף עירוני', en: 'Families — a seaside town with a town beach' }, price: 2, pros: { he: 'חוף בתוך העיר ורכבת לפלרמו', en: 'Town beach and trains to Palermo' }, cons: { he: 'צפוף בקיץ, מעט מה לעשות בערב', en: 'Crowded in summer, little to do at night' } }
     ],
     attractions: [
       { name: { he: 'הר האטנה', en: 'Mount Etna' }, kind: 'nature', durationH: 5, tags: ['adventure', 'nature', 'teens'], area: 'Catania', mustSee: true },

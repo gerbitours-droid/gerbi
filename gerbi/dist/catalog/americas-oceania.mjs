@@ -21,11 +21,11 @@ export default [
       { he: 'שופינג בשדרה החמישית ובסוהו', en: 'Shopping on Fifth Avenue and in SoHo' }
     ],
     areas: [
-      { name: { he: 'מידטאון', en: 'Midtown' }, forWhom: { he: 'ביקור ראשון — קרוב לכל דבר, רועש ויקר', en: 'First-timers — close to everything, busy and pricey' } },
-      { name: { he: 'אפר ווסט סייד', en: 'Upper West Side' }, forWhom: { he: 'משפחות ושומרי כשרות — שקט יחסי, ליד סנטרל פארק ובתי כנסת', en: 'Families and kosher travellers — calmer, near Central Park and synagogues' } },
-      { name: { he: 'גריניץ׳ וילג׳ וסוהו', en: 'Greenwich Village & SoHo' }, forWhom: { he: 'זוגות שאוהבים בתי קפה, חנויות ואווירה', en: 'Couples who like cafés, boutiques and atmosphere' } },
-      { name: { he: 'לואר מנהטן', en: 'Lower Manhattan' }, forWhom: { he: 'קרוב לפסל החירות ולגשר ברוקלין, שקט בערב', en: 'Near the Statue of Liberty and Brooklyn Bridge, quiet at night' } },
-      { name: { he: 'ברוקלין (ויליאמסבורג ודאמבו)', en: 'Brooklyn (Williamsburg & DUMBO)' }, forWhom: { he: 'צעירים, אוכל וחיי לילה, נוף למנהטן', en: 'Younger travellers, food and nightlife, Manhattan views' } }
+      { name: { he: 'מידטאון', en: 'Midtown' }, forWhom: { he: 'ביקור ראשון — קרוב לכל דבר, רועש ויקר', en: 'First-timers — close to everything, busy and pricey' }, price: 3, pros: { he: 'ברגל לטיימס סקוור, לברודוויי ולסנטרל פארק, רכבות לכל כיוון', en: 'Walk to Times Square, Broadway and Central Park; subways everywhere' }, cons: { he: 'חדרים קטנים ויקרים, צפוף ורועש', en: 'Small, pricey rooms; crowded and loud' } },
+      { name: { he: 'אפר ווסט סייד', en: 'Upper West Side' }, forWhom: { he: 'משפחות ושומרי כשרות — שקט יחסי, ליד סנטרל פארק ובתי כנסת', en: 'Families and kosher travellers — calmer, near Central Park and synagogues' }, price: 3, pros: { he: 'שקט ובטוח, מסעדות כשרות ובתי כנסת', en: 'Quiet and safe, kosher restaurants and synagogues' }, cons: { he: 'מעט מלונות ויקרים, רחוק מדאונטאון', en: 'Few, pricey hotels; far from downtown' } },
+      { name: { he: 'גריניץ׳ וילג׳ וסוהו', en: 'Greenwich Village & SoHo' }, forWhom: { he: 'זוגות שאוהבים בתי קפה, חנויות ואווירה', en: 'Couples who like cafés, boutiques and atmosphere' }, price: 3, pros: { he: 'בתי קפה, בוטיקים ואווירה של ניו יורק הקלאסית', en: 'Cafés, boutiques and classic New York charm' }, cons: { he: 'מלונות בוטיק יקרים מאוד, רעש בלילה ברחובות הבילוי', en: 'Very expensive boutique hotels, night noise on busy streets' } },
+      { name: { he: 'לואר מנהטן', en: 'Lower Manhattan' }, forWhom: { he: 'קרוב לפסל החירות ולגשר ברוקלין, שקט בערב', en: 'Near the Statue of Liberty and Brooklyn Bridge, quiet at night' }, price: 2, pros: { he: 'קרוב למעבורת לפסל החירות, מחירים נוחים יותר בסופ״ש', en: 'Near the Statue of Liberty ferry, better weekend rates' }, cons: { he: 'מת בערבים ובסופ״ש ברובע הפיננסי', en: 'Dead in the evenings and at weekends in the Financial District' } },
+      { name: { he: 'ברוקלין (ויליאמסבורג ודאמבו)', en: 'Brooklyn (Williamsburg & DUMBO)' }, forWhom: { he: 'צעירים, אוכל וחיי לילה, נוף למנהטן', en: 'Younger travellers, food and nightlife, Manhattan views' }, price: 2, pros: { he: 'זול יותר ממנהטן, אוכל ונוף מטורף', en: 'Cheaper than Manhattan, great food and views' }, cons: { he: 'נסיעה ברכבת לרוב האטרקציות', en: 'Subway ride to most sights' } }
     ],
     attractions: [
       { name: { he: 'סנטרל פארק', en: 'Central Park' }, kind: 'park', durationH: 3, tags: ['family', 'nature'], area: 'Central Park', mustSee: true },
@@ -71,10 +71,10 @@ export default [
       { he: 'אאוטלטים וקניונים ענקיים', en: 'Huge outlets and malls' }
     ],
     areas: [
-      { name: { he: 'מיאמי ביץ׳ (סאות׳ ביץ׳)', en: 'Miami Beach (South Beach)' }, forWhom: { he: 'זוגות וצעירים — חוף, מסעדות וחיי לילה', en: 'Couples and younger travellers — beach, restaurants and nightlife' } },
-      { name: { he: 'צפון מיאמי ביץ׳, סרפסייד ואוונטורה', en: 'North Miami Beach, Surfside & Aventura' }, forWhom: { he: 'משפחות ושומרי כשרות — קהילה יהודית גדולה', en: 'Families and kosher travellers — a large Jewish community' } },
-      { name: { he: 'מרכז מיאמי', en: 'Central Miami' }, forWhom: { he: 'מי שרוצה את וינווד, ליטל הוואנה ואווירה עירונית', en: 'Those after Wynwood, Little Havana and a city feel' } },
-      { name: { he: 'אורלנדו (אזור הפארקים)', en: 'Orlando (theme-park area)' }, forWhom: { he: 'משפחות עם ילדים — כמה ימים של פארקים', en: 'Families with children — several days of parks' } }
+      { name: { he: 'מיאמי ביץ׳ (סאות׳ ביץ׳)', en: 'Miami Beach (South Beach)' }, forWhom: { he: 'זוגות וצעירים — חוף, מסעדות וחיי לילה', en: 'Couples and younger travellers — beach, restaurants and nightlife' }, price: 3, pros: { he: 'חוף, אושן דרייב וארט דקו ברגל', en: 'Beach, Ocean Drive and Art Deco on foot' }, cons: { he: 'יקר, רועש ומסיבתי, דמי חניה ותוספות ריזורט', en: 'Pricey, loud and party-heavy; parking and resort fees' } },
+      { name: { he: 'צפון מיאמי ביץ׳, סרפסייד ואוונטורה', en: 'North Miami Beach, Surfside & Aventura' }, forWhom: { he: 'משפחות ושומרי כשרות — קהילה יהודית גדולה', en: 'Families and kosher travellers — a large Jewish community' }, price: 2, pros: { he: 'כשרות, בתי כנסת וקניון אוונטורה', en: 'Kosher food, synagogues and Aventura Mall' }, cons: { he: 'רחוק מסאות׳ ביץ׳ ומהמרכז — צריך רכב', en: 'Far from South Beach and downtown — you need a car' } },
+      { name: { he: 'מרכז מיאמי', en: 'Central Miami' }, forWhom: { he: 'מי שרוצה את וינווד, ליטל הוואנה ואווירה עירונית', en: 'Those after Wynwood, Little Havana and a city feel' }, price: 2, pros: { he: 'ווינווד, ליטל הוואנה ובריקל קרובים', en: 'Wynwood, Little Havana and Brickell nearby' }, cons: { he: 'לא על החוף, וחלק מהאזורים פחות נעימים בלילה', en: 'Not on the beach; some areas feel rough at night' } },
+      { name: { he: 'אורלנדו (אזור הפארקים)', en: 'Orlando (theme-park area)' }, forWhom: { he: 'משפחות עם ילדים — כמה ימים של פארקים', en: 'Families with children — several days of parks' }, price: 1, pros: { he: 'מלונות משפחתיים בשפע, קרוב לפארקים', en: 'Plenty of family hotels, close to the parks' }, cons: { he: 'חייבים רכב, ואין מה לעשות מחוץ לפארקים', en: 'Car essential; little to do beyond the parks' } }
     ],
     attractions: [
       { name: { he: 'סאות׳ ביץ׳ ואושן דרייב', en: 'South Beach & Ocean Drive' }, kind: 'beach', durationH: 3, tags: ['beach', 'nightlife', 'evening'], area: 'Miami Beach (South Beach)', mustSee: true },
@@ -119,10 +119,10 @@ export default [
       { he: 'רודיאו דרייב בבוורלי הילס', en: 'Rodeo Drive in Beverly Hills' }
     ],
     areas: [
-      { name: { he: 'סנטה מוניקה וונציה', en: 'Santa Monica & Venice' }, forWhom: { he: 'מי שרוצה חוף, הליכה ואווירה נינוחה', en: 'Those who want the beach, walking and a relaxed vibe' } },
-      { name: { he: 'הוליווד ווסט הוליווד', en: 'Hollywood & West Hollywood' }, forWhom: { he: 'מרכזי, חיי לילה ואטרקציות', en: 'Central, with nightlife and sights' } },
-      { name: { he: 'בוורלי הילס ופיקו־רוברטסון', en: 'Beverly Hills & Pico-Robertson' }, forWhom: { he: 'שומרי כשרות ומשפחות — קהילה יהודית ומיקום מרכזי', en: 'Kosher travellers and families — a Jewish community and a central location' } },
-      { name: { he: 'אנהיים', en: 'Anaheim' }, forWhom: { he: 'משפחות שבאות בעיקר לדיסנילנד', en: 'Families coming mainly for Disneyland' } }
+      { name: { he: 'סנטה מוניקה וונציה', en: 'Santa Monica & Venice' }, forWhom: { he: 'מי שרוצה חוף, הליכה ואווירה נינוחה', en: 'Those who want the beach, walking and a relaxed vibe' }, price: 3, pros: { he: 'חוף, טיילת ורציף ברגל, מזג אוויר נעים', en: 'Beach, boardwalk and pier on foot, mild weather' }, cons: { he: 'יקר, פקקים לשאר העיר, הומלסים בוונציה', en: 'Pricey, traffic to the rest of LA, homelessness in Venice' } },
+      { name: { he: 'הוליווד ווסט הוליווד', en: 'Hollywood & West Hollywood' }, forWhom: { he: 'מרכזי, חיי לילה ואטרקציות', en: 'Central, with nightlife and sights' }, price: 2, pros: { he: 'מרכזי, חיי לילה ושדרת הכוכבים', en: 'Central, nightlife and the Walk of Fame' }, cons: { he: 'הוליווד בולווארד מלוכלך ורועש בלילה', en: 'Hollywood Boulevard is grubby and loud at night' } },
+      { name: { he: 'בוורלי הילס ופיקו־רוברטסון', en: 'Beverly Hills & Pico-Robertson' }, forWhom: { he: 'שומרי כשרות ומשפחות — קהילה יהודית ומיקום מרכזי', en: 'Kosher travellers and families — a Jewish community and a central location' }, price: 3, pros: { he: 'מסעדות כשרות ובתי כנסת, אזור בטוח ומרכזי', en: 'Kosher restaurants and synagogues, safe and central' }, cons: { he: 'מלונות בוורלי הילס יקרים מאוד, רחוק מהים', en: 'Beverly Hills hotels are very expensive; far from the beach' } },
+      { name: { he: 'אנהיים', en: 'Anaheim' }, forWhom: { he: 'משפחות שבאות בעיקר לדיסנילנד', en: 'Families coming mainly for Disneyland' }, price: 1, pros: { he: 'ברגל לדיסנילנד, מלונות זולים יחסית', en: 'Walk to Disneyland, relatively cheap hotels' }, cons: { he: 'כשעה (ויותר בפקקים) מלוס אנג׳לס', en: 'About an hour (more in traffic) from LA' } }
     ],
     attractions: [
       { name: { he: 'מצפה גריפית׳', en: 'Griffith Observatory' }, kind: 'viewpoint', durationH: 2, tags: ['family', 'couple', 'evening'], area: 'Hollywood & West Hollywood', mustSee: true },
@@ -168,9 +168,9 @@ export default [
       { he: 'פרימונט סטריט ווגאס הישנה', en: 'Fremont Street and old Vegas' }
     ],
     areas: [
-      { name: { he: 'הסטריפ', en: 'The Strip' }, forWhom: { he: 'ביקור ראשון — המלונות, המופעים והאווירה', en: 'First-timers — the resorts, shows and buzz' } },
-      { name: { he: 'דאונטאון (פרימונט סטריט)', en: 'Downtown (Fremont Street)' }, forWhom: { he: 'תקציב נמוך יותר ואווירת וגאס הישנה', en: 'Lower budgets and old-Vegas atmosphere' } },
-      { name: { he: 'הנדרסון וסאמרליין', en: 'Henderson & Summerlin' }, forWhom: { he: 'משפחות ומי שמגיע עם רכב ומעדיף שקט', en: 'Families and drivers who prefer quiet' } }
+      { name: { he: 'הסטריפ', en: 'The Strip' }, forWhom: { he: 'ביקור ראשון — המלונות, המופעים והאווירה', en: 'First-timers — the resorts, shows and buzz' }, price: 2, pros: { he: 'כל המופעים והקזינו ברגל, מחירי חדר זולים באמצע השבוע', en: 'Shows and casinos on foot, cheap midweek room rates' }, cons: { he: 'דמי ריזורט וחניה, מרחקים ארוכים מהמצופה', en: 'Resort and parking fees; distances longer than they look' } },
+      { name: { he: 'דאונטאון (פרימונט סטריט)', en: 'Downtown (Fremont Street)' }, forWhom: { he: 'תקציב נמוך יותר ואווירת וגאס הישנה', en: 'Lower budgets and old-Vegas atmosphere' }, price: 1, pros: { he: 'זול מאוד ואווירת וגאס הישנה', en: 'Very cheap, old-Vegas atmosphere' }, cons: { he: 'רחוק מהסטריפ, פחות נעים בלילה מחוץ לפרמונט', en: 'Far from the Strip; dicey at night off Fremont' } },
+      { name: { he: 'הנדרסון וסאמרליין', en: 'Henderson & Summerlin' }, forWhom: { he: 'משפחות ומי שמגיע עם רכב ומעדיף שקט', en: 'Families and drivers who prefer quiet' }, price: 2, pros: { he: 'שקט, מרווח ונוח לרכב ולטיולים לרד רוק', en: 'Quiet, spacious, handy for driving and Red Rock' }, cons: { he: 'חייבים רכב, רחוק מהבילוי', en: 'Car essential, far from the action' } }
     ],
     attractions: [
       { name: { he: 'הסטריפ בלילה', en: 'The Strip at night' }, kind: 'experience', durationH: 3, tags: ['nightlife', 'evening'], area: 'The Strip', mustSee: true },
@@ -216,10 +216,10 @@ export default [
       { he: 'האי איסלה מוחרס', en: 'Isla Mujeres' }
     ],
     areas: [
-      { name: { he: 'אזור המלונות של קנקון', en: 'Cancún Hotel Zone' }, forWhom: { he: 'הכול־כלול, חופים רחבים וחיי לילה', en: 'All-inclusive stays, wide beaches and nightlife' } },
-      { name: { he: 'פלאיה דל כרמן', en: 'Playa del Carmen' }, forWhom: { he: 'מי שרוצה עיירה מהלכת עם מסעדות, באמצע הריביירה', en: 'Those who want a walkable town with restaurants, mid-Riviera' } },
-      { name: { he: 'טולום', en: 'Tulum' }, forWhom: { he: 'זוגות — אווירה בוהמיינית, סנוטים וחורבות', en: 'Couples — a bohemian vibe, cenotes and ruins' } },
-      { name: { he: 'פוארטו מורלוס', en: 'Puerto Morelos' }, forWhom: { he: 'משפחות שמחפשות שקט קרוב לשדה', en: 'Families wanting quiet near the airport' } }
+      { name: { he: 'אזור המלונות של קנקון', en: 'Cancún Hotel Zone' }, forWhom: { he: 'הכול־כלול, חופים רחבים וחיי לילה', en: 'All-inclusive stays, wide beaches and nightlife' }, price: 3, pros: { he: 'חופים לבנים, הכל־כלול וחיי לילה', en: 'White beaches, all-inclusives and nightlife' }, cons: { he: 'יקר ותיירותי, מלונות מסיביים', en: 'Pricey and touristy, huge hotel blocks' } },
+      { name: { he: 'פלאיה דל כרמן', en: 'Playa del Carmen' }, forWhom: { he: 'מי שרוצה עיירה מהלכת עם מסעדות, באמצע הריביירה', en: 'Those who want a walkable town with restaurants, mid-Riviera' }, price: 2, pros: { he: 'שדרה חמישית ברגל, מעבורת לקוסומל', en: 'Walkable Fifth Avenue, ferry to Cozumel' }, cons: { he: 'חוף צפוף ואצות סרגסום בקיץ', en: 'Crowded beach and sargassum seaweed in summer' } },
+      { name: { he: 'טולום', en: 'Tulum' }, forWhom: { he: 'זוגות — אווירה בוהמיינית, סנוטים וחורבות', en: 'Couples — a bohemian vibe, cenotes and ruins' }, price: 3, pros: { he: 'בוטיק על החוף, סנוטים וחורבות קרובים', en: 'Beach boutiques, cenotes and ruins nearby' }, cons: { he: 'יקר מאוד, יתושים ואצות, חשמל לא יציב בחוף', en: 'Very expensive, mosquitoes and seaweed, patchy beach power' } },
+      { name: { he: 'פוארטו מורלוס', en: 'Puerto Morelos' }, forWhom: { he: 'משפחות שמחפשות שקט קרוב לשדה', en: 'Families wanting quiet near the airport' }, price: 2, pros: { he: 'שקט, שונית מול החוף, 20 דקות מהשדה', en: 'Quiet, reef offshore, 20 minutes from the airport' }, cons: { he: 'מעט מסעדות וחיי לילה', en: 'Few restaurants and little nightlife' } }
     ],
     attractions: [
       { name: { he: 'חוף דלפינס', en: 'Playa Delfines' }, kind: 'beach', durationH: 3, tags: ['beach'], area: 'Cancún Hotel Zone', mustSee: true },
@@ -264,11 +264,11 @@ export default [
       { he: 'רפטינג בנהר פקוארה', en: 'Rafting on the Pacuare River' }
     ],
     areas: [
-      { name: { he: 'לה פורטונה וארנל', en: 'La Fortuna & Arenal' }, forWhom: { he: 'משפחות וזוגות — הר געש, מעיינות ואטרקציות', en: 'Families and couples — volcano, hot springs and activities' } },
-      { name: { he: 'מונטוורדה', en: 'Monteverde' }, forWhom: { he: 'אוהבי טבע והרפתקאות — יער ענן ואומגות', en: 'Nature and adventure lovers — cloud forest and ziplines' } },
-      { name: { he: 'מנואל אנטוניו', en: 'Manuel Antonio' }, forWhom: { he: 'חוף וג׳ונגל במקום אחד', en: 'Beach and jungle in one place' } },
-      { name: { he: 'גואנקסטה (טמרינדו)', en: 'Guanacaste (Tamarindo)' }, forWhom: { he: 'חופים, גלישה ואקלים יבש יותר', en: 'Beaches, surfing and a drier climate' } },
-      { name: { he: 'החוף הקריבי (פוארטו ויחו)', en: 'Caribbean coast (Puerto Viejo)' }, forWhom: { he: 'אווירה קריבית רגועה ותקציב נמוך יותר', en: 'A laid-back Caribbean feel and lower budgets' } }
+      { name: { he: 'לה פורטונה וארנל', en: 'La Fortuna & Arenal' }, forWhom: { he: 'משפחות וזוגות — הר געש, מעיינות ואטרקציות', en: 'Families and couples — volcano, hot springs and activities' }, price: 2, pros: { he: 'הר הגעש, מעיינות חמים ופעילויות ליד', en: 'Volcano, hot springs and activities close by' }, cons: { he: 'גשום, והר הגעש לרוב בעננים', en: 'Rainy, and the volcano is often clouded over' } },
+      { name: { he: 'מונטוורדה', en: 'Monteverde' }, forWhom: { he: 'אוהבי טבע והרפתקאות — יער ענן ואומגות', en: 'Nature and adventure lovers — cloud forest and ziplines' }, price: 2, pros: { he: 'יער ערפילים, אומגות וסיורי לילה', en: 'Cloud forest, ziplines and night walks' }, cons: { he: 'קר, ערפילי ודרך הגישה משובשת', en: 'Cool, misty, and a bumpy access road' } },
+      { name: { he: 'מנואל אנטוניו', en: 'Manuel Antonio' }, forWhom: { he: 'חוף וג׳ונגל במקום אחד', en: 'Beach and jungle in one place' }, price: 3, pros: { he: 'חוף וג׳ונגל עם קופים באותו מקום', en: 'Beach and jungle with monkeys in one place' }, cons: { he: 'יקר ותיירותי, מלונות על גבעה תלולה', en: 'Pricey and touristy, hotels on a steep hill' } },
+      { name: { he: 'גואנקסטה (טמרינדו)', en: 'Guanacaste (Tamarindo)' }, forWhom: { he: 'חופים, גלישה ואקלים יבש יותר', en: 'Beaches, surfing and a drier climate' }, price: 2, pros: { he: 'חופים, גלישה ועונה יבשה ארוכה', en: 'Beaches, surf and a long dry season' }, cons: { he: 'חם, ותמרינדו עצמה מתויירת מאוד', en: 'Hot, and Tamarindo itself is very touristy' } },
+      { name: { he: 'החוף הקריבי (פוארטו ויחו)', en: 'Caribbean coast (Puerto Viejo)' }, forWhom: { he: 'אווירה קריבית רגועה ותקציב נמוך יותר', en: 'A laid-back Caribbean feel and lower budgets' }, price: 1, pros: { he: 'זול, אווירה קריבית וחופים יפים', en: 'Cheap, Caribbean vibe and lovely beaches' }, cons: { he: 'רחוק (4–5 שעות מסן חוסה), לחות ויתושים', en: 'Remote (4–5 h from San José), humid, mosquitoes' } }
     ],
     attractions: [
       { name: { he: 'הפארק הלאומי הר הגעש ארנל', en: 'Arenal Volcano National Park' }, kind: 'nature', durationH: 3, tags: ['nature'], area: 'La Fortuna & Arenal', mustSee: true },
@@ -313,10 +313,10 @@ export default [
       { he: 'סביצ׳ה והמטבח הפרואני בלימה', en: 'Ceviche and Peruvian cuisine in Lima' }
     ],
     areas: [
-      { name: { he: 'מירפלורס (לימה)', en: 'Miraflores (Lima)' }, forWhom: { he: 'בסיס נוח ובטוח יחסית מול האוקיינוס, מסעדות', en: 'A comfortable, relatively safe base on the ocean, with restaurants' } },
-      { name: { he: 'בארנקו (לימה)', en: 'Barranco (Lima)' }, forWhom: { he: 'אווירה בוהמיינית, אמנות וחיי לילה', en: 'Bohemian vibe, art and nightlife' } },
-      { name: { he: 'קוסקו', en: 'Cusco' }, forWhom: { he: 'בסיס לכל הטיולים באנדים — בגובה 3,400 מטר', en: 'The base for Andean trips — at 3,400 m' } },
-      { name: { he: 'העמק הקדוש', en: 'Sacred Valley' }, forWhom: { he: 'נמוך יותר מקוסקו — טוב להתאקלמות ולמשפחות', en: 'Lower than Cusco — good for acclimatising and for families' } }
+      { name: { he: 'מירפלורס (לימה)', en: 'Miraflores (Lima)' }, forWhom: { he: 'בסיס נוח ובטוח יחסית מול האוקיינוס, מסעדות', en: 'A comfortable, relatively safe base on the ocean, with restaurants' }, price: 2, pros: { he: 'בטוח יחסית, צוקים על האוקיינוס ומסעדות מעולות', en: 'Relatively safe, ocean cliffs and top restaurants' }, cons: { he: 'ערפל אפור רוב השנה, פקקים לשדה', en: 'Grey fog much of the year, traffic to the airport' } },
+      { name: { he: 'בארנקו (לימה)', en: 'Barranco (Lima)' }, forWhom: { he: 'אווירה בוהמיינית, אמנות וחיי לילה', en: 'Bohemian vibe, art and nightlife' }, price: 2, pros: { he: 'אמנות, בארים ואווירה בוהמיינית', en: 'Art, bars and a bohemian feel' }, cons: { he: 'רועש בסופ״ש, זהירות בסמטאות בלילה', en: 'Noisy at weekends; take care in side streets at night' } },
+      { name: { he: 'קוסקו', en: 'Cusco' }, forWhom: { he: 'בסיס לכל הטיולים באנדים — בגובה 3,400 מטר', en: 'The base for Andean trips — at 3,400 m' }, price: 2, pros: { he: 'עיר עתיקה מרהיבה, בסיס לרכבת למאצ׳ו פיצ׳ו', en: 'Stunning old town, base for the Machu Picchu train' }, cons: { he: 'גובה 3,400 מ׳ — מחלת גבהים בימים הראשונים', en: '3,400 m altitude — altitude sickness at first' } },
+      { name: { he: 'העמק הקדוש', en: 'Sacred Valley' }, forWhom: { he: 'נמוך יותר מקוסקו — טוב להתאקלמות ולמשפחות', en: 'Lower than Cusco — good for acclimatising and for families' }, price: 2, pros: { he: 'נמוך מקוסקו, שקט וקרוב לתחנת הרכבת באויינטייטמבו', en: 'Lower than Cusco, quiet, near the Ollantaytambo train' }, cons: { he: 'מעט מסעדות ותחבורה, צריך נהג', en: 'Few restaurants and little transport; you need a driver' } }
     ],
     attractions: [
       { name: { he: 'מאצ׳ו פיצ׳ו', en: 'Machu Picchu' }, kind: 'landmark', durationH: 4, tags: ['culture', 'adventure'], area: 'Aguas Calientes', mustSee: true },
@@ -363,10 +363,10 @@ export default [
       { he: 'המשך למפלי איגואסו או לפטגוניה', en: 'Onward to Iguazú Falls or Patagonia' }
     ],
     areas: [
-      { name: { he: 'פלרמו', en: 'Palermo' }, forWhom: { he: 'צעירים וזוגות — מסעדות, ברים ופארקים', en: 'Younger travellers and couples — restaurants, bars and parks' } },
-      { name: { he: 'רקולטה', en: 'Recoleta' }, forWhom: { he: 'מרכזי, אלגנטי ובטוח יחסית — טוב לביקור ראשון', en: 'Central, elegant and relatively safe — good for first-timers' } },
-      { name: { he: 'סן טלמו', en: 'San Telmo' }, forWhom: { he: 'אווירה ותיקה, טנגו ועתיקות, תקציב נמוך יותר', en: 'Old-world charm, tango and antiques, lower budgets' } },
-      { name: { he: 'פוארטו מדרו', en: 'Puerto Madero' }, forWhom: { he: 'מודרני, שקט ויוקרתי ליד המים', en: 'Modern, quiet and upmarket by the water' } }
+      { name: { he: 'פלרמו', en: 'Palermo' }, forWhom: { he: 'צעירים וזוגות — מסעדות, ברים ופארקים', en: 'Younger travellers and couples — restaurants, bars and parks' }, price: 2, pros: { he: 'מסעדות, בארים ופארקים, בטוח יחסית', en: 'Restaurants, bars and parks, relatively safe' }, cons: { he: 'גדול ומפוזר, רעש בלילה בסוהו', en: 'Large and spread out, late-night noise in Soho' } },
+      { name: { he: 'רקולטה', en: 'Recoleta' }, forWhom: { he: 'מרכזי, אלגנטי ובטוח יחסית — טוב לביקור ראשון', en: 'Central, elegant and relatively safe — good for first-timers' }, price: 3, pros: { he: 'אלגנטי ובטוח, ברגל לבית הקברות ולמוזיאונים', en: 'Elegant and safe, walk to the cemetery and museums' }, cons: { he: 'שקט בערב, יקר יחסית', en: 'Quiet at night, relatively pricey' } },
+      { name: { he: 'סן טלמו', en: 'San Telmo' }, forWhom: { he: 'אווירה ותיקה, טנגו ועתיקות, תקציב נמוך יותר', en: 'Old-world charm, tango and antiques, lower budgets' }, price: 1, pros: { he: 'אווירה ישנה, טנגו ושוק ביום ראשון — זול', en: 'Old-world feel, tango and the Sunday market — cheap' }, cons: { he: 'כייסים, ופחות בטוח בלילה', en: 'Pickpockets; less safe at night' } },
+      { name: { he: 'פוארטו מדרו', en: 'Puerto Madero' }, forWhom: { he: 'מודרני, שקט ויוקרתי ליד המים', en: 'Modern, quiet and upmarket by the water' }, price: 3, pros: { he: 'מודרני, שקט ומאובטח ליד המים', en: 'Modern, quiet and well-patrolled by the water' }, cons: { he: 'יקר וסטרילי, מעט חיים מקומיים', en: 'Pricey and sterile, little local life' } }
     ],
     attractions: [
       { name: { he: 'בית הקברות רקולטה', en: 'Recoleta Cemetery' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'Recoleta', mustSee: true },
@@ -413,10 +413,10 @@ export default [
       { he: 'יער טיז׳וקה בלב העיר', en: 'Tijuca Forest in the heart of the city' }
     ],
     areas: [
-      { name: { he: 'קופקבנה', en: 'Copacabana' }, forWhom: { he: 'ביקור ראשון — חוף, תחבורה ובית חב״ד', en: 'First-timers — beach, transport and Chabad' } },
-      { name: { he: 'איפנמה ולבלון', en: 'Ipanema & Leblon' }, forWhom: { he: 'זוגות — יוקרתי יותר, מסעדות ואווירה נינוחה', en: 'Couples — more upmarket, restaurants and a relaxed feel' } },
-      { name: { he: 'בוטפוגו', en: 'Botafogo' }, forWhom: { he: 'שכונה מקומית ותקציב בינוני, נוף להר הסוכר', en: 'A local neighbourhood at mid-range prices, with Sugarloaf views' } },
-      { name: { he: 'סנטה תרזה', en: 'Santa Teresa' }, forWhom: { he: 'אמנות ואווירה בוהמיינית על הגבעה; זהירות בשעות הלילה', en: 'Art and a bohemian hilltop vibe; take care at night' } }
+      { name: { he: 'קופקבנה', en: 'Copacabana' }, forWhom: { he: 'ביקור ראשון — חוף, תחבורה ובית חב״ד', en: 'First-timers — beach, transport and Chabad' }, price: 2, pros: { he: 'על החוף, מטרו ובית חב״ד', en: 'On the beach, metro and Chabad' }, cons: { he: 'כייסים ושוד בחוף בלילה — להיזהר', en: 'Pickpockets and beach muggings at night — take care' } },
+      { name: { he: 'איפנמה ולבלון', en: 'Ipanema & Leblon' }, forWhom: { he: 'זוגות — יוקרתי יותר, מסעדות ואווירה נינוחה', en: 'Couples — more upmarket, restaurants and a relaxed feel' }, price: 3, pros: { he: 'החוף הכי יפה, מסעדות ובטוח יחסית', en: 'The best beach, restaurants and relatively safe' }, cons: { he: 'היקר בריו', en: 'The most expensive part of Rio' } },
+      { name: { he: 'בוטפוגו', en: 'Botafogo' }, forWhom: { he: 'שכונה מקומית ותקציב בינוני, נוף להר הסוכר', en: 'A local neighbourhood at mid-range prices, with Sugarloaf views' }, price: 1, pros: { he: 'מחירים נוחים, מטרו ובארים מקומיים', en: 'Good prices, metro and local bars' }, cons: { he: 'לא על חוף לשחייה', en: 'No swimming beach' } },
+      { name: { he: 'סנטה תרזה', en: 'Santa Teresa' }, forWhom: { he: 'אמנות ואווירה בוהמיינית על הגבעה; זהירות בשעות הלילה', en: 'Art and a bohemian hilltop vibe; take care at night' }, price: 2, pros: { he: 'גבעה ציורית, אמנות ובתי הארחה עם אופי', en: 'Picturesque hill, art and characterful guesthouses' }, cons: { he: 'לא בטוח בלילה ברגל, רחוק מהחוף', en: 'Unsafe on foot at night, far from the beach' } }
     ],
     attractions: [
       { name: { he: 'ישו הגואל (קורקובדו)', en: 'Christ the Redeemer (Corcovado)' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'Cosme Velho', mustSee: true },
@@ -462,11 +462,11 @@ export default [
       { he: 'ההרים הכחולים', en: 'The Blue Mountains' }
     ],
     areas: [
-      { name: { he: 'הרוקס וסירקולר קיי', en: 'The Rocks & Circular Quay' }, forWhom: { he: 'ביקור ראשון — ליד האופרה, הגשר והמעבורות', en: 'First-timers — next to the Opera House, the bridge and ferries' } },
-      { name: { he: 'דרלינג הארבר', en: 'Darling Harbour' }, forWhom: { he: 'משפחות — אקווריום, טיילת ואטרקציות', en: 'Families — aquarium, promenade and attractions' } },
-      { name: { he: 'בונדיי', en: 'Bondi' }, forWhom: { he: 'חוף וגלישה; קהילה יהודית ואוכל כשר בסביבה', en: 'Beach and surf; a Jewish community and kosher food nearby' } },
-      { name: { he: 'מנלי', en: 'Manly' }, forWhom: { he: 'אווירת עיירת חוף, חצי שעה במעבורת מהעיר', en: 'A beach-town feel, half an hour by ferry from the city' } },
-      { name: { he: 'סארי הילס', en: 'Surry Hills' }, forWhom: { he: 'אוהבי אוכל, בתי קפה וברים', en: 'Food lovers — cafés and bars' } }
+      { name: { he: 'הרוקס וסירקולר קיי', en: 'The Rocks & Circular Quay' }, forWhom: { he: 'ביקור ראשון — ליד האופרה, הגשר והמעבורות', en: 'First-timers — next to the Opera House, the bridge and ferries' }, price: 3, pros: { he: 'מול האופרה והגשר, מעבורות לכל מקום', en: 'Facing the Opera House and bridge, ferries everywhere' }, cons: { he: 'היקר בסידני, תיירותי', en: 'Sydney’s priciest, touristy' } },
+      { name: { he: 'דרלינג הארבר', en: 'Darling Harbour' }, forWhom: { he: 'משפחות — אקווריום, טיילת ואטרקציות', en: 'Families — aquarium, promenade and attractions' }, price: 2, pros: { he: 'אטרקציות לילדים, טיילת ורכבת קלה', en: 'Kids’ attractions, promenade and light rail' }, cons: { he: 'מלונות גדולים בלי אופי, רעש באירועים', en: 'Big, characterless hotels; noisy during events' } },
+      { name: { he: 'בונדיי', en: 'Bondi' }, forWhom: { he: 'חוף וגלישה; קהילה יהודית ואוכל כשר בסביבה', en: 'Beach and surf; a Jewish community and kosher food nearby' }, price: 2, pros: { he: 'חוף מפורסם, קהילה יהודית ואוכל כשר', en: 'Famous beach, Jewish community and kosher food' }, cons: { he: 'אין רכבת עד החוף — אוטובוס לעיר', en: 'No train to the beach — bus to the city' } },
+      { name: { he: 'מנלי', en: 'Manly' }, forWhom: { he: 'אווירת עיירת חוף, חצי שעה במעבורת מהעיר', en: 'A beach-town feel, half an hour by ferry from the city' }, price: 2, pros: { he: 'עיירת חוף נינוחה, מעבורת יפה לעיר', en: 'Relaxed beach town, a scenic ferry to the city' }, cons: { he: 'כל יציאה לעיר תלויה במעבורת', en: 'Every trip into town depends on the ferry' } },
+      { name: { he: 'סארי הילס', en: 'Surry Hills' }, forWhom: { he: 'אוהבי אוכל, בתי קפה וברים', en: 'Food lovers — cafés and bars' }, price: 2, pros: { he: 'בתי קפה ומסעדות מעולים, קרוב לתחנה המרכזית', en: 'Excellent cafés and restaurants, near Central Station' }, cons: { he: 'מעט מלונות, ורחוק מהמים', en: 'Few hotels, and away from the water' } }
     ],
     attractions: [
       { name: { he: 'בית האופרה של סידני', en: 'Sydney Opera House' }, kind: 'landmark', durationH: 1.5, tags: ['culture'], area: 'The Rocks & Circular Quay', mustSee: true },
@@ -514,10 +514,10 @@ export default [
       { he: 'מערות התולעים הזוהרות בוויטומו', en: 'The Waitomo glowworm caves' }
     ],
     areas: [
-      { name: { he: 'אוקלנד', en: 'Auckland' }, forWhom: { he: 'נקודת הנחיתה — עיר נמל ובסיס לצפון האי הצפוני', en: 'The arrival point — a harbour city and base for the north of the North Island' } },
-      { name: { he: 'רוטורואה', en: 'Rotorua' }, forWhom: { he: 'משפחות — גייזרים, תרבות מאורית ופעילויות', en: 'Families — geysers, Māori culture and activities' } },
-      { name: { he: 'קווינסטאון', en: 'Queenstown' }, forWhom: { he: 'אוהבי אקסטרים וסקי, ובסיס למילפורד סאונד', en: 'Thrill-seekers and skiers, and a base for Milford Sound' } },
-      { name: { he: 'וואנקה והר קוק', en: 'Wanaka & Mount Cook' }, forWhom: { he: 'זוגות ומטיילים — אגמים, הרים ושקט', en: 'Couples and hikers — lakes, mountains and quiet' } }
+      { name: { he: 'אוקלנד', en: 'Auckland' }, forWhom: { he: 'נקודת הנחיתה — עיר נמל ובסיס לצפון האי הצפוני', en: 'The arrival point — a harbour city and base for the north of the North Island' }, price: 2, pros: { he: 'טיסות הגעה, נמל ומסעדות', en: 'Arrival flights, harbour and restaurants' }, cons: { he: 'יקר יחסית ופחות מרשים מהטבע בהמשך', en: 'Relatively pricey, less striking than the scenery ahead' } },
+      { name: { he: 'רוטורואה', en: 'Rotorua' }, forWhom: { he: 'משפחות — גייזרים, תרבות מאורית ופעילויות', en: 'Families — geysers, Māori culture and activities' }, price: 1, pros: { he: 'גייזרים, מעיינות ותרבות מאורית — לינה זולה', en: 'Geysers, hot pools and Māori culture — cheap stays' }, cons: { he: 'ריח גופרית בכל העיר', en: 'A sulphur smell across town' } },
+      { name: { he: 'קווינסטאון', en: 'Queenstown' }, forWhom: { he: 'אוהבי אקסטרים וסקי, ובסיס למילפורד סאונד', en: 'Thrill-seekers and skiers, and a base for Milford Sound' }, price: 3, pros: { he: 'אדרנלין, סקי ונופי אגם ברגל', en: 'Adrenaline, skiing and lake views on foot' }, cons: { he: 'יקר מאוד ועמוס בעונה', en: 'Very expensive and crowded in season' } },
+      { name: { he: 'וואנקה והר קוק', en: 'Wanaka & Mount Cook' }, forWhom: { he: 'זוגות ומטיילים — אגמים, הרים ושקט', en: 'Couples and hikers — lakes, mountains and quiet' }, price: 2, pros: { he: 'שקט, אגמים ומסלולי הליכה מדהימים', en: 'Quiet, lakes and stunning hiking trails' }, cons: { he: 'מעט לינה ליד הר קוק — להזמין מוקדם', en: 'Little lodging near Mount Cook — book early' } }
     ],
     attractions: [
       { name: { he: 'מגדל הסקיי טאוור', en: 'Sky Tower' }, kind: 'viewpoint', durationH: 1, tags: ['family'], area: 'Auckland' },

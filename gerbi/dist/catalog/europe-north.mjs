@@ -72,10 +72,10 @@ export default [
       { he: 'מוזיאוני שאגאל ומאטיס', en: 'The Chagall and Matisse museums' }
     ],
     areas: [
-      { name: { he: 'העיר העתיקה (ויה ניס)', en: 'Vieux Nice' }, forWhom: { he: 'זוגות שרוצים אווירה, מסעדות וקרבה לים', en: 'Couples who want atmosphere, restaurants and the sea nearby' } },
-      { name: { he: 'לאורך הטיילת', en: 'Along the Promenade' }, forWhom: { he: 'משפחות ומי שרוצה נוף לים וגישה לחוף', en: 'Families and anyone after sea views and beach access' } },
-      { name: { he: 'כיכר מסנה ורובע הזהב', en: 'Place Masséna & the Carré d’Or' }, forWhom: { he: 'מרכזי — קניות, טראם ונוחות', en: 'Central — shopping, tram and convenience' } },
-      { name: { he: 'הנמל', en: 'The Port' }, forWhom: { he: 'שכונה מקומית ושקטה יותר, עם מסעדות דגים', en: 'A quieter local area with seafood restaurants' } }
+      { name: { he: 'העיר העתיקה (ויה ניס)', en: 'Vieux Nice' }, forWhom: { he: 'זוגות שרוצים אווירה, מסעדות וקרבה לים', en: 'Couples who want atmosphere, restaurants and the sea nearby' }, price: 2, pros: { he: 'סמטאות, שוק ומסעדות ליד הים', en: 'Alleys, market and restaurants by the sea' }, cons: { he: 'רועש בלילה וחדרים קטנים', en: 'Noisy at night, small rooms' } },
+      { name: { he: 'לאורך הטיילת', en: 'Along the Promenade' }, forWhom: { he: 'משפחות ומי שרוצה נוף לים וגישה לחוף', en: 'Families and anyone after sea views and beach access' }, price: 3, pros: { he: 'נוף לים וגישה לחוף', en: 'Sea views and beach access' }, cons: { he: 'יקר, תנועה על הטיילת וחוף חלוקים', en: 'Pricey, traffic, pebbly beach' } },
+      { name: { he: 'כיכר מסנה ורובע הזהב', en: 'Place Masséna & the Carré d’Or' }, forWhom: { he: 'מרכזי — קניות, טראם ונוחות', en: 'Central — shopping, tram and convenience' }, price: 2, pros: { he: 'מרכזי, חשמלית וקניות', en: 'Central, tram and shopping' }, cons: { he: 'עסוק ופחות אופי', en: 'Busy, less character' } },
+      { name: { he: 'הנמל', en: 'The Port' }, forWhom: { he: 'שכונה מקומית ושקטה יותר, עם מסעדות דגים', en: 'A quieter local area with seafood restaurants' }, price: 2, pros: { he: 'שקט, מקומי ומסעדות דגים', en: 'Quiet, local, seafood restaurants' }, cons: { he: 'קצת רחוק מהחופים המרכזיים', en: 'A bit far from the main beaches' } }
     ],
     attractions: [
       { name: { he: 'הטיילת של האנגלים', en: 'Promenade des Anglais' }, area: 'Along the Promenade', kind: 'landmark', durationH: 1.5, tags: ['couple', 'family'], mustSee: true },
@@ -172,9 +172,9 @@ export default [
       { he: 'טעימות ויסקי סקוטי', en: 'Scotch whisky tastings' }
     ],
     areas: [
-      { name: { he: 'העיר העתיקה', en: 'Old Town' }, forWhom: { he: 'ביקור ראשון — ליד הטירה והרויאל מייל', en: 'First-timers — near the castle and the Royal Mile' } },
-      { name: { he: 'העיר החדשה', en: 'New Town' }, forWhom: { he: 'זוגות ומשפחות — רחובות ג׳ורג׳יאניים, קניות ושקט יחסי', en: 'Couples and families — Georgian streets, shopping and relative calm' } },
-      { name: { he: 'ליית׳', en: 'Leith' }, forWhom: { he: 'אוכל טוב ליד המים ומחירים נוחים יותר', en: 'Good food by the water and better prices' } }
+      { name: { he: 'העיר העתיקה', en: 'Old Town' }, forWhom: { he: 'ביקור ראשון — ליד הטירה והרויאל מייל', en: 'First-timers — near the castle and the Royal Mile' }, price: 3, pros: { he: 'ליד הטירה והרויאל מייל', en: 'Next to the castle and Royal Mile' }, cons: { he: 'עליות, המון תיירים ויקר בפסטיבל', en: 'Hilly, crowded, pricey in festival season' } },
+      { name: { he: 'העיר החדשה', en: 'New Town' }, forWhom: { he: 'זוגות ומשפחות — רחובות ג׳ורג׳יאניים, קניות ושקט יחסי', en: 'Couples and families — Georgian streets, shopping and relative calm' }, price: 3, pros: { he: 'רחובות גאורגיאניים, קניות ושקט', en: 'Georgian streets, shopping and calm' }, cons: { he: 'יקר, במיוחד באוגוסט', en: 'Pricey, especially in August' } },
+      { name: { he: 'ליית׳', en: 'Leith' }, forWhom: { he: 'אוכל טוב ליד המים ומחירים נוחים יותר', en: 'Good food by the water and better prices' }, price: 1, pros: { he: 'אוכל טוב ליד המים ומחירים נוחים', en: 'Good waterside food and better prices' }, cons: { he: 'חשמלית או אוטובוס למרכז', en: 'Tram or bus to the centre' } }
     ],
     attractions: [
       { name: { he: 'טירת אדינבורו', en: 'Edinburgh Castle' }, area: 'Old Town', kind: 'landmark', durationH: 2.5, tags: ['culture', 'family'], mustSee: true },
@@ -220,10 +220,10 @@ export default [
       { he: 'שדות הצבעונים בקויקנהוף באביב', en: 'The tulip fields of Keukenhof in spring' }
     ],
     areas: [
-      { name: { he: 'טבעת התעלות', en: 'Canal Ring (Grachtengordel)' }, forWhom: { he: 'זוגות וביקור ראשון — הלב היפה של העיר', en: 'Couples and first-timers — the city’s beautiful heart' } },
-      { name: { he: 'יורדאן', en: 'Jordaan' }, forWhom: { he: 'אווירה שכונתית, בתי קפה וגלריות', en: 'A neighbourhood feel, cafés and galleries' } },
-      { name: { he: 'רובע המוזיאונים', en: 'Museum Quarter' }, forWhom: { he: 'משפחות ואוהבי אמנות — ליד הוונדלפארק', en: 'Families and art lovers — next to the Vondelpark' } },
-      { name: { he: 'דה פייפ', en: 'De Pijp' }, forWhom: { he: 'אוכל, שוק ומחירים נוחים יותר', en: 'Food, a market and better prices' } }
+      { name: { he: 'טבעת התעלות', en: 'Canal Ring (Grachtengordel)' }, forWhom: { he: 'זוגות וביקור ראשון — הלב היפה של העיר', en: 'Couples and first-timers — the city’s beautiful heart' }, price: 3, pros: { he: 'הלב היפה של העיר, הכול ברגל', en: 'The city’s beautiful heart, all on foot' }, cons: { he: 'יקר מאוד, מדרגות תלולות בבתים', en: 'Very pricey, steep stairs in old houses' } },
+      { name: { he: 'יורדאן', en: 'Jordaan' }, forWhom: { he: 'אווירה שכונתית, בתי קפה וגלריות', en: 'A neighbourhood feel, cafés and galleries' }, price: 3, pros: { he: 'שכונתי, בתי קפה וגלריות', en: 'Neighbourly, cafés and galleries' }, cons: { he: 'יקר ומעט מלונות', en: 'Pricey with few hotels' } },
+      { name: { he: 'רובע המוזיאונים', en: 'Museum Quarter' }, forWhom: { he: 'משפחות ואוהבי אמנות — ליד הוונדלפארק', en: 'Families and art lovers — next to the Vondelpark' }, price: 3, pros: { he: 'מוזיאונים ופארק פונדל', en: 'Museums and the Vondelpark' }, cons: { he: 'שקט בערב ויקר', en: 'Quiet at night and pricey' } },
+      { name: { he: 'דה פייפ', en: 'De Pijp' }, forWhom: { he: 'אוכל, שוק ומחירים נוחים יותר', en: 'Food, a market and better prices' }, price: 2, pros: { he: 'שוק אלברט קאופ, אוכל ומטרו', en: 'Albert Cuyp market, food and metro' }, cons: { he: 'מעט מלונות, הרבה דירות קטנות', en: 'Few hotels, mostly small apartments' } }
     ],
     attractions: [
       { name: { he: 'הרייקסמוזיאום', en: 'Rijksmuseum' }, area: 'Museum Quarter', kind: 'museum', durationH: 3, tags: ['culture'], mustSee: true },
@@ -269,10 +269,10 @@ export default [
       { he: 'ערבים בקרויצברג ובפרנצלאואר ברג', en: 'Evenings in Kreuzberg and Prenzlauer Berg' }
     ],
     areas: [
-      { name: { he: 'מיטה', en: 'Mitte' }, forWhom: { he: 'ביקור ראשון — קרוב לרוב האתרים', en: 'First-timers — close to most sights' } },
-      { name: { he: 'פרנצלאואר ברג', en: 'Prenzlauer Berg' }, forWhom: { he: 'משפחות וזוגות — שקט, ירוק ומלא בתי קפה', en: 'Families and couples — calm, leafy and full of cafés' } },
-      { name: { he: 'קרויצברג ופרידריכסהיין', en: 'Kreuzberg & Friedrichshain' }, forWhom: { he: 'צעירים — חיי לילה, אמנות רחוב ואוכל זול', en: 'Younger travellers — nightlife, street art and cheap food' } },
-      { name: { he: 'שרלוטנבורג', en: 'Charlottenburg' }, forWhom: { he: 'קניות בקורפירסטנדאם ואווירה מעודנת יותר', en: 'Shopping on the Kurfürstendamm and a more refined feel' } }
+      { name: { he: 'מיטה', en: 'Mitte' }, forWhom: { he: 'ביקור ראשון — קרוב לרוב האתרים', en: 'First-timers — close to most sights' }, price: 2, pros: { he: 'קרוב לרוב האתרים, תחבורה מצוינת', en: 'Close to most sights, excellent transport' }, cons: { he: 'פחות אווירה שכונתית', en: 'Less neighbourhood feel' } },
+      { name: { he: 'פרנצלאואר ברג', en: 'Prenzlauer Berg' }, forWhom: { he: 'משפחות וזוגות — שקט, ירוק ומלא בתי קפה', en: 'Families and couples — calm, leafy and full of cafés' }, price: 2, pros: { he: 'שקט, ירוק ומלא בתי קפה', en: 'Calm, leafy and full of cafés' }, cons: { he: 'מעט מלונות, רחוק מהמערב', en: 'Few hotels, far from the west' } },
+      { name: { he: 'קרויצברג ופרידריכסהיין', en: 'Kreuzberg & Friedrichshain' }, forWhom: { he: 'צעירים — חיי לילה, אמנות רחוב ואוכל זול', en: 'Younger travellers — nightlife, street art and cheap food' }, price: 1, pros: { he: 'חיי לילה, אמנות רחוב ואוכל זול', en: 'Nightlife, street art and cheap food' }, cons: { he: 'רועש ומוזנח בחלקו', en: 'Noisy and gritty in parts' } },
+      { name: { he: 'שרלוטנבורג', en: 'Charlottenburg' }, forWhom: { he: 'קניות בקורפירסטנדאם ואווירה מעודנת יותר', en: 'Shopping on the Kurfürstendamm and a more refined feel' }, price: 2, pros: { he: 'קודאם, קניות ואווירה מעודנת', en: 'Ku’damm shopping and a refined feel' }, cons: { he: 'רחוק ממיטה ומחיי הלילה', en: 'Far from Mitte and the nightlife' } }
     ],
     attractions: [
       { name: { he: 'שער ברנדנבורג', en: 'Brandenburg Gate' }, area: 'Mitte', kind: 'landmark', durationH: 0.5, tags: ['culture'], mustSee: true },
@@ -319,10 +319,10 @@ export default [
       { he: 'שווקי חג המולד בדצמבר', en: 'Christmas markets in December' }
     ],
     areas: [
-      { name: { he: 'העיר העתיקה של מינכן', en: 'Munich Altstadt' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' } },
-      { name: { he: 'שוואבינג ומקסוורשטאדט', en: 'Schwabing & Maxvorstadt' }, forWhom: { he: 'משפחות וזוגות — ליד הגן האנגלי והמוזיאונים', en: 'Families and couples — near the English Garden and the museums' } },
-      { name: { he: 'גרמיש־פרטנקירכן', en: 'Garmisch-Partenkirchen' }, forWhom: { he: 'בסיס באלפים — טיולים בקיץ וסקי בחורף', en: 'An Alpine base — hiking in summer, skiing in winter' } },
-      { name: { he: 'פוסן', en: 'Füssen' }, forWhom: { he: 'לינה ליד נוישוונשטיין ואגמי האלגוי', en: 'Stay near Neuschwanstein and the Allgäu lakes' } }
+      { name: { he: 'העיר העתיקה של מינכן', en: 'Munich Altstadt' }, forWhom: { he: 'ביקור ראשון — הכול ברגל', en: 'First-timers — everything on foot' }, price: 3, pros: { he: 'הכול ברגל, מריינפלאץ ובירות', en: 'All on foot, Marienplatz and beer halls' }, cons: { he: 'יקר מאוד, במיוחד באוקטוברפסט', en: 'Very pricey, especially at Oktoberfest' } },
+      { name: { he: 'שוואבינג ומקסוורשטאדט', en: 'Schwabing & Maxvorstadt' }, forWhom: { he: 'משפחות וזוגות — ליד הגן האנגלי והמוזיאונים', en: 'Families and couples — near the English Garden and the museums' }, price: 2, pros: { he: 'הגן האנגלי, מוזיאונים ושקט', en: 'English Garden, museums and calm' }, cons: { he: 'קצת רחוק מהתחנה המרכזית', en: 'A bit far from the main station' } },
+      { name: { he: 'גרמיש־פרטנקירכן', en: 'Garmisch-Partenkirchen' }, forWhom: { he: 'בסיס באלפים — טיולים בקיץ וסקי בחורף', en: 'An Alpine base — hiking in summer, skiing in winter' }, price: 2, pros: { he: 'אלפים, מסלולים וסקי', en: 'Alps, trails and skiing' }, cons: { he: 'שעה וחצי ממינכן', en: '90 minutes from Munich' } },
+      { name: { he: 'פוסן', en: 'Füssen' }, forWhom: { he: 'לינה ליד נוישוונשטיין ואגמי האלגוי', en: 'Stay near Neuschwanstein and the Allgäu lakes' }, price: 2, pros: { he: 'ליד נוישוונשטיין והאגמים', en: 'Near Neuschwanstein and the lakes' }, cons: { he: 'שקט מאוד בערב, רחוק ממינכן', en: 'Very quiet at night, far from Munich' } }
     ],
     attractions: [
       { name: { he: 'מריינפלאץ והגלוקנשפיל', en: 'Marienplatz & the Glockenspiel' }, area: 'Munich Altstadt', kind: 'landmark', durationH: 1, tags: ['family', 'culture'], mustSee: true },
@@ -368,10 +368,10 @@ export default [
       { he: 'אוכל צ׳כי ובירה במחירים נוחים', en: 'Czech food and beer at good prices' }
     ],
     areas: [
-      { name: { he: 'העיר העתיקה (סטארה מסטו)', en: 'Old Town (Staré Město)' }, forWhom: { he: 'ביקור ראשון — במרכז העניינים, קרוב לרובע היהודי', en: 'First-timers — in the thick of it, close to the Jewish quarter' } },
-      { name: { he: 'מאלה סטראנה', en: 'Malá Strana (Lesser Town)' }, forWhom: { he: 'זוגות — רחובות ציוריים מתחת למצודה', en: 'Couples — picturesque streets below the castle' } },
-      { name: { he: 'העיר החדשה (נובה מסטו)', en: 'New Town (Nové Město)' }, forWhom: { he: 'תקציב ונוחות תחבורה, קרוב לכיכר ואצלב', en: 'Budget and transport links, near Wenceslas Square' } },
-      { name: { he: 'וינוהראדי', en: 'Vinohrady' }, forWhom: { he: 'שכונה מקומית ושקטה עם בתי קפה, קצת מחוץ למרכז', en: 'A quiet local area with cafés, a little out of the centre' } }
+      { name: { he: 'העיר העתיקה (סטארה מסטו)', en: 'Old Town (Staré Město)' }, forWhom: { he: 'ביקור ראשון — במרכז העניינים, קרוב לרובע היהודי', en: 'First-timers — in the thick of it, close to the Jewish quarter' }, price: 3, pros: { he: 'בלב העניינים, ליד הרובע היהודי', en: 'In the thick of it, by the Jewish Quarter' }, cons: { he: 'צפוף ורועש, מלכודות תיירים', en: 'Crowded, noisy, tourist traps' } },
+      { name: { he: 'מאלה סטראנה', en: 'Malá Strana (Lesser Town)' }, forWhom: { he: 'זוגות — רחובות ציוריים מתחת למצודה', en: 'Couples — picturesque streets below the castle' }, price: 3, pros: { he: 'רחובות ציוריים מתחת לטירה', en: 'Picturesque streets below the castle' }, cons: { he: 'מרוצף ותלול, יקר', en: 'Cobbled and steep, pricey' } },
+      { name: { he: 'העיר החדשה (נובה מסטו)', en: 'New Town (Nové Město)' }, forWhom: { he: 'תקציב ונוחות תחבורה, קרוב לכיכר ואצלב', en: 'Budget and transport links, near Wenceslas Square' }, price: 1, pros: { he: 'משתלם ותחבורה טובה', en: 'Good value and great transport' }, cons: { he: 'פחות ציורי, רחובות סואנים בלילה', en: 'Less pretty, rowdy streets at night' } },
+      { name: { he: 'וינוהראדי', en: 'Vinohrady' }, forWhom: { he: 'שכונה מקומית ושקטה עם בתי קפה, קצת מחוץ למרכז', en: 'A quiet local area with cafés, a little out of the centre' }, price: 1, pros: { he: 'שקט, מקומי ומלא בתי קפה', en: 'Quiet, local and full of cafés' }, cons: { he: 'חשמלית או מטרו למרכז', en: 'Tram or metro to the centre' } }
     ],
     attractions: [
       { name: { he: 'מצודת פראג', en: 'Prague Castle' }, kind: 'landmark', durationH: 3, tags: ['culture'], area: 'Hradčany', mustSee: true },

@@ -19,10 +19,10 @@ export default [
       { he: 'חופים שנשארים לשחייה גם בשפל בנונגווי ובקנדווה', en: 'Beaches at Nungwi and Kendwa that stay swimmable at low tide' }
     ],
     areas: [
-      { name: { he: 'סטון טאון', en: 'Stone Town' }, forWhom: { he: '1–2 לילות של תרבות, אוכל ואווירה — לא לחופשת חוף', en: '1–2 nights of culture, food and atmosphere — not a beach base' } },
-      { name: { he: 'נונגווי וקנדווה (צפון)', en: 'Nungwi & Kendwa (north)' }, forWhom: { he: 'מי שרוצה לשחות כל היום — פחות תלות בגאות ושפל, שקיעות יפות', en: 'Swimmers — less affected by the tides, lovely sunsets' } },
-      { name: { he: 'מטמווה וקיוונגווה (צפון-מזרח)', en: 'Matemwe & Kiwengwa (north-east)' }, forWhom: { he: 'ריזורטים והכול כלול, קרוב לאטול מנמבה', en: 'Resorts and all-inclusive stays, close to Mnemba Atoll' } },
-      { name: { he: 'פאג׳ה וג׳מביאני (דרום-מזרח)', en: 'Paje & Jambiani (south-east)' }, forWhom: { he: 'קייטסרפינג, אווירה צעירה ונינוחה; שפל ארוך בחלק מהיום', en: 'Kitesurfing and a relaxed, young vibe; long low tides for part of the day' } }
+      { name: { he: 'סטון טאון', en: 'Stone Town' }, forWhom: { he: '1–2 לילות של תרבות, אוכל ואווירה — לא לחופשת חוף', en: '1–2 nights of culture, food and atmosphere — not a beach base' }, price: 1, pros: { he: 'היסטוריה, שוק לילה ואוכל רחוב', en: 'History, a night market and street food' }, cons: { he: 'אין חוף לשחייה, סמטאות צפופות', en: 'No swimming beach, crowded alleys' } },
+      { name: { he: 'נונגווי וקנדווה (צפון)', en: 'Nungwi & Kendwa (north)' }, forWhom: { he: 'מי שרוצה לשחות כל היום — פחות תלות בגאות ושפל, שקיעות יפות', en: 'Swimmers — less affected by the tides, lovely sunsets' }, price: 2, pros: { he: 'שוחים כל היום, שקיעות מרהיבות', en: 'Swimmable all day, stunning sunsets' }, cons: { he: 'מפותח ותיירותי, מסיבות בקנדווה', en: 'Built-up and touristy, beach parties in Kendwa' } },
+      { name: { he: 'מטמווה וקיוונגווה (צפון-מזרח)', en: 'Matemwe & Kiwengwa (north-east)' }, forWhom: { he: 'ריזורטים והכול כלול, קרוב לאטול מנמבה', en: 'Resorts and all-inclusive stays, close to Mnemba Atoll' }, price: 3, pros: { he: 'ריזורטים שקטים וקרבה לאטול מנמבה', en: 'Quiet resorts and close to Mnemba Atoll' }, cons: { he: 'שפל ארוך, ומעט מה לעשות מחוץ למלון', en: 'Long low tides, and little beyond the resort' } },
+      { name: { he: 'פאג׳ה וג׳מביאני (דרום-מזרח)', en: 'Paje & Jambiani (south-east)' }, forWhom: { he: 'קייטסרפינג, אווירה צעירה ונינוחה; שפל ארוך בחלק מהיום', en: 'Kitesurfing and a relaxed, young vibe; long low tides for part of the day' }, price: 1, pros: { he: 'זול, אווירה צעירה וקייטסרפינג מעולה', en: 'Cheap, young vibe and superb kitesurfing' }, cons: { he: 'בשפל הים נסוג רחוק — קשה לשחות', en: 'At low tide the sea recedes far — hard to swim' } }
     ],
     attractions: [
       { name: { he: 'סיור רגלי בסטון טאון', en: 'Stone Town walking tour' }, kind: 'neighborhood', durationH: 3, tags: ['culture'], area: 'Stone Town', mustSee: true },
@@ -68,10 +68,10 @@ export default [
       { he: 'מסלולי הליכה בהרי מאהה', en: 'Hiking trails in the hills of Mahé' }
     ],
     areas: [
-      { name: { he: 'בו ואלון (צפון מאהה)', en: 'Beau Vallon (north Mahé)' }, forWhom: { he: 'חוף ארוך ונוח לשחייה, מסעדות וקרבה לוויקטוריה', en: 'A long, swimmable beach, restaurants and easy access to Victoria' } },
-      { name: { he: 'דרום ומערב מאהה', en: 'South & west Mahé' }, forWhom: { he: 'מפרצים שקטים וריזורטים מבודדים', en: 'Quiet coves and secluded resorts' } },
-      { name: { he: 'פראסלין', en: 'Praslin' }, forWhom: { he: 'חופים מהיפים בסיישל ובסיס נוח לאיים הקטנים', en: 'Some of the best beaches and a good base for the small islands' } },
-      { name: { he: 'לה דיג', en: 'La Digue' }, forWhom: { he: 'אי קטן בלי כמעט מכוניות — אופניים, קצב איטי ורומנטיקה', en: 'A small island with hardly any cars — bikes, slow pace and romance' } }
+      { name: { he: 'בו ואלון (צפון מאהה)', en: 'Beau Vallon (north Mahé)' }, forWhom: { he: 'חוף ארוך ונוח לשחייה, מסעדות וקרבה לוויקטוריה', en: 'A long, swimmable beach, restaurants and easy access to Victoria' }, price: 2, pros: { he: 'חוף ארוך לשחייה, מסעדות ושוק לילה', en: 'A long swimmable beach, restaurants and a night market' }, cons: { he: 'פחות מבודד ופחות פראי', en: 'Less secluded and less wild' } },
+      { name: { he: 'דרום ומערב מאהה', en: 'South & west Mahé' }, forWhom: { he: 'מפרצים שקטים וריזורטים מבודדים', en: 'Quiet coves and secluded resorts' }, price: 3, pros: { he: 'מפרצים שקטים וריזורטי יוקרה', en: 'Quiet coves and luxury resorts' }, cons: { he: 'מבודד — צריך רכב לכל יציאה', en: 'Isolated — you need a car for every outing' } },
+      { name: { he: 'פראסלין', en: 'Praslin' }, forWhom: { he: 'חופים מהיפים בסיישל ובסיס נוח לאיים הקטנים', en: 'Some of the best beaches and a good base for the small islands' }, price: 2, pros: { he: 'אנס לאזיו ובלה דה מאי, בסיס לאיים', en: 'Anse Lazio and Vallée de Mai, a base for the islands' }, cons: { he: 'מעבורת או טיסה ממאהה, מעט חיי ערב', en: 'Ferry or flight from Mahé, little nightlife' } },
+      { name: { he: 'לה דיג', en: 'La Digue' }, forWhom: { he: 'אי קטן בלי כמעט מכוניות — אופניים, קצב איטי ורומנטיקה', en: 'A small island with hardly any cars — bikes, slow pace and romance' }, price: 2, pros: { he: 'אופניים, קצב איטי ואנס סורס ד׳ארז׳ן', en: 'Bikes, slow pace and Anse Source d’Argent' }, cons: { he: 'מעט מלונות ומסעדות, צריך מעבורת', en: 'Few hotels and restaurants, ferry needed' } }
     ],
     attractions: [
       { name: { he: 'אנס סורס ד׳ארז׳אן', en: 'Anse Source d’Argent' }, kind: 'beach', durationH: 3, tags: ['beach', 'couple'], area: 'La Digue', mustSee: true },
@@ -115,11 +115,11 @@ export default [
       { he: 'אוכל קריאולי והודי בשוק של פורט לואי', en: 'Creole and Indian food at the Port Louis market' }
     ],
     areas: [
-      { name: { he: 'גראנד ביי והצפון', en: 'Grand Baie & the north' }, forWhom: { he: 'מסעדות, חיי ערב ושופינג — ונוח לטיולים', en: 'Restaurants, nightlife and shopping — and handy for touring' } },
-      { name: { he: 'פליק אן פלאק והמערב', en: 'Flic en Flac & the west' }, forWhom: { he: 'שקיעות, ים רגוע וקרבה לשאמארל ולבלאק ריבר', en: 'Sunsets, calm water and close to Chamarel and Black River' } },
-      { name: { he: 'בל מאר והמזרח', en: 'Belle Mare & the east' }, forWhom: { he: 'חופים ארוכים וריזורטים גדולים — מתאים למשפחות', en: 'Long beaches and big resorts — good for families' } },
-      { name: { he: 'לה מורן והדרום-מערב', en: 'Le Morne & the south-west' }, forWhom: { he: 'קייטסרפינג, נופים דרמטיים וריזורטי יוקרה', en: 'Kitesurfing, dramatic scenery and luxury resorts' } },
-      { name: { he: 'בלו ביי והדרום-מזרח', en: 'Blue Bay & the south-east' }, forWhom: { he: 'שנורקלינג בפארק הימי, קרוב לשדה התעופה', en: 'Snorkelling in the marine park, close to the airport' } }
+      { name: { he: 'גראנד ביי והצפון', en: 'Grand Baie & the north' }, forWhom: { he: 'מסעדות, חיי ערב ושופינג — ונוח לטיולים', en: 'Restaurants, nightlife and shopping — and handy for touring' }, price: 2, pros: { he: 'מסעדות, קניות ושייט לאיים', en: 'Restaurants, shopping and island boat trips' }, cons: { he: 'חופים צפופים וחיי ערב רועשים יחסית', en: 'Crowded beaches and relatively loud evenings' } },
+      { name: { he: 'פליק אן פלאק והמערב', en: 'Flic en Flac & the west' }, forWhom: { he: 'שקיעות, ים רגוע וקרבה לשאמארל ולבלאק ריבר', en: 'Sunsets, calm water and close to Chamarel and Black River' }, price: 2, pros: { he: 'שקיעות, ים רגוע ומחירים נוחים יחסית', en: 'Sunsets, calm water and decent prices' }, cons: { he: 'חם ויבש יותר, חוף עמוס בסופ״ש', en: 'Hotter and drier, busy beach at weekends' } },
+      { name: { he: 'בל מאר והמזרח', en: 'Belle Mare & the east' }, forWhom: { he: 'חופים ארוכים וריזורטים גדולים — מתאים למשפחות', en: 'Long beaches and big resorts — good for families' }, price: 3, pros: { he: 'חופים ארוכים וריזורטים מפנקים למשפחות', en: 'Long beaches and pampering family resorts' }, cons: { he: 'רוח בחורף, רחוק מהמסעדות', en: 'Windy in winter, far from restaurants' } },
+      { name: { he: 'לה מורן והדרום-מערב', en: 'Le Morne & the south-west' }, forWhom: { he: 'קייטסרפינג, נופים דרמטיים וריזורטי יוקרה', en: 'Kitesurfing, dramatic scenery and luxury resorts' }, price: 3, pros: { he: 'נוף דרמטי וקייטסרפינג ברמה עולמית', en: 'Dramatic scenery and world-class kitesurfing' }, cons: { he: 'מבודד ויקר, מעט מה לעשות בערב', en: 'Isolated and pricey, little to do at night' } },
+      { name: { he: 'בלו ביי והדרום-מזרח', en: 'Blue Bay & the south-east' }, forWhom: { he: 'שנורקלינג בפארק הימי, קרוב לשדה התעופה', en: 'Snorkelling in the marine park, close to the airport' }, price: 1, pros: { he: 'שנורקלינג מצוין ליד החוף וקרוב לשדה', en: 'Great snorkelling off the beach, near the airport' }, cons: { he: 'רחוק מהמסעדות ומהאטרקציות בצפון ובמערב', en: 'Far from the north and west restaurants and sights' } }
     ],
     attractions: [
       { name: { he: 'אדמת שבעת הצבעים בשאמארל', en: 'Seven Coloured Earth, Chamarel' }, kind: 'nature', durationH: 1.5, tags: ['family', 'nature'], area: 'Le Morne & the south-west', mustSee: true },
@@ -166,10 +166,10 @@ export default [
       { he: 'רוד טריפ בדרך הגנים', en: 'A road trip along the Garden Route' }
     ],
     areas: [
-      { name: { he: 'סיטי בול וגארדנס', en: 'City Bowl & Gardens' }, forWhom: { he: 'מרכזי, מסעדות ובתי קפה, קרוב להר השולחן ולבו-קאפ', en: 'Central, with restaurants and cafés, close to Table Mountain and Bo-Kaap' } },
-      { name: { he: 'סי פוינט וגרין פוינט', en: 'Sea Point & Green Point' }, forWhom: { he: 'טיילת לים, קהילה יהודית ומקומות כשרים — נוח לשומרי כשרות ולשבת', en: 'A seafront promenade, the Jewish community and kosher options — handy for kashrut and Shabbat' } },
-      { name: { he: 'קמפס ביי וקליפטון', en: 'Camps Bay & Clifton' }, forWhom: { he: 'חופים, שקיעות ויוקרה', en: 'Beaches, sunsets and luxury' } },
-      { name: { he: 'הווטרפרונט (V&A)', en: 'V&A Waterfront' }, forWhom: { he: 'משפחות וביקור ראשון — בטוח, נוח ומלא אטרקציות', en: 'Families and first-timers — safe, easy and full of attractions' } }
+      { name: { he: 'סיטי בול וגארדנס', en: 'City Bowl & Gardens' }, forWhom: { he: 'מרכזי, מסעדות ובתי קפה, קרוב להר השולחן ולבו-קאפ', en: 'Central, with restaurants and cafés, close to Table Mountain and Bo-Kaap' }, price: 2, pros: { he: 'מסעדות ובתי קפה, קרוב להר השולחן', en: 'Restaurants and cafés, close to Table Mountain' }, cons: { he: 'לא על הים; אחרי החשכה עדיף מונית', en: 'Not by the sea; take a ride after dark' } },
+      { name: { he: 'סי פוינט וגרין פוינט', en: 'Sea Point & Green Point' }, forWhom: { he: 'טיילת לים, קהילה יהודית ומקומות כשרים — נוח לשומרי כשרות ולשבת', en: 'A seafront promenade, the Jewish community and kosher options — handy for kashrut and Shabbat' }, price: 2, pros: { he: 'טיילת, בתי כנסת וכשר ברגל', en: 'Promenade, synagogues and kosher food on foot' }, cons: { he: 'הים קר, ובלילה כדאי להיזהר', en: 'Cold sea, and take care at night' } },
+      { name: { he: 'קמפס ביי וקליפטון', en: 'Camps Bay & Clifton' }, forWhom: { he: 'חופים, שקיעות ויוקרה', en: 'Beaches, sunsets and luxury' }, price: 3, pros: { he: 'חופים מדהימים ושקיעות', en: 'Stunning beaches and sunsets' }, cons: { he: 'יקר, ורחוק מהמרכז ומהאוכל הכשר', en: 'Expensive, and far from the centre and kosher food' } },
+      { name: { he: 'הווטרפרונט (V&A)', en: 'V&A Waterfront' }, forWhom: { he: 'משפחות וביקור ראשון — בטוח, נוח ומלא אטרקציות', en: 'Families and first-timers — safe, easy and full of attractions' }, price: 3, pros: { he: 'הכי בטוח, הכול ברגל ונוח למשפחות', en: 'The safest area, everything on foot, family-friendly' }, cons: { he: 'יקר ותיירותי, פחות אותנטי', en: 'Pricey and touristy, less authentic' } }
     ],
     attractions: [
       { name: { he: 'הר השולחן ורכבל ההר', en: 'Table Mountain & Aerial Cableway' }, kind: 'viewpoint', durationH: 3, tags: ['nature', 'family'], area: 'City Bowl & Gardens', mustSee: true },
@@ -215,10 +215,10 @@ export default [
       { he: 'מרכז הג׳ירפות ובית היתומים לפילים בניירובי', en: 'The Giraffe Centre and the elephant orphanage in Nairobi' }
     ],
     areas: [
-      { name: { he: 'ניירובי (קארן)', en: 'Nairobi (Karen)' }, forWhom: { he: 'לילה ראשון ואחרון, קרוב לאטרקציות של בעלי החיים', en: 'First and last nights, close to the wildlife attractions' } },
-      { name: { he: 'מסאי מארה', en: 'Maasai Mara' }, forWhom: { he: 'לב הספארי — לפחות 3 לילות, במיוחד בעונת הנדידה', en: 'The heart of the safari — at least 3 nights, especially in migration season' } },
-      { name: { he: 'אמבוסלי', en: 'Amboseli' }, forWhom: { he: 'פילים ונוף הקילימנג׳רו — 2 לילות', en: 'Elephants and Kilimanjaro views — 2 nights' } },
-      { name: { he: 'נאיבאשה ונאקורו (עמק השבר)', en: 'Naivasha & Nakuru (Rift Valley)' }, forWhom: { he: 'עצירה בדרך למארה: אגמים, ספארי ברגל ורכיבה על אופניים', en: 'A stop on the way to the Mara: lakes, walking safaris and cycling' } }
+      { name: { he: 'ניירובי (קארן)', en: 'Nairobi (Karen)' }, forWhom: { he: 'לילה ראשון ואחרון, קרוב לאטרקציות של בעלי החיים', en: 'First and last nights, close to the wildlife attractions' }, price: 2, pros: { he: 'שקט וירוק, ליד מרכז הג׳ירפות והפילים', en: 'Quiet and green, near the Giraffe Centre and elephant orphanage' }, cons: { he: 'רחוק מהשדה בפקקים, ובלילה נוסעים רק ברכב', en: 'A long traffic-jammed ride from the airport; by car only at night' } },
+      { name: { he: 'מסאי מארה', en: 'Maasai Mara' }, forWhom: { he: 'לב הספארי — לפחות 3 לילות, במיוחד בעונת הנדידה', en: 'The heart of the safari — at least 3 nights, especially in migration season' }, price: 3, pros: { he: 'ספארי מהטובים בעולם מהאוהל', en: 'World-class game viewing from your tent' }, cons: { he: 'יקר, וכבישים משובשים או טיסה קטנה', en: 'Expensive, with rough roads or a light-aircraft flight' } },
+      { name: { he: 'אמבוסלי', en: 'Amboseli' }, forWhom: { he: 'פילים ונוף הקילימנג׳רו — 2 לילות', en: 'Elephants and Kilimanjaro views — 2 nights' }, price: 2, pros: { he: 'פילים על רקע הקילימנג׳רו', en: 'Elephants against Kilimanjaro' }, cons: { he: 'מאובק, ופחות מגוון מהמארה', en: 'Dusty, and less variety than the Mara' } },
+      { name: { he: 'נאיבאשה ונאקורו (עמק השבר)', en: 'Naivasha & Nakuru (Rift Valley)' }, forWhom: { he: 'עצירה בדרך למארה: אגמים, ספארי ברגל ורכיבה על אופניים', en: 'A stop on the way to the Mara: lakes, walking safaris and cycling' }, price: 1, pros: { he: 'מחירים נוחים וספארי ברגל ובאופניים', en: 'Good prices and walking or cycling safaris' }, cons: { he: 'פחות טורפים — לא תחליף למארה', en: 'Fewer predators — no substitute for the Mara' } }
     ],
     attractions: [
       { name: { he: 'נסיעות ספארי בשמורת מסאי מארה', en: 'Game drives in the Maasai Mara National Reserve' }, kind: 'nature', durationH: 8, tags: ['adventure', 'nature'], area: 'Maasai Mara', mustSee: true },

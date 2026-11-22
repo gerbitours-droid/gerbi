@@ -18,10 +18,10 @@ export default [
       { he: 'קניות בקניונים הגדולים בעולם', en: 'Shopping in some of the world’s largest malls' }
     ],
     areas: [
-      { name: { he: 'דובאי מרינה ו־JBR', en: 'Dubai Marina & JBR' }, forWhom: { he: 'חוף, טיילת ומסעדות — טוב לרוב המטיילים', en: 'Beach, promenade and restaurants — good for most travellers' } },
-      { name: { he: 'דאונטאון', en: 'Downtown' }, forWhom: { he: 'מי שרוצה את בורג׳ ח׳ליפה ודובאי מול ברגל', en: 'Walking distance to the Burj Khalifa and Dubai Mall' } },
-      { name: { he: 'פאלם ג׳ומיירה', en: 'Palm Jumeirah' }, forWhom: { he: 'ריזורטים עם חוף פרטי — משפחות וזוגות', en: 'Resorts with private beaches — families and couples' } },
-      { name: { he: 'דיירה ובור דובאי', en: 'Deira & Bur Dubai' }, forWhom: { he: 'תקציב, שווקים ואווירה מקומית', en: 'Budget stays, souks and local feel' } }
+      { name: { he: 'דובאי מרינה ו־JBR', en: 'Dubai Marina & JBR' }, forWhom: { he: 'חוף, טיילת ומסעדות — טוב לרוב המטיילים', en: 'Beach, promenade and restaurants — good for most travellers' }, price: 2, pros: { he: 'חוף, טיילת ומסעדות ממש ליד המלון', en: 'Beach, promenade and restaurants right by the hotel' }, cons: { he: 'רחוק מהדאונטאון ועמוס בפקקים', en: 'Far from Downtown and traffic-heavy' } },
+      { name: { he: 'דאונטאון', en: 'Downtown' }, forWhom: { he: 'מי שרוצה את בורג׳ ח׳ליפה ודובאי מול ברגל', en: 'Walking distance to the Burj Khalifa and Dubai Mall' }, price: 3, pros: { he: 'בורג׳ ח׳ליפה, המזרקות והקניון ברגל', en: 'Burj Khalifa, the fountains and the mall on foot' }, cons: { he: 'אין חוף, ויקר', en: 'No beach, and pricey' } },
+      { name: { he: 'פאלם ג׳ומיירה', en: 'Palm Jumeirah' }, forWhom: { he: 'ריזורטים עם חוף פרטי — משפחות וזוגות', en: 'Resorts with private beaches — families and couples' }, price: 3, pros: { he: 'חוף פרטי ואטלנטיס — חופשת ריזורט מושלמת', en: 'Private beaches and Atlantis — the classic resort stay' }, cons: { he: 'מבודד, תלוי במוניות לכל יציאה', en: 'Isolated — taxis for every outing' } },
+      { name: { he: 'דיירה ובור דובאי', en: 'Deira & Bur Dubai' }, forWhom: { he: 'תקציב, שווקים ואווירה מקומית', en: 'Budget stays, souks and local feel' }, price: 1, pros: { he: 'זול, שווקים ומטרו נוח', en: 'Cheap, souks and handy metro' }, cons: { he: 'רחוק מהחופים, צפוף ופחות מטופח', en: 'Far from the beaches, crowded and rough around the edges' } }
     ],
     attractions: [
       { name: { he: 'בורג׳ ח׳ליפה — At the Top', en: 'Burj Khalifa — At the Top' }, kind: 'viewpoint', durationH: 1.5, tags: ['city', 'family'], area: 'Downtown', mustSee: true },
@@ -65,10 +65,10 @@ export default [
       { he: 'אוכל רחוב, בקלאווה ומסעדות דגים', en: 'Street food, baklava and fish restaurants' }
     ],
     areas: [
-      { name: { he: 'סולטן אחמט', en: 'Sultanahmet' }, forWhom: { he: 'מי שבא בשביל האתרים — הכול במרחק הליכה', en: 'Sightseers — the main sights are within walking distance' } },
-      { name: { he: 'ביוגלו, גלאטה וקרקוי', en: 'Beyoğlu, Galata & Karaköy' }, forWhom: { he: 'זוגות וצעירים — בתי קפה, ברים וחיי לילה', en: 'Couples and younger travellers — cafés, bars and nightlife' } },
-      { name: { he: 'קאדיקוי (הצד האסייתי)', en: 'Kadıköy (Asian side)' }, forWhom: { he: 'אווירה מקומית, שוק אוכל ומחירים נוחים', en: 'Local feel, a food market and good-value prices' } },
-      { name: { he: 'בשיקטאש ונישנטאשי', en: 'Beşiktaş & Nişantaşı' }, forWhom: { he: 'קניות, מסעדות וקרבה לבוספורוס', en: 'Shopping, restaurants and close to the Bosphorus' } }
+      { name: { he: 'סולטן אחמט', en: 'Sultanahmet' }, forWhom: { he: 'מי שבא בשביל האתרים — הכול במרחק הליכה', en: 'Sightseers — the main sights are within walking distance' }, price: 2, pros: { he: 'איה סופיה, המסגד הכחול והבזאר ברגל', en: 'Hagia Sophia, the Blue Mosque and the bazaar on foot' }, cons: { he: 'תיירותי, מעט חיי ערב ומסעדות בינוניות', en: 'Touristy, little nightlife and so-so restaurants' } },
+      { name: { he: 'ביוגלו, גלאטה וקרקוי', en: 'Beyoğlu, Galata & Karaköy' }, forWhom: { he: 'זוגות וצעירים — בתי קפה, ברים וחיי לילה', en: 'Couples and younger travellers — cafés, bars and nightlife' }, price: 2, pros: { he: 'בתי קפה, ברים ונוף לבוספורוס', en: 'Cafés, bars and Bosphorus views' }, cons: { he: 'עליות תלולות ורעש בלילה סביב טקסים', en: 'Steep hills and night-time noise around Taksim' } },
+      { name: { he: 'קאדיקוי (הצד האסייתי)', en: 'Kadıköy (Asian side)' }, forWhom: { he: 'אווירה מקומית, שוק אוכל ומחירים נוחים', en: 'Local feel, a food market and good-value prices' }, price: 1, pros: { he: 'אוכל מעולה ומחירים מקומיים', en: 'Excellent food and local prices' }, cons: { he: 'צריך מעבורת לכל אתר מרכזי', en: 'A ferry ride to every major sight' } },
+      { name: { he: 'בשיקטאש ונישנטאשי', en: 'Beşiktaş & Nişantaşı' }, forWhom: { he: 'קניות, מסעדות וקרבה לבוספורוס', en: 'Shopping, restaurants and close to the Bosphorus' }, price: 3, pros: { he: 'קניות יוקרה ומסעדות טובות, אזור מטופח', en: 'Upscale shopping and good restaurants in a polished area' }, cons: { he: 'רחוק מהאתרים ההיסטוריים, פקקים קשים', en: 'Far from the historic sights, heavy traffic' } }
     ],
     attractions: [
       { name: { he: 'איה סופיה', en: 'Hagia Sophia' }, kind: 'religious', durationH: 1.5, tags: ['culture'], area: 'Sultanahmet', mustSee: true },
@@ -114,10 +114,10 @@ export default [
       { he: 'טיילת בטומי ליד הים השחור', en: 'The Batumi boulevard on the Black Sea' }
     ],
     areas: [
-      { name: { he: 'טביליסי — העיר העתיקה', en: 'Tbilisi — Old Town' }, forWhom: { he: 'בסיס נוח לרוב המטיילים — מסעדות, אתרים ויציאה לטיולי יום', en: 'A handy base for most travellers — restaurants, sights and day trips' } },
-      { name: { he: 'קזבגי (סטפנצמינדה)', en: 'Kazbegi (Stepantsminda)' }, forWhom: { he: 'אוהבי טבע ומסלולי הליכה בהרים', en: 'Nature lovers and mountain hikers' } },
-      { name: { he: 'קחטי — סיגנאחי ותלאווי', en: 'Kakheti — Sighnaghi & Telavi' }, forWhom: { he: 'זוגות ואוהבי יין ואוכל', en: 'Couples and wine and food lovers' } },
-      { name: { he: 'בטומי', en: 'Batumi' }, forWhom: { he: 'ים, טיילת וחיי לילה בקיץ', en: 'Sea, promenade and summer nightlife' } }
+      { name: { he: 'טביליסי — העיר העתיקה', en: 'Tbilisi — Old Town' }, forWhom: { he: 'בסיס נוח לרוב המטיילים — מסעדות, אתרים ויציאה לטיולי יום', en: 'A handy base for most travellers — restaurants, sights and day trips' }, price: 1, pros: { he: 'מסעדות ואתרים ברגל, מחירים נוחים', en: 'Restaurants and sights on foot, good prices' }, cons: { he: 'עליות, מרצפות ורעש בלילות קיץ', en: 'Hills, cobbles and noisy summer nights' } },
+      { name: { he: 'קזבגי (סטפנצמינדה)', en: 'Kazbegi (Stepantsminda)' }, forWhom: { he: 'אוהבי טבע ומסלולי הליכה בהרים', en: 'Nature lovers and mountain hikers' }, price: 1, pros: { he: 'נוף הרים מטורף ומסלולים מהדלת', en: 'Stunning mountain views and trails from the door' }, cons: { he: 'מעט מסעדות; הכביש נחסם לפעמים בשלג', en: 'Few restaurants; the road can close in snow' } },
+      { name: { he: 'קחטי — סיגנאחי ותלאווי', en: 'Kakheti — Sighnaghi & Telavi' }, forWhom: { he: 'זוגות ואוהבי יין ואוכל', en: 'Couples and wine and food lovers' }, price: 1, pros: { he: 'יקבים, אוכל ביתי ונוף לעמק', en: 'Wineries, home cooking and valley views' }, cons: { he: 'שקט מאוד בערב ורחוק מטביליסי', en: 'Very quiet at night and a drive from Tbilisi' } },
+      { name: { he: 'בטומי', en: 'Batumi' }, forWhom: { he: 'ים, טיילת וחיי לילה בקיץ', en: 'Sea, promenade and summer nightlife' }, price: 2, pros: { he: 'ים, טיילת ובילוי בקיץ', en: 'Sea, promenade and summer fun' }, cons: { he: 'חוף חלוקים, ומחוץ לעונה מת', en: 'A pebble beach, and dead out of season' } }
     ],
     attractions: [
       { name: { he: 'העיר העתיקה של טביליסי', en: 'Tbilisi Old Town' }, kind: 'neighborhood', durationH: 3, tags: ['culture', 'food'], area: 'Tbilisi — Old Town', mustSee: true },
@@ -163,9 +163,9 @@ export default [
       { he: 'מעיינות חמים בכפר באניה הסמוך', en: 'Hot springs in nearby Banya' }
     ],
     areas: [
-      { name: { he: 'ליד תחנת הרכבל', en: 'Near the gondola station' }, forWhom: { he: 'גולשים ומשפחות — יוצאים לסקי בלי הסעות', en: 'Skiers and families — out on the slopes without shuttles' } },
-      { name: { he: 'העיירה העתיקה', en: 'Old Town' }, forWhom: { he: 'אווירה, מסעדות וטברנות; מעט רחוק יותר מהרכבל', en: 'Atmosphere, restaurants and taverns; a little further from the gondola' } },
-      { name: { he: 'באניה ורזלוג', en: 'Banya & Razlog' }, forWhom: { he: 'תקציב ומעיינות חמים, עם הסעה למסלולים', en: 'Budget stays and hot springs, with a shuttle to the slopes' } }
+      { name: { he: 'ליד תחנת הרכבל', en: 'Near the gondola station' }, forWhom: { he: 'גולשים ומשפחות — יוצאים לסקי בלי הסעות', en: 'Skiers and families — out on the slopes without shuttles' }, price: 2, pros: { he: 'יוצאים לסקי בלי הסעות ותורים', en: 'Out on the slopes with no shuttles' }, cons: { he: 'תורים ארוכים לרכבל בבוקר, ופחות אווירה', en: 'Long morning gondola queues, and less charm' } },
+      { name: { he: 'העיירה העתיקה', en: 'Old Town' }, forWhom: { he: 'אווירה, מסעדות וטברנות; מעט רחוק יותר מהרכבל', en: 'Atmosphere, restaurants and taverns; a little further from the gondola' }, price: 2, pros: { he: 'טברנות ואווירה של עיירה אמיתית', en: 'Taverns and a real-town atmosphere' }, cons: { he: '10–15 דקות הליכה לרכבל', en: 'A 10–15 minute walk to the gondola' } },
+      { name: { he: 'באניה ורזלוג', en: 'Banya & Razlog' }, forWhom: { he: 'תקציב ומעיינות חמים, עם הסעה למסלולים', en: 'Budget stays and hot springs, with a shuttle to the slopes' }, price: 1, pros: { he: 'זול, עם מעיינות חמים', en: 'Cheap, with hot springs' }, cons: { he: 'צריך הסעה כל יום, מעט חיי ערב', en: 'Daily shuttle needed, little nightlife' } }
     ],
     attractions: [
       { name: { he: 'רכבל בנסקו', en: 'Bansko gondola' }, kind: 'experience', durationH: 0.5, tags: ['ski', 'family'], area: 'Near the gondola station', mustSee: true },
@@ -210,9 +210,9 @@ export default [
       { he: 'שייט קיאקים בין המנגרובים', en: 'Kayaking among the mangroves' }
     ],
     areas: [
-      { name: { he: 'אי יאס', en: 'Yas Island' }, forWhom: { he: 'משפחות — פארקי שעשועים, פארק מים וחוף', en: 'Families — theme parks, a water park and a beach' } },
-      { name: { he: 'אי סעדיית', en: 'Saadiyat Island' }, forWhom: { he: 'חוף יפה, מוזיאונים וריזורטים — זוגות ומשפחות', en: 'A beautiful beach, museums and resorts — couples and families' } },
-      { name: { he: 'הקורניש ומרכז העיר', en: 'The Corniche & city centre' }, forWhom: { he: 'מחירים נוחים יותר, טיילת וקרבה לאתרים', en: 'Better prices, a promenade and close to the sights' } }
+      { name: { he: 'אי יאס', en: 'Yas Island' }, forWhom: { he: 'משפחות — פארקי שעשועים, פארק מים וחוף', en: 'Families — theme parks, a water park and a beach' }, price: 2, pros: { he: 'פרארי וורלד, יאס ווטרוורלד וחוף — הכול קרוב', en: 'Ferrari World, Yas Waterworld and the beach close together' }, cons: { he: 'מבודד מהעיר ומהמסגד הגדול', en: 'Cut off from the city and the Grand Mosque' } },
+      { name: { he: 'אי סעדיית', en: 'Saadiyat Island' }, forWhom: { he: 'חוף יפה, מוזיאונים וריזורטים — זוגות ומשפחות', en: 'A beautiful beach, museums and resorts — couples and families' }, price: 3, pros: { he: 'החוף הכי יפה באבו דאבי והלובר', en: 'Abu Dhabi’s best beach and the Louvre' }, cons: { he: 'יקר ותלוי במוניות', en: 'Expensive and taxi-dependent' } },
+      { name: { he: 'הקורניש ומרכז העיר', en: 'The Corniche & city centre' }, forWhom: { he: 'מחירים נוחים יותר, טיילת וקרבה לאתרים', en: 'Better prices, a promenade and close to the sights' }, price: 1, pros: { he: 'מחירים נוחים וטיילת יפה', en: 'Good prices and a lovely promenade' }, cons: { he: 'פחות אווירת נופש, רחוק מפארקי השעשועים', en: 'Less of a holiday feel, far from the theme parks' } }
     ],
     attractions: [
       { name: { he: 'המסגד הגדול של שייח׳ זאיד', en: 'Sheikh Zayed Grand Mosque' }, kind: 'religious', durationH: 2, tags: ['culture', 'family'], area: 'Al Rawdah', mustSee: true },
@@ -257,9 +257,9 @@ export default [
       { he: 'ריף הדולפינים', en: 'The Dolphin Reef' }
     ],
     areas: [
-      { name: { he: 'החוף הצפוני והטיילת', en: 'North Beach & the promenade' }, forWhom: { he: 'משפחות ומי שרוצה מסעדות, טיילת ובילוי במרחק הליכה', en: 'Families and anyone who wants restaurants, the promenade and nightlife on foot' } },
-      { name: { he: 'החוף הדרומי (חוף האלמוגים)', en: 'South coast (Coral Beach)' }, forWhom: { he: 'שנורקלינג, צלילה ושקט', en: 'Snorkelling, diving and quiet' } },
-      { name: { he: 'מרכז העיר', en: 'Town centre' }, forWhom: { he: 'תקציב — דירות ואכסניות קרוב לקניונים', en: 'Budget — apartments and guesthouses near the malls' } }
+      { name: { he: 'החוף הצפוני והטיילת', en: 'North Beach & the promenade' }, forWhom: { he: 'משפחות ומי שרוצה מסעדות, טיילת ובילוי במרחק הליכה', en: 'Families and anyone who wants restaurants, the promenade and nightlife on foot' }, price: 2, pros: { he: 'הכול ברגל — חוף, טיילת ומסעדות', en: 'Everything on foot — beach, promenade and restaurants' }, cons: { he: 'עמוס ורועש בחגים ובסופ״ש', en: 'Crowded and loud on holidays and weekends' } },
+      { name: { he: 'החוף הדרומי (חוף האלמוגים)', en: 'South coast (Coral Beach)' }, forWhom: { he: 'שנורקלינג, צלילה ושקט', en: 'Snorkelling, diving and quiet' }, price: 2, pros: { he: 'שונית צמודה לחוף ושקט', en: 'A reef right off the beach, and quiet' }, cons: { he: 'רחוק מהמרכז — צריך מונית או אוטובוס', en: 'Far from the centre — taxi or bus needed' } },
+      { name: { he: 'מרכז העיר', en: 'Town centre' }, forWhom: { he: 'תקציב — דירות ואכסניות קרוב לקניונים', en: 'Budget — apartments and guesthouses near the malls' }, price: 1, pros: { he: 'זול וקרוב לקניונים', en: 'Cheap and close to the malls' }, cons: { he: 'לא על הים, ופחות אווירת חופשה', en: 'Not on the sea, less of a holiday feel' } }
     ],
     attractions: [
       { name: { he: 'המצפה התת־ימי (קורל וורלד)', en: 'Coral World Underwater Observatory' }, kind: 'experience', durationH: 3, tags: ['family', 'with_children'], area: 'South coast (Coral Beach)', mustSee: true },
@@ -302,9 +302,9 @@ export default [
       { he: 'חורף חמים ושמש כמעט כל השנה', en: 'A warm winter and sunshine almost all year' }
     ],
     areas: [
-      { name: { he: 'עין בוקק', en: 'Ein Bokek' }, forWhom: { he: 'מלונות על החוף, ספא וחוף ציבורי — משפחות וזוגות', en: 'Beachfront hotels, spas and a public beach — families and couples' } },
-      { name: { he: 'עין גדי', en: 'Ein Gedi' }, forWhom: { he: 'טבע, מסלולים ושקט', en: 'Nature, trails and quiet' } },
-      { name: { he: 'ערד', en: 'Arad' }, forWhom: { he: 'תקציב, מעל הים — עשרים דקות נסיעה למטה', en: 'Budget stays above the sea — a 20-minute drive down' } }
+      { name: { he: 'עין בוקק', en: 'Ein Bokek' }, forWhom: { he: 'מלונות על החוף, ספא וחוף ציבורי — משפחות וזוגות', en: 'Beachfront hotels, spas and a public beach — families and couples' }, price: 3, pros: { he: 'מלונות על החוף עם ספא וטיפולים', en: 'Beachfront hotels with spas and treatments' }, cons: { he: 'יקר, ומעט מאוד מחוץ למלונות', en: 'Pricey, and little beyond the hotels' } },
+      { name: { he: 'עין גדי', en: 'Ein Gedi' }, forWhom: { he: 'טבע, מסלולים ושקט', en: 'Nature, trails and quiet' }, price: 2, pros: { he: 'שמורה ומסלולים ממש ליד', en: 'The nature reserve and trails right next door' }, cons: { he: 'מעט אפשרויות לינה ואוכל', en: 'Few places to stay or eat' } },
+      { name: { he: 'ערד', en: 'Arad' }, forWhom: { he: 'תקציב, מעל הים — עשרים דקות נסיעה למטה', en: 'Budget stays above the sea — a 20-minute drive down' }, price: 1, pros: { he: 'זול ונעים, לילות קרירים במדבר', en: 'Cheap and pleasant, cool desert nights' }, cons: { he: 'נסיעה לים כל יום', en: 'A drive down to the sea every day' } }
     ],
     attractions: [
       { name: { he: 'מצדה', en: 'Masada' }, kind: 'landmark', durationH: 3, tags: ['culture', 'family'], area: 'Masada', mustSee: true },
@@ -347,9 +347,9 @@ export default [
       { he: 'יציאה להרי האטלס או למדבר אגפאי', en: 'A trip to the Atlas mountains or the Agafay desert' }
     ],
     areas: [
-      { name: { he: 'המדינה (העיר העתיקה)', en: 'The Medina' }, forWhom: { he: 'ריאדים, שווקים ואווירה — זוגות ומי שבא לחוויה', en: 'Riads, souks and atmosphere — couples and experience seekers' } },
-      { name: { he: 'גליז', en: 'Gueliz' }, forWhom: { he: 'העיר החדשה — מסעדות, בתי קפה ושקט יחסי', en: 'The new town — restaurants, cafés and relative calm' } },
-      { name: { he: 'הפלמרייה', en: 'The Palmeraie' }, forWhom: { he: 'ריזורטים עם בריכות מחוץ לעיר — משפחות ומנוחה', en: 'Resorts with pools outside town — families and rest' } }
+      { name: { he: 'המדינה (העיר העתיקה)', en: 'The Medina' }, forWhom: { he: 'ריאדים, שווקים ואווירה — זוגות ומי שבא לחוויה', en: 'Riads, souks and atmosphere — couples and experience seekers' }, price: 2, pros: { he: 'ריאדים מיוחדים, הג׳מע אל־פנא והשווקים ברגל', en: 'Gorgeous riads, Jemaa el-Fnaa and the souks on foot' }, cons: { he: 'סמטאות מבלבלות, רוכלים לוחצים ורעש', en: 'Confusing alleys, pushy touts and noise' } },
+      { name: { he: 'גליז', en: 'Gueliz' }, forWhom: { he: 'העיר החדשה — מסעדות, בתי קפה ושקט יחסי', en: 'The new town — restaurants, cafés and relative calm' }, price: 1, pros: { he: 'מסעדות ובתי קפה מודרניים, נוח ושקט יחסית', en: 'Modern restaurants and cafés, easy and relatively calm' }, cons: { he: 'פחות קסם, ונסיעה לאתרים בעיר העתיקה', en: 'Less charm, and a ride to the old-city sights' } },
+      { name: { he: 'הפלמרייה', en: 'The Palmeraie' }, forWhom: { he: 'ריזורטים עם בריכות מחוץ לעיר — משפחות ומנוחה', en: 'Resorts with pools outside town — families and rest' }, price: 3, pros: { he: 'ריזורטים עם בריכות גדולות ושקט', en: 'Resorts with big pools and real quiet' }, cons: { he: 'רחוק מהמדינה, תלוי בהסעות', en: 'Far from the Medina, reliant on shuttles' } }
     ],
     attractions: [
       { name: { he: 'כיכר ג׳מע אל פנא', en: 'Jemaa el-Fnaa' }, kind: 'landmark', durationH: 2, tags: ['culture', 'food', 'evening'], area: 'The Medina', mustSee: true },
