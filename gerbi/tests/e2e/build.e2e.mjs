@@ -34,12 +34,23 @@ try {
     await page.waitForSelector('#magic-text');
     check(`${tag} home shows the magic prompt + nav link`, await page.locator('#magic-form label').isVisible() && await page.locator('header nav a[href="#/build"], #mobile-menu a[href="#/build"]').count() >= 1);
     if (!LIVE) await page.screenshot({ path: `${OUT}/${tag}-home-prompt${sfx}.png`, clip: { x: 0, y: 0, width, height: width > 500 ? 520 : 700 } });
+    let releasePlan;
+    if (!LIVE) {
+      const gate = new Promise((resolve) => { releasePlan = resolve; });
+      await page.route('**/api/build', async (route) => { await gate; await route.continue(); }, { times: 1 });
+    }
     await page.fill('#magic-text', TEXT[l]);
     await page.click('.magic-submit');
     // 23.11.2026: an animated "Gerbi is thinking" stage with steps that tick, then the plan before the prices.
     await page.waitForSelector('.bk-think .bk-think-steps li', { timeout: 10000 });
     check(`${tag} thinking stage: mascot + 5 steps`, await page.evaluate(() => window.__think) === 5);
     if (!LIVE) await page.locator('.bk-think').first().screenshot({ path: `${OUT}/${tag}-thinking${sfx}.png` }).catch(() => {});
+    if (!LIVE) {
+      try {
+        await page.locator('[data-poll="flight.direct"]').click();
+        check(`${tag} can answer a preference before the plan arrives`, await page.locator('[data-poll-step="1"]').isVisible());
+      } finally { releasePlan(); }
+    }
     await page.waitForSelector('#bc-itinerary .bk-day', { timeout: 15000 });
     check(`${tag} prompt opens #/build and plans immediately`, page.url().includes('#/build?q='));
     await page.waitForSelector('#bc-flights .bk-pending, #bc-flights [data-pick-flight], #bc-flights .bk-quote', { timeout: 10000 });
@@ -60,6 +71,10 @@ try {
     await page.screenshot({ path: `${OUT}/${tag}-package${sfx}.png`, fullPage: true });
     check(`${tag} no horizontal scroll`, await noHScroll(page));
     if (LIVE) { check(`${tag} live: flight prices are live and hotels are ${PUBLIC ? 'live' : 'a live-based estimate'}`, flights > 0 && (PUBLIC ? hotels > 0 : await page.locator('#bc-hotels .bk-hotel-est').count() === 1)); await ctx.close(); continue; }
+    check(`${tag} the preference stays available after prices arrive`, await page.locator('#bc-live [data-poll-step="1"]').isVisible() && await page.locator('#bc-live [data-poll-apply]').isVisible());
+    await page.locator('[data-build-jump="itinerary"]').focus();
+    await page.keyboard.press('Enter');
+    check(`${tag} the itinerary shortcut moves keyboard focus to its section`, await page.evaluate(() => document.activeElement?.id === 'bh-itinerary'));
 
     const dyk = await page.evaluate(() => [...window.__dyk]);
     check(`${tag} did-you-know facts are about Italy (Rome)`, dyk.every((c) => c === 'IT'), dyk.join(',') || 'not shown (all answers within the grace time)');

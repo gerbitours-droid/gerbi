@@ -9,7 +9,6 @@ import { multiLink } from './multi-city-core.mjs';
 import { timeVsIsrael } from './timezone.mjs';
 import { account, ready as accountReady } from './account.mjs';
 import { bookingConfig, startBooking, prefillFromBooking } from './booking-client.mjs';
-import { asciiBackground } from './ascii-bg.mjs';
 import { slingTop } from './sling-top.mjs';
 import { brochureHtml, loadBrochureData } from './brochure.mjs';
 import { fitPackage, upsellOffers, applyUpsell, flightsInBudget } from './budget.mjs';
@@ -44,9 +43,9 @@ const travellersText = (r) => t('build.travellers', { adults: r.adults, children
 
 // ---- input
 const EXAMPLES = ['build.example.family', 'build.example.couple', 'build.example.friends'];
+const EXAMPLE_ICONS = ['people', 'heart', 'globe'];
 const CHIPS = [['who', ['couple', 'family', 'friends', 'solo']], ['budget', ['low', 'mid', 'high']], ['style', ['beach', 'city', 'nature', 'ski', 'allInclusive', 'car']]];
 function inputHtml(text = '') {
-  // Chat composer (spec 27): one rounded box – text on top, tools and a round send button underneath.
   return `<form id="build-form" class="build-form gb-composer" novalidate>
    <label for="build-text" class="build-label sr-only">${t('build.input.label')}</label>
    <div class="gb-box">
@@ -54,14 +53,14 @@ function inputHtml(text = '') {
     <div class="gb-bar">
      <button type="button" class="gb-tool" aria-expanded="false" aria-controls="gb-prefs" data-prefs>${icon('filter')}<span>${t('build.prefs')}</span></button>
      <span id="build-hint" class="gb-hint">${t('build.input.hint')}</span>
-     <button type="submit" class="build-submit gb-send" aria-label="${esc(t('build.input.submit'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+     <button type="submit" class="build-submit gb-send">${icon('spark')}<span>${t('build.input.submit')}</span></button>
     </div>
    </div>
    <div id="gb-prefs" class="gb-prefs" hidden>
    ${CHIPS.map(([group, ids]) => `<div class="build-chips" role="group" aria-label="${esc(t(`build.chip.${group}`))}"><span class="build-chip-label" aria-hidden="true">${t(`build.chip.${group}`)}</span>${ids.map((id) => `<button type="button" class="build-chip" data-chip="${group}.${id}" aria-pressed="false">${t(`build.chip.${group}.${id}`)}</button>`).join('')}</div>`).join('')}
    <div class="build-chips" role="group" aria-label="${esc(t('build.chip.when'))}"><label class="build-chip-label" for="build-month">${t('build.chip.when')}</label><select id="build-month" class="build-month"><option value="">${t('build.chip.when.any')}</option>${MONTHS.map((m, i) => `<option value="${i}">${esc(m)}</option>`).join('')}</select></div>
    </div>
-   <div class="build-examples gb-suggest"><span class="sr-only">${t('build.input.examples')}</span>${EXAMPLES.map((k) => `<button type="button" class="gb-card" data-example="${k}"><strong>${t(k + '.short')}</strong><span>${t(k)}</span></button>`).join('')}</div>
+   <div class="gb-examples"><p>${t('build.input.examples')}</p><div class="gb-suggest">${EXAMPLES.map((k, i) => `<button type="button" class="gb-card" data-example="${k}"><span class="gb-card-icon">${icon(EXAMPLE_ICONS[i])}</span><strong>${t(k + '.short')}</strong><small>${t(k)}</small></button>`).join('')}</div></div>
    <p class="build-error" role="alert" hidden></p>
   </form>`;
 }
@@ -108,23 +107,27 @@ function newProgress(mine, target) {
 }
 function setStep(step, state, label = '') {
   if (!progress) return;
-  progress.steps[step] = state; if (label) progress.labels[step] = label;
+  progress.steps[step] = state;
+  progress.labels[step] = label;
   paintSteps();
 }
-const stepText = (s) => (progress?.steps[s] === 'done' || progress?.steps[s] === 'skip') && progress.labels[s] ? progress.labels[s] : t(`build.think.${s === 'understand' ? 'understand' : s === 'route' ? 'route' : s}`);
-const stepsHtml = () => STEPS.map((s) => `<li data-think="${s}" class="is-${progress?.steps[s] || 'wait'}"><span class="bk-step-ico" aria-hidden="true"></span><span class="bk-step-text">${esc(stepText(s))}</span></li>`).join('');
+const STEP_ICONS = { understand: 'spark', route: 'pin', flights: 'plane', hotels: 'hotel', budget: 'tag' };
+const stepText = (s) => progress.steps[s] === 'wait' ? t('build.step.wait') : progress.labels[s] || t(`build.think.${s}`);
+const stepsHtml = () => STEPS.map((s) => `<li data-think="${s}" class="is-${progress.steps[s]}"><span class="bk-step-ico" aria-hidden="true">${icon(STEP_ICONS[s])}</span><span><strong>${t(`build.step.${s}`)}</strong><small class="bk-step-text">${esc(stepText(s))}</small></span></li>`).join('');
 function paintSteps() {
-  for (const list of view?.querySelectorAll('.bk-think-steps') || []) for (const s of STEPS) {
+  if (!progress || !view) return;
+  for (const list of view.querySelectorAll('.bk-think-steps')) for (const s of STEPS) {
     const li = list.querySelector(`[data-think="${s}"]`); if (!li) continue;
-    const cls = `is-${progress?.steps[s] || 'wait'}`;
+    const cls = `is-${progress.steps[s]}`;
     if (!li.classList.contains(cls)) { li.className = cls; li.querySelector('.bk-step-text').textContent = stepText(s); }
   }
   paintEta(progress);
 }
 function paintEta(p) {
   if (!p || p !== progress || !view) return;
-  const states = Object.values(p.steps), doneShare = states.filter((x) => x === 'done' || x === 'skip').length / states.length;
-  const timeShare = Math.min(0.94, (Date.now() - p.started) / p.eta), pct = p.done ? 100 : Math.round(Math.max(doneShare * 100, timeShare * 100, 6));
+  const states = Object.values(p.steps);
+  const completed = states.filter((state) => state === 'done' || state === 'skip').length;
+  const pct = Math.round(completed * 100 / states.length);
   const left = Math.ceil((p.eta - (Date.now() - p.started)) / 1000);
   for (const bar of view.querySelectorAll('.bk-think-bar span')) bar.style.width = `${pct}%`;
   for (const line of view.querySelectorAll('.bk-think-eta')) line.textContent = p.done ? t('build.think.ready') : left > 0 ? t('build.think.eta', { seconds: left }) : t('build.think.almost');
@@ -157,7 +160,6 @@ async function build(input) {
   const you = $('.gb-you', view); if (you && input.text) { you.querySelector('p').textContent = input.text; you.hidden = followUp; } leadOpen = false; showAllHotels = new Set(); openDays = new Set(); dayExpand = {}; stayExpand = {}; showAllAttractions = false;
   const out = $('#build-result'), err = $('.build-error', view), button = $('.build-submit', view);
   err.hidden = true; button.disabled = true; button.setAttribute('aria-busy', 'true');
-  out.setAttribute('aria-busy', 'true');
   // Facts from the first moment: the plan's country on a follow-up, else a guess from the text (Italy for "ברומא").
   const target = followUp && before ? { id: before.destination.id, code: before.destination.code } : { cc: guessCountry([input.text, ...(input.thread || [])].join(' ')) };
   const p = newProgress(mine, target), place = followUp && before ? L(before.destination.name) : '';
@@ -178,10 +180,11 @@ async function build(input) {
     for (const h of out.querySelectorAll('.bk-think h2')) h.textContent = t('build.think.title', { place: where });
     setStep('understand', 'done', t('build.think.done.understand', { place: where }));
     setStep('route', 'done', t('build.think.done.route', { days: pkg.itinerary.length }));
-    setStep('flights', pkg.flights.status === 'pending' ? 'active' : 'done', pkg.flights.status === 'live' ? t('build.think.done.flights', { count: pkg.flights.total }) : t('build.think.done.flightsQuote'));
+    if (pkg.flights.status === 'pending') setStep('flights', 'active');
+    else setStep('flights', 'done', pkg.flights.status === 'live' ? t('build.think.done.flights', { count: pkg.flights.total }) : t('build.think.done.flightsQuote'));
     const pendingHotels = hotelGroups().map((g, i) => (g.status === 'pending' ? i : -1)).filter((i) => i >= 0);
-    setStep('hotels', pendingHotels.length ? 'active' : 'done', t('build.think.done.hotelsQuote'));
-    setStep('budget', 'active');
+    if (pendingHotels.length) setStep('hotels', 'active');
+    else setStep('hotels', 'done', hotelsLabel());
     // Everything that is still missing, in parallel; the page shows the plan after GRACE_MS whatever has arrived.
     const jobs = [fetchFlights(mine), Promise.all(pendingHotels.map((i) => fetchHotels(mine, i))).then(() => { if (mine === version && pendingHotels.length) setStep('hotels', 'done', hotelsLabel()); })];
     if (!pkg.polish) fetchPolish(mine);
@@ -190,9 +193,12 @@ async function build(input) {
     if (mine !== version) return;
     const facts = out.querySelector('.did-you-know');
     fitBudget(); render(); remember(); if (!followUp) track('plan_shown'); announce(t('build.status.skeleton', { place: where }));
-    if (facts && progress && !progress.done) $('#bc-live .bk-think-facts', view)?.append(facts);
+  if (facts && !p.done) $('#bc-live .bk-think-facts', view)?.append(facts);
     paintSteps();
-    $('#build-result h2')?.focus({ preventScroll: false });
+    if (!document.activeElement?.closest('.bk-poll-host')) {
+      const heading = $(p.done ? '.bk-summary h2' : '.bk-think-head h3', out);
+      heading?.focus();
+    }
   } catch (error) {
     if (mine !== version) return;
     stopProgress(); thinking = false;
@@ -205,11 +211,16 @@ function finishProgress(mine) {
   if (mine !== version || !progress || progress.mine !== mine) return;
   fitBudget(); if (pkg?.destination && view?.isConnected) repaintPrices(); persist();
   const b = pkg?.request?.budget ? pricePackage(pkg, getFx()).budget : null;
-  setStep('budget', 'done', b ? t(b.verdict === 'over' ? 'build.think.done.budgetOver' : 'build.think.done.budget') : t('build.think.done.total'));
+  const budgetLabel = b?.verdict === 'within' ? 'budget' : ['over', 'near'].includes(b?.verdict) ? 'budgetOver' : 'total';
+  setStep('budget', 'done', t(`build.think.done.${budgetLabel}`));
   progress.done = true; paintEta(progress); rememberEta(Date.now() - progress.started);
   clearInterval(progress.timer); progress.facts?.(); progress.facts = null; thinking = false;
   const live = $('#bc-live', view);
-  if (live) { live.classList.add('bk-live-done'); live.removeAttribute('aria-busy'); live.querySelector('.bk-think-facts')?.remove(); const notify = live.querySelector('.bk-notify'); if (notify && !notify.open) notify.remove(); /* never under someone typing */ const h = live.querySelector('h2, h3'); if (h) h.textContent = t('build.live.done'); }
+  if (live) {
+    live.classList.add('bk-live-done');
+    live.querySelector('.bk-think-facts')?.remove();
+    $('.bk-think-head h3', live).textContent = t('build.live.done');
+  }
   announce(t('build.live.done'));
 }
 async function fetchFlights(mine) {
@@ -260,14 +271,14 @@ async function fetchPolish(mine) {
 // While it thinks: three one-tap questions (labour that improves the result keeps people in; answers apply in one tap).
 const POLL = [['flight', ['direct', 'cheap', 'noNight']], ['hotel', ['beach', 'center', 'any']], ['pace', ['relaxed', 'balanced', 'packed']]];
 function pollHtml(i = 0) {
-  if (i >= POLL.length) return `<p class="bk-poll-done">${t('build.poll.done')}</p>`;
+  if (i >= POLL.length) return `<p class="bk-poll-done" tabindex="-1">${t('build.poll.done')}</p>`;
   const [q, opts] = POLL[i];
-  return `<fieldset class="bk-poll" data-poll-step="${i}"><legend>${t('build.poll.lead')} ${t(`build.poll.${q}`)}</legend>${opts.map((o) => `<button type="button" class="chip" data-poll="${q}.${o}">${t(`build.poll.${q}.${o}`)}</button>`).join('')}</fieldset>`;
+  return `<fieldset class="bk-poll" data-poll-step="${i}"><legend>${t(`build.poll.${q}`)} <small>${t('build.poll.step', { current: i + 1, total: POLL.length })}</small></legend><div class="bk-poll-choices">${opts.map((o) => `<button type="button" class="chip" data-poll="${q}.${o}">${t(`build.poll.${q}.${o}`)}</button>`).join('')}</div></fieldset>`;
 }
 // "No time to wait?" – a name and a phone; the plan as it stands goes to an agent with the request to send it on
 // WhatsApp (a person sends it: the site does not message customers by itself).
 function notifyHtml() {
-  return `<details class="bk-notify"><summary>${t('build.notify.summary')}</summary><form id="build-notify" class="bk-notify-form" novalidate>
+  return `<details class="bk-notify"><summary>${icon('send')}<span>${t('build.notify.summary')}</span>${icon('down')}</summary><form id="build-notify" class="bk-notify-form" novalidate>
    <label>${t('leads.field.name')}<input name="name" autocomplete="name" maxlength="80" required></label>
    <label>${t('leads.field.phone')}<input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
    <div class="lead-trap" aria-hidden="true"><label>${t('leads.trap')}<input name="website" tabindex="-1" autocomplete="off"></label></div>
@@ -280,12 +291,19 @@ async function sendNotify(form) {
     website: String(d.get('website') || ''), source: '/build#notify', lang, ...packageLeadFields(snapshot, lang), package: snapshot };
   const { errors } = validateLead(input, { lang });
   if (Object.keys(errors).length) { err.textContent = Object.values(errors)[0]; err.hidden = false; return; }
+  err.hidden = true;
   form.querySelector('[type=submit]').disabled = true;
   try {
     const response = await fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(errorText(data.error, data.message, 'leads'));
-    form.closest('details').innerHTML = `<p class="bk-notify-done">${t('build.notify.done', { ref: `<bdi dir="ltr">${esc(data.id)}</bdi>` })}</p>`; leadSent = true; track('notify_request');
+    const done = document.createElement('p');
+    done.className = 'bk-notify-done';
+    done.tabIndex = -1;
+    done.innerHTML = t('build.notify.done', { ref: `<bdi dir="ltr">${esc(data.id)}</bdi>` });
+    form.closest('details').replaceWith(done);
+    done.focus();
+    leadSent = true; track('notify_request');
   } catch (error) { err.textContent = error.message || t('build.err.generic'); err.hidden = false; form.querySelector('[type=submit]').disabled = false; }
 }
 // "Before you go": once a session, on a desktop exit gesture, when there is a plan and nothing was sent yet.
@@ -309,20 +327,19 @@ function resumeHtml(last) {
    <p class="micro-copy">${esc((last.input.thread || [last.input.text]).join(' · ').slice(0, 220))}</p>
    <div class="bk-resume-acts"><button type="button" class="button yellow" data-resume="go">${t('build.resume.go')}</button><button type="button" class="button secondary" data-resume="new">${t('build.resume.new')}</button></div></section>`;
 }
-// The mascot "thinks": it bobs, a little plane circles it, thought dots pulse (all CSS; still with reduced motion).
-const mascotHtml = (size = 88) => `<div class="bk-think-mascot" aria-hidden="true" style="--m:${size}px"><span class="bk-think-glow"></span><img src="/assets/mascot.webp" alt="" width="${size}" height="${size}"><span class="bk-think-orbit"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><span class="bk-think-bubbles"><i></i><i></i><i></i></span></div>`;
+const mascotHtml = () => '<div class="bk-think-mascot" aria-hidden="true"><img src="/assets/mascot.webp" alt="" width="52" height="52"></div>';
 function thinkingHtml(place, poll = true) {
-  return `<section class="bk-card bk-think" aria-busy="true"><div class="bk-think-top">${mascotHtml()}<div class="bk-think-head" aria-live="polite"><h2 tabindex="-1">${place ? t('build.think.title', { place: esc(place) }) : t('build.think.titleAny')}</h2>
+  return `<section class="bk-card bk-think"><div class="bk-think-top">${mascotHtml()}<div class="bk-think-head"><h2 tabindex="-1">${place ? t('build.think.title', { place: esc(place) }) : t('build.think.titleAny')}</h2>
    <p class="bk-think-eta micro-copy" aria-live="off"></p></div></div><div class="bk-think-bar" aria-hidden="true"><span></span></div>
-   <ol class="bk-think-steps">${stepsHtml()}</ol><div class="bk-think-facts"></div>${notifyHtml()}${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
+   <ol class="bk-think-steps">${stepsHtml()}</ol><div class="bk-think-facts"></div>${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
 }
-// The same steps above the plan while live prices are still on their way (the poll moves with them).
-function liveHtml() {
-  if (!progress || progress.done) return '';
-  const poll = $('.bk-poll-host', view)?.innerHTML || '';
-  return `<section class="bk-card bk-think bk-live" id="bc-live" aria-busy="true"><div class="bk-think-top">${mascotHtml(56)}<div class="bk-think-head" aria-live="polite"><h3>${t('build.live.title')}</h3>
+// Keep the poll available when the plan arrives, including when the price checks finish quickly.
+function liveHtml(poll) {
+  if (!progress || (progress.done && !poll)) return '';
+  return `<section class="bk-card bk-think bk-live${progress.done ? ' bk-live-done' : ''}" id="bc-live"><div class="bk-think-top">${mascotHtml()}<div class="bk-think-head"><h3 tabindex="-1">${t(progress.done ? 'build.live.done' : 'build.live.title')}</h3>
    <p class="bk-think-eta micro-copy" aria-live="off"></p></div></div><div class="bk-think-bar" aria-hidden="true"><span></span></div>
-   <ol class="bk-think-steps">${stepsHtml()}</ol><div class="bk-think-facts"></div>${notifyHtml()}${poll ? `<div class="bk-poll-host">${poll}</div>` : ''}</section>`;
+   <ol class="bk-think-steps">${stepsHtml()}</ol><div class="bk-think-facts"></div>
+   <div class="bk-live-tools">${poll ? `<div class="bk-poll-host">${poll}</div><div class="bk-poll-apply-host">${pollApplyHtml()}</div>` : ''}${notifyHtml()}</div></section>`;
 }
 function skeletonHtml() {
   return `<div class="build-skeleton" aria-hidden="true">${['where', 'flights', 'hotels', 'itinerary'].map(() => '<div class="bk-card bk-skel"><span></span><span></span><span></span></div>').join('')}</div><p class="micro-copy">${t('build.status.planning')}</p>`;
@@ -336,21 +353,26 @@ function suggestionsHtml() {
    <p class="micro-copy">${esc(s.reasons.join(' · ') || t('build.where.fit'))}</p>${s.advisory ? `<p class="micro-copy bk-advisory">${esc(s.advisory)}</p>` : ''}${s.flightHours ? `<p class="micro-copy">${t('build.where.flight', { hours: s.flightHours })}${s.direct ? ' · ' + t('build.where.direct') : ''}</p>` : ''}</div>
    ${s.id === pkg.destination?.id ? `<span class="bk-current" aria-current="true">${t('build.where.chosen')}</span>` : `<button type="button" class="button secondary" data-choose="${esc(s.id)}">${t('build.where.choose', { place: esc(L(s.name)) })}</button>`}</li>`).join('')}</ul>`;
 }
+const JUMPS = [['flights', 'plane', 'build.flights.title'], ['hotels', 'hotel', 'build.hotels.title'], ['itinerary', 'pin', 'build.itinerary.title'], ['total', 'tag', 'build.total.title']];
+const jumpHtml = () => `<nav class="bk-jumps" aria-label="${t('build.sections')}">${JUMPS.map(([id, symbol, label]) => `<button type="button" data-build-jump="${id}">${icon(symbol)}${t(label)}${icon('down')}</button>`).join('')}</nav>`;
 function render() {
   const r = pkg.request, out = $('#build-result');
+  const poll = $('.bk-poll-host', out);
+  const pollFocus = poll?.contains(document.activeElement) ? document.activeElement.dataset.poll || '' : null;
   out.removeAttribute('aria-busy');
   const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
   const stale = pkg.sharedAt && isStale(pkg.flights?.searchedAt || pkg.sharedAt);
-  out.innerHTML = `${historyHtml()}${pkg.chatReply ? `<p class="bk-reply">${pkg.chatReply.length ? t('build.chat.reply', { list: esc(pkg.chatReply.join(' · ')) }) : t('build.chat.noChange')}${pkg.kept?.includes('flights') ? ` <small>${t('build.chat.kept')}</small>` : ''}</p>` : ''}${liveHtml()}<div class="bk-summary">
+  out.innerHTML = `${historyHtml()}${pkg.chatReply ? `<p class="bk-reply">${pkg.chatReply.length ? t('build.chat.reply', { list: esc(pkg.chatReply.join(' · ')) }) : t('build.chat.noChange')}${pkg.kept?.includes('flights') ? ` <small>${t('build.chat.kept')}</small>` : ''}</p>` : ''}${liveHtml(poll?.innerHTML)}<div class="bk-summary">
     ${pkg.destination.image ? `<img class="bk-hero-img" src="${esc(pkg.destination.image)}" alt="" data-fallback>` : ''}
-    <div><span class="eyebrow">${t('build.result.kicker')}</span><h2 tabindex="-1">${esc(stops.map((s) => L(s.name)).join(' ← '))}</h2>
-    <p>${esc(longDay(r.start))} – ${esc(longDay(r.end))} · ${t('build.nights', { count: r.nights })} · ${esc(travellersText(r))}</p>
+    <div class="bk-summary-body"><span class="eyebrow">${t('build.result.kicker')}</span><h2 tabindex="-1">${esc(stops.map((s) => L(s.name)).join(' ← '))}</h2>
+    <p class="bk-summary-meta"><span>${icon('calendar')}${esc(longDay(r.start))} – ${esc(longDay(r.end))}</span><span>${icon('clock')}${t('build.nights', { count: r.nights })}</span><span>${icon('people')}${esc(travellersText(r))}</span></p>
     ${pkg.understood?.length ? `<p class="bk-understood"><span class="reply-label">${t('build.understood')}</span> ${pkg.understood.map((u) => `<span class="understood-chip">${esc(u.label)}</span>`).join('')}</p>` : ''}
     ${pkg.assumed?.length ? `<p class="micro-copy bk-assumed">${t('build.assumed', { list: esc(pkg.assumed.join(' · ')) })}</p>` : ''}
     ${pkg.questions?.length ? `<p class="next-question">${pkg.questions.map(esc).join('<br>')}</p>` : ''}
     ${pkg.sharedAt ? '' : `<p class="bk-talk"><button type="button" class="link-button" data-chat-jump>${icon('spark')}${t('build.chat.talk')}</button></p>`}
     ${stale ? `<p class="notice">${t('build.shared.stale', { time: esc(fmtDate(pkg.sharedAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) })} <button type="button" class="link-button" data-act="refresh">${t('build.shared.refresh')}</button></p>` : ''}
     </div></div>
+   ${jumpHtml()}
    <div id="bc-banner" class="bk-banner-host"></div>
    ${optionsHtml()}
    ${editHtml()}
@@ -384,6 +406,7 @@ function render() {
   for (const part of ['where', 'flights', 'hotels', 'stay', 'car', 'insurance', 'itinerary', 'attractions', 'practical', 'total', 'banner', 'upsell']) paint(part);
   if (leadOpen) paintLead();
   wireImages(out);
+  if (pollFocus !== null) $(pollFocus ? `[data-poll="${pollFocus}"]` : '.bk-poll-done', out)?.focus({ preventScroll: true });
   // Details (what it is, a tip, a rough ticket price) fill the attractions and the day ideas once loaded.
   loadBrochureData().then((x) => { const first = !brochureData; brochureData = x; if (first && pkg?.destination && view?.isConnected) { paint('attractions'); if (openDays.size) paint('itinerary'); } }).catch(() => {});
   chatFab();
@@ -432,7 +455,7 @@ function chatHtml() {
 }
 // The poll can now be answered after the plan is on screen: its "apply" line lives in the chat card and follows it.
 const pollApplyHtml = () => (pollChoices.length ? `<p class="bk-poll-apply">${t('build.poll.picked', { list: esc(pollChoices.map((x) => x.label).join(' · ')) })} <button type="button" class="button secondary" data-say="${esc(pollChoices.map((x) => x.say).join(', '))}" data-poll-apply>${t('build.poll.apply')}</button></p>` : '');
-function paintPollApply() { const host = $('.bk-poll-apply-host', view); if (host) host.innerHTML = pollApplyHtml(); }
+function paintPollApply() { view.querySelectorAll('.bk-poll-apply-host').forEach((host) => { host.innerHTML = pollApplyHtml(); }); }
 // A follow-up turn: the whole conversation goes to the server (it rebuilds the request from the texts), seeded with the
 // plan as it stands so "עוד לילה" counts from the nights on screen.
 function followUp(text) {
@@ -850,20 +873,25 @@ function page({ view: host, footer, bread }) {
   const params = new URLSearchParams(location.hash.split('?')[1] || ''), q = params.get('q') || '', dest = params.get('dest') || '', shared = params.get('p') || '';
   stopDecor();
   view.innerHTML = `<div class="build-page gb-page">
-   <section class="gb-stage"><canvas class="gb-ascii" aria-hidden="true"></canvas>
+   <section class="gb-stage">
     <div class="route-width gb-stage-inner">${bread(t('build.title'))}
-     <header class="build-hero gb-hero"><img class="gb-avatar" src="/assets/mascot.webp" alt="" width="96" height="96"><span class="eyebrow">${icon('spark')}${t('build.kicker')}</span><h1 tabindex="-1">${t('build.title')}</h1><p>${t('build.subtitle')}</p></header>
-     ${inputHtml(q)}
+     <div class="gb-panel">
+      <div class="gb-content">
+       <header class="build-hero gb-hero"><div class="gb-intro"><img class="gb-avatar" src="/assets/mascot.webp" alt="" width="56" height="56"><h1 tabindex="-1">${t('build.title')}</h1></div><p>${t('build.subtitle')}</p></header>
+       ${inputHtml(q)}
+      </div>
+      <div class="gb-destination" aria-hidden="true"><img src="/assets/santorini.jpg" alt="" width="900" height="1200"><span>${icon('pin')}${t('build.hero.destination')}</span></div>
+     </div>
     </div>
    </section>
    <div class="route-width gb-thread">
     <p id="build-status" class="sr-only" aria-live="polite"></p>
     <div class="gb-you" hidden><p></p></div>
-    <div class="gb-msg"><img class="gb-msg-avatar" src="/assets/mascot.webp" alt="" width="40" height="40"><div id="build-result" class="build-result"></div></div>
+    <div id="build-result" class="build-result"></div>
     <p class="micro-copy build-disclaimer">${t('build.disclaimer')}</p>
    </div></div>${footer}`;
-  const canvas = $('.gb-ascii', view), area = $('#build-text', view);
-  decor = [asciiBackground(canvas), slingTop(t('build.toTop'))];
+  const area = $('#build-text', view);
+  decor = [slingTop(t('build.toTop'))];
   const grow = () => { area.style.height = 'auto'; area.style.height = Math.min(area.scrollHeight, 240) + 'px'; };
   area.addEventListener('input', grow); grow();
   area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-form', view).requestSubmit(); } });
@@ -924,7 +952,9 @@ function wire() {
   document.addEventListener('submit', (e) => {
     if (!view?.contains(e.target)) return;
     if (e.target.id === 'build-form') {
-      e.preventDefault(); const text = $('#build-text').value.trim(), month = $('#build-month').value;
+      e.preventDefault();
+      if ($('.gb-send', e.target).disabled) return;
+      const text = $('#build-text').value.trim(), month = $('#build-month').value;
       const full = month !== '' ? `${text}${text ? ', ' : ''}${t('build.chip.when.phrase', { month: MONTHS[Number(month)] })}` : text;
       if (!full) { const err = $('.build-error', view); err.textContent = t('build.err.empty'); err.hidden = false; $('#build-text').focus(); return; }
       history.replaceState(null, '', `#/build?q=${encodeURIComponent(full)}`); track('submit'); build({ text: full, thread: [full] });
@@ -945,16 +975,26 @@ function wire() {
     if (el('[data-example]')) { const area = $('#build-text'); area.value = t(el('[data-example]').dataset.example); area.dispatchEvent(new Event('input')); area.focus(); return; }
     if (el('[data-prefs]')) { const b = el('[data-prefs]'), open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', String(open)); $('#gb-prefs', view).hidden = !open; return; }
     if (el('[data-chip]')) { toggleChip(el('[data-chip]')); return; }
-    if (!pkg) return;
-    if (el('[data-choose]')) { build({ ...lastInput, chosen: el('[data-choose]').dataset.choose }); return; }
-    // "נמשיך מפה": this option becomes the plan and the conversation goes on from it.
     if (el('[data-poll]')) {
       const b = el('[data-poll]'), [q, o] = b.dataset.poll.split('.'), host = b.closest('.bk-poll-host'), step = Number(b.closest('[data-poll-step]').dataset.pollStep);
       track('poll_answer');
       if (!['any', 'balanced'].includes(o)) pollChoices.push({ label: t(`build.poll.${q}.${o}`), say: t(`build.poll.${q}.${o}.say`) });
-      if (host) host.innerHTML = pollHtml(step + 1); paintPollApply(); host?.querySelector('button')?.focus(); return;
+      if (host) host.innerHTML = pollHtml(step + 1);
+      paintPollApply();
+      host?.querySelector('button, [tabindex="-1"]')?.focus({ preventScroll: true });
+      return;
     }
     if (el('[data-resume]')) { const last = lastConversation(); if (el('[data-resume]').dataset.resume === 'go' && last) { track('resume_used'); $('#build-text').value = last.input.thread?.[0] || last.input.text || ''; build(last.input); } else { try { localStorage.removeItem(LAST_KEY); } catch { /* fine */ } $('#build-result').innerHTML = ''; $('#build-text').focus(); } return; }
+    if (!pkg) return;
+    if (el('[data-choose]')) { build({ ...lastInput, chosen: el('[data-choose]').dataset.choose }); return; }
+    if (el('[data-build-jump]')) {
+      const section = $(`#bc-${el('[data-build-jump]').dataset.buildJump}`, view);
+      section?.scrollIntoView({ block: 'start' });
+      const heading = $('h3', section || view);
+      heading?.setAttribute('tabindex', '-1');
+      heading?.focus({ preventScroll: true });
+      return;
+    }
     if (el('[data-continue]')) { track('option_continue'); const id = el('[data-continue]').dataset.continue; build({ ...lastInput, thread: lastInput?.thread || [lastInput?.text || ''], chosen: id, current: undefined }); return; }
     if (el('[data-say]')) { track(el('[data-poll-apply]') ? 'poll_apply' : 'chip'); if (el('[data-poll-apply]')) pollChoices = []; followUp(el('[data-say]').dataset.say); return; }
     if (el('[data-book-flight]')) {
