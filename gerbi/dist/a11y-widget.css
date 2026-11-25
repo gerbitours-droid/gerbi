@@ -77,8 +77,8 @@ html.a11y-contrast :is(.sb-launcher,.search-tabs [aria-selected=true],.message.u
 html.a11y-dark{filter:invert(1) hue-rotate(180deg);background:#fff}
 html.a11y-dark :is(img,video,canvas,iframe,.scenery,.a11y-fab,.a11y-panel){filter:invert(1) hue-rotate(180deg)}
 /* Yellow buttons/badges turn brown when inverted: invert them back (yellow + navy text); images inside are then already right. */
-html.a11y-dark :is(.yellow,.search-submit,.sb-send,.gb-send.build-submit,.badge-recommended,.card-badge,.bk-att-badge,.bk-car-badge,.option-ribbon,.account-avatar,.br-day-num){filter:invert(1) hue-rotate(180deg)}
-html.a11y-dark :is(.yellow,.search-submit,.sb-send,.gb-send.build-submit,.badge-recommended,.card-badge,.bk-att-badge,.bk-car-badge,.option-ribbon,.account-avatar,.br-day-num) img{filter:none}
+html.a11y-dark :is(.yellow,.search-submit,.sb-send,.badge-recommended,.card-badge,.bk-att-badge,.bk-car-badge,.option-ribbon,.account-avatar,.br-day-num){filter:invert(1) hue-rotate(180deg)}
+html.a11y-dark :is(.yellow,.search-submit,.sb-send,.badge-recommended,.card-badge,.bk-att-badge,.bk-car-badge,.option-ribbon,.account-avatar,.br-day-num) img{filter:none}
 html.a11y-gray{filter:grayscale(1)}
 html.a11y-dark.a11y-gray{filter:invert(1) hue-rotate(180deg) grayscale(1)}
 

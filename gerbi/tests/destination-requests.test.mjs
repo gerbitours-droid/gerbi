@@ -80,7 +80,7 @@ test('destination page: top attractions, things to do by kind, day trips and whe
     const d = byId(id), html = destinationMain(d).body;
     assert.match(html, /class="dest-section dest-sec-top"/, id);
     assert.match(html, /id="dest-todo-list"/, id);
-    assert.match(html, /class="area-card"/, id);
+    assert.match(html, /class="area-card[ "]/, id);
     assert.equal((html.match(/class="attr-card /g) || []).length, d.attractions.length + d.dayTrips.length, `${id}: one card per attraction and day trip`);
     // every card carries the alt text its photo gets once the photo list arrives, and a kind label
     for (const m of html.matchAll(/data-alt="([^"]*)"/g)) assert.ok(m[1].length > 1, id);

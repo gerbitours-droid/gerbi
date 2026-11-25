@@ -1,7 +1,9 @@
-import { rankDemoTrips, estimateDemoTotal } from './planner.mjs';
+import { rankDemoTrips, estimateDemoTotal, validFlightDates } from './planner.mjs';
 import { destinations as catalog, byId, rank as rankCatalog } from './catalog.mjs';
-import { L, destCard, readFilters, filterQuery, isFiltered, applyFilters, filtersHtml, guideDefaults, destinationMain, relatedOf, inspirationTiles, homePicks, compareColumn, imgSrc, wireDestination, monthsText } from './destinations-ui.mjs';
-import { understandRequest } from './brief-engine.mjs';
+import { L, destCard, flightEntryPanel, readFilters, filterQuery, isFiltered, applyFilters, filtersHtml, guideDefaults, destinationMain, relatedOf, inspirationTiles, homePicks, compareColumn, imgSrc, wireDestination, monthsText } from './destinations-ui.mjs';
+import { understandRequest, flightSearchFrom } from './brief-engine.mjs';
+import { openRangePicker } from './search-form.mjs';
+import { nightsBetween, selectable } from './date-range.mjs';
 import { detectLegs } from './multi-city-brief.mjs';
 import { multiLink, routeText } from './multi-city-core.mjs';
 import { STORAGE_KEY, restoreJourney, restoreComparison, itineraryDays, planDestination, applyBriefToDraft } from './journey.mjs';
@@ -12,6 +14,7 @@ import { t as tr, lang, locale } from './i18n.mjs';
 import { onFx } from './fx.mjs';
 import { packagesSectionHtml, fillPackages } from './build.mjs';
 import { ordersSectionHtml, fillOrders } from './booking.mjs';
+import { mountFloatingComposer, plannerLinksHtml, plannerStartersHtml } from './planner-ui.mjs';
 
 export const destinationInfo = {
   santorini:{country:tr('pages.dest.santorini.country.1'),categories:['beach','couple'],eyebrow:tr('pages.dest.santorini.eyebrow.1'),intro:tr('pages.dest.santorini.intro.1'),highlights:[tr('pages.dest.santorini.highlights.1'),tr('pages.dest.santorini.highlights.2'),tr('pages.dest.santorini.highlights.3')],guide:{fit:tr('pages.dest.santorini.guide.fit.1'),less:tr('pages.dest.santorini.guide.less.1'),stay:tr('pages.dest.santorini.guide.stay.1'),move:tr('pages.dest.santorini.guide.move.1'),season:tr('pages.dest.santorini.guide.season.1'),budget:tr('pages.dest.santorini.guide.budget.1')}},
@@ -32,7 +35,7 @@ export function initPages(ctx) {
  try {local=restoreJourney(localStorage.getItem(STORAGE_KEY),trips.map(t=>t.id));} catch {local=restoreJourney(null,trips.map(t=>t.id));}
  state.adults=local.brief.adults;state.children=local.brief.children;state.preferences={...local.brief,...state.preferences};
  const saved=local.saved;
- let lastFlightSearch=null,chat=[],drafts={},compare=new Set(),plannerText='',previousRoute='',lastPage='/',routeVersion=0,plannerBusy=false;
+ let chat=[],drafts={},compare=new Set(),plannerText='',previousRoute='',lastPage='/',routeVersion=0;
  const draftBaselines={}, recoverySnapshots={};
  const recoveryKey='gerbi-draft-recovery-v1';
  let recoveryEnabled=false,recovered={};
@@ -83,27 +86,58 @@ export function initPages(ctx) {
   collectionReturn=location.hash.slice(1)||'/destinations';
   const inspirationOnly=['hotels','packages'].includes(f.type);
   const source=favorites?ctx.getFavorites().filter(id=>byId(id)):null;
-  view.innerHTML=`<div class="route-width">${bread(favorites?tr('pages.footer.9'):tr('catalog.list.crumb'))}${heading(favorites?tr('catalog.fav.kicker'):tr('catalog.list.kicker',{count:catalog.length}),favorites?tr('catalog.fav.title'):tr('catalog.list.title'),favorites?tr('catalog.fav.sub'):tr('catalog.list.sub'))}${inspirationOnly?tr('pages.collection.8'):''}${filtersHtml(f)}<div class="active-filter-bar"><div id="destination-count" class="results-count" role="status"></div><button class="text-button" id="reset-filters">${icons('close')} ${tr('catalog.filter.reset')}</button></div><div id="destination-grid" class="destination-grid"></div><div class="dest-more-wrap"><button type="button" class="button secondary" id="more-destinations" hidden>${tr('catalog.more')}</button></div><div id="comparison-tray" class="comparison-tray" hidden></div>${notice()}</div>${footer()}`;
+  const filters=filtersHtml(f),filterOpen=window.matchMedia('(min-width: 1001px)').matches||isFiltered(f);
+  view.innerHTML=`<div class="route-width catalog-page">
+   ${bread(favorites?tr('pages.footer.9'):tr('catalog.list.crumb'))}
+   <div class="catalog-masthead">${heading(favorites?tr('catalog.fav.kicker'):tr('catalog.list.kicker',{count:catalog.length}),favorites?tr('catalog.fav.title'):tr('catalog.list.title'),favorites?tr('catalog.fav.sub'):tr('catalog.list.sub'))}
+    <a href="#/planner" class="catalog-plan">${icons('spark')}${tr('pages.footer.8')}</a>
+   </div>
+   ${inspirationOnly?tr('pages.collection.8'):''}${filters.toolbar}
+   <div class="catalog-workspace">
+    <details class="catalog-filters"${filterOpen?' open':''}>
+     <summary>${icons('filter')}<span>${tr('catalog.filter.title')}</span></summary>
+     <div class="catalog-filter-body">${filters.options}<button type="button" class="text-button" id="reset-filters">${icons('close')}${tr('catalog.filter.reset')}</button></div>
+    </details>
+    <section class="catalog-results" aria-label="${tr('catalog.search.results')}">
+     <div class="active-filter-bar">
+      <div id="destination-count" class="results-count" role="status"></div>
+      <div class="catalog-view" role="group" aria-label="${tr('catalog.view.label')}">
+       <button type="button" data-catalog-view="grid" aria-pressed="${f.view==='grid'}" aria-controls="destination-grid">${icons('grid')}${tr('catalog.view.grid')}</button>
+       <button type="button" data-catalog-view="list" aria-pressed="${f.view==='list'}" aria-controls="destination-grid">${icons('list')}${tr('catalog.view.list')}</button>
+      </div>
+     </div>
+     <div id="destination-grid" class="destination-grid" data-layout="${f.view}"></div>
+     <div class="dest-more-wrap"><button type="button" class="button secondary" id="more-destinations" hidden>${tr('catalog.more')}</button></div>
+    </section>
+   </div>
+   <div id="comparison-tray" class="comparison-tray" hidden></div>${notice()}
+  </div>${footer()}`;
   const total=favorites?source.length:catalog.length;
   const update=(focusFrom=0)=>{
    const matches=applyFilters(f,{source}),shown=matches.slice(0,f.n);
    $('#destination-count').textContent=tr('catalog.count',{shown:matches.length,total});
    $('#reset-filters').hidden=!isFiltered(f);
    $('#more-destinations').hidden=matches.length<=f.n;
-   $('#destination-grid').innerHTML=shown.length?shown.map(d=>destCard(d,{favorites:ctx.getFavorites(),compare})).join(''):favorites&&!total?empty(tr('catalog.fav.empty'),tr('catalog.fav.emptyText')):`<div class="empty-panel">${icons('search')}<h2>${tr('catalog.empty')}</h2><p>${tr('catalog.emptyText')}</p><button class="button secondary" id="empty-reset">${tr('catalog.filter.reset')}</button> ${action(tr('catalog.dest.ctaTailor'),'/tailor-made','yellow')}</div>`;
+   $('#destination-grid').innerHTML=shown.length?shown.map(d=>destCard(d,{favorites:ctx.getFavorites(),compare,catalogView:true})).join(''):favorites&&!total?empty(tr('catalog.fav.empty'),tr('catalog.fav.emptyText')):`<div class="empty-panel">${icons('search')}<h2>${tr('catalog.empty')}</h2><p>${tr('catalog.emptyText')}</p><button class="button secondary" id="empty-reset">${tr('catalog.filter.reset')}</button> ${action(tr('catalog.dest.ctaTailor'),'/tailor-made','yellow')}</div>`;
    if($('#empty-reset'))$('#empty-reset').onclick=resetFilters;
    if(focusFrom)$(`#destination-grid .dest-card:nth-child(${focusFrom+1}) h2 a`)?.focus();
   };
   const sync=()=>{const q=filterQuery(f);history.replaceState(null,'',`#/${favorites?'favorites':'destinations'}${q?'?'+q:''}`);collectionReturn=location.hash.slice(1);};
   const changed=()=>{f.n=12;sync();update();};
   function resetFilters(){Object.assign(f,{q:'',region:'all',style:'all',month:0,budget:0,hours:0,direct:false,sort:'recommended',n:12});sync();collection(favorites);$('#destination-filter input').focus();}
+  const viewButtons=view.querySelectorAll('[data-catalog-view]');
+  for(const button of viewButtons)button.onclick=()=>{
+   f.view=button.dataset.catalogView;
+   $('#destination-grid').dataset.layout=f.view;
+   for(const option of viewButtons)option.setAttribute('aria-pressed',String(option===button));
+   sync();
+  };
   $('#reset-filters').onclick=resetFilters;
   $('#destination-filter').onsubmit=e=>{e.preventDefault();f.q=e.target.q.value.trim().slice(0,80);f.sort=e.target.sort.value;changed();};
   $('#destination-filter select').onchange=e=>{f.sort=e.target.value;changed();};
   for(const group of ['region','style'])document.querySelectorAll(`[data-chip-${group}]`).forEach(b=>b.onclick=()=>{f[group]=b.getAttribute(`data-chip-${group}`);document.querySelectorAll(`[data-chip-${group}]`).forEach(x=>{x.classList.toggle('selected',x===b);x.setAttribute('aria-pressed',String(x===b));});changed();});
   document.querySelectorAll('[data-filter]').forEach(el=>el.onchange=()=>{const k=el.dataset.filter;f[k]=k==='direct'?el.checked:Number(el.value);changed();});
   $('#more-destinations').onclick=()=>{const from=f.n;f.n+=12;sync();update(from);};
-  document.querySelectorAll('.dest-chips .selected:not(:first-child)').forEach(b=>b.scrollIntoView({block:'nearest',inline:'center'})); // a chosen chip off-screen on a phone
   update();updateCompare();
  }
  function updateCompare(){persistComparison();const tray=$('#comparison-tray');if(!tray)return;tray.hidden=compare.size===0;tray.innerHTML=`<span><strong>${tr('pages.updateCompare.1',{size:compare.size})}</strong><small>${tr('pages.updateCompare.2')}</small></span><button class="button secondary" id="clear-comparison">${tr('pages.updateCompare.3')}</button>${action(tr('pages.updateCompare.4'),'/compare')}`;$('#clear-comparison').onclick=()=>{compare.clear();document.querySelectorAll('[data-compare]').forEach(x=>x.checked=false);updateCompare();};}
@@ -120,41 +154,287 @@ export function initPages(ctx) {
  }
  function inspiration(){const now=new Date(),tiles=inspirationTiles(now),picks=homePicks({},{limit:6,today:now});
   view.innerHTML=`<div class="route-width">${bread(tr('pages.inspiration.1'))}${heading(tr('catalog.insp.kicker'),tr('catalog.insp.title'),tr('catalog.insp.sub'))}<div class="inspiration-grid dest-insp-grid">${tiles.map(x=>`<a class="inspiration-tile" href="#/destinations?style=${x.style}"><img src="${imgSrc(x.lead)}" alt="" loading="lazy"><div><span>${tr('catalog.insp.count',{count:x.count})}</span><h2>${esc(x.label)}</h2><p>${esc(x.sub)}</p><b>${tr('catalog.insp.open')}</b></div></a>`).join('')}</div><section class="dest-section"><h2>${tr('catalog.insp.season',{month:monthText(HE_MONTHS[now.getMonth()])})}</h2><p>${tr('catalog.insp.seasonSub')}</p><div class="destination-grid">${picks.map(({destination:d,reason})=>destCard(d,{favorites:ctx.getFavorites(),reason})).join('')}</div></section><div class="blue-callout"><img src="/assets/mascot.webp" alt="${tr('pages.inspiration.17')}"><div><h2>${tr('pages.inspiration.18')}</h2><p>${tr('pages.inspiration.19')}</p></div>${action(tr('pages.inspiration.20'),'/planner')}</div></div>${footer()}`;}
- function briefForm(){return `<form id="brief-form" class="brief-form"><div class="form-grid"><label class="modal-field">${tr('pages.briefForm.1')}<input name="adults" type="number" min="1" max="9" value="${state.adults}" required></label><label class="modal-field">${tr('pages.briefForm.2')}<input name="children" type="number" min="0" max="6" value="${state.children}" required></label><label class="modal-field">${tr('pages.briefForm.3')}<input name="nights" type="number" min="1" max="30" value="${state.preferences.nights||5}" required></label><label class="modal-field">${tr('pages.briefForm.4')}<input name="budget" type="number" min="1" max="1000000" step="1" value="${state.preferences.budget||18000}" required></label></div><label class="modal-field">${tr('pages.briefForm.5')}<select name="month"><option value="">${tr('pages.briefAside.8')}</option>${HE_MONTHS.map(x=>`<option value="${x}" ${state.preferences.month===x?'selected':''}>${monthText(x)}</option>`).join('')}</select></label><fieldset><legend>${tr('pages.briefForm.18')}</legend>${[['beach',tr('pages.collection.18')],['city',tr('pages.briefForm.19')],['family',tr('pages.briefForm.20')],['relaxation',tr('pages.dest.maldives.highlights.2')],['couple',tr('pages.briefForm.21')],['direct',tr('pages.briefForm.22')],['kosher',tr('pages.briefForm.23')],['accessible',tr('pages.briefForm.24')]].map(([id,label])=>`<label><input type="checkbox" name="${id}" ${state.preferences[id]?'checked':''}>${label}</label>`).join('')}</fieldset><p class="micro-copy">${tr('pages.briefForm.25')}</p><p class="inline-error" id="brief-error" role="alert" hidden></p><button class="button yellow full-width">${tr('pages.briefForm.26')} ${icons('arrow')}</button></form>`;}
+ function briefForm(){
+  const exact=Boolean(plannerDates(state.preferences));
+  const fixedNights=exact&&state.preferences.tripType!=='oneway';
+  return `<form id="brief-form" class="brief-form"><div class="form-grid"><label class="modal-field">${tr('pages.briefForm.1')}<input name="adults" type="number" min="1" max="9" value="${state.adults}" required></label><label class="modal-field">${tr('pages.briefForm.2')}<input name="children" type="number" min="0" max="6" value="${state.children}" required></label><label class="modal-field">${tr('pages.briefForm.3')}<input name="nights" type="number" min="1" max="30" value="${fixedNights?state.preferences.nights:Math.min(30,state.preferences.nights||5)}" ${fixedNights?'disabled':'required'}></label><label class="modal-field">${tr('pages.briefForm.4')}<input name="budget" type="number" min="1" max="1000000" step="1" value="${state.preferences.budget||18000}" required></label></div><label class="modal-field">${tr('pages.briefForm.5')}<select name="month" ${exact?'disabled':''}><option value="">${tr('pages.briefAside.8')}</option>${HE_MONTHS.map(x=>`<option value="${x}" ${state.preferences.month===x?'selected':''}>${monthText(x)}</option>`).join('')}</select></label><fieldset><legend>${tr('pages.briefForm.18')}</legend>${[['beach',tr('pages.collection.18')],['city',tr('pages.briefForm.19')],['family',tr('pages.briefForm.20')],['relaxation',tr('pages.dest.maldives.highlights.2')],['couple',tr('pages.briefForm.21')],['direct',tr('pages.briefForm.22')],['kosher',tr('pages.briefForm.23')],['accessible',tr('pages.briefForm.24')]].map(([id,label])=>`<label><input type="checkbox" name="${id}" ${state.preferences[id]?'checked':''}>${label}</label>`).join('')}</fieldset><p class="micro-copy">${tr('pages.briefForm.25')}</p><p class="inline-error" id="brief-error" role="alert" hidden></p><div class="planner-brief-actions"><button type="submit" class="button yellow full-width" value="apply">${icons('check')}${tr('pages.planner.applyDetails')}</button><button type="submit" class="button secondary full-width" value="results">${tr('pages.briefForm.26')}</button></div></form>`;}
  function wireBrief(){
   const form=$('#brief-form');
   form.querySelector('fieldset')?.insertAdjacentHTML('afterend', `<label class="learning-consent"><input type="checkbox" name="learningConsent" ${state.preferences.learningConsent?'checked':''}>${tr('pages.wireBrief.1')}</label>`);
   form.querySelector('[name="learningConsent"]').onchange=(event)=>{state.preferences.learningConsent=event.currentTarget.checked;persist();};
-  form.onsubmit=e=>{e.preventDefault();const f=new FormData(form),adults=Number(f.get('adults')),children=Number(f.get('children'));if(adults+children>9){$('#brief-error').hidden=false;$('#brief-error').textContent=tr('pages.wireBrief.2');form.elements.adults.focus();return;}state.adults=adults;state.children=children;state.preferences={...state.preferences,adults,children,nights:Number(f.get('nights')),budget:Number(f.get('budget')),month:f.get('month'),learningConsent:f.has('learningConsent')};for(const x of ['beach','city','family','relaxation','couple','direct','kosher','accessible'])state.preferences[x]=f.has(x);state.start='';state.end='';persist();ctx.syncHome();navigate('/results');};}
- function planner(){view.innerHTML=`<div class="route-width">${bread(tr('pages.inspiration.20'))}${journeySteps(0)}${heading(tr('pages.planner.1'),tr('pages.planner.2'),tr('pages.planner.3'),demo)}<div class="planner-layout"><section class="chat-panel"><div class="chat-panel-head"><img src="/assets/mascot.webp" alt=""><div><h2>${tr('pages.planner.4')}</h2><span>${tr('pages.planner.5')}</span></div><span class="chat-head-actions"><button class="text-button" id="clear-chat" title="${tr('pages.planner.6')}">${tr('pages.planner.7')}</button><button class="text-button" id="new-holiday" title="${tr('pages.planner.8')}">${tr('pages.planner.9')}</button></span></div><div id="page-chat" class="page-chat" role="log" aria-live="polite"></div><div class="quick-prompts" id="planner-prompts"><button data-quick="${tr('pages.planner.10')}">${icons('sun')} ${tr('pages.collection.19')}</button><button data-quick="${tr('pages.planner.11')}">${icons('heart')} ${tr('pages.inspiration.9')}</button><button data-quick="${tr('pages.planner.12')}">${icons('globe')} ${tr('pages.collection.21')}</button></div><form id="page-chat-form"><label class="sr-only" for="page-chat-input">${tr('pages.planner.13')}</label><textarea id="page-chat-input" maxlength="1500" rows="2" placeholder="${tr('pages.planner.14')}" required></textarea><button class="blue button" aria-label="${tr('pages.planner.15')}">${icons('send')}</button></form><small class="chat-disclosure">${tr('pages.planner.16')}</small></section><aside class="brief-panel"><span class="eyebrow">${tr('pages.planner.17')}</span><h2>${tr('pages.planner.18')}</h2><p>${tr('pages.planner.19')}</p>${briefForm()}</aside></div></div>${footer()}`;
-  if(!chat.length)chat.push({role:'assistant',text:tr('pages.planner.text.1')});
-  drawChat();wireBrief();setPlannerBusy(plannerBusy);
-  $('#page-chat-form').onsubmit=e=>{e.preventDefault();const input=$('#page-chat-input'),text=input.value.trim();if(text){submitPrompt(text);input.value='';}};
-  document.querySelectorAll('[data-quick]').forEach(b=>b.onclick=()=>submitPrompt(b.dataset.quick));
-  $("#planner-prompts").addEventListener("click",e=>{const b=e.target.closest("[data-refine]");if(b){submitPrompt(b.dataset.refine);$("#page-chat-input").focus({preventScroll:true});}});
-  $('#clear-chat').onclick=()=>{if(plannerBusy)return;chat=[];lastFlightSearch=null;planner();$('#page-chat-input').focus();toast(tr('pages.planner.20'));};
-  $('#new-holiday').onclick=()=>{if(plannerBusy)return;const consent=state.preferences.learningConsent===true;state.preferences={learningConsent:consent};state.adults=2;state.children=0;chat=[];lastFlightSearch=null;persist();ctx.syncHome();planner();$('#page-chat-input').focus();toast(tr('pages.planner.21'));};
-  $('#page-chat').onclick=e=>{if(e.target.closest('[data-run-parsed-search]')&&lastFlightSearch)ctx.runFlightSearch(lastFlightSearch);};
+  form.onsubmit=e=>{
+   e.preventDefault();
+   const f=new FormData(form),adults=Number(f.get('adults')),children=Number(f.get('children'));
+   if(adults+children>9){
+    $('#brief-error').hidden=false;
+    $('#brief-error').textContent=tr('pages.wireBrief.2');
+    form.elements.adults.focus();
+    return;
+   }
+   $('#brief-error').hidden=true;
+   state.adults=adults;
+   state.children=children;
+   const p=state.preferences;
+   Object.assign(p,{
+    adults,children,nights:f.has('nights')?Number(f.get('nights')):p.nights,
+    budget:Number(f.get('budget')),month:f.get('month')??p.month,learningConsent:f.has('learningConsent')
+   });
+   for(const key of ['beach','city','family','relaxation','couple','direct','kosher','accessible'])p[key]=f.has(key);
+   const showResults=e.submitter?.value==='results';
+   if(showResults){state.start='';state.end='';}
+   if(chat.some(m=>m.picks))appendPlannerUpdate(tr('pages.planner.detailsUpdated'));
+   else{persist();ctx.syncHome();renderPlannerContext();}
+   if(showResults)navigate('/results');
+   else{
+    $('.planner-details').open=window.matchMedia('(min-width: 1001px)').matches;
+    $('#planner-guests').focus({preventScroll:true});
+    toast(tr('pages.planner.detailsUpdated'));
+   }
+  };
+ }
+ let plannerPartnerTurn=null;
+ let stopPlannerDock=null;
+ function planner(){
+  stopPlannerDock?.();
+  const detailsOpen=window.matchMedia('(min-width: 1001px)').matches;
+  view.innerHTML=`<div class="route-width planner-page flight-planner">
+   <div class="planner-workspace">
+    <aside class="planner-sidebar">
+     ${plannerLinksHtml()}
+     <details class="planner-details"${detailsOpen?' open':''}>
+      <summary><span class="planner-side-icon">${icons('filter')}</span><span>${tr('pages.planner.details')}</span></summary>
+      <div class="planner-details-body">${briefForm()}</div>
+     </details>
+    </aside>
+    <section class="planner-conversation" aria-label="${tr('pages.planner.conversation')}">
+     <header class="flight-planner-head">
+      <img src="/assets/mascot.webp" alt="" width="53" height="58">
+      <div><h1 tabindex="-1">${tr('pages.planner.4')}</h1><small>${tr('pages.planner.5')}</small></div>
+      <div class="flight-planner-actions">
+       <button type="button" class="text-button" id="clear-chat">${tr('pages.planner.delete')}</button>
+       <button type="button" class="text-button" id="new-holiday">${tr('pages.planner.reset')}</button>
+      </div>
+     </header>
+     <div id="page-chat" class="planner-log" role="log" aria-label="${tr('pages.planner.conversation')}"></div>
+    </section>
+    <section class="planner-dock floating-composer-dock" aria-label="${tr('pages.planner.13')}">
+      <div class="planner-working" id="planner-working" role="status" hidden></div>
+      <div class="planner-context">
+       <details class="planner-quick" id="planner-quick">
+        <summary title="${tr('pages.planner.suggestions')}" aria-label="${tr('pages.planner.suggestions')}">${icons('spark')}</summary>
+        <div class="planner-quick-menu"><div class="planner-prompts" id="planner-prompts" role="group"></div>${plannerStarters()}</div>
+       </details>
+       <button type="button" id="planner-calendar" aria-haspopup="dialog">${icons('calendar')}<span></span></button>
+       <button type="button" id="planner-flexible" aria-label="${tr('pages.planner.clearDates')}" title="${tr('pages.planner.clearDates')}" hidden>${icons('close')}</button>
+       <button type="button" id="planner-guests" aria-controls="brief-form">${icons('people')}<span></span></button>
+      </div>
+      <form id="page-chat-form" class="planner-composer">
+       <label class="sr-only" for="page-chat-input">${tr('pages.planner.13')}</label>
+       <textarea id="page-chat-input" maxlength="1500" rows="1" dir="auto" placeholder="${tr('pages.planner.placeholder')}" required></textarea>
+       <button type="submit" class="button blue" aria-label="${tr('pages.planner.15')}">${icons('send')}</button>
+      </form>
+      <small class="planner-disclosure">${tr('pages.planner.disclosure')}</small>
+    </section>
+   </div>
+  </div>${footer()}`;
+  if(!chat.length)chat.push({role:'assistant',welcome:true});
+  drawChat();
+  wireBrief();
+  stopPlannerDock=mountFloatingComposer($('.flight-planner .floating-composer-dock'));
+  const form=$('#page-chat-form'),input=$('#page-chat-input');
+  form.onsubmit=e=>{
+   e.preventDefault();
+   const text=input.value.trim();
+   if(!text)return;
+   input.value='';
+   submitPrompt(text);
+  };
+  input.onkeydown=e=>{
+   if(e.key!=='Enter'||e.shiftKey||e.isComposing||e.keyCode===229)return;
+   e.preventDefault();
+   if(input.value.trim())form.requestSubmit();
+  };
+  const quick=$('#planner-quick');
+  quick.onkeydown=e=>{if(e.key==='Escape'&&quick.open){e.preventDefault();quick.open=false;quick.querySelector('summary').focus();}};
+  quick.onfocusout=e=>{if(e.relatedTarget&&!quick.contains(e.relatedTarget))quick.open=false;};
+  $('#planner-prompts').onclick=e=>{
+   const button=e.target.closest('[data-refine]');
+   if(!button)return;
+   quick.open=false;
+   submitPrompt(button.dataset.refine);
+   input.focus({preventScroll:true});
+  };
+  $('.planner-starters').onclick=e=>{
+   const button=e.target.closest('[data-quick]');
+   if(!button)return;
+   quick.open=false;
+   submitPrompt(button.dataset.quick);
+   input.focus({preventScroll:true});
+  };
+  $('#planner-calendar').onclick=e=>openPlannerDates(e.currentTarget);
+  $('#planner-flexible').onclick=()=>{
+   const p=state.preferences;
+   for(const key of ['start','end','tripType','nightsConflict','datesApproximate'])delete p[key];
+   if(!p.nights||p.nights>30)p.nights=5;
+   applyPlannerDateChange(tr('pages.planner.flexibleDates'));
+  };
+  $('#planner-guests').onclick=()=>{
+   $('.planner-details').open=true;
+   $('#brief-form [name="adults"]').focus();
+  };
+  $('#page-chat').onclick=e=>{
+   const button=e.target.closest('[data-run-parsed-search], [data-planner-flight], [data-planner-date-destination]');
+   if(!button)return;
+   if(button.hasAttribute('data-planner-date-destination')&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey){
+    e.preventDefault();
+    openPlannerDates(button,button.dataset.plannerDateDestination);
+    return;
+   }
+   const message=chat[Number(button.closest('[data-turn]').dataset.turn)];
+   const code=button.dataset.plannerFlight;
+   const search=code?plannerSearch(message?.picks?.preferences,code):message?.flightSearch;
+   if(search)ctx.runFlightSearch(search);
+  };
+  $('#clear-chat').onclick=()=>confirmPlannerChange(false);
+  $('#new-holiday').onclick=()=>confirmPlannerChange(true);
   if(plannerText){const text=plannerText;plannerText='';submitPrompt(text);}
  }
- // After Gerbi has answered, the starter prompts give way to refine chips and the input invites a free-text edit.
+ function plannerDates(p){
+  const {start,end,tripType}=p;
+  const oneWay=tripType==='oneway',today=ctx.today();
+  return !p.datesApproximate&&validFlightDates(start,end,today,oneWay)&&selectable(start,today)&&(oneWay||selectable(end,today))
+   ? {start,end:oneWay?'':end,oneWay}:null;
+ }
+ function plannerSearch(p,code){
+  if(!p||!plannerDates(p))return null;
+  const result=flightSearchFrom(code?{...p,want:[code]}:p);
+  if(!result||result.origin===result.destination)return null;
+  return {...result,filters:{...result.filters,stops:p.direct?'0':result.filters.stops}};
+ }
+ function dateLabel({start,end}){
+  const date=day=>new Date(day+'T12:00:00Z');
+  const formatter=new Intl.DateTimeFormat(locale(),{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+  return end?formatter.formatRange(date(start),date(end)):formatter.format(date(start));
+ }
+ function renderPlannerContext(){
+  const dates=plannerDates(state.preferences);
+  const calendar=$('#planner-calendar');
+  const label=dates?dateLabel(dates):tr('pages.planner.pickExactDates');
+  calendar.querySelector('span').textContent=label;
+  calendar.setAttribute('aria-label',dates?tr('pages.planner.changeDates',{dates:label}):label);
+  calendar.title=label;
+  $('#planner-flexible').hidden=!dates;
+  $('#planner-guests span').textContent=tr('pages.reply.people',{v:state.adults+state.children});
+  $('#planner-guests').setAttribute('aria-label',tr('pages.planner.editTravelers'));
+ }
+ function openPlannerDates(button,code){
+  const p=state.preferences,today=ctx.today();
+  const validStart=validFlightDates(p.start,'',today,true)&&selectable(p.start,today);
+  const dates=plannerDates(p);
+  const dialog=openRangePicker({
+   start:validStart?p.start:'',end:dates?.end||'',oneWay:p.tripType==='oneway',today,returnFocus:button,autoCommit:false,
+   validate:(start,end,oneWay)=>validFlightDates(start,end,today,oneWay)&&selectable(start,today)&&(oneWay||selectable(end,today)),
+   onApply:({start,end,oneWay})=>{
+    const p=state.preferences;
+    for(const key of ['anchor','year','holiday','nightsRange','nightsConflict','datesApproximate'])delete p[key];
+    Object.assign(p,{start,end,tripType:oneWay?'oneway':'round',month:HE_MONTHS[Number(start.slice(5,7))-1]});
+    if(!oneWay)p.nights=nightsBetween(start,end);
+    if(code)p.want=[code];
+    applyPlannerDateChange(tr('pages.planner.datesUpdated',{dates:dateLabel({start,end})}));
+   }
+  });
+  dialog.classList.add('planner-calendar-dialog');
+  dialog.addEventListener('close',()=>dialog.classList.remove('planner-calendar-dialog'),{once:true});
+ }
+ function applyPlannerDateChange(label){
+  renderPlannerContext();
+  refreshPlannerDetails();
+  if(chat.some(m=>m.picks))appendPlannerUpdate(label);
+  else{
+   persist();
+   toast(label);
+  }
+  $('#planner-calendar').focus({preventScroll:true});
+ }
+ function appendPlannerUpdate(label){
+  plannerPartnerTurn=null;
+  const p={...state.preferences,adults:state.adults,children:state.children};
+  state.preferences=p;
+  const search=plannerSearch(p),ranked=rankDemoTrips(trips,p);
+  for(const m of chat)delete m.picks;
+  chat.push({role:'assistant',html:`<p class="reply-now">${esc(label)}</p>`,picks:{preferences:p,ranked},next:nextPlannerSteps({brief:p,flightSearch:search,questions:[]},null),flightSearch:search});
+  persist();ctx.syncHome();drawChat(true);
+ }
+ function confirmPlannerChange(reset){
+  const title=tr(reset?'pages.planner.resetTitle':'pages.planner.deleteTitle');
+  const description=tr(reset?'pages.planner.resetDescription':'pages.planner.deleteDescription');
+  const label=tr(reset?'pages.planner.reset':'pages.planner.delete');
+  ctx.openModal(`<div class="planner-confirm"><h2>${title}</h2><p>${description}</p>
+   <div class="dialog-actions"><button type="button" id="planner-cancel" class="button secondary" autofocus>${tr('pages.planner.cancel')}</button>
+    <button type="button" id="planner-confirm" class="button">${label}</button></div></div>`);
+  const dialog=$('#modal');
+  $('#planner-cancel').onclick=()=>dialog.close();
+  $('#planner-confirm').onclick=()=>{
+   dialog.close();
+   chat=[];
+   plannerPartnerTurn=null;
+   if(reset){
+    state.preferences={learningConsent:state.preferences.learningConsent===true};
+    state.adults=2;
+    state.children=0;
+    ctx.resetPlannerFlightForm();
+    persist();
+    ctx.syncHome();
+   }else{
+    delete state.preferences.text;
+   }
+   planner();
+   $('#page-chat-input').focus({preventScroll:true});
+   toast(tr(reset?'pages.planner.21':'pages.planner.20'));
+  };
+ }
+ function plannerStarters(){
+  return plannerStartersHtml([
+   ['sun',tr('pages.planner.starter.family'),tr('pages.planner.starter.familyDetail'),tr('pages.planner.10')],
+   ['heart',tr('pages.planner.starter.couple'),tr('pages.planner.starter.coupleDetail'),tr('pages.planner.11')],
+   ['globe',tr('pages.planner.starter.city'),tr('pages.planner.starter.cityDetail'),tr('pages.planner.12')]
+  ]);
+ }
+ // After Gerbi has answered, show follow-ups based on the current brief.
  function refineChips(){
   const p=state.preferences,month=p.month==='יולי'?'אוגוסט':'יולי';
   return [state.children>0?tr('pages.refine.noKids'):tr('pages.refine.addKid'),tr('pages.refine.plus2'),p.nights>2?tr('pages.refine.minus1'):'',p.cheaper?tr('pages.refine.pricier'):tr('pages.refine.cheaper'),tr('pages.refine.month',{month:monthText(month)})].filter(Boolean);
  }
- function drawRefine(){
-  const bar=$('#planner-prompts'),input=$('#page-chat-input');if(!bar||!input)return;
+ function drawChat(animate=false){
+  const area=$('#page-chat');
+  if(!area)return;
   const answered=chat.some(m=>m.picks!==undefined);
-  bar.classList.toggle('refine-bar',answered);
-  if(answered){bar.innerHTML=`<p class="refine-label" id="refine-label">${tr('pages.refine.label')}</p>${refineChips().map(x=>`<button type="button" data-refine="${esc(x)}">${icons('edit')} ${esc(x)}</button>`).join('')}`;input.placeholder=tr('pages.refine.placeholder');$('label[for="page-chat-input"]').textContent=tr('pages.refine.inputLabel');}
+  $('.planner-starters').hidden=answered;
+  renderPlannerWorking();
+  renderPlannerContext();
+  const lastTurn=chat.at(-1);
+  const recentUser=animate&&lastTurn?.afterPrompt?chat.findLastIndex(m=>m.role==='user'):-1;
+  area.innerHTML=chat.map((m,i)=>m.welcome
+   ?`<div class="message assistant">${esc(tr('pages.planner.text.1'))}</div>`
+   :`<div class="message ${m.role}${animate&&i===chat.length-1?' planner-reveal':i===recentUser?' planner-user-enter':''}" data-turn="${i}">${m.html||('<span dir="auto">'+esc(m.text)+'</span>')}${m.next||''}${m.picks?picksHtml(m.picks.preferences,m.picks.ranked,m.picks.multiCity):''}</div>`).join('');
+  const bar=$('#planner-prompts');
+  bar.hidden=!answered;
+  bar.innerHTML=answered?refineChips().map(x=>`<button type="button" data-refine="${esc(x)}">${icons('edit')}${esc(x)}</button>`).join(''):'';
+  bar.setAttribute('aria-label',tr('pages.refine.inputLabel'));
+  $('#page-chat-input').placeholder=tr(answered?'pages.planner.followUp':'pages.planner.placeholder');
+  const last=area.lastElementChild;
+  if(answered&&last)area.scrollTop=last.offsetTop-12;
  }
- function drawChat(){const area=$('#page-chat');if(!area)return;area.innerHTML=chat.map(m=>`<div class="message ${m.role}">${m.html||esc(m.text)}${m.picks||''}</div>`).join('');
-  const last=area.lastElementChild,withPicks=Boolean(chat.at(-1)?.picks);area.classList.toggle('has-picks',chat.some(m=>m.picks));
-  // A reply with directions is read from its top (the input and refine chips sit right under the log); otherwise the newest line.
-  area.scrollTop=withPicks&&last?Math.max(0,last.offsetTop-12):area.scrollHeight;drawRefine();}
- function setPlannerBusy(busy){
-  document.querySelectorAll('#page-chat-form button, [data-quick], [data-refine], #clear-chat, #brief-form input, #brief-form select, #brief-form button').forEach(el=>el.disabled=busy);
-  $('#page-chat-form')?.setAttribute('aria-busy',String(busy));
+ function renderPlannerWorking(){
+  const status=$('#planner-working');
+  if(!status)return;
+  const pending=plannerPartnerTurn&&chat.findLast(m=>m.role==='user')===plannerPartnerTurn;
+  status.hidden=!pending;
+  status.innerHTML=pending?`${icons('spark')}<span>${tr('pages.planner.working')}</span><span class="planner-working-dots" aria-hidden="true"></span>`:'';
+ }
+ function refreshPlannerDetails(){
+  $('.planner-details-body').innerHTML=briefForm();
+  wireBrief();
  }
  // A route of several flights (spec 10): the multi-city form is filled from a link; the search runs on the visitor's click.
  function routeHtml(legs){if(!legs)return '';const days=legs.map(l=>l.date.split('-').reverse().slice(0,2).join('.'));return `<div class="parsed-search"><p><strong>${tr('pages.routeHtml.1')}</strong> ${tr('pages.routeHtml.2',{v:esc(routeText(legs)),v2:esc(days.join(' · ')),v3:state.adults+state.children})}</p><a class="button yellow" href="${esc(multiLink({legs,adults:state.adults,children:state.children}))}">${tr('pages.routeHtml.3')}</a><p class="micro-copy">${tr('pages.routeHtml.4')}</p></div>`;}
@@ -168,21 +448,45 @@ export function initPages(ctx) {
  }
  // Up to three directions right inside Gerbi's reply: the catalog destination(s) asked for first (with flights + trip
  // builder CTAs), then the ranked demo ideas, then catalog picks. Shown on the latest reply only — it updates in place.
- function picksHtml(p,ranked){
+ function picksHtml(p,ranked,multiCity){
   const req=requestedDestinations(p),seen=new Set(),items=[];
   const push=(d,extra={})=>{if(d&&!seen.has(d.id)&&items.length<3){seen.add(d.id);items.push({d,...extra});}};
-  req.forEach(d=>{const r=ranked.find(x=>x.trip.id===d.trip);push(d,{requested:true,...(r?{trip:r.trip,total:r.total}:{})});});
+  req.forEach(d=>{const r=ranked.find(x=>x.trip.id===d.trip);push(d,r?{trip:r.trip,total:r.total}:{});});
   ranked.forEach(({trip:t,total})=>push(byId(t.id),{trip:t,total}));
-  if(items.length<3)rankCatalog(p,{limit:8}).filter(x=>!x.destination.advisory).forEach(x=>push(x.destination));
+  const catalogMatches=rankCatalog(p);
+  if(items.length<3)catalogMatches.slice(0,8).filter(x=>!x.destination.advisory).forEach(x=>push(x.destination));
   if(!items.length)return '';
-  const card=({d,requested,trip:t,total})=>`<article class="reply-pick${requested?' requested':''}"><img src="${esc(imgSrc(d))}" alt="" loading="lazy" decoding="async" width="600" height="400"><div><h3><a href="#/destination/${d.id}">${esc(L(d.name))}</a></h3><p class="micro-copy">${t?tr('pages.reply.demoPrice',{nights:p.nights||t.nights,price:money(total)}):tr('pages.reply.catalogLine',{months:esc(monthsText(d.bestMonths))})}</p><div class="reply-pick-actions"><a class="button yellow" href="#/?to=${esc(d.code)}">${icons('plane')}${tr('pages.reply.flights')}</a><a class="button secondary" href="#/build?dest=${d.id}">${icons('spark')}${tr('pages.reply.build')}</a></div></div></article>`;
-  return `<div class="reply-picks"><p class="reply-label">${tr('pages.reply.picks')}</p><div class="reply-pick-list">${items.map(card).join('')}</div><a class="reply-all" href="#/results">${tr('pages.reply.allResults')}${icons('arrow')}</a></div>`;
+  const matches=new Map(catalogMatches.map(x=>[x.destination.id,x.reasons]));
+  const card=({d,trip:t,total})=>{
+   const reasons=(matches.get(d.id)||[]).slice(0,2).map(L).map(esc);
+   const mapsQuery=new URLSearchParams({api:'1',query:`${d.name.en}, ${d.country.en}`});
+   const canSearch=!multiCity&&plannerSearch(p,d.code);
+   const search=!d.flightHours
+    ? `<a class="flight-entry-cta" href="#/destination/${d.id}">${tr('catalog.card.open')}</a>`
+    : canSearch
+    ? `<button type="button" class="flight-entry-cta" data-planner-flight="${esc(d.code)}">${tr('pages.reply.flights')}</button>`
+    : `<a class="flight-entry-cta" href="#/?to=${esc(d.code)}"${multiCity?'':` data-planner-date-destination="${esc(d.code)}" title="${esc(tr('pages.planner.pickExactDates'))}"`}>${tr('pages.reply.flights')}</a>`;
+   return `<article class="reply-pick travel-card flight-entry">
+    ${flightEntryPanel(d,{search,price:t?money(total):'',estimate:t?tr('pages.planner.cardEstimate',{nights:p.nights||t.nights}):''})}
+    ${d.advisory?`<p class="planner-pick-advisory flight-entry-support">${esc(L(d.advisory))}</p>`:''}
+    <details class="flight-entry-support travel-card-why">
+     <summary>${tr(reasons.length?'app.card.whyToggle':'pages.planner.destinationDetails')}</summary>
+     <p class="planner-pick-summary">${esc(L(d.summary))}</p>
+     ${!t&&d.bestMonths.length?`<p class="flight-entry-season">${tr('pages.planner.cardSeason')} · ${esc(monthsText(d.bestMonths))}</p>`:''}
+     ${reasons.length?`<ul class="planner-reasons">${reasons.map(reason=>`<li>${icons('check')}${reason}</li>`).join('')}</ul>`:''}
+     <div class="flight-entry-secondary">
+      <a class="button secondary" href="${esc(plannerBuildLink(p,d.id))}">${icons('spark')}${tr('pages.reply.build')}</a>
+      <a class="planner-map" href="https://www.google.com/maps/search/?${esc(mapsQuery.toString())}" target="_blank" rel="noopener noreferrer" aria-label="${tr('pages.planner.mapLabel',{name})}" title="${tr('pages.planner.map')}">${icons('pin')}</a>
+     </div>
+    </details>
+   </article>`;
+  };
+  return `<section class="reply-picks"><div class="planner-picks-heading"><h2>${icons('compass')}${tr('pages.reply.picks')}</h2><a class="reply-all" href="#/results">${tr('pages.reply.allResults')}</a></div><div class="reply-pick-list">${items.map(card).join('')}</div></section>`;
  }
- function replyHtml(result,ranked,route=null,followUp=false){
-  const p=result.brief,limits=constraintSummary(p),fs=route?null:result.flightSearch;
+ function replyHtml(result,ranked,followUp){
+  const p=result.brief,limits=constraintSummary(p);
   const chips=result.understood.map(item=>`<span class="understood-chip"${item.source?` ${tr('pages.replyHtml.chips.1',{source:esc(item.source)})}`:''}>${esc(item.label)}</span>`).join('');
   const needs=[p.kosher?tr('pages.replyHtml.needs.1'):null,p.shabbat?tr('pages.replyHtml.needs.2'):null,p.accessible?tr('pages.replyHtml.needs.3'):null].filter(Boolean);
-  const place=code=>ctx.placeLabel(code);
   const asked=requestedDestinations(p);
   const lines=[
    chips?`<p class="reply-label">${followUp?tr('pages.reply.updated'):tr('pages.replyHtml.lines.1')}</p><p class="understood-chips">${chips}</p>`:followUp?`<p>${tr('pages.reply.noChange')}</p>`:tr('pages.replyHtml.lines.2'),
@@ -193,12 +497,32 @@ export function initPages(ctx) {
    limits.excluded.length?`<p>${tr('pages.replyHtml.lines.5',{v:esc(limits.excluded.join(', '))})}</p>`:'',
    `<p>${ranked.length?`${tr('pages.replyHtml.lines.6',{length:ranked.length})}`:asked.length?tr('pages.reply.overBudget',{name:esc(asked.map(d=>L(d.name)).join(', '))}):tr('pages.replyHtml.lines.7')}</p>`,
    needs.length?`<p class="micro-copy">${tr('pages.replyHtml.lines.8',{v:esc(needs.join(', '))})}</p>`:'',
-   routeHtml(route),
-   fs?`<div class="parsed-search"><p><strong>${tr('pages.replyHtml.lines.9')}</strong> ${tr('pages.replyHtml.lines.13',{v:esc(place(fs.origin)),v2:esc(place(fs.destination)),v3:esc(fs.start.split('-').reverse().join('.')),v4:fs.end?'–'+esc(fs.end.split('-').reverse().join('.')):tr('pages.replyHtml.lines.10'),v5:fs.adults+fs.children,v6:fs.filters.stops==='0'?tr('pages.replyHtml.lines.11'):'',v7:fs.filters.checkedBag?tr('pages.replyHtml.lines.12'):''})}</p><button type="button" class="button yellow" data-run-parsed-search>${tr('pages.replyHtml.lines.14')}</button><p class="micro-copy">${tr('pages.replyHtml.lines.15')}</p></div>`:'',
-   `<p><a class="button secondary" href="#/build?q=${esc(encodeURIComponent(p.text||''))}">${tr('build.cta.planner')}</a></p>`,
-   result.questions.length?`<p class="next-question">${result.questions.map(q=>esc(q.question)).join('<br>')}</p>`:''
   ];
   return lines.filter(Boolean).join('');
+ }
+ function plannerBuildLink(p,destination=''){
+  const params=new URLSearchParams();
+  if(destination)params.set('dest',destination);
+  const dates=plannerDates(p);
+  if(dates){
+   const day=value=>value.split('-').reverse().join('/');
+   const range=dates.end?day(dates.start)+'–'+day(dates.end):day(dates.start);
+   const details=tr(dates.oneWay?'pages.planner.buildOneWay':'pages.planner.buildRound',{range,adults:p.adults||2,children:p.children||0});
+   const asked=requestedDestinations(p);
+   if(!destination&&asked.length===1)params.set('dest',asked[0].id);
+   params.set('q',details);
+  }else if(!destination&&p.text)params.set('q',p.text);
+  return '#/build'+(params.size?'?'+params:'');
+ }
+ function nextPlannerSteps(result,route){
+  const p=result.brief,fs=route?null:result.flightSearch;
+  const place=code=>ctx.placeLabel(code);
+  const flight=fs?`<div class="parsed-search"><p><strong>${tr('pages.replyHtml.lines.9')}</strong> ${tr('pages.replyHtml.lines.13',{v:esc(place(fs.origin)),v2:esc(place(fs.destination)),v3:esc(fs.start.split('-').reverse().join('.')),v4:fs.end?'–'+esc(fs.end.split('-').reverse().join('.')):tr('pages.replyHtml.lines.10'),v5:fs.adults+fs.children,v6:fs.filters.stops==='0'?tr('pages.replyHtml.lines.11'):'',v7:fs.filters.checkedBag?tr('pages.replyHtml.lines.12'):''})}</p><button type="button" class="button yellow" data-run-parsed-search>${tr('pages.replyHtml.lines.14')}</button><p class="micro-copy">${tr('pages.replyHtml.lines.15')}</p></div>`:'';
+  const questions=result.questions.map(q=>esc(q.question));
+  return `<div class="planner-next">${questions.length?`<p class="next-question">${questions.join('<br>')}</p>`:''}
+   ${routeHtml(route)}${flight}
+   <a class="button secondary" href="${esc(plannerBuildLink(p))}">${tr('build.cta.planner')}</a>
+  </div>`;
  }
  function applyPartner(partner){
   Object.assign(state.preferences,partner.patch||{});
@@ -211,30 +535,36 @@ export function initPages(ctx) {
    routeHtml(partner.legs)].filter(Boolean);
   if(!parts.length)return;
   chat.push({role:'assistant',html:parts.join('')+tr('pages.applyPartner.html.1')});
-  persist();drawChat();$('.brief-panel')&&($('.brief-panel').innerHTML=`<span class="eyebrow">${tr('pages.applyPartner.1')}</span><h2>${tr('pages.applyPartner.2')}</h2>${briefForm()}`,wireBrief());
+  persist();ctx.syncHome();drawChat(true);refreshPlannerDetails();
  }
- async function submitPrompt(text){
-  if(plannerBusy)return;
-  const version=routeVersion;
-  chat.push({role:'user',text});drawChat();
+ function submitPrompt(text){
+  const version=routeVersion,turn={role:'user',text};
+  chat.push(turn);
   const result=understandRequest(text,state.preferences,{today:ctx.today()});
   // The local answer is shown at once. The server is asked only to record consented learning, or – when the rules
   // understood too little – to consult the LLM partner, whose addition arrives as a second, clearly marked message.
   const previous=state.preferences,askPartner=result.coverage.needsPartner&&ctx.partnerAvailable();
+  if(askPartner)plannerPartnerTurn=turn;
   if(askPartner||result.brief.learningConsent===true)fetch('/api/ai/understand',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:!askPartner,body:JSON.stringify({text,lang,previous,learningConsent:result.brief.learningConsent===true})})
-   .then(r=>r.ok?r.json():null).then(data=>{if(askPartner&&data?.partner?.used&&version===routeVersion)applyPartner(data.partner);}).catch(()=>{});
-  if(version!==routeVersion)return;
+   .then(r=>r.ok?r.json():null).then(data=>{
+    if(askPartner&&data?.partner?.used&&version===routeVersion&&chat.findLast(m=>m.role==='user')===turn)applyPartner(data.partner);
+   }).catch(()=>{}).finally(()=>{
+    if(plannerPartnerTurn!==turn)return;
+    plannerPartnerTurn=null;
+    renderPlannerWorking();
+   });
   const preferences=result.brief;
   state.preferences=preferences;state.adults=preferences.adults||state.adults;state.children=preferences.children??state.children;
   state.preferences.adults=state.adults;state.preferences.children=state.children;
-  lastFlightSearch=result.flightSearch;
   const ranked=rankDemoTrips(trips,state.preferences);
   // A follow-up ("בלי ילדים", "תוסיף יומיים") edits the brief so far (understandRequest merges into it); the directions
   // move to the newest reply, so the results update in place instead of piling up.
   const followUp=chat.some(m=>m.role==='assistant'&&m.picks!==undefined);
   for(const m of chat)delete m.picks;
-  chat.push({role:'assistant',html:replyHtml(result,ranked,detectLegs(text,{today:ctx.today(),origin:result.brief.origin||'TLV'})?.legs||null,followUp),picks:picksHtml(state.preferences,ranked)});
-  persist();ctx.syncHome();drawChat();$('.brief-panel').innerHTML=`<span class="eyebrow">${tr('pages.applyPartner.1')}</span><h2>${tr('pages.applyPartner.2')}</h2>${briefForm()}`;wireBrief();
+  const route=detectLegs(text,{today:ctx.today(),origin:preferences.origin||'TLV'})?.legs||null;
+  result.flightSearch=route?null:plannerSearch(preferences);
+  chat.push({role:'assistant',afterPrompt:true,html:replyHtml(result,ranked,followUp),picks:{preferences:{...preferences},ranked,multiCity:Boolean(route)},next:nextPlannerSteps(result,route),flightSearch:route?null:result.flightSearch});
+  persist();ctx.syncHome();drawChat(true);refreshPlannerDetails();
  }
 
  function results(){
@@ -319,6 +649,7 @@ export function initPages(ctx) {
  function info(type){const privacy=type==='privacy';view.innerHTML=`<div class="article-width">${bread(privacy?tr('pages.info.1'):tr('pages.replyHtml.needs.3'))}${heading(tr('pages.footer.11'),privacy?tr('pages.info.2'):tr('pages.info.3'),privacy?tr('pages.info.4'):tr('pages.info.5'))}<div class="article-body">${privacy?`<h2>${tr('pages.info.6')}</h2><p>${tr('pages.info.7')}</p><h2>${tr('pages.info.8')}</h2><p>${tr('pages.info.9')}</p><h2>${tr('pages.info.10')}</h2><p>${tr('pages.info.11')}</p><h2>${tr('pages.info.12')}</h2><p>${tr('pages.info.13')}</p><h2>${tr('pages.info.14')}</h2><p>${tr('pages.info.15')}</p>`:`<h2>${tr('pages.info.16')}</h2><p>${tr('pages.info.17')}</p><h2>${tr('pages.info.18')}</h2><p>${tr('pages.info.19')}</p><h2>${tr('pages.info.20')}</h2><p>${tr('pages.info.21')}</p><h2>${tr('pages.info.22')}</h2><p>${tr('pages.info.23')}</p>`}</div>${action(tr('pages.info.24'),'/support','secondary')}</div>${footer()}`;}
  function notFound(){view.innerHTML=`<div class="article-width">${heading(tr('pages.notFound.1'),tr('pages.notFound.2'),tr('pages.notFound.3'))}${empty(tr('pages.notFound.4'),tr('pages.notFound.5'),'/',tr('pages.notFound.6'))}</div>${footer()}`;}
  function render(){
+  stopPlannerDock?.();stopPlannerDock=null;
   const path=(location.hash.slice(1)||'/').split('?')[0];if(['\/destinations','\/favorites'].includes(previousRoute))collectionPositions.set(collectionReturn,window.scrollY);routeVersion++;if(path!==previousRoute){lastPage=previousRoute||'/';previousRoute=path;}
   $('#modal').close();closeMenu();$('#home').hidden=path!=='/';view.hidden=path==='/';document.body.classList.toggle('inner-page',path!=='/');
   document.querySelectorAll('.header nav a').forEach(a=>{const active=a.getAttribute('href')==='#'+path;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});document.querySelectorAll('[data-mobile]').forEach(a=>{const active=a.hash==='#'+path||(a.dataset.mobile==='planner'&&['/results','/compare'].includes(path));a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});

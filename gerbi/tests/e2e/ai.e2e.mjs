@@ -23,7 +23,7 @@ if (W < 800) await page.locator('#flight-filters summary').click();
 log('airport filter options:', await page.locator('legend', { hasText: 'שדה תעופה ביעד' }).locator('..').locator('.filter-option').allInnerTexts());
 await page.locator('#live-results').scrollIntoViewIfNeeded(); await page.screenshot({ path: `${OUT}/ai-results-${W}.png` });
 // new holiday resets the brief but keeps saved things
-await page.goto(base + '/#/planner'); await page.locator('#new-holiday').click();
+await page.goto(base + '/#/planner'); await page.locator('#new-holiday').click(); await page.locator('#planner-confirm').click();
 log('after new holiday – travelers field:', await page.locator('#brief-form [name=adults]').inputValue(), '| chat messages:', await page.locator('#page-chat .message').count());
 await page.goto(base + '/#/destination/maldives'); log('maldives heading:', await page.locator('.dest-demo h2').innerText());
 log('overflow:', await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), '| errors:', errors);

@@ -32,21 +32,49 @@ export const placeTitle = (d) => { const n = L(d.name), c = L(d.country); return
 export const imgSrc = (d, big = false) => (big ? d.image.src : d.image.thumb);
 const altOf = (d) => L(d.image.alt) || `${L(d.name)}, ${L(d.country)}`;
 
+export function flightEntryPanel(d, { search, price = '', estimate = '', heading = 'h3' }) {
+  const name = esc(L(d.name));
+  const airport = d.flightHours && /^[A-Z]{3}$/.test(d.code) ? `<span>${icon('plane')}<bdi>${esc(d.code)}</bdi></span>` : '';
+  const cost = price && estimate ? `<span>${icon('tag')}<strong><bdi>${esc(price)}</bdi></strong></span>` : '';
+  return `<div class="flight-entry-panel">
+   <a class="flight-entry-photo" href="#/destination/${d.id}" tabindex="-1" aria-hidden="true"><img src="${imgSrc(d)}" alt="" loading="lazy" decoding="async" width="600" height="400"></a>
+   <div class="flight-entry-body">
+    <${heading}><a href="#/destination/${d.id}">${name}</a></${heading}><p class="flight-entry-country">${esc(L(d.country))}</p>
+    ${cost || airport ? `<div class="flight-entry-meta">${cost}${airport}</div>` : ''}
+    ${cost ? `<small class="flight-entry-price-note">${esc(estimate)}</small>` : ''}
+    <div class="flight-entry-actions">${search}</div>
+   </div>
+  </div>`;
+}
+
 // The destinations-page card (also favorites, inspiration, related, results).
-export function destCard(d, { favorites = [], compare = null, reason = '', heart = true, actions = false } = {}) {
+export function destCard(d, { favorites = [], compare = null, reason = '', heart = true, actions = false, catalogView = false } = {}) {
   const fav = favorites.includes(d.id), name = L(d.name);
-  return `<article class="destination-card dest-card" data-dest-card="${d.id}"><a href="#/destination/${d.id}" class="destination-photo" tabindex="-1" aria-hidden="true"><img src="${imgSrc(d)}" alt="" loading="lazy" decoding="async" width="600" height="400"><span class="photo-label">${esc(L(regions[d.region]))}</span></a>`
+  const compareHtml = compare ? `<label class="compare-check"><input type="checkbox" data-compare="${d.id}" ${compare.has(d.id) ? 'checked' : ''}>${t('catalog.card.compare')}</label>` : '';
+  if (actions) {
+    const search = d.flightHours
+      ? `<a class="flight-entry-cta" href="#/?to=${esc(d.code)}">${t('catalog.dest.ctaFlights')}</a>`
+      : `<a class="flight-entry-cta" href="#/destination/${d.id}">${t('catalog.card.open')}</a>`;
+    return `<article class="destination-card dest-card travel-card flight-entry" data-dest-card="${d.id}">
+     ${flightEntryPanel(d, { search, heading: 'h2' })}
+     <div class="flight-entry-support">
+      ${factsLine(d)}
+      <div class="flight-entry-secondary"><a class="button secondary" href="#/build?dest=${d.id}">${icon('spark')}${t('catalog.dest.ctaBuild')}</a>${compareHtml}</div>
+     </div>
+    </article>`;
+  }
+  return `<article class="destination-card dest-card travel-card" data-dest-card="${d.id}"><div class="dest-card-media travel-card-media photo-place-frame"><a href="#/destination/${d.id}" class="destination-photo" tabindex="-1" aria-hidden="true"><img src="${imgSrc(d)}" alt="" loading="lazy" decoding="async" width="600" height="400"><span class="photo-label">${esc(L(regions[d.region]))}</span></a>`
     + (heart ? `<button class="heart-button" data-page-favorite="${d.id}" aria-label="${esc(fav ? t('catalog.card.unsave', { name }) : t('catalog.card.save', { name }))}" aria-pressed="${fav}">${icon('heart')}</button>` : '')
-    + `<div class="destination-body"><span class="eyebrow">${esc(L(d.country))}</span><h2><a href="#/destination/${d.id}">${esc(name)}</a></h2><p>${esc(L(d.summary))}</p>${reason ? `<p class="match-reason">${esc(reason)}</p>` : ''}${factsLine(d)}`
+    + `<div class="photo-place-caption"><h2><a href="#/destination/${d.id}">${esc(name)}</a></h2><span>${catalogView?icon('pin'):''}${esc(L(d.country))}</span></div></div><div class="destination-body"><p>${esc(L(d.summary))}</p>${factsLine(d)}`
     + `<div class="pills">${d.tags.filter((x) => STYLE_FILTERS.includes(x)).slice(0, 3).map((x) => `<span class="pill">${esc(L(TAG_LABELS[x]))}</span>`).join('')}</div>`
-    + `<div class="destination-price">${actions ? `<a class="button yellow" href="#/?to=${d.code}">${icon('plane')}${t('catalog.dest.ctaFlights')}</a><a class="button blue" href="#/build?dest=${d.id}">${icon('spark')}${t('catalog.dest.ctaBuild')}</a><a class="button secondary" href="#/destination/${d.id}">${t('catalog.card.open')}</a>` : `<a class="button yellow" href="#/destination/${d.id}">${t('catalog.card.open')}</a>`}${compare ? `<label class="compare-check"><input type="checkbox" data-compare="${d.id}" ${compare.has(d.id) ? 'checked' : ''}>${t('catalog.card.compare')}</label>` : ''}</div></div></article>`;
+    + `${reason ? `<details class="travel-card-why"><summary>${t('app.card.whyToggle')}</summary><p class="match-reason">${esc(reason)}</p></details>` : ''}<div class="destination-price"><a class="button yellow" href="#/destination/${d.id}">${t('catalog.card.open')}</a>${compareHtml}</div></div></article>`;
 }
 
 // Home showcase card: the home `.card` look, catalog content.
 export function homeCard(d, { favorites = [], reason = '' } = {}) {
   const fav = favorites.includes(d.id), name = L(d.name);
-  return `<article class="card dest-home-card"><div class="card-image"><img src="${imgSrc(d)}" alt="${esc(altOf(d))}" loading="lazy" decoding="async" width="600" height="400"><button class="favorite" data-favorite="${d.id}" aria-pressed="${fav}" aria-label="${esc(fav ? t('catalog.card.unsave', { name }) : t('catalog.card.save', { name }))}">${icon('heart')}</button><span class="card-badge">${icon('globe')}${esc(L(regions[d.region]))}</span></div>`
-    + `<div class="card-body"><h3>${esc(placeTitle(d))}</h3><p class="card-description">${esc(L(d.summary))}</p>${reason ? `<p class="match-reason">${esc(reason)}</p>` : ''}${factsLine(d)}<div class="card-bottom"><a class="button yellow card-cta" href="#/destination/${d.id}">${t('app.card.cta')}</a></div></div></article>`;
+  return `<article class="card dest-home-card travel-card photo-place-card"><div class="card-image travel-card-media photo-place-frame"><img src="${imgSrc(d)}" alt="${esc(altOf(d))}" loading="lazy" decoding="async" width="600" height="400"><button class="favorite" data-favorite="${d.id}" aria-pressed="${fav}" aria-label="${esc(fav ? t('catalog.card.unsave', { name }) : t('catalog.card.save', { name }))}">${icon('heart')}</button><span class="card-badge">${icon('globe')}${esc(L(regions[d.region]))}</span><h3 class="photo-place-caption">${esc(placeTitle(d))}</h3></div>`
+    + `<div class="card-body"><p class="card-description">${esc(L(d.summary))}</p>${reason ? `<p class="match-reason">${esc(reason)}</p>` : ''}${factsLine(d)}<div class="card-bottom"><a class="button yellow card-cta" href="#/destination/${d.id}">${t('app.card.cta')}</a></div></div></article>`;
 }
 
 // The home showcase: in season, varied across regions, reacting to the style chips; a destination the visitor asked
@@ -62,12 +90,12 @@ export function readFilters(hash) {
   const num = (v, max) => { const n = Number(v); return Number.isInteger(n) && n > 0 && n <= max ? n : 0; };
   return { q: (p.get('q') || '').slice(0, 80), region: REGIONS.includes(p.get('region')) ? p.get('region') : 'all', style: STYLE_FILTERS.includes(p.get('style')) || p.get('style') === 'short' ? p.get('style') : 'all',
     month: num(p.get('month'), 12), budget: num(p.get('budget'), 3), hours: [4, 6, 10].includes(Number(p.get('hours'))) ? Number(p.get('hours')) : 0, direct: p.get('direct') === '1',
-    sort: ['recommended', 'flight', 'budget', 'name'].includes(p.get('sort')) ? p.get('sort') : 'recommended', n: Math.min(Math.max(PAGE, Math.floor(Number(p.get('n'))) || PAGE), 200), type: p.get('type') || '' };
+    sort: ['recommended', 'flight', 'budget', 'name'].includes(p.get('sort')) ? p.get('sort') : 'recommended', n: Math.min(Math.max(PAGE, Math.floor(Number(p.get('n'))) || PAGE), 200), type: p.get('type') || '', view: p.get('view') === 'list' ? 'list' : 'grid' };
 }
 export function filterQuery(f) {
   const q = {};
   if (f.q) q.q = f.q; if (f.region !== 'all') q.region = f.region; if (f.style !== 'all') q.style = f.style; if (f.month) q.month = f.month; if (f.budget) q.budget = f.budget;
-  if (f.hours) q.hours = f.hours; if (f.direct) q.direct = '1'; if (f.sort !== 'recommended') q.sort = f.sort; if (f.n > PAGE) q.n = f.n; if (f.type) q.type = f.type;
+  if (f.hours) q.hours = f.hours; if (f.direct) q.direct = '1'; if (f.sort !== 'recommended') q.sort = f.sort; if (f.n > PAGE) q.n = f.n; if (f.type) q.type = f.type; if (f.view === 'list') q.view = f.view;
   return new URLSearchParams(q).toString();
 }
 export const isFiltered = (f) => Boolean(f.q || f.region !== 'all' || f.style !== 'all' || f.month || f.budget || f.hours || f.direct || f.sort !== 'recommended');
@@ -88,14 +116,15 @@ export function applyFilters(f, { source = null, today = new Date() } = {}) {
 const chip = (group, value, label, current) => `<button type="button" data-chip-${group}="${value}" class="${current === value ? 'selected' : ''}" aria-pressed="${current === value}">${esc(label)}</button>`;
 const option = (value, label, current) => `<option value="${value}" ${String(current) === String(value) ? 'selected' : ''}>${esc(label)}</option>`;
 export function filtersHtml(f) {
-  return `<form id="destination-filter" class="filter-toolbar dest-toolbar" role="search"><label class="search-box">${icon('search')}<input name="q" type="search" aria-label="${t('catalog.search.label')}" placeholder="${t('catalog.search.placeholder')}" value="${esc(f.q)}" autocomplete="off"></label>`
-    + `<select name="sort" aria-label="${t('catalog.sort.label')}">${option('recommended', t('catalog.sort.recommended'), f.sort)}${option('flight', t('catalog.sort.flight'), f.sort)}${option('budget', t('catalog.sort.budget'), f.sort)}${option('name', t('catalog.sort.name'), f.sort)}</select><button class="button blue">${t('catalog.search.submit')}</button></form>`
-    + `<div class="filter-chips dest-chips" role="group" aria-label="${t('catalog.filter.region')}">${chip('region', 'all', t('catalog.filter.all'), f.region)}${REGIONS.map((r) => chip('region', r, L(regions[r]), f.region)).join('')}</div>`
-    + `<div class="filter-chips dest-chips" role="group" aria-label="${t('catalog.filter.style')}">${chip('style', 'all', t('catalog.filter.all'), f.style)}${STYLE_FILTERS.map((s) => chip('style', s, L(TAG_LABELS[s]), f.style)).join('')}${chip('style', 'short', t('catalog.insp.short'), f.style)}</div>`
-    + `<div class="dest-selects"><label>${t('catalog.filter.month')}<select data-filter="month">${option(0, t('catalog.filter.anyMonth'), f.month)}${Array.from({ length: 12 }, (_, i) => option(i + 1, monthName(i + 1, lang), f.month)).join('')}</select></label>`
-    + `<label>${t('catalog.filter.budget')}<select data-filter="budget">${option(0, t('catalog.filter.anyBudget'), f.budget)}${[1, 2, 3].map((b) => option(b, t(`catalog.filter.budget${b}`), f.budget)).join('')}</select></label>`
-    + `<label>${t('catalog.filter.hours')}<select data-filter="hours">${option(0, t('catalog.filter.anyHours'), f.hours)}${[4, 6, 10].map((h) => option(h, t('catalog.filter.hoursUpTo', { hours: h }), f.hours)).join('')}</select></label>`
+  const toolbar = `<form id="destination-filter" class="filter-toolbar dest-toolbar" role="search"><label class="search-box">${icon('search')}<input name="q" type="search" aria-label="${t('catalog.search.label')}" placeholder="${t('catalog.search.placeholder')}" value="${esc(f.q)}" autocomplete="off"></label>`
+    + `<select name="sort" aria-label="${t('catalog.sort.label')}">${option('recommended', t('catalog.sort.recommended'), f.sort)}${option('flight', t('catalog.sort.flight'), f.sort)}${option('budget', t('catalog.sort.budget'), f.sort)}${option('name', t('catalog.sort.name'), f.sort)}</select><button class="button blue">${t('catalog.search.submit')}</button></form>`;
+  const options = `<p class="catalog-filter-label" id="catalog-region-label">${t('catalog.filter.region')}</p><div class="filter-chips dest-chips" role="group" aria-labelledby="catalog-region-label">${chip('region', 'all', t('catalog.filter.all'), f.region)}${REGIONS.map((r) => chip('region', r, L(regions[r]), f.region)).join('')}</div>`
+    + `<p class="catalog-filter-label" id="catalog-style-label">${t('catalog.filter.style')}</p><div class="filter-chips dest-chips" role="group" aria-labelledby="catalog-style-label">${chip('style', 'all', t('catalog.filter.all'), f.style)}${STYLE_FILTERS.map((s) => chip('style', s, L(TAG_LABELS[s]), f.style)).join('')}${chip('style', 'short', t('catalog.insp.short'), f.style)}</div>`
+    + `<div class="dest-selects"><label><span>${icon('calendar')}${t('catalog.filter.month')}</span><select data-filter="month">${option(0, t('catalog.filter.anyMonth'), f.month)}${Array.from({ length: 12 }, (_, i) => option(i + 1, monthName(i + 1, lang), f.month)).join('')}</select></label>`
+    + `<label><span>${icon('tag')}${t('catalog.filter.budget')}</span><select data-filter="budget">${option(0, t('catalog.filter.anyBudget'), f.budget)}${[1, 2, 3].map((b) => option(b, t(`catalog.filter.budget${b}`), f.budget)).join('')}</select></label>`
+    + `<label><span>${icon('clock')}${t('catalog.filter.hours')}</span><select data-filter="hours">${option(0, t('catalog.filter.anyHours'), f.hours)}${[4, 6, 10].map((h) => option(h, t('catalog.filter.hoursUpTo', { hours: h }), f.hours)).join('')}</select></label>`
     + `<label class="dest-direct"><input type="checkbox" data-filter="direct" ${f.direct ? 'checked' : ''}>${t('catalog.filter.direct')}</label></div>`;
+  return { toolbar, options };
 }
 
 // ---------- destination page ----------
@@ -111,7 +140,7 @@ export function destinationMain(d, { guide = '', favorites = [] } = {}) {
   const name = L(d.name), fav = favorites.includes(d.id);
   const best = new Set(d.bestMonths);
   return {
-    hero: `<div class="destination-hero dest-hero"><img src="${imgSrc(d, true)}" alt="${esc(altOf(d))}" width="1200" height="800"><div><span>${esc(L(d.country))} / ${esc(L(regions[d.region]))}</span><h1 tabindex="-1">${esc(name)}</h1><p>${esc(L(d.summary))}</p></div><button class="button white" data-page-favorite="${d.id}" aria-pressed="${fav}">${icon('heart')} ${fav ? t('pages.destination.2') : t('pages.destination.3')}</button></div>${d.image.credit ? `<p class="photo-credit">${t('catalog.dest.photo', { credit: `<bdi data-allow-hebrew>${esc(d.image.credit)}</bdi>`, license: d.image.source ? `<a href="${esc(d.image.source)}" target="_blank" rel="noopener">${esc(d.image.license)}</a>` : esc(d.image.license) })}</p>` : ''}`,
+    hero: `<div class="destination-hero dest-hero photo-place-card"><img src="${imgSrc(d, true)}" data-thumb="${imgSrc(d)}" alt="${esc(altOf(d))}" width="1200" height="800" fetchpriority="high"><div><span>${esc(L(d.country))} / ${esc(L(regions[d.region]))}</span><h1 tabindex="-1">${esc(name)}</h1><p>${esc(L(d.summary))}</p></div><button class="button white" data-page-favorite="${d.id}" aria-pressed="${fav}">${icon('heart')} ${fav ? t('pages.destination.2') : t('pages.destination.3')}</button></div>${d.image.credit ? `<p class="photo-credit">${t('catalog.dest.photo', { credit: `<bdi data-allow-hebrew>${esc(d.image.credit)}</bdi>`, license: d.image.source ? `<a href="${esc(d.image.source)}" target="_blank" rel="noopener">${esc(d.image.license)}</a>` : esc(d.image.license) })}</p>` : ''}`,
     body: (d.advisory ? `<div class="soft-notice dest-advisory" role="note"><strong>${t('catalog.dest.advisory')}:</strong> ${esc(L(d.advisory))}</div>` : '')
       + `<span class="eyebrow">${esc(L(d.country))}</span><h2>${t('catalog.dest.why', { name: esc(name) })}</h2><ul class="dest-highlights">${d.highlights.map((h) => `<li>${icon('spark')}<span>${esc(L(h))}</span></li>`).join('')}</ul>`
       + guide
@@ -183,7 +212,7 @@ function mediaHtml(d, x, alt) {
 function attractionCard(d, a, { hidden = false } = {}) {
   const name = L(a.name), meta = attrImages?.[photoKey(d, a)];
   const where = a.area ? `<span>${icon('pin')}${esc(areaName(d, a.area))}</span>` : '';
-  return `<li class="attr-card kind-${kindOf(a)}" data-kind="${kindOf(a)}"${hidden ? ' hidden data-more' : ''}>${mediaHtml(d, a, name)}<div class="attr-body"><strong>${esc(name)}</strong>`
+  return `<li class="attr-card kind-${kindOf(a)} photo-place-card" data-kind="${kindOf(a)}"${hidden ? ' hidden data-more' : ''}><div class="photo-place-frame">${mediaHtml(d, a, name)}<strong class="photo-place-caption">${esc(name)}</strong></div><div class="attr-body">`
     + `<p class="attr-meta">${where}<span>${icon('clock')}${t('catalog.dest.hoursShort', { hours: hours(a.durationH) })}</span>${a.months?.length ? `<span>${icon('calendar')}${esc(monthsText(a.months))}</span>` : ''}</p>`
     + `${pills(a.tags).length ? `<p class="attr-pills">${pills(a.tags)}</p>` : ''}<span class="attr-credit-slot">${creditHtml(meta)}</span></div></li>`;
 }
@@ -212,7 +241,7 @@ function dayTripsHtml(d) {
   if (!d.dayTrips.length) return '';
   return `<section class="dest-section dest-sec-trips" aria-labelledby="dest-trips">${secHead('dest-trips', t('catalog.dest.dayTrips'), '', icon('case'))}<ul class="dest-daytrips">${d.dayTrips.map((x) => {
     const name = L(x.name), meta = attrImages?.[photoKey(d, x)];
-    return `<li class="attr-card kind-${kindOf(x)}">${mediaHtml(d, x, name)}<div class="attr-body"><strong>${esc(name)}</strong><p class="attr-meta"><span>${icon('clock')}${t('catalog.dest.dayTripHours', { hours: hours(x.hours) })}</span>${x.priceIls ? `<span>${icon('tag')}${t('catalog.dest.dayTripPrice', { low: x.priceIls.low, high: x.priceIls.high })}</span>` : ''}${x.months?.length ? `<span>${icon('calendar')}${esc(monthsText(x.months))}</span>` : ''}</p><p class="attr-note">${esc(L(x.note))}</p><span class="attr-credit-slot">${creditHtml(meta)}</span></div></li>`;
+    return `<li class="attr-card kind-${kindOf(x)} photo-place-card"><div class="photo-place-frame">${mediaHtml(d, x, name)}<strong class="photo-place-caption">${esc(name)}</strong></div><div class="attr-body"><p class="attr-meta"><span>${icon('clock')}${t('catalog.dest.dayTripHours', { hours: hours(x.hours) })}</span>${x.priceIls ? `<span>${icon('tag')}${t('catalog.dest.dayTripPrice', { low: x.priceIls.low, high: x.priceIls.high })}</span>` : ''}${x.months?.length ? `<span>${icon('calendar')}${esc(monthsText(x.months))}</span>` : ''}</p><p class="attr-note">${esc(L(x.note))}</p><span class="attr-credit-slot">${creditHtml(meta)}</span></div></li>`;
   }).join('')}</ul></section>`;
 }
 // Where to stay: who each area suits, a price level (written in the data, or read from words like "pricey" / "cheaper"),
@@ -233,7 +262,7 @@ function areasHtml(d) {
   return `<section class="dest-section dest-sec-stay" aria-labelledby="dest-areas">${secHead('dest-areas', t('catalog.dest.areas'), t('catalog.dest.areasSub', { count: d.areas.length }), icon('hotel'))}<ul class="dest-areas">${d.areas.map((a) => {
     const price = areaPrice(a), near = d.attractions.filter((x) => x.area === a.name.en).slice(0, 3).map((x) => L(x.name));
     const tags = areaTags(a).map((k) => `<span class="attr-pill">${esc(L(AREA_TAG[k] || TAG_LABELS[k]))}</span>`).join('');
-    return `<li class="area-card"><div class="area-head"><span class="area-icon">${icon('hotel')}</span><h3>${esc(L(a.name))}</h3>${price ? `<span class="area-price p${price}" title="${t(`catalog.dest.price${price}`)}"><span aria-hidden="true">${'₪'.repeat(price)}<i>${'₪'.repeat(3 - price)}</i></span> ${t(`catalog.dest.price${price}`)}</span>` : ''}</div>`
+    return `<li class="area-card photo-place-card"><div class="area-head"><span class="area-icon">${icon('hotel')}</span><h3>${esc(L(a.name))}</h3>${price ? `<span class="area-price p${price}" title="${t(`catalog.dest.price${price}`)}"><span aria-hidden="true">${'₪'.repeat(price)}<i>${'₪'.repeat(3 - price)}</i></span> ${t(`catalog.dest.price${price}`)}</span>` : ''}</div>`
       + `<p class="area-for"><b>${t('pages.destination.7')}:</b> ${esc(L(a.forWhom))}</p>${tags ? `<p class="attr-pills">${tags}</p>` : ''}`
       + (a.pros || a.cons ? `<ul class="area-proscons">${a.pros ? `<li class="pro">${icon('check')}<span><b>${t('catalog.dest.pros')}:</b> ${esc(L(a.pros))}</span></li>` : ''}${a.cons ? `<li class="con">${icon('shield')}<span><b>${t('catalog.dest.cons')}:</b> ${esc(L(a.cons))}</span></li>` : ''}</ul>` : '')
       + (near.length ? `<p class="area-near">${icon('pin')}${esc(t('catalog.dest.nearby', { list: near.join(', ') }))}</p>` : '') + `</li>`;
@@ -242,6 +271,15 @@ function areasHtml(d) {
 
 // Destination page wiring: kind chips + "show more" on things to do, and the attraction photos once their list arrives.
 export function wireDestination(root) {
+  const heroImage = root.querySelector('.dest-hero img[data-thumb]');
+  if (heroImage) {
+    const useThumbnail = () => {
+      if (heroImage.getAttribute('src') === heroImage.dataset.thumb) heroImage.hidden = true;
+      else heroImage.src = heroImage.dataset.thumb;
+    };
+    heroImage.addEventListener('error', useThumbnail);
+    if (heroImage.complete && !heroImage.naturalWidth) useThumbnail();
+  }
   const list = root.querySelector('#dest-todo-list'), more = root.querySelector('#dest-todo-more');
   let expanded = false, kind = 'all';
   const apply = () => {
@@ -260,7 +298,7 @@ export function wireDestination(root) {
     if (!meta || el.querySelector('img')) return;
     el.querySelector('.attr-placeholder')?.remove();
     el.insertAdjacentHTML('afterbegin', photoHtml(meta, el.dataset.alt || ''));
-    const slot = el.parentElement.querySelector('.attr-credit-slot');
+    const slot = el.closest('.attr-card')?.querySelector('.attr-credit-slot');
     if (slot && !slot.innerHTML) slot.innerHTML = creditHtml(meta);
   });
   if (attrImages) fill(); else loadAttrImages().then(() => { if (root.isConnected) fill(); });

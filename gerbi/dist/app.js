@@ -65,9 +65,16 @@ function openDates(){
    showDates();document.dispatchEvent(new Event('brief-changed'));$('#travelers-button').focus();}});
 }
 $('#dates-button').onclick=openDates;
+function showTravelers(){
+ const {adults,children}=state, kids=$('#travelers-children');
+ $('#travelers-value').textContent=travelersText(adults+children);
+ kids.textContent=children?tr('search.children',{count:children}):'';
+ kids.hidden=!children;
+ $('#travelers-button').setAttribute('aria-label',travelersText(adults,children));
+}
 $('#travelers-button').setAttribute('aria-haspopup','dialog');$('#travelers-button').setAttribute('aria-expanded','false');
 $('#travelers-button').onclick=()=>travelersPopover($('#travelers-button'),{get:()=>({adults:state.adults,children:state.children}),
- set:({adults,children})=>{state.adults=adults;state.children=children;$('#travelers-value').textContent=travelersText(adults,children);},
+ set:({adults,children})=>{state.adults=adults;state.children=children;showTravelers();},
  onClose:()=>document.dispatchEvent(new Event('brief-changed'))});
 // Spec 10: the third trip type, "כמה יעדים" (2–5 legs, open jaw included). Seeds from and back to the main fields.
 const multiCity=initMultiCity({form:$('#search-form'),today:()=>localDate(),
@@ -96,7 +103,6 @@ let savedFlights=[];try{savedFlights=restoreSavedFlights(localStorage.getItem(SA
 function storeSavedFlights(list){savedFlights=list;try{localStorage.setItem(SAVED_FLIGHTS_KEY,JSON.stringify(list));return true;}catch{toast(tr('app.save.storageFailed'));return false;}}
 const verifiedPrices=new Map();
 const verifiedStamp=v=>`<p class="verified-stamp">${tr('app.verified.at', { time: escapeHTML(v.at.toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'})) })} <strong dir="ltr">${escapeHTML(formatFare(v.price))}</strong>${v.changed?tr('app.verified.changed'):''}</p>`;
-let pendingFilters=null;
 let searchContext=null, activeSearch=null, visibleOfferCount=12, flightSort='recommended';
 // ---- Decision layer (docs/gerbi-decision-engine-spec-he.md): score → memory boost → LLM only on a near tie.
 let partnerAvailable=false;fetch('/api/status').then(r=>r.json()).then(s=>{partnerAvailable=s.partner?.available===true;}).catch(()=>{});
@@ -257,7 +263,7 @@ function fareSwitch(f,shown){
 }
 function flightCard(f,payload,scoredItem,badgeList=[],reasons=[]){
  const x=fareOf(f),key=payload?.srk+':'+x.index;
- return `<article class="flight-card" data-offer-card="${escapeHTML(f.index)}" data-itinerary="${escapeHTML(scoredItem?.key||'')}"><div class="flight-details"><div class="fc-head"><h3>${escapeHTML(f.carriers.join(' + ')||tr('app.carrier.none'))}</h3>${badgeList.length?`<p class="flight-badges">${badgeList.map(b=>`<span class="flight-badge badge-${b}">${BADGE_LABELS[b]}</span>`).join('')}</p>`:''}</div>${reasons.length?`<p class="why">${tr('app.card.why', { reasons: reasons.map(escapeHTML).join(' · ') })}</p>`:''}${legRowsOf(f)}<ul class="bag-line" aria-label="${tr('app.card.facts')}">${fact(BAG[x.checked],'i-case')}${fact(TROLLEY[x.trolley],'i-case')}${fact(REFUND[x.refundable]||REFUND.unknown,'i-shield')}</ul>${fareSwitch(f,x)}${legDetailsOf(x,f.index)}</div><div class="flight-price"><small>${searchContext.multi?tr('app.price.wholeRoute'):''}${tr('app.price.allTravelers',{count:searchContext.travelers})}</small><strong dir="ltr">${escapeHTML(formatFare(x.price))}</strong>${paxLine(x)}${originalHtml(x.price)}${(n=>n&&n<=FEW_SEATS?`<span class="seats-left">${n===1?tr('app.seats.one'):tr('app.seats.many',{count:n})}</span>`:'')(seatsLeft(x.offer))}<button class="yellow button" data-volero-offer="${escapeHTML(x.index)}"${tr('app.card.check')}${verifiedPrices.has(key)?verifiedStamp(verifiedPrices.get(key)):''}<label class="compare-check"><input type="checkbox" data-compare-offer="${escapeHTML(f.index)}" ${compareOffers.has(f.index)?'checked':''}>${tr('app.card.compare')}</div></article>`;
+ return `<article class="flight-card travel-card" data-offer-card="${escapeHTML(f.index)}" data-itinerary="${escapeHTML(scoredItem?.key||'')}"><div class="flight-details"><div class="fc-head"><h3>${escapeHTML(f.carriers.join(' + ')||tr('app.carrier.none'))}</h3>${badgeList.length?`<p class="flight-badges">${badgeList.map(b=>`<span class="flight-badge badge-${b}">${BADGE_LABELS[b]}</span>`).join('')}</p>`:''}</div>${legRowsOf(f)}<ul class="bag-line" aria-label="${tr('app.card.facts')}">${fact(BAG[x.checked],'i-case')}${fact(TROLLEY[x.trolley],'i-case')}${fact(REFUND[x.refundable]||REFUND.unknown,'i-shield')}</ul>${reasons.length?`<details class="travel-card-why" data-detail="why:${escapeHTML(f.index)}" ${openDetails.has('why:'+f.index)?'open':''}><summary>${tr('app.card.whyToggle')}</summary><p class="why">${reasons.map(escapeHTML).join(' · ')}</p></details>`:''}${fareSwitch(f,x)}${legDetailsOf(x,f.index)}</div><div class="flight-price"><small>${searchContext.multi?tr('app.price.wholeRoute'):''}${tr('app.price.allTravelers',{count:searchContext.travelers})}</small><strong dir="ltr">${escapeHTML(formatFare(x.price))}</strong>${paxLine(x)}${originalHtml(x.price)}${(n=>n&&n<=FEW_SEATS?`<span class="seats-left">${n===1?tr('app.seats.one'):tr('app.seats.many',{count:n})}</span>`:'')(seatsLeft(x.offer))}<button class="yellow button" data-volero-offer="${escapeHTML(x.index)}"${tr('app.card.check')}${verifiedPrices.has(key)?verifiedStamp(verifiedPrices.get(key)):''}<label class="compare-check"><input type="checkbox" data-compare-offer="${escapeHTML(f.index)}" ${compareOffers.has(f.index)?'checked':''}>${tr('app.card.compare')}</div></article>`;
 }
 const filterLabels={stops:{'0':tr('app.stops.direct'),'1':tr('app.filter.upToOne')},bucket:Object.fromEntries(TIME_BUCKETS.map(([id,label,from,to])=>[id,`${label} (${String(from).padStart(2,'0')}–${String(to%24).padStart(2,'0')})`]))};
 function activeChips(){
@@ -321,7 +327,7 @@ function renderVoleroOffers(payload){
  const order=flightSort==='recommended'?[...leaders,...ranked.filter(x=>!leaders.includes(x))]:sortFacts(filtered,flightSort).map(f=>byFacts.get(f));decision.order=order;
  const visible=order.map(x=>x.facts);
  const why=new Map(leaders.map(x=>[x.facts,explain(x,scored,value=>formatFare({value,currency:x.facts.price?.currency||'USD'})).concat(x.partner&&decision.reason?[decision.reason]:[]).filter((r,i,a)=>a.indexOf(r)===i).slice(0,3)]));
- host.innerHTML=`<div class="live-heading"><div><span class="eyebrow">${tr('app.live.eyebrow')}</span><h2 tabindex="-1">${escapeHTML(searchContext?.destination||tr('app.live.title'))}</h2><p>${escapeHTML(searchContext?.dates||'')} · ${tr('app.live.travelers', { count: searchContext?.travelers||2 })} · ${searchContext?.multi?tr('app.live.multi', { count: searchContext.search.legs.length }):searchContext?.oneWay?tr('app.live.oneWay'):tr('app.live.round')}</p>${searchContext?.multi?groundGaps(searchContext.search.legs).map(g=>`<p class="micro-copy leg-gap">${escapeHTML(gapText(g))}</p>`).join(''):''}${(place=>place?.airports?`<p class="micro-copy">${tr('app.live.allAirports', { city: escapeHTML(lang==='en'?place.name:place.names[0]), airports: place.airports.join(', ') })}</p>`:'')(places.find(p=>p.code===searchContext?.destinationCode))}</div><div class="live-actions"><button type="button" class="button secondary" id="edit-flight-search">${tr('app.live.editShare')}</button></div><label>${tr('app.sort.label')}<select id="flight-sort"><option value="recommended" ${flightSort==='recommended'?'selected':''}>${tr('app.sort.recommended')}</option><option value="supplier" ${flightSort==='supplier'?'selected':''}${tr('app.sort.supplier')}/option><option value="price" ${mixed?'disabled':''} ${flightSort==='price'?'selected':''}>${tr('app.sort.price')}</option><option value="duration" ${flightSort==='duration'?'selected':''}>${tr('app.sort.duration', { scope: searchContext?.multi?tr('app.sort.allFlights'):tr('app.sort.bothWays') })}</option></select></label></div>
+ host.innerHTML=`<div class="live-heading"><div><span class="eyebrow">${tr('app.live.eyebrow')}</span><h2 tabindex="-1">${escapeHTML(searchContext?.destination||tr('app.live.title'))}</h2><p>${escapeHTML(searchContext?.dates||'')} · ${tr('app.live.travelers', { count: searchContext?.travelers||2 })} · ${searchContext?.multi?tr('app.live.multi', { count: searchContext.search.legs.length }):searchContext?.oneWay?tr('app.live.oneWay'):tr('app.live.round')}</p>${searchContext?.multi?groundGaps(searchContext.search.legs).map(g=>`<p class="micro-copy leg-gap">${escapeHTML(gapText(g))}</p>`).join(''):''}${(place=>place?.airports?`<p class="micro-copy">${tr('app.live.allAirports', { city: escapeHTML(lang==='en'?place.name:place.names[0]), airports: place.airports.join(', ') })}</p>`:'')(places.find(p=>p.code===searchContext?.destinationCode))}</div><div class="live-actions"><button type="button" class="button secondary" id="edit-flight-search">${tr('app.live.editShare')}</button>${searchContext?.fromPlanner?`<a class="button secondary" href="#/planner">${tr('app.search.backToPlanner')}</a>`:''}</div><label>${tr('app.sort.label')}<select id="flight-sort"><option value="recommended" ${flightSort==='recommended'?'selected':''}>${tr('app.sort.recommended')}</option><option value="supplier" ${flightSort==='supplier'?'selected':''}${tr('app.sort.supplier')}/option><option value="price" ${mixed?'disabled':''} ${flightSort==='price'?'selected':''}>${tr('app.sort.price')}</option><option value="duration" ${flightSort==='duration'?'selected':''}>${tr('app.sort.duration', { scope: searchContext?.multi?tr('app.sort.allFlights'):tr('app.sort.bothWays') })}</option></select></label></div>
  ${all.length?filterPanel(all):''}
  ${chips.length?`<div class="filter-chips">${chipMarkup(chips)}<button type="button" class="link-button" data-clear-filters>${tr('app.filter.reset')}</button></div>`:''}
  <p class="micro-copy" role="status">${chips.length?tr('app.live.countOf', { shown: visible.length, total: all.length }):tr('app.live.count', { count: all.length })}${tr('app.live.showing', { shown: Math.min(visible.length,visibleOfferCount), currency: getFx()?tr('app.live.inShekels'):tr('app.live.inSupplierCurrency') })}${mixed?tr('app.live.mixed'):''}</p><p class="fx-line micro-copy">${getFx()?escapeHTML(fxNote())+'. ':''}<button type="button" class="link-button" data-open-converter>${tr('app.fx.converter')}</button></p>
@@ -335,7 +341,7 @@ function renderVoleroOffers(payload){
 const liveHost=$('#live-results');
 // Shekel rates load in the background (dist/fx.mjs); results already on screen switch to ₪ when they arrive.
 loadFx();onFx(()=>{if(state.voleroResults&&!liveHost.hidden)renderVoleroOffers(state.voleroResults);});
-liveHost.addEventListener('toggle',e=>{const d=e.target;if(d.id==='flight-filters')filtersOpen=d.open;else if(d.dataset?.detail){if(d.open){openDetails.add(d.dataset.detail);aiEvent('open',d.closest('[data-itinerary]')?.dataset.itinerary);}else openDetails.delete(d.dataset.detail);}},true);
+liveHost.addEventListener('toggle',e=>{const d=e.target;if(d.id==='flight-filters')filtersOpen=d.open;else if(d.dataset?.detail){if(d.open){openDetails.add(d.dataset.detail);if(d.classList.contains('flight-segments'))aiEvent('open',d.closest('[data-itinerary]')?.dataset.itinerary);}else openDetails.delete(d.dataset.detail);}},true);
 liveHost.addEventListener('change',e=>{
  const payload=state.voleroResults;if(!payload)return;
  if(e.target.id==='flight-sort'){flightSort=e.target.value;renderVoleroOffers(payload);}
@@ -374,32 +380,54 @@ function multiContext(request){
  return {params:searchParams(),destination:route,destinationCode:legs[0].to,dates:`${longDate(legs[0].date)} – ${longDate(legs.at(-1).date)}`,travelers:state.adults+state.children,oneWay:false,multi:true,
   search:{type:'multi',legs,origin:legs[0].from,destination:route,start:legs[0].date,end:'',adults:state.adults,children:state.children}};
 }
-$('#search-form').onsubmit=async e=>{
- e.preventDefault();if(state.tab!=='flights'){pages.search($('#destination').value.trim(),state.tab);return;}
+$('#search-form').onsubmit=e=>{e.preventDefault();searchFlights();};
+async function searchFlights({fromPlanner=false,filters:fromRequest=null}={}){
+ if(state.tab!=='flights'){pages.search($('#destination').value.trim(),state.tab);return;}
  if(activeSearch)return;
  const feedback=$('#search-feedback'),button=$('.search-submit');
  let request;try{request=voleroSearchRequest();}catch(error){feedback.textContent=error.message;feedback.hidden=false;const field=error.field&&$(error.field);if(field){field.setAttribute('aria-describedby','search-feedback');field.focus();}return;}
  const context=isMulti()?multiContext(request):{params:searchParams(),destination:$('#destination').value.trim(),destinationCode:request.originDestinations[0].destination.code,
   dates:oneWay()?longDate(state.start):`${longDate(state.start)} – ${longDate(state.end)}`,travelers:state.adults+state.children,oneWay:oneWay(),
   search:{origin:request.originDestinations[0].origin.code,destination:$('#destination').value.trim(),start:state.start,end:oneWay()?'':state.end,type:oneWay()?'oneway':'round',adults:state.adults,children:state.children}};
+ context.fromPlanner=fromPlanner;
  const controller=new AbortController();activeSearch=controller;let cancelled=false;
  const timer=setTimeout(()=>controller.abort(),45000);
  button.disabled=true;button.setAttribute('aria-busy','true');button.textContent=tr('app.search.busy');
- const ods=request.originDestinations;feedback.innerHTML=routeLoader({from:ods[0].origin.code,to:(isMulti()?ods.at(-1):ods[0]).destination.code,kind:'search'})+tr('app.search.progress');feedback.hidden=false;const started=Date.now(),ticker=setInterval(()=>{const seconds=Math.round((Date.now()-started)/1000),line=$('#search-progress');if(line)line.textContent=tr('app.search.ticker', { seconds, slow: seconds>15?tr('app.search.slow'):'' });},1000);const cancel=document.createElement('button');cancel.type='button';cancel.className='button secondary';cancel.id='cancel-flight-search';cancel.textContent=tr('app.search.cancel');cancel.onclick=()=>{cancelled=true;controller.abort();};feedback.append(' ',cancel);const stopDyk=startDidYouKnow(feedback,request.originDestinations[0].destination.code);
+ const ods=request.originDestinations;
+ feedback.innerHTML=`<div class="flight-search-loader">
+  <strong class="flight-loader-title">${tr('app.search.volero')}</strong>
+  ${routeLoader({from:ods[0].origin.code,to:(isMulti()?ods.at(-1):ods[0]).destination.code,kind:'search'})}
+  <div class="flight-loader-skeleton" aria-hidden="true"><div><i></i><i></i><i></i></div><div><i></i><i></i><i></i></div></div>
+  <div class="flight-loader-footer">${tr('app.search.progress')}<button type="button" class="button secondary" id="cancel-flight-search">${tr('app.search.cancel')}</button></div>
+ </div>`;
+ feedback.hidden=false;
+ const progress=$('#search-progress'),started=Date.now();
+ // Announce the search state once. Elapsed time stays visible without repeating every second on screen readers.
+ progress.setAttribute('aria-hidden','true');
+ const ticker=setInterval(()=>{
+  const seconds=Math.round((Date.now()-started)/1000);
+  progress.textContent=tr('app.search.ticker',{seconds,slow:seconds>15?tr('app.search.slow'):''});
+ },1000);
+ $('#cancel-flight-search').onclick=()=>{cancelled=true;controller.abort();};
+ const stopDyk=startDidYouKnow(feedback,ods[0].destination.code);
+ if(fromPlanner&&onHome()){
+  feedback.tabIndex=-1;
+  feedback.focus({preventScroll:true});
+  feedback.scrollIntoView({block:'center'});
+ }
  $('#live-results').hidden=true;state.voleroResults=null;
  try{
   const response=await fetch('/api/volero/flights/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
   const data=await response.json();if(!response.ok)throw new Error((response.status===429||response.status===400)&&data.message?errorText(data.error,data.message,'app'):tr('app.err.searchFailed'));
   context.cachedAt=data.cached?data.searchedAt:null;
   searchContext=context;flightSort='recommended';visibleOfferCount=12;flightFilters=emptyFilters();openDetails.clear();compareOffers.clear();fareChoice.clear();fareMore.clear();decision.boosts={};decision.pick=null;decision.reason='';decision.order=[];
-  const fromRequest=pendingFilters;pendingFilters=null;
   if(fromRequest){const names=[...new Set(factsOf(data.data).flatMap(f=>f.carriers))];flightFilters={...emptyFilters(),stops:fromRequest.stops||'any',out:fromRequest.out||[],back:fromRequest.back||[],checkedBag:fromRequest.checkedBag===true,carriers:fromRequest.carrier?names.filter(name=>name.toLowerCase().includes(fromRequest.carrier)):[]};}
-  renderVoleroOffers(data.data);saveLastSearch();loadBoosts(data.data);aiEvent('impression',[...document.querySelectorAll('#live-results [data-itinerary]')].slice(0,6).map(c=>c.dataset.itinerary));history.replaceState(null,'',searchLink(context.search));
+  renderVoleroOffers(data.data);saveLastSearch();loadBoosts(data.data);aiEvent('impression',[...document.querySelectorAll('#live-results [data-itinerary]')].slice(0,6).map(c=>c.dataset.itinerary));if(onHome())history.replaceState(null,'',searchLink(context.search));
   feedback.textContent=(context.cachedAt?tr('app.search.cached', { minutes: Math.max(1,Math.round((Date.now()-Date.parse(context.cachedAt))/60000)) }):'')+(fromRequest&&activeChips().length?tr('app.search.doneFilters'):tr('app.search.done'));
   if(onHome()){$('#live-results h2').focus({preventScroll:true});$('#live-results').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});}
- }catch(error){pendingFilters=null;feedback.textContent=error.name==='AbortError'?cancelled?tr('app.search.cancelled'):tr('app.search.timeout'):error.message;}
- finally{clearTimeout(timer);clearInterval(ticker);stopDyk();document.querySelectorAll('.fare-deal[aria-busy]').forEach(b=>b.removeAttribute('aria-busy'));if(cancelled)button.focus();activeSearch=null;button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=icons('search')+tr('app.tab.flights.submit');}
-};
+ }catch(error){feedback.textContent=error.name==='AbortError'?cancelled?tr('app.search.cancelled'):tr('app.search.timeout'):error.message;}
+ finally{clearTimeout(timer);clearInterval(ticker);stopDyk();document.querySelectorAll('.fare-deal[aria-busy]').forEach(b=>b.removeAttribute('aria-busy'));activeSearch=null;button.disabled=false;if(cancelled&&onHome())button.focus();button.removeAttribute('aria-busy');button.innerHTML=icons('search')+tr('app.tab.flights.submit');}
+}
 $('#all-deals').onclick=()=>pages.navigate('/destinations');
 document.addEventListener('click',async e=>{
  const favorite=e.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];favorite.setAttribute('aria-pressed',String(favorites.includes(id)));favorite.setAttribute('aria-label',(n=>favorites.includes(id)?tr('app.card.unsave',{name:n}):tr('app.card.save',{name:n}))(L(byId(id)?.name)||id));try{localStorage.setItem('gerbi-favorites',JSON.stringify(favorites));toast(favorites.includes(id)?tr('app.fav.saved'):tr('app.fav.removed'));}catch{toast(tr('app.fav.session'));}}
@@ -452,7 +480,7 @@ async function shareSearch(){
 // A shared link fills the form; the search runs only when the visitor asks, so links never trigger supplier calls.
 function restoreSharedSearch(){
  const shared=parseSearchLink(location.hash);if(!shared)return false;
- if(shared.type==='multi'){setTripType('multi');multiCity.setLegs(shared.legs);state.adults=shared.adults;state.children=shared.children;$('#travelers-value').textContent=travelersText(state.adults,state.children);$('#search-feedback').textContent=tr('app.shared.multi');$('#search-feedback').hidden=false;return true;}
+ if(shared.type==='multi'){setTripType('multi');multiCity.setLegs(shared.legs);state.adults=shared.adults;state.children=shared.children;showTravelers();$('#search-feedback').textContent=tr('app.shared.multi');$('#search-feedback').hidden=false;return true;}
  setTripType(shared.type);const from=resolvePlace(shared.origin);if(from)$('#origin').value=placeText(from);
  $('#destination').value=placeText(resolvePlace(shared.destination))||shared.destination;state.start=shared.start;state.end=shared.end;state.adults=shared.adults;state.children=shared.children;
  $('#search-feedback').textContent=tr('app.shared.search');$('#search-feedback').hidden=false;
@@ -483,18 +511,34 @@ const pages=initPages({routes:{...leadRoutes({contact}),...converterRoutes(),...
  placeLabel:code=>(p=>lang==='en'?p?.name:p?.names[0])(places.find(p=>p.code===code))||code,
  // A search the planner understood: same form, same supplier call, preferences arrive as removable filters.
  runFlightSearch(fs){
-  setTripType(fs.type);$('#origin').value=placeText(resolvePlace(fs.origin))||fs.origin;$('#destination').value=placeText(resolvePlace(fs.destination))||fs.destination;
-  state.start=fs.start;state.end=fs.end;state.adults=fs.adults;state.children=fs.children;pendingFilters=fs.filters;
-  window.addEventListener('hashchange',()=>{selectTab('flights');document.dispatchEvent(new Event('brief-changed'));$('#search-form').requestSubmit();},{once:true});
+  if(activeSearch){toast(tr('app.search.busy'));return;}
+  window.addEventListener('hashchange',()=>{
+   if(!onHome())return;
+   setTripType(fs.type);
+   $('#origin').value=placeText(resolvePlace(fs.origin))||fs.origin;
+   $('#destination').value=placeText(resolvePlace(fs.destination))||fs.destination;
+   state.start=fs.start;state.end=fs.end;state.adults=fs.adults;state.children=fs.children;
+   selectTab('flights');
+   document.dispatchEvent(new Event('brief-changed'));
+   searchFlights({fromPlanner:true,filters:fs.filters});
+  },{once:true});
   pages.navigate('/');
+ },
+ resetPlannerFlightForm(){
+  activeSearch?.abort();
+  setTripType('round');
+  $('#origin').value=placeText(placeByCode('TLV'));
+  $('#destination').value='';
+  state.start='';state.end='';
  },
  toggleFavorite(id){let persisted=true;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];try{localStorage.setItem('gerbi-favorites',JSON.stringify(favorites));}catch{persisted=false;}renderCards();return persisted;},
  openTravelers:()=>$('#travelers-button').onclick(),
  currentPreferences,
- syncHome(){ saveStyles();$('#travelers-value').textContent=travelersText(state.adults,state.children);showDates(); markStaleResults(); }
+ syncHome(){ saveStyles();showTravelers();showDates(); markStaleResults(); }
 });
 // initPages restores the planner's saved passengers; a shared link opened on a fresh page load must win over them.
-if(sharedSearch){restoreSharedSearch();$('#travelers-value').textContent=travelersText(state.adults,state.children);}
+if(sharedSearch)restoreSharedSearch();
+showTravelers();
 installResultsCta();
 function refreshPersonalization(){
  document.querySelectorAll('[data-preference]').forEach(b=>b.setAttribute('aria-pressed',String(state.preferences[b.dataset.preference]===true)));

@@ -41,8 +41,17 @@ for (const lang of LANGS) for (const width of WIDTHS) {
   log('  list:', count, '| cards', await page.locator('.dest-card').count());
   check(/70/.test(count) && await page.locator('.dest-card').count() === 12, '70 destinations, first 12 shown');
   await page.screenshot({ path: `${OUT}/destinations-${tag}.png`, fullPage: false });
+  await page.click('[data-catalog-view="list"]');
+  check(await page.locator('#destination-grid').getAttribute('data-layout') === 'list', 'list view changes the existing result cards');
+  await page.reload();
+  await page.waitForSelector('.dest-card');
+  check(await page.locator('[data-catalog-view="list"]').getAttribute('aria-pressed') === 'true', 'list view survives reload');
+  await page.screenshot({ path: `${OUT}/destinations-list-${tag}.png`, fullPage: false });
+  await page.click('[data-catalog-view="grid"]');
   await page.click('#more-destinations'); await page.waitForTimeout(200);
   check(await page.locator('.dest-card').count() === 24, '"show more" adds 12');
+  const filters = page.locator('.catalog-filters');
+  if (!(await filters.evaluate(el => el.open))) await filters.locator('summary').click();
   await page.click('[data-chip-region="asia"]'); await page.waitForTimeout(200);
   await page.selectOption('[data-filter="month"]', '1');
   await page.click('[data-chip-style="beach"]'); await page.waitForTimeout(200);

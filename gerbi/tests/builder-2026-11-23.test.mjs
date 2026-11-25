@@ -88,6 +88,44 @@ test('conversation: "add a day in Florence" adds a night there and keeps Rome; a
   assert.deepEqual(route.stops.map((s) => [s.id, s.nights]), [['rome', 5], ['florence-tuscany', 1], ['venice', 2]]);
 });
 
+test('conversation: a January change takes precedence over old dates and the edited trip is the source of truth', async () => {
+  const calls = [];
+  const b = createBuilder({ store: null, env: {}, now: () => Date.parse('2026-11-23T12:00:00Z'),
+    tagger: async (text, lang, today, current) => {
+      calls.push({ text, current });
+      return current && text.includes('בינואר') ? { start: '2027-03-10', end: '2027-03-16' } : null;
+    } });
+  const initial = await b.plan({ text: 'זוג וילד בן 8, רומא, 10 עד 15 במרץ 2027, עם ארוחת בוקר ועם רכב' });
+  const state = (plan, change = true) => ({ change, dest: [plan.destination.id], request: plan.request, legNights: [plan.request.nights] });
+  const say = (previous, text) => b.plan({ text, current: state(previous), thread: ['עוד לילה', 'עוד לילה', text] });
+  const month = await say(initial, 'הטיול צריך להיות בינואר');
+  assert.equal(month.request.start.slice(0, 7), '2027-01');
+  assert.equal(month.flightSearch.originDestinations[0].date, month.request.start);
+  assert.equal(month.hotelSearches[0].checkIn, month.request.start);
+  assert.equal(month.request.datesAssumed, true);
+  assert.deepEqual([month.request.nights, month.request.adults, month.request.childAges, month.request.needs.car, month.request.needs.board],
+    [5, 2, [8], 'yes', 'BB']);
+  assert.equal(calls[1].text, 'הטיול צריך להיות בינואר');
+  assert.equal(calls[1].current.start, '2027-03-10');
+  assert.equal(calls[1].current.destinations[0], 'rome');
+
+  const manual = await b.plan({ text: 'הטיול צריך להיות בינואר', current: state(month, false), edits: { adults: 3, nights: 7 } });
+  const longer = await say(manual, 'עוד לילה');
+  assert.deepEqual([longer.request.nights, longer.request.adults, longer.request.children, longer.request.start], [8, 3, 1, month.request.start]);
+  const later = await say(longer, 'שבוע אחרי');
+  assert.deepEqual([later.request.start, later.request.nights], ['2027-01-17', 8]);
+  const origin = await say(later, 'מעדיפים לצאת מלונדון');
+  assert.deepEqual([origin.request.origin, origin.destination.id], ['LON', 'rome']);
+  const refined = await say(longer, 'בלי ילדים, לינה בלבד וללא רכב');
+  assert.deepEqual([refined.request.adults, refined.request.children, refined.request.needs.board, refined.request.needs.car], [3, 0, '', 'no']);
+  const removed = await say(refined, 'תוריד את הקולוסיאום');
+  assert.equal(removed.request.activities['rome|The Colosseum'], 'remove');
+  assert.ok(!removed.itinerary.flatMap((day) => day.items).some((item) => item.en === 'The Colosseum'));
+  const added = await say(removed, 'תוסיף את הקולוסיאום');
+  assert.equal(added.request.activities['rome|The Colosseum'], 'add');
+  assert.ok(added.itinerary.flatMap((day) => day.items).some((item) => item.en === 'The Colosseum'));
+});
+
 test('expand with Gerbi: null without a provider; with one, grounded ideas (no numbers, nothing already planned) and only the catalog areas', async () => {
   const off = createGateway({ tasks: TASKS, env: {}, log: quiet });
   assert.equal(await tripExpandDay({ destination: 'רומא', planned: ['הקולוסיאום'] }, { gw: off }), null);

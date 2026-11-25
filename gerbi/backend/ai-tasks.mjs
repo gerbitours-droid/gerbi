@@ -38,9 +38,10 @@ Destination codes must come from this list: ${places.filter((p) => !p.home).map(
       legs: list(obj({ from: { type: 'string', enum: allCodes }, to: { type: 'string', enum: allCodes }, date: str(10) }), 5) })
   },
   trip_tags: {
-    label: 'בונה חופשות: הבנת הבקשה לתגיות', audience: 'customer', tier: 'fast', maxTokens: 900, timeoutMs: 7000, cacheTtl: 30 * 86400, dailyCalls: 3000, version: 2,
+    label: 'בונה חופשות: הבנת הבקשה לתגיות', audience: 'customer', tier: 'fast', maxTokens: 900, timeoutMs: 7000, cacheTtl: 30 * 86400, dailyCalls: 3000, version: 3,
     system: `You read one free-text holiday request written to Gerbi, an Israeli travel agency (flights from Tel Aviv), usually in Hebrew, and turn its MEANING into structured fields.
 The text may be a CONVERSATION: the first request, then lines marked "(עדכון N)" that refine it. Answer for the trip as it stands after the last update: a later detail replaces an earlier one (a new place replaces the old one unless they say to add it), everything not changed stays.
+When the input includes "current_trip", "customer_text" is only the latest change. Use the current trip to resolve references and relative requests, but return only fields changed by the latest message. For "move the trip to January", return month 1 with blank start/end. Never copy a date, destination, preference or traveller count from the current trip into the patch if the message did not change it.
 Answer only with catalog ids and catalog tags. Never invent: a field the text does not state or clearly imply is 0, "", [] or "unknown". "today" is in the input.
 Travellers: "adults" includes the writer when they travel ("זוג"=2, "אני ואמא שלי"=2, "2+3" = 2 adults + 3 children, "משפחה של 5 (2+3)"); grown children 18+ are adults; "children" are 2–17 (count), "childAges" their ages when stated; "infants" are under 2 (a baby, "בן שנה", "8 months").
 Length: "nights" (Hebrew convention: "X ימים" = X-1 nights, "שבוע"=7, "סופ\"ש"=3, "סופ\"ש ארוך"=4, "שבועיים"=14, "חודש"=30). "nightsPerPlace" only when a length is said for each named place, in order ("שבוע בוייטנאם ואז שבוע בפוקט" = [7,7]).
@@ -54,6 +55,7 @@ Meaning → tags: "mustTags" = catalog tags the place MUST have for this trip to
 "noNightFlights" true for "no night flights / red-eyes"; "outTime"/"backTime" one of morning, afternoon, evening, night or "" ("לא לקום מוקדם" → afternoon); "checkedBag" yes/no/unknown.
 Hotel: "minStars" 0/3/4/5 when stated or clearly implied ("מפנק" 5), "board" "", BB, HB, FB or AI; "hotelArea" beach, center, quiet or ""; "hotelType" hotel, apartment, villa, resort, boutique or "".
 "pace" relaxed, packed or "" (only when they say how full the days should be); "avoidKinds" / "moreKinds" from: museum, religious, beach, nature, market, experience, nightlife, shopping, daytrip.
+"activityChanges": for a requested named attraction or day trip in current_trip.activityCatalog, use its exact key with action "add" or "remove". Leave the list empty unless the latest message specifically adds or removes a known activity.
 "question": one short question in the request's language only when something essential is genuinely ambiguous, else "".
 Catalog ids (id = Hebrew name, country, flight hours, tags):
 ${destinations.map((d) => `${d.id} = ${d.name.he}, ${d.country.en}, ${d.flightHours}h, ${d.tags.join(' ')}`).join('\n')}`,
@@ -70,7 +72,8 @@ ${destinations.map((d) => `${d.id} = ${d.name.he}, ${d.country.en}, ${d.flightHo
       checkedBag: { type: 'string', enum: ['yes', 'no', 'unknown'] }, minStars: { type: 'integer' }, board: { type: 'string', enum: ['', 'BB', 'HB', 'FB', 'AI'] },
       hotelArea: { type: 'string', enum: ['', 'beach', 'center', 'quiet'] }, hotelType: { type: 'string', enum: ['', 'hotel', 'apartment', 'villa', 'resort', 'boutique'] },
       pace: { type: 'string', enum: ['', 'relaxed', 'packed'] }, avoidKinds: list({ type: 'string', enum: ['museum', 'religious', 'beach', 'nature', 'market', 'experience', 'nightlife', 'shopping', 'daytrip'] }, 6),
-      moreKinds: list({ type: 'string', enum: ['museum', 'religious', 'beach', 'nature', 'market', 'experience', 'nightlife', 'shopping', 'daytrip'] }, 6) })
+      moreKinds: list({ type: 'string', enum: ['museum', 'religious', 'beach', 'nature', 'market', 'experience', 'nightlife', 'shopping', 'daytrip'] }, 6),
+      activityChanges: list(obj({ key: str(180), action: { type: 'string', enum: ['add', 'remove'] } }), 8) })
   },
   tiebreak: {
     label: 'טיסות: שובר שוויון', audience: 'customer', tier: 'fast', maxTokens: 300, timeoutMs: 6000, cacheTtl: 86400, dailyCalls: 1500,

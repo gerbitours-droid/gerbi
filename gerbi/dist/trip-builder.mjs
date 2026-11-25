@@ -8,7 +8,7 @@ import { placeByCode, placeType } from './places.mjs';
 import { t } from './i18n.mjs';
 import { mapsUrl, typical, graceOf } from './trip-package.mjs';
 import { estimateTrip, fitTrip, floorConfig } from './budget.mjs';
-import { parsePrefs, mergePrefs } from './trip-prefs.mjs';
+import { activityKey, parsePrefs, mergePrefs } from './trip-prefs.mjs';
 
 export const L = (v, l = 'he') => (v && typeof v === 'object' && !Array.isArray(v) ? v[l] || v.he || v.en || '' : v ?? '');
 const pad = (n) => String(n).padStart(2, '0');
@@ -193,7 +193,7 @@ export function parseTrip(text, { today = new Date().toISOString().slice(0, 10),
   if (foreign && rate) say('budget', 'budgetFx', { amount: `₪${new Intl.NumberFormat('en-US').format(budget)}` });
   const request = {
     text: raw, lang, origin: placeByCode(b.origin)?.code || 'TLV', adults: b.adults || 2, children: b.children || 0, childAges: (b.childAges || []).filter((a) => Number.isInteger(a) && a >= 0 && a < 18).slice(0, 8),
-    infants: b.infants || 0, nights: b.nights || 0, start: b.start || '', end: b.end || '', month: monthIndex(b.month), year: b.year || 0, anchor: b.anchor || '', holiday: b.holiday || '', styles, occasion,
+    infants: b.infants || 0, nights: b.nights || 0, start: b.start || '', end: b.end || '', month: monthIndex(b.month), year: b.year || 0, anchor: b.anchor || '', holiday: b.holiday || '', datesAssumed: Boolean(b.datesApproximate), styles, occasion,
     budget, budgetLevel: luxury || b.noBudgetLimit ? 'high' : b.cheaper ? 'low' : 'mid',
     needs: { car, allInclusive, board, minStars: stars || (luxury ? 5 : 0), kosher: b.kosher === true, shabbat: b.shabbat === true, accessible: b.accessible === true, direct: b.stops === '0', pool },
     asked: { stars: stars > 0 },
@@ -240,7 +240,7 @@ export function mergeModel(request, v, { today = new Date().toISOString().slice(
     r.childAges = ages.length === kids ? [...ages, ...Array(infants).fill(0)] : request.children === r.children ? request.childAges : [...Array(infants).fill(0)];
   }
   if (!r.nights && int(v.nights, 1, MAX_NIGHTS)) r.nights = v.nights;
-  if (!r.start && iso(v.start)) { r.start = iso(v.start); if (iso(v.end) > r.start) r.end = iso(v.end); }
+  if (!r.start && !r.month && !r.anchor && !r.holiday && iso(v.start)) { r.start = iso(v.start); if (iso(v.end) > r.start) r.end = iso(v.end); }
   if (!r.month && !r.start && int(v.month, 1, 12)) r.month = v.month;
   if (!(r.budget > 0) && int(v.budgetIls, 300, 2e6)) r.budget = v.budgetIls;
   if (r.budgetLevel === 'mid' && ['low', 'high'].includes(v.budgetLevel)) r.budgetLevel = v.budgetLevel;
@@ -295,8 +295,11 @@ export function applyEdits(request, e = {}, today = new Date().toISOString().sli
   if (int(e.adults, 1, 9) !== null) r.adults = e.adults;
   if (int(e.children, 0, 8) !== null) { r.children = Math.min(e.children, 9 - r.adults); r.childAges = r.childAges.slice(0, r.children); }
   if (Array.isArray(e.childAges)) r.childAges = e.childAges.filter((a) => int(a, 0, 17) !== null).slice(0, r.children);
-  if (int(e.nights, 1, MAX_NIGHTS) !== null) { r.nights = e.nights; r.end = ''; }
-  if (typeof e.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.start) && e.start >= today) { r.start = e.start; r.end = ''; r.anchor = ''; r.nights = r.nights || 5; }
+  if (int(e.nights, 1, MAX_NIGHTS) !== null && e.nights !== r.nights) { r.nights = e.nights; r.end = ''; r.legs = null; r.legNights = []; }
+  if (typeof e.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.start) && e.start >= today && e.start !== r.start) {
+    r.start = e.start; r.end = ''; r.anchor = ''; r.holiday = ''; r.legs = null;
+    r.month = Number(e.start.slice(5, 7)); r.year = Number(e.start.slice(0, 4)); r.datesAssumed = false; r.nights = r.nights || 5;
+  }
   if (['yes', 'no', 'auto'].includes(e.car)) r.needs.car = e.car;
   if (typeof e.allInclusive === 'boolean') { r.needs.allInclusive = e.allInclusive; r.needs.board = e.allInclusive ? 'AI' : r.needs.board === 'AI' ? '' : r.needs.board; }
   // A star level chosen in the form (a change, not the value it was showing) is a hard constraint for the budget fit.
@@ -415,7 +418,14 @@ export function planDates(request, dest, today) {
     if (!(request.year && request.month) && `${year}-${pad(month)}-28` < earliest) year++;
     start = `${year}-${pad(month)}-10`;
     while (weekday(start) !== 0) start = addDays(start, 1);
-    if (start < earliest) { start = earliest; while (weekday(start) !== 0) start = addDays(start, 1); }
+    if (start < earliest && request.month) {
+      // Stay inside the requested month, even when the next Sunday is already in the following one.
+      if (earliest.slice(0, 7) === start.slice(0, 7)) {
+        const firstSunday = addDays(earliest, (7 - weekday(earliest)) % 7);
+        start = firstSunday.slice(0, 7) === start.slice(0, 7) ? firstSunday : earliest;
+      }
+      else { start = `${year + 1}-${pad(month)}-10`; while (weekday(start) !== 0) start = addDays(start, 1); }
+    } else if (start < earliest) { start = earliest; while (weekday(start) !== 0) start = addDays(start, 1); }
   }
   if (start < today) start = earliest;
   // Shabbat-observant travellers never fly on Saturday: dates we chose move forward a day (a Sunday start with 6 nights
@@ -424,7 +434,7 @@ export function planDates(request, dest, today) {
     while (weekday(start) === 6 || weekday(addDays(start, nights)) === 6) start = addDays(start, 1);
     assumed.push({ key: 'shabbat' });
   }
-  return { start, end: addDays(start, nights), nights, assumed, datesAssumed: !request.start };
+  return { start, end: addDays(start, nights), nights, assumed, datesAssumed: !request.start || request.datesAssumed === true };
 }
 
 // ---- 4. Itinerary: catalog attractions scored for the request, paced for the travellers, one area per day,
@@ -571,9 +581,10 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
   let entries = [];
   const tooLong = []; // kid-friendly or must-see places longer than the pace: offered as free-day ideas, never planned
   const skip = new Set(request.prefs?.avoidKinds || []), extra = new Set(request.prefs?.moreKinds || []);
+  const choice = (a) => request.activities?.[activityKey(dest.id, a)];
   (dest.attractions || []).forEach((a, i) => {
     // What they asked to skip is never planned ("בלי מוזיאונים", "no nightlife").
-    if (skip.has(a.kind) || (skip.has('nightlife') && (a.tags || []).includes('nightlife')) || (skip.has('shopping') && (a.tags || []).includes('shopping'))) return;
+    if (choice(a) === 'remove' || (choice(a) !== 'add' && (skip.has(a.kind) || (skip.has('nightlife') && (a.tags || []).includes('nightlife')) || (skip.has('shopping') && (a.tags || []).includes('shopping'))))) return;
     if (!suitable(a, request, p, want)) {
       if (suitable({ ...a, durationH: 1 }, request, p, want) && !offSeason(a, dest, month) && (isMust(a) || (a.tags || []).some((x) => asked.has(x) || (request.children && ['family', ...KIDS_TAGS].includes(x))))) tooLong.push(a);
       return;
@@ -581,7 +592,7 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
     const off = offSeason(a, dest, month);
     if (off) { warnings.add(off); return; }
     const must = isMust(a);
-    entries.push({ a, must, s: scoreAttraction(a, request, want, asked) + (must ? 3 : 0) + (extra.has(a.kind) || (extra.has('nightlife') && (a.tags || []).includes('nightlife')) ? 2.5 : 0) - i * 0.01, zone: a.area || (sized ? `#${i}` : '') });
+    entries.push({ a, must, s: scoreAttraction(a, request, want, asked) + (choice(a) === 'add' ? 50 : 0) + (must ? 3 : 0) + (extra.has(a.kind) || (extra.has('nightlife') && (a.tags || []).includes('nightlife')) ? 2.5 : 0) - i * 0.01, zone: a.area || (sized ? `#${i}` : '') });
   });
   if (request.styles.includes('ski') && !skiSeason(dest, month)) warnings.add('ski');
   entries.sort((x, y) => y.s - x.s);
@@ -593,12 +604,14 @@ function stopDays(dest, request, { start, nights, first, last, stopIndex, l, oth
   // Day trips: one per 3–4 nights (from 5 nights), never on consecutive days, most days stay in the destination; only
   // trips that fit the travellers' pace and season, and never to another stop of the route.
   const fullIdx = kinds.map((k, i) => (k === 'full' ? i : -1)).filter((i) => i >= 0);
-  const trips = (dest.dayTrips || []).map((dt, i) => ({ dt, h: dayTripHours(dt), s: (dt.mustSee ? 3 : 0) + (dt.tags || []).filter((x) => want.has(x)).length * 2 - (request.children ? dayTripHours(dt) * 0.1 : 0) - i * 0.01 }))
-    .filter((x) => x.h <= p.dayTripH && !(Array.isArray(x.dt.months) && x.dt.months.length && !x.dt.months.includes(month)) && !others.some((o) => overlaps(o, x.dt.name)))
+  const trips = (dest.dayTrips || []).map((dt, i) => ({ dt, h: dayTripHours(dt), s: (choice(dt) === 'add' ? 50 : 0) + (dt.mustSee ? 3 : 0) + (dt.tags || []).filter((x) => want.has(x)).length * 2 - (request.children ? dayTripHours(dt) * 0.1 : 0) - i * 0.01 }))
+    .filter((x) => choice(x.dt) !== 'remove' && x.h <= p.dayTripH && !(Array.isArray(x.dt.months) && x.dt.months.length && !x.dt.months.includes(month)) && !others.some((o) => overlaps(o, x.dt.name)))
     .sort((x, y) => y.s - x.s);
   // A base of a longer trip gets its day trip from 3 nights (Kyoto → Nara), the rest from 5.
-  const tripCount = skip.has('daytrip') ? 0 : nights >= 5 && fullIdx.length >= 3 ? Math.min(Math.max(1, Math.round(nights / 3.5)), Math.floor((fullIdx.length - 1) / 2), trips.length)
+  const defaultTrips = skip.has('daytrip') ? 0 : nights >= 5 && fullIdx.length >= 3 ? Math.min(Math.max(1, Math.round(nights / 3.5)), Math.floor((fullIdx.length - 1) / 2), trips.length)
     : base && nights >= 3 && fullIdx.length >= 2 && trips.length ? 1 : 0;
+  const requestedTrips = Math.min(trips.filter(({ dt }) => choice(dt) === 'add').length, Math.max(0, fullIdx.length - 1));
+  const tripCount = Math.max(defaultTrips, requestedTrips);
   const chosen = trips.slice(0, tripCount);
   chosen.forEach((x, k) => { kinds[fullIdx[Math.floor(((k + 1) * fullIdx.length) / (tripCount + 1))]] = 'daytrip'; });
   // A day trip to a place replaces the same place as an attraction (no "Phi Phi" twice).
@@ -734,7 +747,11 @@ export function attractionsOf(stops, request, days, l = 'he', { limit = 12 } = {
   return stops.filter((s) => !seen.has(s.dest.id) && seen.add(s.dest.id)).flatMap((s) => {
     const dest = s.dest, isMust = mustSeeOf(dest), where = L(dest.name, l), month = Number(String(s.start || '').slice(5, 7)) || 0;
     return (dest.attractions || []).map((a, i) => ({ a, i, must: isMust(a), s: scoreAttraction(a, request, want, asked) }))
-      .filter(({ a }) => !skip.has(a.kind) && !(skip.has('nightlife') && (a.tags || []).includes('nightlife')) && suitable({ ...a, durationH: Math.min(dur(a), p.hours) }, request, p, want))
+      .filter(({ a }) => {
+        const choice = request.activities?.[activityKey(dest.id, a)];
+        return choice !== 'remove' && (choice === 'add' || (!skip.has(a.kind) && !(skip.has('nightlife') && (a.tags || []).includes('nightlife'))))
+          && suitable({ ...a, durationH: Math.min(dur(a), p.hours) }, request, p, want);
+      })
       .sort((x, y) => Number(y.must) - Number(x.must) || y.s - x.s || x.i - y.i).slice(0, limit)
       .map(({ a, must }) => ({ name: L(a.name, l), en: L(a.name, 'en'), dest: dest.id, kind: a.kind, durationH: a.durationH || 2, area: a.area || '', where, must,
         tags: (a.tags || []).filter((x) => SHOWN_TAGS.includes(x)).slice(0, 3), mapsUrl: mapsUrl(L(a.name, l), where), day: planned.get(`${dest.id}|${L(a.name, 'en')}`) || 0,

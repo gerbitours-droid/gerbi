@@ -58,26 +58,32 @@ const shuffle = list => { const a = [...list]; for (let i = a.length - 1; i > 0;
 
 // Mounts the card after `anchor` (or inside it with { inside: true }); returns stop(). stop.retarget(target) switches
 // the country (the builder guesses from the text, then knows the plan). Fails silently: the card is decoration.
-export function startDidYouKnow(anchor, target, { every = 5000, inside = false } = {}) {
+export function startDidYouKnow(anchor, target, { every = 5000, inside = false, initialFact = '' } = {}) {
   let timer, stopped = false, box, list = [], i = 0, current = null, all = null;
   const key = (x) => (typeof x === 'object' && x ? x.cc || countryFor(x) : COUNTRY_OF[String(x || '').toUpperCase()]) || 'XX';
   const show = () => { const line = box?.querySelector('p'); if (!line || !list.length) return; line.classList.remove('dyk-in'); void line.offsetWidth; line.textContent = list[i++ % list.length]; line.classList.add('dyk-in'); };
+  const insert = (text = '') => {
+    box = document.createElement('div');
+    box.className = 'did-you-know';
+    const mark = initialFact
+      ? '<span class="dyk-icon" aria-hidden="true"><svg><use href="#i-spark"/></svg></span>'
+      : '<img src="/assets/mascot.webp" alt="" width="72" height="72">';
+    box.innerHTML = `${mark}<div><strong>${t('app.dyk.title')}</strong><p aria-live="off"></p></div>`;
+    box.querySelector('p').textContent = text;
+    if (inside) anchor.append(box); else anchor.after(box);
+  };
   const mount = () => {
     if (stopped || !all) return;
     const k = key(current), next = factsFor(all, typeof current === 'object' && current ? { ...current, cc: k } : current)?.[lang] || [];
     if (!next.length) return;
     if (box?.dataset.country === k) return;
     list = shuffle(next); i = 0;
-    if (!box) {
-      box = document.createElement('div');
-      box.className = 'did-you-know';
-      box.innerHTML = `<img src="/assets/mascot.webp" alt="" width="72" height="72"><div><strong>${t('app.dyk.title')}</strong><p aria-live="off"></p></div>`;
-      if (inside) anchor.append(box); else anchor.after(box);
-    }
+    if (!box) insert();
     box.dataset.country = k;
     clearInterval(timer); show(); timer = setInterval(show, every);
   };
   current = target;
+  if (initialFact) insert(initialFact);
   loadFacts().then((x) => { all = x; mount(); }).catch(() => {});
   const stop = () => { stopped = true; clearInterval(timer); box?.remove(); };
   // A guess that turns out right keeps its card; a different (or a first known) country restarts it at once.
