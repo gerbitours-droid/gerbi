@@ -29,24 +29,54 @@ try {
     page.on('request', (r) => { if (/\/api\/build\/(flights|hotels)/.test(r.url())) supplierCalls.push(r.url()); });
     const home = BASE + (l === 'en' ? '/en/' : '/');
 
+    if (!LIVE) {
+      await page.goto(home + '#/build');
+      const panel = page.locator('.planner-conversation.is-welcome');
+      await panel.waitFor();
+      const builderArt = await panel.evaluate(el => getComputedStyle(el, '::before').backgroundImage);
+      check(`${tag} builder welcome has the shared composer and starters`, await page.locator('#build-form.planner-composer').isVisible() && await page.locator('.planner-starters [data-example]').count() === 3);
+      const prefs = page.locator('#gb-prefs');
+      if (!(await prefs.evaluate(el => el.open))) await prefs.locator('summary').click();
+      check(`${tag} builder preferences are in the sidebar`, await prefs.locator('#build-month').isVisible());
+      if (width < 1001) await prefs.locator('summary').click();
+      await page.screenshot({ path: `${OUT}/${tag}-builder-welcome${sfx}.png`, animations: 'disabled' });
+      await page.goto(home + '#/planner');
+      const flightChat = page.locator('.flight-planner .planner-conversation');
+      await flightChat.waitFor();
+      const plannerArt = await flightChat.evaluate(el => getComputedStyle(el, '::before').backgroundImage);
+      check(`${tag} builder keeps its backdrop and the flight planner opens in the blue chat panel`,
+        builderArt !== 'none' && plannerArt === 'none' && await flightChat.locator('.flight-planner-head, .message.assistant').count() === 2);
+    }
     // Home: the big prompt opens the builder with the text.
     await page.goto(home);
     await page.waitForSelector('#magic-text');
     check(`${tag} home shows the magic prompt + nav link`, await page.locator('#magic-form label').isVisible() && await page.locator('header nav a[href="#/build"], #mobile-menu a[href="#/build"]').count() >= 1);
     if (!LIVE) await page.screenshot({ path: `${OUT}/${tag}-home-prompt${sfx}.png`, clip: { x: 0, y: 0, width, height: width > 500 ? 520 : 700 } });
-    let releasePlan;
+    let releasePlan, releaseFacts, releaseFlight;
     if (!LIVE) {
       const gate = new Promise((resolve) => { releasePlan = resolve; });
       await page.route('**/api/build', async (route) => { await gate; await route.continue(); }, { times: 1 });
+      const factsGate = new Promise((resolve) => { releaseFacts = resolve; });
+      await page.route('**/facts/group-a.mjs', async (route) => { await factsGate; await route.continue(); });
+      const flightGate = new Promise((resolve) => { releaseFlight = resolve; });
+      await page.route('**/api/build/flights', async (route) => { await flightGate; await route.continue(); });
+      if (width < 500 && l === 'en') await page.emulateMedia({ reducedMotion: 'reduce' });
     }
     await page.fill('#magic-text', TEXT[l]);
     await page.click('.magic-submit');
     // 23.11.2026: an animated "Gerbi is thinking" stage with steps that tick, then the plan before the prices.
     await page.waitForSelector('.bk-think .bk-think-steps li', { timeout: 10000 });
     check(`${tag} thinking stage: mascot + 5 steps`, await page.evaluate(() => window.__think) === 5);
-    if (!LIVE) await page.locator('.bk-think').first().screenshot({ path: `${OUT}/${tag}-thinking${sfx}.png` }).catch(() => {});
+    const fact = page.locator('.bk-think-facts .did-you-know');
     if (!LIVE) {
       try {
+        check(`${tag} localized fact is visible before the plan and fact deck respond`,
+          await fact.isVisible() && await fact.locator('strong').textContent() === (l === 'he' ? 'הידעת?' : 'Did you know?')
+          && (await fact.locator('p').textContent()).length > 20);
+        check(`${tag} the chat dock stays available while building`, await page.locator('#build-follow-text').isEditable() && await page.locator('#build-follow button').isDisabled());
+        const motion = await page.locator('.bk-think .is-active .bk-step-ico svg').evaluate(el => getComputedStyle(el).animationName);
+        check(`${tag} active indicator respects reduced motion`, motion === (width < 500 && l === 'en' ? 'none' : 'bk-working'));
+        await page.locator('.bk-think').first().screenshot({ path: `${OUT}/${tag}-thinking${sfx}.png` });
         await page.locator('[data-poll="flight.direct"]').click();
         check(`${tag} can answer a preference before the plan arrives`, await page.locator('[data-poll-step="1"]').isVisible());
       } finally { releasePlan(); }
@@ -55,6 +85,13 @@ try {
     check(`${tag} prompt opens #/build and plans immediately`, page.url().includes('#/build?q='));
     await page.waitForSelector('#bc-flights .bk-pending, #bc-flights [data-pick-flight], #bc-flights .bk-quote', { timeout: 10000 });
     check(`${tag} skeleton (itinerary + practical) before supplier answers`, await page.locator('#bc-itinerary .bk-day').count() >= 4 && await page.locator('#bc-practical dt').count() >= 3);
+    if (!LIVE) {
+      try {
+        check(`${tag} fact stays visible while flight prices are pending`, await page.locator('#bc-live .did-you-know').isVisible());
+        releaseFacts();
+        await page.locator('#bc-live .did-you-know[data-country="IT"]').waitFor();
+      } finally { releaseFlight(); }
+    }
     await settled(page);
     const flights = await page.locator('[data-pick-flight]').count(), hotels = await page.locator('[data-pick-hotel]').count();
     check(`${tag} flights card: live picks with check time`, flights >= 1 && flights <= 3 && /\d{1,2}:\d{2}/.test(await page.textContent('#bc-flights')), `${flights} picks`);
@@ -77,7 +114,8 @@ try {
     check(`${tag} the itinerary shortcut moves keyboard focus to its section`, await page.evaluate(() => document.activeElement?.id === 'bh-itinerary'));
 
     const dyk = await page.evaluate(() => [...window.__dyk]);
-    check(`${tag} did-you-know facts are about Italy (Rome)`, dyk.every((c) => c === 'IT'), dyk.join(',') || 'not shown (all answers within the grace time)');
+    check(`${tag} did-you-know facts are about Italy (Rome)`, dyk.length === 1 && dyk[0] === 'IT', dyk.join(','));
+    check(`${tag} fact is removed when price checks finish`, await fact.count() === 0);
     check(`${tag} live strip finished`, await page.locator('#bc-live').count() === 0 || await page.locator('#bc-live.bk-live-done').count() === 1);
     // Attractions: photo, meta, rough price, and one tap adds one to a day.
     const atts = await page.locator('#bc-attractions .bk-att').count();
@@ -157,9 +195,30 @@ try {
     // 23.11.2026: keep editing by text after the route is built – the package updates (one more day, in Florence).
     const daysNow = await page.locator('#bc-itinerary .bk-day').count();
     await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
-    if (width < 500) { await page.waitForTimeout(600); check(`${tag} "talk to Gerbi" button floats on the phone`, await page.locator('.bk-chat-fab').isVisible()); await page.click('.bk-chat-fab'); }
-    else await page.click('.bk-talk [data-chat-jump]');
+    const dock = page.locator('#bc-chat');
+    const atBottom = () => dock.evaluate((el) => {
+      const nav = document.querySelector('.mobile-bottom');
+      const edge = nav.offsetHeight ? nav.getBoundingClientRect().top : window.innerHeight;
+      const rect = el.getBoundingClientRect(), gap = parseFloat(getComputedStyle(el).getPropertyValue('--composer-gap'));
+      return Math.abs(rect.bottom - edge + gap) < 2 && rect.width <= 680 && rect.width < window.innerWidth;
+    });
+    await page.waitForFunction(() => document.querySelector('#bc-chat').offsetHeight > 0 && parseFloat(document.body.style.getPropertyValue('--composer-height')) > 0);
+    check(`${tag} chat dock sits above the bottom navigation or viewport edge`, await atBottom());
+    await page.evaluate(() => scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }));
+    check(`${tag} chat dock stays fixed after scrolling through the itinerary`, await atBottom() && await dock.locator('textarea').isVisible());
+    await dock.locator('summary').click();
+    await dock.locator('[data-chat-edit]').click();
+    check(`${tag} dock shortcut opens the editable trip dates`, await page.locator('#build-edit input[type="date"]').isVisible());
+    await page.click('.bk-talk [data-chat-jump]');
     check(`${tag} the follow-up box gets focus`, await page.evaluate(() => document.activeElement?.id === 'build-follow-text'));
+    if (width === 375 && l === 'en') {
+      const draft = 'Keep the hotel in the centre';
+      await page.route('**/api/build', (route) => route.fulfill({ status: 500, json: {} }), { times: 1 });
+      await dock.locator('textarea').fill(draft);
+      await dock.locator('textarea').press('Enter');
+      await dock.locator('.bk-chat-error').waitFor();
+      check(`${tag} failed edit keeps the draft and the previous itinerary`, await dock.locator('textarea').inputValue() === draft && await page.locator('#bc-itinerary .bk-day').count() === daysNow);
+    }
     await page.fill('#build-follow-text', l === 'en' ? 'add a day in Florence' : 'תוסיף יום בפירנצה'); await page.keyboard.press('Enter');
     await page.waitForFunction((n) => document.querySelectorAll('#bc-itinerary .bk-day').length === n + 1, daysNow, { timeout: 20000 });
     await settled(page);

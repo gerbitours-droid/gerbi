@@ -91,7 +91,7 @@ const monthTitle = (y, m) => new Date(Date.UTC(y, m, 15)).toLocaleDateString(loc
 const dayLabel = iso => new Date(iso + 'T12:00:00Z').toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const shortLabel = iso => (iso ? new Date(iso + 'T12:00:00Z').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : '');
 
-export function openRangePicker({ start = '', end = '', oneWay = false, today, returnFocus = null, validate = () => true, onTripType = () => {}, onApply = () => {} }) {
+export function openRangePicker({ start = '', end = '', oneWay = false, today, returnFocus = null, autoCommit = true, validate = () => true, onTripType = () => {}, onApply = () => {} }) {
   let dialog = document.querySelector('#date-picker');
   if (!dialog) {
     dialog = document.createElement('dialog'); dialog.id = 'date-picker'; dialog.className = 'date-picker'; dialog.setAttribute('aria-labelledby', 'date-picker-title');
@@ -164,14 +164,16 @@ export function openRangePicker({ start = '', end = '', oneWay = false, today, r
     dialog.close(); onApply({ start: s, end: e, oneWay });
   }
 
+  let autoApply;
   dialog.onclick = e => {
+    clearTimeout(autoApply);
     if (e.target === dialog) return;
     if (e.target.closest('.modal-close')) { dialog.close(); return; }
     const day = e.target.closest('.dp-day');
     if (day && !day.disabled) {
       Object.assign(sel, pickDate(sel, day.dataset.date, { oneWay }), { hover: '' }); focusIso = day.dataset.date; paint();
       // The range is complete: apply and close, the way travelers expect from flight sites.
-      if (oneWay ? sel.start : sel.end) setTimeout(apply, 180);
+      if (autoCommit && (oneWay ? sel.start : sel.end)) autoApply = setTimeout(() => { if (dialog.open) apply(); }, 180);
       return;
     }
     if (e.target.closest('.dp-prev') && !atMin()) { view = addMonths(view.y, view.m, -1); render(); return; }
@@ -200,7 +202,7 @@ export function openRangePicker({ start = '', end = '', oneWay = false, today, r
   };
   dialog.onsubmit = e => { e.preventDefault(); apply(); };
   // However it closes, focus goes back to the dates field (not to the place field that opened it).
-  dialog.onclose = () => { if (returnFocus) returnFocus.focus({ preventScroll: true }); };
+  dialog.onclose = () => { clearTimeout(autoApply); if (returnFocus) returnFocus.focus({ preventScroll: true }); };
   render();
   if (!dialog.open) dialog.showModal();
   (dialog.querySelector('.dp-day[tabindex="0"]') || dialog.querySelector('.dp-day:not(:disabled)'))?.focus();

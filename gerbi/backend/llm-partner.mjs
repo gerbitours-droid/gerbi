@@ -43,9 +43,9 @@ export async function partnerUnderstand(store, text, brief, { today = new Date()
 
 // The trip builder's reader (17.11.2026): the request's meaning as catalog ids + tags (task trip_tags). The schema already
 // limits every id/tag to the catalog; mergeModel (dist/trip-builder.mjs) re-validates ranges. null = rules only.
-export async function partnerTripTags(store, text, { today = new Date().toISOString().slice(0, 10), lang = 'he' } = {}) {
+export async function partnerTripTags(store, text, { today = new Date().toISOString().slice(0, 10), lang = 'he', current_trip } = {}) {
   if (!gateway.providerOrder().length) return null;
-  const result = await gateway.run('trip_tags', { customer_text: scrub(text), today }, { cache: store, lang: lang === 'en' ? 'en' : 'he' });
+  const result = await gateway.run('trip_tags', { customer_text: scrub(text), today, ...(current_trip ? { current_trip } : {}) }, { cache: store, lang: lang === 'en' ? 'en' : 'he' });
   return result ? { ...result.value, cached: result.cached } : null;
 }
 

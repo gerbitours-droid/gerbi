@@ -1,4 +1,5 @@
 import { t as tr } from './i18n.mjs';
+import { addDays, nightsBetween } from './date-range.mjs';
 export const STORAGE_KEY = 'gerbi-journey-v1';
 export function restoreComparison(raw, ids) {
   try {
@@ -15,6 +16,12 @@ export function restoreJourney(raw, ids) {
     const children = integer(brief.children, 0, 9 - adults, 0);
     const codes = list => Array.isArray(list) ? [...new Set(list.filter(code => /^[A-Z]{3}$/.test(code)))].slice(0, 6) : [];
     const text = (v, max = 1500) => typeof v === 'string' ? v.slice(0, max) : '';
+    const validDay = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '') && addDays(value, 0) === value;
+    const oneWay = brief.tripType === 'oneway';
+    const dates = validDay(brief.start)
+      ? { start: brief.start, end: !oneWay && validDay(brief.end) && brief.end >= brief.start ? brief.end : '', tripType: oneWay ? 'oneway' : 'round', ...(brief.datesApproximate === true ? { datesApproximate: true } : {}) }
+      : {};
+    const nights = dates.end ? nightsBetween(dates.start, dates.end) : integer(brief.nights,1,30,5);
     const saved = {};
     for (const [id, draft] of Object.entries(data.saved || {})) {
       const destinationId = planDestination(id, ids);
@@ -23,7 +30,7 @@ export function restoreJourney(raw, ids) {
       const planAdults = integer(draft.adults,1,9,2);
       saved[id] = { destinationId, title:text(draft.title,80), days: draft.days.slice(0,31).map(x => text(x,150)), request:text(draft.request,1000), nights:integer(draft.nights,1,30,5), adults:planAdults, children:integer(draft.children,0,Math.min(6,9-planAdults),0), updated:text(draft.updated,50) };
     }
-    return {brief:{city:brief.city===true,family:brief.family===true,relaxation:brief.relaxation===true,couple:brief.couple===true,cheaper:brief.cheaper===true,learningConsent:brief.learningConsent===true,adults,children,nights:integer(brief.nights,1,30,5),budget:integer(brief.budget,0,1000000,18000),month:text(brief.month,20),beach:brief.beach===true,direct:brief.direct===true,kosher:brief.kosher===true,accessible:brief.accessible===true,want:codes(brief.want),exclude:codes(brief.exclude)},saved};
+    return {brief:{city:brief.city===true,family:brief.family===true,relaxation:brief.relaxation===true,couple:brief.couple===true,cheaper:brief.cheaper===true,learningConsent:brief.learningConsent===true,adults,children,nights,...dates,budget:integer(brief.budget,0,1000000,18000),month:text(brief.month,20),beach:brief.beach===true,direct:brief.direct===true,kosher:brief.kosher===true,accessible:brief.accessible===true,want:codes(brief.want),exclude:codes(brief.exclude)},saved};
   } catch {return restoreJourney('{}',ids);}
 }
 export function filterTrips(trips, {query='',style='all',maxPrice=Infinity,sort='recommended'}={}) {

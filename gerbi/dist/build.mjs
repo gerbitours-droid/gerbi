@@ -14,6 +14,7 @@ import { brochureHtml, loadBrochureData } from './brochure.mjs';
 import { fitPackage, upsellOffers, applyUpsell, flightsInBudget } from './budget.mjs';
 import { startDidYouKnow, guessCountry, loadFacts } from './did-you-know.mjs';
 import { describeChange, airlineName } from './trip-prefs.mjs';
+import { mountFloatingComposer, plannerHeaderHtml, plannerLinksHtml, plannerWelcomeHtml, plannerStartersHtml } from './planner-ui.mjs';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const L = (v) => (v && typeof v === 'object' ? v[lang] || v.he || v.en || '' : v ?? '');
@@ -46,23 +47,32 @@ const EXAMPLES = ['build.example.family', 'build.example.couple', 'build.example
 const EXAMPLE_ICONS = ['people', 'heart', 'globe'];
 const CHIPS = [['who', ['couple', 'family', 'friends', 'solo']], ['budget', ['low', 'mid', 'high']], ['style', ['beach', 'city', 'nature', 'ski', 'allInclusive', 'car']]];
 function inputHtml(text = '') {
-  return `<form id="build-form" class="build-form gb-composer" novalidate>
-   <label for="build-text" class="build-label sr-only">${t('build.input.label')}</label>
-   <div class="gb-box">
-    <textarea id="build-text" name="text" rows="2" maxlength="1500" placeholder="${esc(t('build.input.placeholder'))}" aria-describedby="build-hint">${esc(text)}</textarea>
-    <div class="gb-bar">
-     <button type="button" class="gb-tool" aria-expanded="false" aria-controls="gb-prefs" data-prefs>${icon('filter')}<span>${t('build.prefs')}</span></button>
-     <span id="build-hint" class="gb-hint">${t('build.input.hint')}</span>
-     <button type="submit" class="build-submit gb-send">${icon('spark')}<span>${t('build.input.submit')}</span></button>
-    </div>
-   </div>
-   <div id="gb-prefs" class="gb-prefs" hidden>
-   ${CHIPS.map(([group, ids]) => `<div class="build-chips" role="group" aria-label="${esc(t(`build.chip.${group}`))}"><span class="build-chip-label" aria-hidden="true">${t(`build.chip.${group}`)}</span>${ids.map((id) => `<button type="button" class="build-chip" data-chip="${group}.${id}" aria-pressed="false">${t(`build.chip.${group}.${id}`)}</button>`).join('')}</div>`).join('')}
-   <div class="build-chips" role="group" aria-label="${esc(t('build.chip.when'))}"><label class="build-chip-label" for="build-month">${t('build.chip.when')}</label><select id="build-month" class="build-month"><option value="">${t('build.chip.when.any')}</option>${MONTHS.map((m, i) => `<option value="${i}">${esc(m)}</option>`).join('')}</select></div>
-   </div>
-   <div class="gb-examples"><p>${t('build.input.examples')}</p><div class="gb-suggest">${EXAMPLES.map((k, i) => `<button type="button" class="gb-card" data-example="${k}"><span class="gb-card-icon">${icon(EXAMPLE_ICONS[i])}</span><strong>${t(k + '.short')}</strong><small>${t(k)}</small></button>`).join('')}</div></div>
-   <p class="build-error" role="alert" hidden></p>
+  return `<form id="build-form" class="planner-composer gb-composer" novalidate>
+   <label for="build-text" class="sr-only">${t('build.input.label')}</label>
+   <textarea id="build-text" name="text" rows="2" dir="auto" maxlength="1500" placeholder="${esc(t('pages.planner.placeholder'))}" aria-describedby="build-hint">${esc(text)}</textarea>
+   <button type="submit" class="button blue build-submit" title="${esc(t('build.input.submit'))}" aria-label="${esc(t('build.input.submit'))}">${icon('send')}</button>
   </form>`;
+}
+function preferencesHtml() {
+  return `<details id="gb-prefs" class="planner-details" ${matchMedia('(min-width: 1001px)').matches ? 'open' : ''}>
+   <summary><span class="planner-side-icon">${icon('filter')}</span><span>${t('build.prefs')}</span></summary>
+   <div class="planner-details-body gb-prefs">
+    ${CHIPS.map(([group, ids]) => `<div class="build-chips" role="group" aria-label="${esc(t(`build.chip.${group}`))}"><span class="build-chip-label" aria-hidden="true">${t(`build.chip.${group}`)}</span>${ids.map((id) => `<button type="button" class="build-chip" data-chip="${group}.${id}" aria-pressed="false">${t(`build.chip.${group}.${id}`)}</button>`).join('')}</div>`).join('')}
+    <div class="build-chips"><label class="build-chip-label" for="build-month">${t('build.chip.when')}</label><select id="build-month" class="build-month"><option value="">${t('build.chip.when.any')}</option>${MONTHS.map((m, i) => `<option value="${i}">${esc(m)}</option>`).join('')}</select></div>
+   </div>
+  </details>`;
+}
+function showBuilderThread() {
+  const intake = $('.gb-intake', view);
+  if (!intake?.classList.contains('is-welcome')) return;
+  intake.classList.remove('is-welcome');
+  $('#gb-prefs', view).open = false;
+}
+function setChatBusy(chat, busy) {
+  const send = $('button[type="submit"]', chat);
+  send.disabled = busy;
+  if (busy) send.setAttribute('aria-busy', 'true');
+  else send.removeAttribute('aria-busy');
 }
 const chipPhrase = (key) => t(`build.chip.${key}.phrase`);
 function toggleChip(button) {
@@ -129,7 +139,10 @@ function paintEta(p) {
   const completed = states.filter((state) => state === 'done' || state === 'skip').length;
   const pct = Math.round(completed * 100 / states.length);
   const left = Math.ceil((p.eta - (Date.now() - p.started)) / 1000);
-  for (const bar of view.querySelectorAll('.bk-think-bar span')) bar.style.width = `${pct}%`;
+  for (const bar of view.querySelectorAll('.bk-think-bar')) {
+    bar.classList.toggle('is-starting', pct === 0);
+    bar.firstElementChild.style.width = `${pct}%`;
+  }
   for (const line of view.querySelectorAll('.bk-think-eta')) line.textContent = p.done ? t('build.think.ready') : left > 0 ? t('build.think.eta', { seconds: left }) : t('build.think.almost');
 }
 // The supplier calls answer in ~10–20 s the first time, ~30 ms from the cache: the median of this browser's last waits.
@@ -141,38 +154,51 @@ function rememberEta(ms) { try { const xs = JSON.parse(localStorage.getItem(ETA_
 // flight search (and flight wishes) keeps the flights and the chosen one, the same hotel search keeps its hotels, the
 // same day plan keeps the visitor's own edits to it, and insurance / a car toggled by hand stay as they were.
 const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-const flightKey = (p) => ({ s: p.flightSearch, f: p.request?.prefs?.flight || {}, d: Boolean(p.request?.needs?.direct), b: (p.request?.budget || 0) > 0 });
+const flightKey = (p) => ({ s: p.flightSearch, f: Object.entries(p.request?.prefs?.flight || {}).sort(), d: Boolean(p.request?.needs?.direct), b: (p.request?.budget || 0) > 0 });
 function keepUnchanged(before, next) {
   const kept = [];
   if (before.flights?.status === 'live' && same(flightKey(before), flightKey(next))) { next.flights = before.flights; next.manual = before.manual; kept.push('flights'); }
   const groups = before.hotels?.stops || [before.hotels], nextGroups = next.hotels.stops || [next.hotels];
   nextGroups.forEach((g, i) => { if (groups[i] && !['pending'].includes(groups[i].status) && same(before.planHotelSearches?.[i], next.hotelSearches?.[i])) { Object.assign(g, groups[i]); next.hotelSearches[i] = before.hotelSearches[i]; kept.push('hotels'); } });
-  if (same(before.planItinerary, next.itinerary)) { next.itinerary = before.itinerary; next.spare = before.spare; next.polish = before.polish; kept.push('itinerary'); }
+  if (same(before.planItinerary, next.itinerary) && same(before.request?.activities || {}, next.request?.activities || {})) { next.itinerary = before.itinerary; next.spare = before.spare; next.polish = before.polish; kept.push('itinerary'); }
   next.insurance = { ...before.insurance };
   if (before.request?.needs?.car === next.request?.needs?.car && before.destination?.id === next.destination?.id) next.car.include = before.car.include;
   return kept;
 }
 async function build(input) {
+  showBuilderThread();
   const before = pkg?.destination ? pkg : null, followUp = (input.thread || []).length > 1;
-  if (!followUp) turns = []; else if (before && lastInput) turns.push({ you: (lastInput.thread || [lastInput.text]).at(-1), said: planLine(before) });
+  const previousInput = lastInput, previousTurns = [...turns];
+  if (!followUp) turns = []; else if (before && lastInput && input.current?.change !== false) turns.push({ you: (lastInput.thread || [lastInput.text]).at(-1), said: planLine(before) });
   lastInput = input; const mine = ++version;
   // In a conversation the turns (and the latest message) read top to bottom inside the reply; the top bubble is for a first message.
   const you = $('.gb-you', view); if (you && input.text) { you.querySelector('p').textContent = input.text; you.hidden = followUp; } leadOpen = false; showAllHotels = new Set(); openDays = new Set(); dayExpand = {}; stayExpand = {}; showAllAttractions = false;
   const out = $('#build-result'), err = $('.build-error', view), button = $('.build-submit', view);
+  const chat = $('#bc-chat', view), chatError = $('.bk-chat-error', chat);
+  const active = () => mine === version && !view.hidden && out.isConnected;
+  chatError.hidden = true;
+  const tools = $('.bk-chat-tools', chat);
+  tools.open = false; tools.hidden = true;
+  chat.hidden = false;
+  setChatBusy(chat, true);
   err.hidden = true; button.disabled = true; button.setAttribute('aria-busy', 'true');
   // Facts from the first moment: the plan's country on a follow-up, else a guess from the text (Italy for "ברומא").
   const target = followUp && before ? { id: before.destination.id, code: before.destination.code } : { cc: guessCountry([input.text, ...(input.thread || [])].join(' ')) };
   const p = newProgress(mine, target), place = followUp && before ? L(before.destination.name) : '';
   out.innerHTML = historyHtml() + thinkingHtml(place, !followUp); announce(place ? t('build.think.title', { place }) : t('build.think.titleAny')); pollChoices = followUp ? pollChoices : [];
-  p.facts = startDidYouKnow($('.bk-think-facts', out), target, { inside: true }); thinking = true;
+  p.facts = startDidYouKnow($('.bk-think-facts', out), target, { inside: true, initialFact: t('build.think.fact') });
+  paintEta(p); thinking = true;
   try {
     const plan = await post('/api/build', input);
-    if (mine !== version) return;
+    if (!active()) return;
     pkg = { ...plan, manual: false, fit: null, extras: [], chatReply: followUp ? describeChange(before, plan, lang) : null, flights: { status: plan.flightSearch ? 'pending' : 'quote' },
       hotels: plan.stops?.length ? { stops: plan.hotelSearches.map((s, i) => ({ status: s ? 'pending' : 'quote', stop: i, area: plan.hotelAreas[i] })) } : { status: plan.hotelSearches[0] ? 'pending' : 'quote', area: plan.hotelAreas[0] },
       car: { ...plan.car }, insurance: { include: false }, polish: null,
       planItinerary: JSON.parse(JSON.stringify(plan.itinerary || [])), planHotelSearches: JSON.parse(JSON.stringify(plan.hotelSearches || [])) };
-    if (!pkg.destination) { stopProgress(); thinking = false; out.removeAttribute('aria-busy'); out.innerHTML = suggestionsOnlyHtml(); announce(t('build.status.suggest')); return; }
+    if (!pkg.destination) {
+      stopProgress(); thinking = false; out.removeAttribute('aria-busy'); out.innerHTML = suggestionsOnlyHtml();
+      chat.hidden = true; announce(t('build.status.suggest')); return;
+    }
     const kept = followUp && before ? keepUnchanged(before, pkg) : [];
     if (followUp && pkg.chatReply && kept.includes('flights')) pkg.kept = kept;
     p.facts?.retarget({ id: pkg.destination.id, code: pkg.destination.code });
@@ -190,20 +216,33 @@ async function build(input) {
     if (!pkg.polish) fetchPolish(mine);
     const all = Promise.allSettled(jobs).then(() => finishProgress(mine));
     await Promise.race([all, new Promise((r) => setTimeout(r, GRACE_MS))]);
-    if (mine !== version) return;
-    const facts = out.querySelector('.did-you-know');
+    if (!active()) return;
     fitBudget(); render(); remember(); if (!followUp) track('plan_shown'); announce(t('build.status.skeleton', { place: where }));
-  if (facts && !p.done) $('#bc-live .bk-think-facts', view)?.append(facts);
     paintSteps();
-    if (!document.activeElement?.closest('.bk-poll-host')) {
+    if (!document.activeElement?.closest('.bk-poll-host, #bc-chat')) {
       const heading = $(p.done ? '.bk-summary h2' : '.bk-think-head h3', out);
       heading?.focus();
     }
+    return true;
   } catch (error) {
-    if (mine !== version) return;
+    if (!active()) return;
     stopProgress(); thinking = false;
-    out.removeAttribute('aria-busy'); out.innerHTML = ''; err.textContent = error.message || t('build.err.generic'); err.hidden = false;
-  } finally { if (mine === version) { button.disabled = false; button.removeAttribute('aria-busy'); } }
+    const message = error.message || t('build.err.generic');
+    if (before) {
+      pkg = before; lastInput = previousInput; turns = previousTurns;
+      for (const group of [pkg.flights, ...hotelGroups()]) if (group.status === 'pending') group.status = 'quote';
+      render(); chatError.textContent = message; chatError.hidden = false;
+    } else {
+      out.removeAttribute('aria-busy'); out.innerHTML = ''; err.textContent = message; err.hidden = false;
+      chat.hidden = true;
+      $('.gb-intake', view)?.classList.add('is-welcome');
+    }
+  } finally {
+    if (mine === version) {
+      button.disabled = false; button.removeAttribute('aria-busy');
+      setChatBusy(chat, false);
+    }
+  }
 }
 const hotelsLabel = () => { const gs = hotelGroups(), n = gs.reduce((a, g) => a + (g.status === 'live' ? g.total || g.picks?.length || 0 : g.estimate?.count || 0), 0); return n ? t('build.think.done.hotels', { count: n }) : t('build.think.done.hotelsQuote'); };
 // The last answer is in: the budget fit, then the strip says so and folds (the facts stop).
@@ -331,14 +370,14 @@ const mascotHtml = () => '<div class="bk-think-mascot" aria-hidden="true"><img s
 function thinkingHtml(place, poll = true) {
   return `<section class="bk-card bk-think"><div class="bk-think-top">${mascotHtml()}<div class="bk-think-head"><h2 tabindex="-1">${place ? t('build.think.title', { place: esc(place) }) : t('build.think.titleAny')}</h2>
    <p class="bk-think-eta micro-copy" aria-live="off"></p></div></div><div class="bk-think-bar" aria-hidden="true"><span></span></div>
-   <ol class="bk-think-steps">${stepsHtml()}</ol><div class="bk-think-facts"></div>${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
+   <div class="bk-think-facts"></div><ol class="bk-think-steps">${stepsHtml()}</ol>${poll ? `<div class="bk-poll-host">${pollHtml(0)}</div>` : ''}</section>`;
 }
 // Keep the poll available when the plan arrives, including when the price checks finish quickly.
 function liveHtml(poll) {
   if (!progress || (progress.done && !poll)) return '';
   return `<section class="bk-card bk-think bk-live${progress.done ? ' bk-live-done' : ''}" id="bc-live"><div class="bk-think-top">${mascotHtml()}<div class="bk-think-head"><h3 tabindex="-1">${t(progress.done ? 'build.live.done' : 'build.live.title')}</h3>
    <p class="bk-think-eta micro-copy" aria-live="off"></p></div></div><div class="bk-think-bar" aria-hidden="true"><span></span></div>
-   <ol class="bk-think-steps">${stepsHtml()}</ol><div class="bk-think-facts"></div>
+   ${progress.done ? '' : '<div class="bk-think-facts"></div>'}<ol class="bk-think-steps">${stepsHtml()}</ol>
    <div class="bk-live-tools">${poll ? `<div class="bk-poll-host">${poll}</div><div class="bk-poll-apply-host">${pollApplyHtml()}</div>` : ''}${notifyHtml()}</div></section>`;
 }
 function skeletonHtml() {
@@ -347,17 +386,25 @@ function skeletonHtml() {
 function suggestionsOnlyHtml() {
   return `<section class="bk-card"><h2 tabindex="-1">${t('build.where.pick')}</h2>${suggestionsHtml()}</section>`;
 }
+function builderPlacePhoto(s) {
+  return `<div class="photo-place-frame">
+   ${s.image ? `<img src="${esc(s.image)}" alt="" loading="lazy" width="320" height="200" data-fallback>` : ''}
+   <span class="photo-place-caption"><strong>${esc(L(s.name))}</strong>${s.country ? ` <small>${esc(L(s.country))}</small>` : ''}</span>
+  </div>`;
+}
 function suggestionsHtml() {
   if (!pkg.suggestions?.length) return '';
-  return `<ul class="bk-suggestions">${pkg.suggestions.map((s) => `<li class="bk-suggestion${s.id === pkg.destination?.id ? ' current' : ''}">${s.image ? `<img src="${esc(s.image)}" alt="" loading="lazy" data-fallback>` : ''}<div><strong>${esc(L(s.name))}</strong> <small>${esc(L(s.country))}</small>
+  return `<ul class="bk-suggestions">${pkg.suggestions.map((s) => `<li class="bk-suggestion photo-place-card${s.id === pkg.destination?.id ? ' current' : ''}">${builderPlacePhoto(s)}<div>
    <p class="micro-copy">${esc(s.reasons.join(' · ') || t('build.where.fit'))}</p>${s.advisory ? `<p class="micro-copy bk-advisory">${esc(s.advisory)}</p>` : ''}${s.flightHours ? `<p class="micro-copy">${t('build.where.flight', { hours: s.flightHours })}${s.direct ? ' · ' + t('build.where.direct') : ''}</p>` : ''}</div>
    ${s.id === pkg.destination?.id ? `<span class="bk-current" aria-current="true">${t('build.where.chosen')}</span>` : `<button type="button" class="button secondary" data-choose="${esc(s.id)}">${t('build.where.choose', { place: esc(L(s.name)) })}</button>`}</li>`).join('')}</ul>`;
 }
 const JUMPS = [['flights', 'plane', 'build.flights.title'], ['hotels', 'hotel', 'build.hotels.title'], ['itinerary', 'pin', 'build.itinerary.title'], ['total', 'tag', 'build.total.title']];
 const jumpHtml = () => `<nav class="bk-jumps" aria-label="${t('build.sections')}">${JUMPS.map(([id, symbol, label]) => `<button type="button" data-build-jump="${id}">${icon(symbol)}${t(label)}${icon('down')}</button>`).join('')}</nav>`;
 function render() {
+  showBuilderThread();
   const r = pkg.request, out = $('#build-result');
   const poll = $('.bk-poll-host', out);
+  const facts = $('.bk-think-facts', out);
   const pollFocus = poll?.contains(document.activeElement) ? document.activeElement.dataset.poll || '' : null;
   out.removeAttribute('aria-busy');
   const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
@@ -369,7 +416,7 @@ function render() {
     ${pkg.understood?.length ? `<p class="bk-understood"><span class="reply-label">${t('build.understood')}</span> ${pkg.understood.map((u) => `<span class="understood-chip">${esc(u.label)}</span>`).join('')}</p>` : ''}
     ${pkg.assumed?.length ? `<p class="micro-copy bk-assumed">${t('build.assumed', { list: esc(pkg.assumed.join(' · ')) })}</p>` : ''}
     ${pkg.questions?.length ? `<p class="next-question">${pkg.questions.map(esc).join('<br>')}</p>` : ''}
-    ${pkg.sharedAt ? '' : `<p class="bk-talk"><button type="button" class="link-button" data-chat-jump>${icon('spark')}${t('build.chat.talk')}</button></p>`}
+    ${pkg.sharedAt ? '' : `<p class="bk-talk"><button type="button" class="link-button" data-chat-jump>${icon('edit')}${t('build.chat.talk')}</button></p>`}
     ${stale ? `<p class="notice">${t('build.shared.stale', { time: esc(fmtDate(pkg.sharedAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) })} <button type="button" class="link-button" data-act="refresh">${t('build.shared.refresh')}</button></p>` : ''}
     </div></div>
    ${jumpHtml()}
@@ -387,7 +434,6 @@ function render() {
      <section class="bk-card" id="bc-itinerary" aria-labelledby="bh-itinerary"></section>
      <section class="bk-card bk-att-card" id="bc-attractions" aria-labelledby="bh-attractions"></section>
      <section class="bk-card" id="bc-practical" aria-labelledby="bh-practical"></section>
-     ${chatHtml()}
     </div>
     <aside class="bk-side"><section class="bk-card bk-total" id="bc-total" aria-labelledby="bh-total"></section>
      <section class="bk-card bk-upsell" id="bc-upsell" aria-labelledby="bh-upsell"></section>
@@ -401,29 +447,20 @@ function render() {
      </div>
      <section class="bk-card bk-lead" id="bc-lead" ${leadOpen ? '' : 'hidden'}></section>
     </aside>
-   </div>
-   <button type="button" class="bk-chat-fab" data-chat-jump hidden>${icon('spark')}<span>${t('build.chat.fab')}</span></button>`;
+   </div>`;
+  if (facts?.firstElementChild) $('#bc-live .bk-think-facts', out)?.replaceWith(facts);
   for (const part of ['where', 'flights', 'hotels', 'stay', 'car', 'insurance', 'itinerary', 'attractions', 'practical', 'total', 'banner', 'upsell']) paint(part);
   if (leadOpen) paintLead();
   wireImages(out);
   if (pollFocus !== null) $(pollFocus ? `[data-poll="${pollFocus}"]` : '.bk-poll-done', out)?.focus({ preventScroll: true });
   // Details (what it is, a tip, a rough ticket price) fill the attractions and the day ideas once loaded.
   loadBrochureData().then((x) => { const first = !brochureData; brochureData = x; if (first && pkg?.destination && view?.isConnected) { paint('attractions'); if (openDays.size) paint('itinerary'); } }).catch(() => {});
-  chatFab();
-}
-// "Talk to Gerbi" (owner 23.11.2026): the follow-up box is the last card – on a phone far below. A floating button
-// brings it into view (and focuses it) whenever it is off screen.
-let fabObserver = null;
-function chatFab() {
-  fabObserver?.disconnect();
-  const fab = $('.bk-chat-fab', view), chat = $('#bc-chat', view);
-  if (!fab || !chat || typeof IntersectionObserver === 'undefined') return;
-  fabObserver = new IntersectionObserver(([e]) => { fab.hidden = e.isIntersecting || !pkg?.destination; }, { threshold: 0.1 });
-  fabObserver.observe(chat);
+  const chat = $('#bc-chat', view);
+  $('.bk-chat-chips', chat).innerHTML = followChipsHtml();
+  $('.bk-chat-tools', chat).hidden = false;
+  chat.hidden = false;
 }
 function jumpToChat() {
-  const chat = $('#bc-chat', view);
-  chat?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
   $('#build-follow-text', view)?.focus({ preventScroll: true });
 }
 // ---- the conversation (owner 18.11.2026): options with "נמשיך מפה", a follow-up box with quick chips, the turns so far.
@@ -437,40 +474,65 @@ function historyHtml() {
 function optionsHtml() {
   const list = [...(pkg.suggestions || []), ...(pkg.budgetPlan?.alternatives || [])].filter((s, i, all) => s.id !== pkg.destination.id && all.findIndex((x) => x.id === s.id) === i).slice(0, 3);
   if (!list.length) return '';
-  return `<section class="bk-options-row" aria-labelledby="bh-options"><h3 id="bh-options">${t('build.options.title')}</h3><ul>${list.map((s) => `<li class="bk-option-card">
-    ${s.image ? `<img src="${esc(s.image)}" alt="" loading="lazy" data-fallback>` : ''}<div><strong>${esc(L(s.name))}</strong>
+  return `<section class="bk-options-row" aria-labelledby="bh-options"><h3 id="bh-options">${t('build.options.title')}</h3><ul>${list.map((s) => `<li class="bk-option-card photo-place-card">
+    ${builderPlacePhoto(s)}<div>
     ${s.reasons?.length ? `<small>${esc(s.reasons.slice(0, 2).join(' · '))}</small>` : ''}${s.estimate ? `<small dir="ltr">${esc(formatIls(Math.round((s.estimate.low + s.estimate.high) / 2)))}~</small>` : ''}</div>
     <button type="button" class="button secondary" data-continue="${esc(s.id)}">${t('build.options.continue')}</button></li>`).join('')}</ul></section>`;
 }
 const FOLLOW_CHIPS = ['cheaper', 'better', 'direct', 'noNight', 'moreNight', 'lessNight', 'relaxed', 'packed', 'beach', 'center', 'bag', 'car'];
-function chatHtml() {
+function followChipsHtml() {
   const r = pkg.request, n = r.needs, fp = r.prefs?.flight || {};
   const chips = FOLLOW_CHIPS.filter((c) => !(c === 'direct' && (n.direct || fp.direct)) && !(c === 'noNight' && fp.noNight) && !(c === 'bag' && fp.checkedBag) && !(c === 'car' && pkg.car?.include) && !(c === 'lessNight' && r.nights <= 2));
-  return `<section class="bk-card bk-chat" id="bc-chat" aria-labelledby="bh-chat"><h3 id="bh-chat">${icon('spark')}${t('build.chat.title')}</h3><p class="micro-copy">${t('build.chat.intro')}</p>
-   <div class="bk-chat-chips" role="group" aria-label="${esc(t('build.chat.chipsLabel'))}">${chips.map((c) => `<button type="button" class="chip" data-say="${esc(t(`build.chat.chip.${c}.say`))}">${t(`build.chat.chip.${c}`)}</button>`).join('')}</div>
-   <div class="bk-poll-apply-host">${pollApplyHtml()}</div>
-   <form id="build-follow" class="bk-chat-form" novalidate><label class="sr-only" for="build-follow-text">${t('build.chat.title')}</label>
-    <textarea id="build-follow-text" rows="2" maxlength="600" placeholder="${esc(t('build.chat.placeholder'))}"></textarea>
-    <button type="submit" class="button yellow">${t('build.chat.send')}</button></form></section>`;
+  return chips.map((c) => `<button type="button" class="chip" data-say="${esc(t(`build.chat.chip.${c}.say`))}">${t(`build.chat.chip.${c}`)}</button>`).join('');
 }
-// The poll can now be answered after the plan is on screen: its "apply" line lives in the chat card and follows it.
+function chatHtml() {
+  return `<section class="bk-chat floating-composer-dock" id="bc-chat" aria-label="${esc(t('build.chat.title'))}" hidden>
+   <div class="bk-chat-inner">
+    <p class="bk-chat-error" role="alert" hidden></p>
+    <div class="bk-chat-row">
+     <details class="bk-chat-tools"><summary title="${esc(t('build.chat.chipsLabel'))}">${icon('edit')}<span class="sr-only">${t('build.chat.chipsLabel')}</span></summary>
+      <div class="bk-chat-menu"><button type="button" class="button secondary" data-chat-edit>${icon('calendar')}${t('build.edit.summary')}</button>
+       <div class="bk-chat-chips" role="group" aria-label="${esc(t('build.chat.chipsLabel'))}"></div></div>
+     </details>
+     <form id="build-follow" class="planner-composer" novalidate><label class="sr-only" for="build-follow-text">${t('build.chat.title')}</label>
+      <textarea id="build-follow-text" dir="auto" rows="1" maxlength="600" placeholder="${esc(t('build.chat.placeholder'))}"></textarea>
+      <button type="submit" class="button blue" title="${esc(t('build.chat.send'))}" aria-label="${esc(t('build.chat.send'))}">${icon('send')}</button>
+     </form>
+    </div>
+   </div>
+  </section>`;
+}
+// The poll can be answered after the plan is on screen.
 const pollApplyHtml = () => (pollChoices.length ? `<p class="bk-poll-apply">${t('build.poll.picked', { list: esc(pollChoices.map((x) => x.label).join(' · ')) })} <button type="button" class="button secondary" data-say="${esc(pollChoices.map((x) => x.say).join(', '))}" data-poll-apply>${t('build.poll.apply')}</button></p>` : '');
 function paintPollApply() { view.querySelectorAll('.bk-poll-apply-host').forEach((host) => { host.innerHTML = pollApplyHtml(); }); }
-// A follow-up turn: the whole conversation goes to the server (it rebuilds the request from the texts), seeded with the
-// plan as it stands so "עוד לילה" counts from the nights on screen.
+function currentTrip(change = false) {
+  const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
+  const counts = new Map();
+  for (const stop of stops) counts.set(stop.id, (counts.get(stop.id) || 0) + (stop.nights || 0));
+  return { change, request: pkg.request, dest: [...counts.keys()], legNights: [...counts.values()] };
+}
+function rebuildCurrent(edits, chosen = '') {
+  return build({ ...lastInput, text: lastInput?.text || pkg.request.text, chosen, edits, current: currentTrip() });
+}
+
 function followUp(text) {
   const said = String(text || '').trim();
-  if (!said || !pkg?.destination) return;
+  if (!said || !pkg?.destination || $('.build-submit', view).disabled) return;
   const thread = [...(lastInput?.thread || [lastInput?.text || '']), said].filter(Boolean).slice(-8);
-  const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
   track('followup');
-  const ids = [...new Set(stops.map((s) => s.id))], legNights = ids.map((id) => stops.filter((s) => s.id === id).reduce((a, s) => a + (s.nights || 0), 0));
-  // Nights / start set by hand become the plan's own state (sent as `current`), so a later "one more night" counts from them
-  // instead of being overwritten by the old edit on every turn.
-  const { nights: n, start: s, ...edits } = lastInput?.edits || {}, edited = Boolean(lastInput?.current?.edited || n !== undefined || s !== undefined);
-  build({ ...lastInput, edits, text: said, thread, chosen: '', current: { dest: ids, nights: pkg.request.nights, start: pkg.request.start, legNights, edited } });
+  return build({ text: said, thread, current: currentTrip(true) });
 }
-function wireImages(root) { root.querySelectorAll('img[data-fallback]').forEach((img) => img.addEventListener('error', () => img.classList.add('bk-noimg'), { once: true })); }
+const hideMissingImage = (event) => event.currentTarget.classList.add('bk-noimg');
+const showHotelPhoto = (event) => event.currentTarget.classList.add('bk-photo-ready');
+function wireImages(root) {
+  root.querySelectorAll('img[data-fallback]').forEach((img) => {
+    img.addEventListener('error', hideMissingImage, { once: true });
+    if (img.parentElement.matches('.bk-hotel')) {
+      if (img.complete && img.naturalWidth > 0) img.classList.add('bk-photo-ready');
+      else img.addEventListener('load', showHotelPhoto, { once: true });
+    }
+  });
+}
 
 function editHtml() {
   const r = pkg.request, n = r.needs;
@@ -512,11 +574,11 @@ const PAINT = {
     return head + wish + `<p class="micro-copy">${kindPill('live')} ${t('build.flights.found', { count: f.total })} · ${esc(checked(f.searchedAt))}</p>
      ${flightView.hidden ? `<p class="micro-copy bk-over-note">${t('build.flights.hiddenOver', { count: flightView.hidden, budget: esc(formatIls(pkg.request.budget)) })}</p>` : ''}
      ${flightView.allOver ? `<p class="bk-budget bk-budget-over">${t('build.flights.allOver', { budget: esc(formatIls(pkg.request.budget)) })}</p>` : ''}
-     <ul class="bk-options">${flightView.shown.map((p) => `<li><button type="button" class="bk-option" data-pick-flight="${esc(p.key)}" aria-pressed="${p.key === f.selected}">
+     <ul class="bk-options">${flightView.shown.map((p) => `<li><button type="button" class="bk-option travel-card bk-flight-choice" data-pick-flight="${esc(p.key)}" aria-pressed="${p.key === f.selected}">
       <span class="bk-option-main"><strong>${esc(p.carriers.join(' + '))}</strong>${p.badges.length ? `<span class="bk-badges">${p.badges.map((b) => `<span class="flight-badge badge-${esc(b)}">${t(`app.badge.${b}`)}</span>`).join('')}</span>` : ''}
       ${p.legs.map((l) => `<span class="bk-leg" dir="ltr">${esc(l.from)} ${esc(l.depart)} → ${esc(l.to)} ${esc(l.arrive)}${l.dayOffset ? ` +${l.dayOffset}` : ''}</span><small>${esc(longDay(l.date))} · ${l.stops ? t('build.flights.stops', { count: l.stops }) : t('build.flights.direct')}</small>`).join('')}
       ${p.reasons.length ? `<small class="why">${esc(p.reasons.join(' · '))}</small>` : ''}</span>
-      <span class="bk-option-price"><strong dir="ltr">${esc(fare(p.price))}</strong><small>${t('build.flights.forAll', { count: travellers(pkg.request) })}</small></span></button></li>`).join('')}</ul>
+      <span class="bk-option-price"><strong dir="ltr">${esc(fare(p.price))}</strong><small>${t('build.flights.forAll', { count: travellers(pkg.request) })}</small>${p.key === f.selected ? `<small class="bk-option-chosen">${icon('check')}${t('build.where.chosen')}</small>` : ''}</span></button></li>`).join('')}</ul>
      ${bookable(f) ? `<p class="bo-book-flight"><button type="button" class="button yellow" data-book-flight>${t('booking.builder.book')}</button> <span class="micro-copy">${t('booking.builder.bookNote')}</span></p><p class="micro-copy" id="bo-book-status" role="status"></p>` : ''}
      <p class="micro-copy">${t('build.flights.note')} <a href="${esc(link)}">${t('build.flights.full')}</a></p>`;
   },
@@ -531,20 +593,20 @@ const PAINT = {
       if (g.status === 'estimate' && g.estimate) {
         const e = g.estimate, conv = (v) => fare({ value: v, currency: e.currency });
         const what = [g.minStars ? t('build.hotels.estStars', { stars: g.minStars }) : '', g.board && !g.boardFallback ? t(`build.board.${g.board}`) : ''].filter(Boolean).join(' · ');
-        return title + areaLine + areaPick + `<div class="bk-hotel-est"><p>${kindPill('estimate')} <strong>${t('build.hotels.estLine', { low: `<span class="bk-range" dir="ltr">${esc(conv(e.perNight.low))} – ${esc(conv(e.perNight.high))}</span>`, what: esc(what || t('build.hotels.estAny')), where: e.areaScope && g.area ? t('build.hotels.estInArea', { area: esc(L(g.area.name)) }) : t('build.hotels.estInDest') })}</strong></p>
+        return title + areaLine + areaPick + `<div class="bk-hotel-est travel-card"><p>${kindPill('estimate')} <strong>${t('build.hotels.estLine', { low: `<span class="bk-range" dir="ltr">${esc(conv(e.perNight.low))} – ${esc(conv(e.perNight.high))}</span>`, what: esc(what || t('build.hotels.estAny')), where: e.areaScope && g.area ? t('build.hotels.estInArea', { area: esc(L(g.area.name)) }) : t('build.hotels.estInDest') })}</strong></p>
           <p>${t('build.hotels.estStay', { nights: e.nights, range: `<span class="bk-range" dir="ltr">${esc(conv(e.stay.low))} – ${esc(conv(e.stay.high))}</span>` })}</p>
           <p class="micro-copy">${t('build.hotels.estNote', { count: e.count, time: esc(checked(g.searchedAt)) })}${g.boardFallback ? ' · ' + t('build.hotels.boardFallback', { board: t(`build.board.${g.board}`) }) : ''}</p></div>`;
       }
       if (g.status !== 'live') return title + areaLine + areaPick + `<p>${kindPill('quote')} ${t(g.reason === 'not_connected' ? 'build.hotels.notConnected' : g.reason === 'rate_limited' ? 'build.err.rateLimited' : 'build.hotels.quote')}</p>`;
       const shown = showAllHotels.has(i) ? g.picks : g.picks.slice(0, 3);
       return title + areaLine + areaPick + `<p class="micro-copy">${kindPill('live')} ${t('build.hotels.found', { count: g.total })} · ${esc(checked(g.searchedAt))}${g.boardFallback ? ' · ' + t('build.hotels.boardFallback', { board: t(`build.board.${g.board}`) }) : ''}${g.relaxedStars ? ' · ' + t('build.hotels.relaxed') : ''}</p>
-       <ul class="bk-options bk-hotels">${shown.map((h) => `<li><button type="button" class="bk-option bk-hotel" data-pick-hotel="${i}:${esc(h.id)}" aria-pressed="${h.id === g.selected}">
-        ${h.image ? `<img src="${esc(h.image)}" alt="" loading="lazy" width="96" height="72" data-fallback>` : ''}
-        <span class="bk-option-main"><strong>${esc(h.name)}</strong><span class="bk-stars" aria-label="${esc(t('build.hotels.stars', { stars: h.stars }))}">${'★'.repeat(h.stars || 0)}</span>
+       <ul class="bk-options bk-hotels">${shown.map((h) => `<li><button type="button" class="bk-option bk-hotel travel-card photo-place-card" data-pick-hotel="${i}:${esc(h.id)}" aria-pressed="${h.id === g.selected}">
+        ${h.image ? `<img src="${esc(h.image)}" alt="" decoding="async" width="96" height="72" data-fallback>` : ''}
+        <span class="hotel-option-content"><span class="bk-option-main"><strong>${esc(h.name)}</strong>${h.stars ? `<span class="bk-stars" role="img" aria-label="${esc(t('build.hotels.stars', { stars: h.stars }))}">${'★'.repeat(h.stars)}</span>` : ''}
          ${h.role ? `<span class="bk-badges"><span class="flight-badge badge-${h.role === 'value' ? 'recommended' : h.role === 'budget' ? 'cheapest' : 'value'}">${t(`build.hotels.role.${h.role}`)}</span></span>` : ''}
-         <small>${esc(h.address)}</small>
-         <span class="bk-tags">${h.board ? `<span class="pill">${t(`build.board.${h.board}`)}</span>` : ''}${h.areaMatch ? `<span class="pill">${t('build.hotels.inArea')}</span>` : ''}${h.family ? `<span class="pill">${t('build.hotels.family')}</span>` : ''}${h.refundable ? '' : `<span class="pill pill-warn">${t('build.hotels.nonRefundable')}</span>`}</span></span>
-        <span class="bk-option-price"><strong dir="ltr">${esc(fare(h.price))}</strong><small>${t('build.hotels.forStay', { nights: h.nights })}</small><small dir="ltr">${esc(fare({ value: h.price.value / (h.nights || 1), currency: h.price.currency }))} ${t('build.hotels.perNight')}</small></span></button></li>`).join('')}</ul>
+         ${h.address ? `<small>${esc(h.address)}</small>` : ''}
+         <span class="bk-tags">${h.board ? `<span class="pill">${t(`build.board.${h.board}`)}</span>` : ''}${h.areaMatch ? `<span class="pill">${t('build.hotels.inArea')}</span>` : ''}${h.family ? `<span class="pill">${t('build.hotels.family')}</span>` : ''}${h.refundable === false ? `<span class="pill pill-warn">${t('build.hotels.nonRefundable')}</span>` : ''}</span></span>
+        <span class="bk-option-price"><strong dir="ltr">${esc(fare(h.price))}</strong><small>${t('build.hotels.forStay', { nights: h.nights })}</small>${h.nights > 1 ? `<small><bdi dir="ltr">${esc(fare({ value: h.price.value / h.nights, currency: h.price.currency }))}</bdi> ${t('build.hotels.perNight')}</small>` : ''}${h.id === g.selected ? `<small class="bk-option-chosen">${icon('check')}${t('build.where.chosen')}</small>` : ''}</span></span></button></li>`).join('')}</ul>
        ${g.picks.length > 3 ? `<button type="button" class="link-button" data-more-hotels="${i}" aria-expanded="${showAllHotels.has(i)}">${showAllHotels.has(i) ? t('build.hotels.less') : t('build.hotels.more', { count: g.picks.length })}</button>` : ''}
        <p class="micro-copy">${t('build.hotels.note')}</p>`;
     }).join('<hr>');
@@ -661,9 +723,10 @@ function attractionsHtml() {
   const shown = showAllAttractions ? list : list.slice(0, 6), multi = new Set(list.map((a) => a.dest)).size > 1;
   return `<h3 id="bh-attractions">${icon('pin')}${t('build.att.title', { place: esc((pkg.stops?.length ? [...new Set(pkg.stops.map((s) => L(s.name)))] : [L(pkg.destination.name)]).join(', ')) })}</h3>
    <p class="micro-copy">${t('build.att.intro')}</p>
-   <ul class="bk-attractions">${shown.map((a) => { const k = list.indexOf(a), img = imageOf(a), info = infoOf(a); return `<li class="bk-att${a.must ? ' bk-att-must' : ''}">
-    <div class="bk-att-img">${img ? `<img src="${esc(img)}" alt="" loading="lazy" data-fallback>` : `<span class="bk-att-ph" aria-hidden="true">${icon('pin')}</span>`}${a.must ? `<span class="bk-att-badge">${t('build.att.must')}</span>` : ''}</div>
-    <div class="bk-att-body"><h4><a href="${esc(a.mapsUrl)}" target="_blank" rel="noopener noreferrer">${esc(a.name)}</a></h4>
+   <ul class="bk-attractions">${shown.map((a) => { const k = list.indexOf(a), img = imageOf(a), info = infoOf(a); return `<li class="bk-att photo-place-card${a.must ? ' bk-att-must' : ''}">
+    <div class="photo-place-frame"><div class="bk-att-img">${img ? `<img src="${esc(img)}" alt="" loading="lazy" data-fallback>` : `<span class="bk-att-ph" aria-hidden="true">${icon('pin')}</span>`}${a.must ? `<span class="bk-att-badge">${t('build.att.must')}</span>` : ''}</div>
+    <h4 class="photo-place-caption"><a href="${esc(a.mapsUrl)}" target="_blank" rel="noopener noreferrer">${esc(a.name)}</a></h4></div>
+    <div class="bk-att-body">
      <p class="bk-att-meta">${metaLine(a)}${multi ? ` · ${esc(a.where)}` : ''}</p>
      ${info?.about ? `<p class="bk-att-about">${esc(L(info.about))}</p>` : ''}
      <p class="bk-att-tags">${ticketText(a)}${a.tags.map((x) => `<span class="pill">${esc(t(`build.att.tag.${x}`))}</span>`).join('')}${a.offSeason ? `<span class="pill pill-warn">${t('build.att.offSeason')}</span>` : ''}</p>
@@ -683,7 +746,7 @@ function stayHtml() {
     const pro = (a) => ai?.state === 'ok' ? ai.areas.find((x) => x.name.trim().toLowerCase() === L(a.name).trim().toLowerCase()) : null;
     return `${blocks.length > 1 ? `<h4>${esc(L(s.name))}</h4>` : ''}<ul class="bk-stay">${areas.map((a) => {
       const near = planned.filter((x) => x.stop === i && x.area && (x.area === a.name.en || x.area === L(a.name))), here = chosen && chosen === L(a.name), p = pro(a);
-      return `<li class="bk-stay-area${here ? ' current' : ''}"><div><strong>${esc(L(a.name))}</strong>${here ? ` <span class="bk-current">${t('build.stay.chosen')}</span>` : ''}${p?.price ? ` <span class="pill">${t(`build.stay.price.${p.price}`)}</span>` : ''}
+      return `<li class="bk-stay-area photo-place-card${here ? ' current' : ''}"><div><strong>${esc(L(a.name))}</strong>${here ? ` <span class="bk-current">${t('build.stay.chosen')}</span>` : ''}${p?.price ? ` <span class="pill">${t(`build.stay.price.${p.price}`)}</span>` : ''}
         <p>${esc(L(a.forWhom))}</p>${near.length ? `<p class="micro-copy">${t('build.stay.near', { count: near.length, list: esc(near.slice(0, 3).map((x) => x.name).join(', ')) })}</p>` : ''}
         ${p ? `<p class="bk-stay-pc"><span>👍 ${esc(p.pros)}</span>${p.cons ? `<span>👎 ${esc(p.cons)}</span>` : ''}</p>` : ''}</div>
         ${!here && pkg.hotelSearches?.[i] ? `<button type="button" class="button secondary" data-stay-area="${i}" data-value="${esc(a.name.en || L(a.name))}">${t('build.stay.pick')}</button>` : ''}</li>`;
@@ -818,9 +881,10 @@ async function submitLead(form) {
 
 // ---- save / share / print
 async function snapshotId() {
-  if (pkg.sharedId && pkg.sharedVersion === JSON.stringify(sanitizePackage(pkg))) return pkg.sharedId;
-  const snapshot = sanitizePackage(pkg), data = await post('/api/build/share', { package: snapshot });
-  pkg.sharedId = data.id; pkg.sharedVersion = JSON.stringify(snapshot);
+  const current = pkg, snapshot = sanitizePackage(current), version = JSON.stringify(snapshot);
+  if (current.sharedId && current.sharedVersion === version) return current.sharedId;
+  const data = await post('/api/build/share', { package: snapshot });
+  current.sharedId = data.id; current.sharedVersion = version;
   return data.id;
 }
 const shareUrl = (id) => `${location.origin}${location.pathname}#/build?p=${id}`;
@@ -853,6 +917,7 @@ function moveDay(i, delta) {
 
 // ---- the page
 async function openShared(id) {
+  showBuilderThread();
   const out = $('#build-result');
   out.setAttribute('aria-busy', 'true'); out.innerHTML = skeletonHtml();
   try {
@@ -864,40 +929,54 @@ async function openShared(id) {
   } catch { out.removeAttribute('aria-busy'); out.innerHTML = `<p class="notice">${t('build.shared.missing')}</p>`; }
 }
 function refreshFromSnapshot() {
-  const r = pkg.request;
-  build({ text: r.text, chosen: pkg.destination.id, edits: { adults: r.adults, children: r.children, childAges: r.childAges, start: r.start, nights: r.nights, car: r.needs.car, allInclusive: r.needs.allInclusive, minStars: r.needs.minStars, kosher: r.needs.kosher, shabbat: r.needs.shabbat } });
+  rebuildCurrent({});
 }
 
-function page({ view: host, footer, bread }) {
+function page({ view: host, footer }) {
   view = host;
   const params = new URLSearchParams(location.hash.split('?')[1] || ''), q = params.get('q') || '', dest = params.get('dest') || '', shared = params.get('p') || '';
   stopDecor();
   view.innerHTML = `<div class="build-page gb-page">
-   <section class="gb-stage">
-    <div class="route-width gb-stage-inner">${bread(t('build.title'))}
-     <div class="gb-panel">
-      <div class="gb-content">
-       <header class="build-hero gb-hero"><div class="gb-intro"><img class="gb-avatar" src="/assets/mascot.webp" alt="" width="56" height="56"><h1 tabindex="-1">${t('build.title')}</h1></div><p>${t('build.subtitle')}</p></header>
+   <div class="route-width planner-page gb-stage">
+    ${plannerHeaderHtml(t('build.title'), `<a href="#/planner" class="planner-new">${icon('compass')}${t('pages.footer.8')}</a>`)}
+    <div class="planner-workspace">
+     <aside class="planner-sidebar">
+      ${plannerLinksHtml()}
+      ${preferencesHtml()}
+     </aside>
+     <section class="planner-conversation is-welcome gb-intake" aria-label="${esc(t('build.input.label'))}">
+      <div class="gb-welcome">${plannerWelcomeHtml(t('build.welcome'))}</div>
+      <div class="planner-dock">
        ${inputHtml(q)}
+       <p class="build-error" role="alert" hidden></p>
+       ${plannerStartersHtml(EXAMPLES.map((key, i) => [EXAMPLE_ICONS[i], t(key + '.short'), t(key + '.detail'), key]), { builder: true })}
+       <small id="build-hint" class="planner-disclosure">${t('build.input.hint')}</small>
       </div>
-      <div class="gb-destination" aria-hidden="true"><img src="/assets/santorini.jpg" alt="" width="900" height="1200"><span>${icon('pin')}${t('build.hero.destination')}</span></div>
-     </div>
+     </section>
     </div>
-   </section>
+   </div>
    <div class="route-width gb-thread">
     <p id="build-status" class="sr-only" aria-live="polite"></p>
     <div class="gb-you" hidden><p></p></div>
     <div id="build-result" class="build-result"></div>
     <p class="micro-copy build-disclaimer">${t('build.disclaimer')}</p>
-   </div></div>${footer}`;
+   </div>${chatHtml()}</div>${footer}`;
   const area = $('#build-text', view);
-  decor = [slingTop(t('build.toTop'))];
+  decor = [slingTop(t('build.toTop')), mountFloatingComposer($('#bc-chat', view))];
   const grow = () => { area.style.height = 'auto'; area.style.height = Math.min(area.scrollHeight, 240) + 'px'; };
   area.addEventListener('input', grow); grow();
-  area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-form', view).requestSubmit(); } });
+  area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); $('#build-form', view).requestSubmit(); } });
   // Enter sends a follow-up too (Shift+Enter for a new line).
-  view.addEventListener('keydown', (e) => { if (e.target.id === 'build-follow-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#build-follow', view)?.requestSubmit(); } });
-  loadFx(); track('view'); loadFacts().catch(() => {}); // the first fact shows the moment they send
+  $('#build-follow-text', view).addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); e.target.form.requestSubmit(); } });
+  const chatTools = $('.bk-chat-tools', view);
+  chatTools.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !chatTools.open) return;
+    e.preventDefault(); chatTools.open = false; $('summary', chatTools).focus();
+  });
+  chatTools.addEventListener('focusout', (e) => {
+    if (e.relatedTarget && !chatTools.contains(e.relatedTarget)) chatTools.open = false;
+  });
+  loadFx(); track('view'); loadFacts().catch(() => {}); // warm the destination fact deck
   if (shared && /^[a-f0-9]{16}$/.test(shared)) openShared(shared);
   else if (q || dest) build({ text: q, dest });
   else {
@@ -906,23 +985,52 @@ function page({ view: host, footer, bread }) {
 }
 
 // Spec 27: print/PDF = a designed brochure, not the screen. Also catches ⌘P while a package is shown.
-let brochureData = null, brochureLink = '';
-function mountBrochure() {
+let brochureData = null, preparingBrochure = false;
+function mountBrochure(link = '') {
   if (!pkg?.destination || !view?.isConnected) return false;
   document.getElementById('bk-brochure')?.remove();
   const box = document.createElement('div'); box.id = 'bk-brochure'; box.className = 'br'; box.setAttribute('aria-hidden', 'true');
-  box.innerHTML = brochureHtml(pkg, { esc, L, longDay, fare, formatIls, totals: () => pricePackage(pkg, getFx()), hotelGroups, shareUrl: () => brochureLink }, brochureData || undefined);
+  box.innerHTML = brochureHtml(pkg, { esc, L, longDay, fare, formatIls, totals: () => pricePackage(pkg, getFx()), hotelGroups, shareUrl: () => link, icon }, brochureData || undefined);
   document.body.append(box); document.documentElement.classList.add('printing-brochure'); return box;
 }
 function unmountBrochure() { document.getElementById('bk-brochure')?.remove(); document.documentElement.classList.remove('printing-brochure'); }
+async function decodeBrochureImage(img) {
+  try { await img.decode(); }
+  catch {
+    if (!img.dataset.fallback) { img.hidden = true; return; }
+    img.src = img.dataset.fallback;
+    await img.decode().catch(() => { img.hidden = true; });
+  }
+}
 async function printBrochure() {
-  // Details (descriptions, photos, country info) and a live link for the cover QR; neither may block printing.
-  brochureData = await loadBrochureData().catch(() => null);
-  brochureLink = await Promise.race([snapshotId().then(shareUrl), new Promise((ok) => setTimeout(() => ok(''), 3000))]).catch(() => '');
-  const box = mountBrochure(); if (!box) return window.print();
-  // Wait for the photos, or the PDF comes out with empty frames.
-  await Promise.all([...box.querySelectorAll('img')].map((img) => img.complete ? null : new Promise((ok) => { img.onload = img.onerror = ok; setTimeout(ok, 4000); })));
-  window.print();
+  if (preparingBrochure || !pkg?.destination) return;
+  const current = pkg, activeView = view;
+  const version = JSON.stringify(sanitizePackage(current));
+  preparingBrochure = true;
+  try {
+    const [details, link] = await Promise.all([
+      loadBrochureData().catch(() => null),
+      Promise.race([snapshotId().then(shareUrl), new Promise((ok) => setTimeout(() => ok(''), 3000))]).catch(() => ''),
+    ]);
+    brochureData = details;
+    if (current !== pkg || activeView !== view || !view?.isConnected) return;
+    const box = mountBrochure(JSON.stringify(sanitizePackage(current)) === version ? link : '');
+    const images = [...box.querySelectorAll('img')];
+    const coverScript = box.querySelector('.br-cover-script')?.textContent;
+    await Promise.race([
+      Promise.all([
+        ...images.map(decodeBrochureImage),
+        document.fonts?.load('900 36pt Heebo', box.querySelector('h1').textContent).catch(() => {}),
+        coverScript && document.fonts?.load('700 35pt "Amatic SC"', coverScript).catch(() => {}),
+      ]),
+      new Promise((ok) => setTimeout(ok, 4000)),
+    ]);
+    if (current !== pkg || activeView !== view || !box.isConnected) { unmountBrochure(); return; }
+    for (const img of images) if (!img.naturalWidth) img.hidden = true;
+    window.print();
+  } finally {
+    preparingBrochure = false;
+  }
 }
 if (typeof window !== 'undefined') {
   addEventListener('beforeprint', () => { if (!document.getElementById('bk-brochure')) mountBrochure(); });
@@ -953,15 +1061,19 @@ function wire() {
     if (!view?.contains(e.target)) return;
     if (e.target.id === 'build-form') {
       e.preventDefault();
-      if ($('.gb-send', e.target).disabled) return;
+      if ($('.build-submit', e.target).disabled) return;
       const text = $('#build-text').value.trim(), month = $('#build-month').value;
       const full = month !== '' ? `${text}${text ? ', ' : ''}${t('build.chip.when.phrase', { month: MONTHS[Number(month)] })}` : text;
       if (!full) { const err = $('.build-error', view); err.textContent = t('build.err.empty'); err.hidden = false; $('#build-text').focus(); return; }
       history.replaceState(null, '', `#/build?q=${encodeURIComponent(full)}`); track('submit'); build({ text: full, thread: [full] });
-    } else if (e.target.id === 'build-edit') { e.preventDefault(); build({ ...lastInput, chosen: pkg.destination.id, edits: { ...(lastInput?.edits?.budget ? { budget: lastInput.edits.budget } : {}), ...editsFrom(e.target) } }); }
+    } else if (e.target.id === 'build-edit') { e.preventDefault(); rebuildCurrent(editsFrom(e.target)); }
     else if (e.target.id === 'build-lead') { e.preventDefault(); submitLead(e.target); }
     else if (e.target.id === 'build-notify') { e.preventDefault(); sendNotify(e.target); }
-    else if (e.target.id === 'build-follow') { e.preventDefault(); followUp($('#build-follow-text', view)?.value); }
+    else if (e.target.id === 'build-follow') {
+      e.preventDefault();
+      const area = $('#build-follow-text', e.target), draft = area.value;
+      followUp(draft)?.then((saved) => { if (saved && area.value === draft) area.value = ''; });
+    }
   });
   document.addEventListener('change', (e) => {
     if (!view?.contains(e.target) || !pkg) return;
@@ -970,10 +1082,11 @@ function wire() {
     if (e.target.matches('[data-area]')) setHotelArea(Number(e.target.dataset.area), e.target.value);
   });
   document.addEventListener('click', async (e) => {
+    const chatTools = $('.bk-chat-tools[open]');
+    if (chatTools && !chatTools.contains(e.target)) chatTools.open = false;
     if (!view?.contains(e.target)) return;
     const el = (s) => e.target.closest(s);
     if (el('[data-example]')) { const area = $('#build-text'); area.value = t(el('[data-example]').dataset.example); area.dispatchEvent(new Event('input')); area.focus(); return; }
-    if (el('[data-prefs]')) { const b = el('[data-prefs]'), open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', String(open)); $('#gb-prefs', view).hidden = !open; return; }
     if (el('[data-chip]')) { toggleChip(el('[data-chip]')); return; }
     if (el('[data-poll]')) {
       const b = el('[data-poll]'), [q, o] = b.dataset.poll.split('.'), host = b.closest('.bk-poll-host'), step = Number(b.closest('[data-poll-step]').dataset.pollStep);
@@ -1008,10 +1121,10 @@ function wire() {
     if (el('[data-pick-hotel]')) { const [i, id] = el('[data-pick-hotel]').dataset.pickHotel.split(':'); hotelGroups()[Number(i)].selected = id; pkg.manual = true; paint('hotels'); paint('total'); paint('banner'); paint('upsell'); persist(); return; }
     if (el('[data-budget-jump]')) { e.preventDefault(); const box = $('#bc-total', view); box?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); (box?.querySelector('[data-budget-act]') || box)?.focus?.({ preventScroll: true }); return; }
     if (el('[data-budget-act]')) {
-      const b = el('[data-budget-act]'), value = b.dataset.value, edits = { ...(lastInput?.edits || {}) };
-      if (b.dataset.budgetAct === 'dest') { build({ ...lastInput, chosen: value, edits }); return; }
+      const b = el('[data-budget-act]'), value = b.dataset.value, edits = {};
+      if (b.dataset.budgetAct === 'dest') { rebuildCurrent(edits, value); return; }
       if (b.dataset.budgetAct === 'nights') edits.nights = Number(value); else edits.budget = Number(value);
-      build({ ...lastInput, chosen: pkg.destination.id, edits }); return;
+      rebuildCurrent(edits); return;
     }
     if (el("[data-carousel]")) { moveCarousel(el(".bk-carousel"), Number(el("[data-carousel]").dataset.carousel)); return; }
     if (el('[data-upsell]')) {
@@ -1019,7 +1132,7 @@ function wire() {
       if (!offer) return;
       const done = applyUpsell(pkg, offer, getFx()), title = offer.type === 'trip' ? offer.name : offerTitle(offer);
       lastInput = { ...lastInput, edits: { ...(lastInput?.edits || {}), budget: done.budget } };
-      if (done.rebuild) { build({ ...lastInput, chosen: pkg.destination.id, edits: { ...lastInput.edits, nights: done.nights } }); return; }
+      if (done.rebuild) { rebuildCurrent({ budget: done.budget, nights: done.nights }); return; }
       pkg.manual = true; repaintPrices(); persist();
       announce(t('build.upsell.added', { title, budget: formatIls(done.budget) }));
       $('#bh-total', view)?.setAttribute('tabindex', '-1'); $('#bh-total', view)?.focus();
@@ -1030,6 +1143,15 @@ function wire() {
     if (el('[data-day-down]')) { moveDay(Number(el('[data-day-down]').dataset.dayDown), 1); return; }
     if (el('[data-remove-item]')) { const [i, j] = el('[data-remove-item]').dataset.removeItem.split(':').map(Number); const [item] = pkg.itinerary[i].items.splice(j, 1); pkg.spare = [item, ...(pkg.spare || [])]; for (const a of pkg.attractions || []) if (a.name === item.name && a.day === pkg.itinerary[i].day) a.day = 0; paint('itinerary'); paint('attractions'); persist(); announce(t('build.itinerary.removed', { name: item.name })); $('#bh-itinerary', view)?.focus?.(); return; }
     if (el('[data-chat-jump]')) { jumpToChat(); return; }
+    if (el('[data-chat-edit]')) {
+      const edit = $('.bk-edit', view);
+      if (!edit) return;
+      $('.bk-chat-tools', view).open = false;
+      edit.open = true;
+      edit.scrollIntoView({ block: 'start' });
+      $('summary', edit).focus({ preventScroll: true });
+      return;
+    }
     if (el('[data-day-more]')) { const i = Number(el('[data-day-more]').dataset.dayMore); openDays.has(i) ? openDays.delete(i) : openDays.add(i); paint('itinerary'); $(`[data-day-more="${i}"]`, view)?.focus(); return; }
     if (el('[data-expand-day]')) { expandDay(Number(el('[data-expand-day]').dataset.expandDay)); return; }
     if (el('[data-add-more]')) {

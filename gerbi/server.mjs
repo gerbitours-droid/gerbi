@@ -113,7 +113,7 @@ const background = promise => { const ctx = globalThis[Symbol.for('@vercel/reque
 // Magic trip builder (spec 24): plans from the catalog, then live flights + hotels through its own caches.
 const builder = createBuilder({ store: createStore('build', dataDirectory), llmCache, flightSearch: voleroFlightSearch, hotelSearch: voleroHotelSearch, hotelImage: voleroHotelImage, fx,
   funnel: { record: (step) => background(funnelStats.record(step)) },
-  tagger: (text, l, today) => partnerTripTags(llmCache, text, { today, lang: l }),
+  tagger: (text, l, today, current_trip) => partnerTripTags(llmCache, text, { today, lang: l, current_trip }),
   partner: (text, request, l) => partnerUnderstand(llmCache, text, { adults: request.adults, children: request.children, nights: request.nights, month: '', want: [], exclude: [] }, { lang: l }),
   polish: (destination, travellers, days, l) => tripPolish(destination, travellers, days, { store: llmCache, lang: l }),
   aiEnabled: () => gateway.enabled('trip_expand_day'), expand: { day: (input, l) => tripExpandDay(input, { store: llmCache, lang: l }), stay: (input, l) => tripExpandStay(input, { store: llmCache, lang: l }) }, log: entry => logSupplier({ cached: false, ...entry }) });

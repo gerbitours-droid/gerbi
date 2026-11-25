@@ -83,6 +83,12 @@ dialog.date-picker{width:min(760px,calc(100% - 24px));padding:24px 24px 20px}
 .fare-price small:last-child{flex-basis:100%}
 @media (max-width:1100px){.fare-deals-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+.travelers-field{height:auto;min-height:64px;gap:8px;text-align:start}
+.travelers-field>svg{flex:none;width:23px;height:23px}
+.travelers-field>span{gap:1px}
+.travelers-field .field-value{line-height:1.2;text-align:start;font-weight:700}
+.travelers-field small{color:var(--muted);font-size:12px;line-height:1.2}
+
 /* Phones: origin and destination stacked with the swap button on their edge; dates and passengers side by side */
 @media (max-width:700px){
  .search-fields{grid-template-columns:1fr 1fr;grid-template-areas:"origin origin" "dest dest" "dates travelers" "submit submit";position:relative}
@@ -93,7 +99,8 @@ dialog.date-picker{width:min(760px,calc(100% - 24px));padding:24px 24px 20px}
  .origin-field,.destination-field{padding-inline-end:60px}
  .place-list{width:auto;inset-inline-end:0!important}
  .field{gap:10px}
- .date-field .field-value,.travelers-field .field-value{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .date-field .field-value{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .travelers-field .field-value{font-size:14px}
  dialog.date-picker{width:100%;max-width:100%;max-height:100dvh;height:100dvh;margin:0;border-radius:0;padding:18px 14px}
  .dp-head h2{font-size:20px}
  .dp-day{max-width:none}
@@ -170,4 +177,53 @@ html[dir=rtl] .rl-track,html[dir=rtl] .rl-code{transform:scaleX(-1)}
  .fare-deal[aria-busy=true]:after{inset-inline-start:auto;inset-inline-end:10px}
  .rl-steps li,.rl-steps li:before{animation:none;opacity:1;color:var(--navy,#071751)}
  .rl-steps li:before{background:#096bd2}
+}
+
+/* Placeholder cards stay visible for the lifetime of the flight request. */
+.flight-search-loader {
+  display: grid;
+  gap: 10px;
+  text-align: start;
+}
+.flight-loader-title { color: var(--navy); font-size: 1.1rem; }
+.flight-search-loader .route-loader { margin: 0; }
+.flight-loader-skeleton { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.flight-loader-skeleton > div {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr .75fr;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #d2e2f4;
+  border-radius: 12px;
+  background: #fff;
+}
+.flight-loader-skeleton i {
+  height: 10px;
+  border-radius: 10px;
+  background: linear-gradient(100deg, #e1ebf7 30%, #f5f9ff 50%, #e1ebf7 70%) 100% 0 / 220% 100%;
+  animation: flight-skeleton 1.35s ease-in-out infinite;
+}
+.flight-loader-skeleton i:last-child { height: 18px; }
+.flight-loader-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 7px 14px; }
+.flight-loader-footer button { min-height: 44px; }
+@keyframes flight-skeleton { to { background-position: 0 0; } }
+@media (max-width: 600px) {
+  .flight-loader-skeleton { grid-template-columns: 1fr; }
+  .flight-loader-skeleton > div:nth-child(2) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flight-loader-skeleton i { animation: none; }
+}
+
+.flight-search-loader {
+  padding: clamp(12px, 2vw, 20px);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fff, var(--pale));
+  box-shadow: var(--shadow);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .flight-search-loader, .live-results:not([hidden]) .live-heading { animation: planner-panel-in .34s ease-out both; }
 }

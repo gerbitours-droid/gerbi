@@ -3,9 +3,10 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { parseTrip, applyEdits, planPackage, mergeModel, L } from '../dist/trip-builder.mjs';
-import { refineRequest, carrierMatches } from '../dist/trip-prefs.mjs';
+import { AIRLINES, activityKey, refineRequest, carrierMatches } from '../dist/trip-prefs.mjs';
 import { sanitizePackage } from '../dist/trip-package.mjs';
-import { byId, byCode } from '../dist/catalog.mjs';
+import { byId, byCode, ALLOWED_TAGS, ATTRACTION_KINDS } from '../dist/catalog.mjs';
+import { placeByCode } from '../dist/places.mjs';
 import { offerFacts } from '../dist/flight-view.mjs';
 import { scoreOffers, rankScored, diverseTop, badges, explain, itineraryKey } from '../dist/scoring.mjs';
 import { setLang, lang as pageLang, normLang } from '../dist/i18n.mjs';
@@ -18,6 +19,56 @@ const FLIGHT_TTL = 20 * 60, SHARE_TTL = 30 * 86400, AGENT_TTL = 14 * 86400;
 export const hotelsPublic = (env = process.env) => ['1', 'true'].includes(String(env.HOTELS_PUBLIC_DISPLAY || '').toLowerCase());
 export const insuranceUrl = (env = process.env) => (/^https:\/\/[^\s<>"']{4,300}$/.test(env.INSURANCE_PARTNER_URL || '') ? env.INSURANCE_PARTNER_URL : '');
 const fixtures = (env) => env.GERBI_SUPPLIER_FIXTURES === '1' && !env.VERCEL;
+const preferenceAirlines = AIRLINES.map(([key]) => key);
+const periods = ['morning', 'afternoon', 'evening', 'night'];
+const activityKinds = [...ATTRACTION_KINDS, 'nightlife', 'shopping', 'daytrip'];
+const oneOf = (values, allowed) => Array.isArray(values) ? [...new Set(values.filter((x) => allowed.includes(x)))] : [];
+const catalogActivities = (ids) => ids.flatMap((id) => {
+  const dest = byId(id);
+  return [...(dest?.attractions || []), ...(dest?.dayTrips || [])].map((a) => [activityKey(id, a), a.name]);
+});
+const currentDate = (x, today) => {
+  if (typeof x !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(x) || x < today) return '';
+  const date = new Date(x + 'T12:00:00Z');
+  return Number.isFinite(+date) && date.toISOString().slice(0, 10) === x ? x : '';
+};
+
+// A browser snapshot supplies preferences only. Prices, offers and search specs still come from the planner.
+function restoreCurrentRequest(current, blank, today) {
+  const input = current?.request;
+  const ids = Array.isArray(current?.dest) ? [...new Set(current.dest.filter((id) => typeof id === 'string' && byId(id)))].slice(0, 4) : [];
+  if (!ids.length || !input || typeof input !== 'object') return null;
+  const { request } = sanitizePackage({ request: input });
+  const adults = request.adults, children = Math.min(request.children, 9 - adults), childAges = request.childAges.slice(0, children);
+  const start = currentDate(request.start, today), end = currentDate(request.end, today);
+  const counts = Array.isArray(current.legNights) ? current.legNights : [];
+  const legNights = counts.length === ids.length && counts.every((n) => Number.isInteger(n) && n > 0 && n <= 90) && counts.reduce((a, b) => a + b, 0) === request.nights ? counts : [];
+  const prefs = input.prefs || {}, f = prefs.flight || {}, h = prefs.hotel || {};
+  const flight = Object.fromEntries([
+    ...['only', 'prefer', 'avoid'].map((k) => [k, oneOf(f[k], preferenceAirlines)]).filter(([, list]) => list.length),
+    ...['out', 'back'].map((k) => [k, oneOf(f[k], periods)]).filter(([, list]) => list.length),
+    ...['noNight', 'direct', 'checkedBag'].filter((k) => typeof f[k] === 'boolean').map((k) => [k, f[k]]),
+  ]);
+  const hotel = Object.fromEntries([
+    ...(['beach', 'center', 'quiet'].includes(h.area) ? [['area', h.area]] : []),
+    ...(['hotel', 'apartment', 'villa', 'resort', 'boutique'].includes(h.type) ? [['type', h.type]] : []),
+    ...['adultsOnly', 'familyRoom'].filter((k) => typeof h[k] === 'boolean').map((k) => [k, h[k]]),
+  ]);
+  const excluded = Array.isArray(input.exclude) ? input.exclude.filter((id) => typeof id === 'string' && byId(id)).slice(0, 30) : [];
+  return {
+    ...blank, ...request, origin: placeByCode(request.origin)?.code || 'TLV', start, end: start && end > start && !legNights.length ? end : '',
+    adults, children, childAges, infants: Math.min(children, Math.max(Number.isInteger(input.infants) ? input.infants : 0, childAges.filter((age) => age < 2).length)),
+    destinations: ids, suggest: false, exclude: excluded, legNights,
+    activities: Object.fromEntries(catalogActivities(ids).flatMap(([key]) => ['add', 'remove'].includes(input.activities?.[key]) ? [[key, input.activities[key]]] : [])),
+    styles: oneOf(request.styles, ALLOWED_TAGS),
+    needs: { ...request.needs, pool: input.needs?.pool === true },
+    asked: { stars: input.asked?.stars === true },
+    maxFlightHours: Number.isFinite(input.maxFlightHours) && input.maxFlightHours >= 1 && input.maxFlightHours <= 24 ? input.maxFlightHours : 0,
+    groupSize: Number.isInteger(input.groupSize) && input.groupSize >= 1 && input.groupSize <= 50 ? input.groupSize : 0,
+    tags: { must: oneOf(input.tags?.must, ALLOWED_TAGS), nice: oneOf(input.tags?.nice, ALLOWED_TAGS) },
+    prefs: { flight, hotel, pace: ['relaxed', 'packed'].includes(prefs.pace) ? prefs.pace : '', avoidKinds: oneOf(prefs.avoidKinds, activityKinds), moreKinds: oneOf(prefs.moreKinds, activityKinds) },
+  };
+}
 // GERBI_FIXTURE_DELAY_MS="flights:4000,hotels:7000" (development only): recorded answers arrive as slowly as live ones, so the
 // progressive page (plan first, prices into it) can be seen and tested.
 const slow = (env, name) => { const ms = Number(new RegExp(`${name}:(\\d+)`).exec(env.GERBI_FIXTURE_DELAY_MS || '')?.[1]) || 0; return ms ? new Promise((r) => setTimeout(r, Math.min(ms, 60000))) : null; };
@@ -114,14 +165,16 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     const l = normLang(input.lang), t0 = today();
     const text = typeof input.text === 'string' ? input.text.slice(0, 1500) : '';
     const dest = typeof input.dest === 'string' && byId(input.dest) ? input.dest : '';
-    if (!text.trim() && !dest) return { error: 'text_required' };
     // A budget in dollars / euros converts at the site's rate (spec 28 §א.1); no rate in 1.5 s → the amount is asked for.
     const rates = fx && /[$€]|usd|eur|dollar|euro|דולר|יורו/i.test(text) ? await Promise.race([fx.get().catch(() => null), new Promise((r) => setTimeout(r, 1500, null))]) : null;
     // A conversation (owner 18.11.2026): the first message, then follow-ups that refine it. Rebuilt from the texts on
     // every turn (nothing trusted from the page but the texts and the plan's current place/length/date as a seed).
     const thread = Array.isArray(input.thread) ? input.thread.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.slice(0, 600)).slice(-8) : [];
-    let request = parseTrip(thread[0] || text, { today: t0, lang: l, destId: dest, fx: rates });
-    if (thread.length > 1) {
+    const options = { today: t0, lang: l, fx: rates };
+    const current = input.current?.request ? restoreCurrentRequest(input.current, parseTrip('', options), t0) : null;
+    if (!text.trim() && !dest && !current) return { error: 'text_required' };
+    let request = current || parseTrip(thread[0] || text, { ...options, destId: dest });
+    if (!current && thread.length > 1) {
       const cur = input.current || {};
       if (!request.destinations.length && Array.isArray(cur.dest)) { const ids = cur.dest.filter((id) => byId(id)).slice(0, 4); if (ids.length) { request.destinations = ids; request.suggest = false; } }
       // The length / start the visitor set by hand ("שנו פרטים") is the plan on screen and wins over the first message.
@@ -135,9 +188,41 @@ export function createBuilder({ store, llmCache = null, env = process.env, fligh
     }
     // The model reads the request's meaning (tags, places, travellers) for every request when a provider is set; the
     // rules stay the source of exact dates/amounts and the whole answer without a model (or when it is slow).
-    const said = thread.length > 1 ? thread.map((m, i) => (i ? `(עדכון ${i}) ${m}` : m)).join('\n') : text;
-    const tags = tagger && said.trim() ? await Promise.race([tagger(said, l, t0).catch(() => null), new Promise((r) => setTimeout(r, Number(env.GERBI_TAGGER_TIMEOUT_MS) || 6000, null))]) : null;
-    if (tags) request = mergeModel(request, tags, { today: t0, refine: thread.length > 1 });
+    const change = current && input.current.change === true;
+    const said = current ? (change ? text : '') : thread.length > 1 ? thread.map((m, i) => (i ? `(עדכון ${i}) ${m}` : m)).join('\n') : text;
+    const context = change ? {
+      destinations: current.destinations, origin: current.origin, start: current.start, end: current.end, nights: current.nights, nightsPerPlace: current.legNights,
+      adults: current.adults, children: current.children, childAges: current.childAges, infants: current.infants,
+      budgetIls: current.budget, budgetLevel: current.budgetLevel, occasion: current.occasion,
+      styles: current.styles, needs: current.needs, preferences: current.prefs, maxFlightHours: current.maxFlightHours,
+      activityChoices: current.activities, activityCatalog: Object.fromEntries(catalogActivities(current.destinations)),
+    } : undefined;
+    const tags = tagger && said.trim() ? await Promise.race([tagger(said, l, t0, context).catch(() => null), new Promise((r) => setTimeout(r, Number(env.GERBI_TAGGER_TIMEOUT_MS) || 6000, null))]) : null;
+    if (change) {
+      const stated = parseTrip(text, options);
+      let update = stated;
+      if (tags) {
+        const inferred = mergeModel(stated, tags, { today: t0 });
+        const fields = new Set(stated.understood.map(({ field }) => field));
+        update = { ...inferred, understood: [...stated.understood] };
+        for (const field of ['adults', 'children', 'childAges', 'infants']) if (fields.has(field)) update[field] = stated[field];
+        if (!fields.has('adults') && Number.isInteger(tags.adults) && tags.adults > 0 && tags.adults <= 9) update.understood.push({ field: 'adults' });
+        if (!fields.has('children') && (inferred.children > 0 || tags.children > 0 || tags.infants > 0)) {
+          if (!inferred.children) {
+            const number = (x, max) => Number.isInteger(x) && x > 0 && x <= max ? x : 0;
+            update.infants = number(tags.infants, 4);
+            const kids = number(tags.children, 8);
+            update.children = kids + update.infants;
+            update.childAges = (Array.isArray(tags.childAges) ? tags.childAges : []).filter((age) => Number.isInteger(age) && age >= 2 && age <= 17).slice(0, kids).concat(Array(update.infants).fill(0));
+          }
+          if (update.children) update.understood.push({ field: 'children' });
+        }
+        if (!fields.has('nights') && inferred.nights > 0) update.understood.push({ field: 'nights' });
+        if (stated.destinations.length) update.destinations = stated.destinations;
+        update.activityChanges = (Array.isArray(tags.activityChanges) ? tags.activityChanges : []).filter((x) => Object.hasOwn(context.activityCatalog, x?.key) && ['add', 'remove'].includes(x?.action));
+      }
+      request = refineRequest(current, update, text);
+    } else if (tags) request = mergeModel(request, tags, { today: t0, refine: thread.length > 1 });
     // The older LLM partner only when there was no tagger answer, the rules understood little and named no destination (spec 24 §8).
     if (!tags && partner && !request.destinations.length && request.coverage?.needsPartner) {
       const extra = await partner(text, request, l).catch(() => null);

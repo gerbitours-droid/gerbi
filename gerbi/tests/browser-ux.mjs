@@ -24,7 +24,7 @@ try{
  check('favorite visible label and state update');
  await page.locator('.skip-link').evaluate(el=>el.click());assert.equal(new URL(page.url()).hash,'#/destination/rome');assert.equal(await page.evaluate(()=>document.activeElement.id),'main-content');
  check('skip link focuses main without changing route');
- await go('/');await dates();await go('/planner');await page.locator('#brief-form button').click();await page.waitForURL('**/#/results');await go('/');assert.equal(await page.locator('#dates-value').innerText(),'בחרו תאריכים');
+ await go('/');await dates();await go('/planner');await page.locator('#brief-form button[value=results]').click();await page.waitForURL('**/#/results');await go('/');assert.equal(await page.locator('#dates-value').innerText(),'בחרו תאריכים');
  check('planner date reset clears home summary');
  await page.locator('[data-tab="hotels"]').click();assert.equal(await page.locator('.search-submit').innerText(),'השראה למלונות');await page.locator('.search-submit').click();await page.waitForURL('**/#/destinations?*');assert.match(await page.locator('#page-view .notice').first().innerText(),/השראה בלבד/);
  check('hotel mode carries truthful context');
@@ -52,8 +52,8 @@ try{
  await context.unroute('**/api/ai/understand');await context.route('**/api/ai/understand',async r=>{await new Promise(resolve=>setTimeout(resolve,600));await r.fulfill({status:503,json:{error:'fixture'}}).catch(()=>{});});
  await go('/planner');await page.locator('#page-chat-input').fill('זוג ללא ילדים, 3 לילות עד 6000 שקל');await page.locator('#page-chat-form button').click();
  // The rules engine now understands this prompt fully, so the partner round-trip (and the busy state) happens only when the server offers a partner.
- if(await page.locator('#brief-form button').isDisabled()){await page.evaluate(()=>location.hash='/support');await page.waitForSelector('#support-form');await page.evaluate(()=>location.hash='/planner');await page.waitForFunction(()=>!document.querySelector('#brief-form button')?.disabled);
- check('in-flight planner navigation restores controls');} else {assert.ok(await page.locator('#brief-form button').isEnabled());check('planner answered without a partner round-trip; controls stay usable');}
+ if(await page.locator('#brief-form button[value=results]').isDisabled()){await page.evaluate(()=>location.hash='/support');await page.waitForSelector('#support-form');await page.evaluate(()=>location.hash='/planner');await page.waitForFunction(()=>!document.querySelector('#brief-form button[value=results]')?.disabled);
+ check('in-flight planner navigation restores controls');} else {assert.ok(await page.locator('#brief-form button[value=results]').isEnabled());check('planner answered without a partner round-trip; controls stay usable');}
  const offers={offers:[{index:1,fareDetails:{totalPrice:{selling:{value:100,currency:'USD'}}}}],srk:'fixture',tokens:{searchResults:'fixture'}};
  await context.route('**/api/volero/flights/search',r=>r.fulfill({json:{data:offers}}));await context.route('**/api/volero/flights/availability',async r=>{await new Promise(resolve=>setTimeout(resolve,500));await r.fulfill({json:{data:{pricedOffer:offers.offers[0]}}}).catch(()=>{});});
  await go('/');await page.locator('#destination').fill('רומא, איטליה');await dates();await page.locator('.search-submit').click();await page.waitForSelector('[data-volero-offer]');await page.locator('[data-volero-offer]').click();await page.evaluate(()=>location.hash='/support');await page.waitForTimeout(700);assert.equal(await page.locator('#modal').isVisible(),false);

@@ -803,7 +803,14 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
   if (travelers.wholeGroup && travelers.children === undefined) { brief.children = 0; brief.childAges = []; }
 
   const dates = english ? extractDatesEn(base, today) : extractDates(base, today);
-  if (dates?.start) { brief.start = dates.start; brief.end = dates.end || (brief.end > dates.start ? brief.end : undefined); }
+  if (dates?.start) {
+    brief.start = dates.start;
+    brief.end = dates.end || (brief.end > dates.start ? brief.end : undefined);
+  } else if (dates) {
+    delete brief.start;
+    delete brief.end;
+  }
+  if (dates) brief.datesApproximate = Boolean(dates.approximate);
   if (dates?.month) brief.month = dates.month;
   // An approximate start ("באמצע יולי", "בפסח") and a year ("בינואר 2028") – the planner starts there; a new date
   // phrase replaces the previous message's.
@@ -914,7 +921,7 @@ export function understandRequest(text, previous = {}, { today = new Date().toIS
   const allQuestions = nextQuestions(brief, travelers, where, dates, l);
   // One chip per fact: "בלי ילדים" read by two rules is said once.
   const said = understood.filter((u, i) => understood.findIndex((x) => x.label === u.label) === i);
-  return { brief, understood: said, assumed, countryOnly, coverage: coverage(raw, understood), questions: allQuestions.slice(0, 2), allQuestions, flightSearch: flightSearchFrom(brief, where) };
+  return { brief, understood: said, assumed, countryOnly, coverage: coverage(raw, understood), questions: allQuestions.slice(0, 2), allQuestions, flightSearch: flightSearchFrom(brief) };
 }
 
 // One or two questions, most decision-changing first; never a question whose answer the text already gave.
@@ -935,7 +942,7 @@ function nextQuestions(brief, travelers, where, dates, l = lang) {
 }
 
 // A live search is offered only when every input is explicit: one searchable place and a departure date.
-function flightSearchFrom(brief, where) {
+export function flightSearchFrom(brief) {
   const targets = (brief.want || []).map(code => places.find(place => place.code === code)).filter(place => place && !place.home);
   if (targets.length !== 1 || !brief.start) return null;
   const oneWay = brief.tripType === 'oneway';
