@@ -361,30 +361,38 @@ p.bk-pending{padding:12px;border-radius:13.2px;animation:pulse 1.2s infinite}
 /* A "move" day carries the class bk-day-move – the same as the up/down buttons box: keep the day a block. */
 li.bk-day.bk-day-move{display:block}
 /* Result overview and trip sections */
+.bk-overview { container: trip-overview / inline-size; }
 .gb-page .bk-summary {
-  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 0; align-items: stretch; overflow: hidden; margin-block-end: 12px;
   border: 1px solid var(--gb-line); border-radius: 26.4px; background: #fff; box-shadow: var(--gb-shadow);
 }
-.gb-page .bk-summary:not(:has(.bk-hero-img:not(.bk-noimg))) { grid-template-columns: minmax(0, 1fr); }
-.bk-summary-body { padding: clamp(16px, 3vw, 34px); min-width: 0; overflow-wrap: anywhere; }
-.gb-page .bk-hero-img { grid-column: 2; grid-row: 1; width: 100%; height: 100%; min-height: 200px; max-height: 390px; border-radius: 0; }
+.bk-summary-body { padding: clamp(16px, 3.6cqi, 34px); min-width: 0; overflow-wrap: anywhere; }
+.bk-summary-media { position: relative; block-size: clamp(144px, 35cqi, 250px); background: #dfeefb; }
+.bk-summary-media:has(.bk-noimg) { display: none; }
+.gb-page .bk-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 0; }
 .bk-summary-body > .eyebrow { color: var(--blue-deep); font-weight: 800; }
-.gb-page .bk-summary h2 { font-size: clamp(29px, 4vw, 48px); color: var(--gb-ink); line-height: 1.15; margin-block: 4px 12px; }
+.gb-page .bk-summary h2 { font-size: clamp(26px, 5cqi, 48px); color: var(--gb-ink); line-height: 1.15; margin-block: 4px 12px; text-wrap: balance; }
 .gb-page .bk-summary-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 15px; margin-block: 0 14px; color: var(--gb-muted); }
 .bk-summary-meta span { display: inline-flex; align-items: center; gap: 5px; }
-.bk-summary-meta svg { width: 17px; height: 17px; color: var(--blue-deep); }
+.bk-summary-meta svg { width: 17px; height: 17px; flex: none; color: var(--blue-deep); }
 .bk-summary .bk-understood { margin-block: 10px; }
 .bk-summary .understood-chip { background: #edf3fa; color: var(--gb-ink); }
 .bk-talk [data-chat-jump] { min-height: 44px; }
-.bk-jumps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-block: 0 16px; }
+.bk-jumps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-block: 0 16px; }
 .bk-jumps button {
-  display: flex; align-items: center; gap: 7px; min-height: 48px; padding: 8px 12px; text-align: start;
+  display: flex; align-items: center; gap: 7px; min-height: 48px; padding: 8px 12px; text-align: start; overflow-wrap: anywhere;
   border: 1px solid var(--gb-line); border-radius: 13.2px; background: #fff; font-size: 14px; font-weight: 800;
 }
 .bk-jumps button:hover { border-color: #8eb4e3; background: #edf5ff; }
 .bk-jumps svg { width: 17px; height: 17px; color: var(--blue-deep); flex: none; }
 .bk-jumps svg:last-child { width: 14px; height: 14px; margin-inline-start: auto; }
+@container trip-overview (min-width: 45rem) {
+  .gb-page .bk-summary:has(.bk-hero-img:not(.bk-noimg)) { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+  .bk-summary-media { grid-area: 1 / 2; block-size: auto; }
+  .bk-summary-body { grid-area: 1 / 1; }
+  .bk-jumps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 .gb-page :is(.bk-card, .bk-summary h2) { scroll-margin-block-start: 95px; }
 .gb-page .bk-card {
   padding: clamp(14px, 2vw, 23px); border-color: var(--gb-line); border-radius: 22px; box-shadow: var(--gb-shadow);
@@ -489,11 +497,12 @@ li.bk-day.bk-day-move{display:block}
 }
 @media (max-width: 560px) {
   .gb-thread { padding-block-start: 16px; }
-  .gb-page .bk-summary { grid-template-columns: minmax(0, 1fr); }
-  .gb-page .bk-hero-img { grid-column: 1; height: 150px; min-height: 0; }
-  .bk-jumps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bk-poll-choices .chip { flex: 1 0 auto; }
 }
 @media print {
   .gb-stage, .bk-jumps, .bk-think, .bk-chat { display: none !important; }
 }
+
+.bk-att-img:has(img:not(.bk-noimg)) .bk-att-ph { display: none; }
+.bk-nearby { display: inline-flex; align-items: center; min-height: 44px; align-self: flex-start; font-size: .875rem; }
+.bk-hotels .bk-nearby { margin-inline: 8px; }

@@ -1,8 +1,8 @@
 // Magic trip builder page (#/build, spec 24): one sentence → a complete trip. The server plans from the catalog;
 // flights and hotels arrive separately (live, with their check time); everything else is an estimate or a quote.
 import { t, lang, locale, fmtTime, fmtDate, errorText } from './i18n.mjs';
-import { toIls, formatIls, formatOriginal, getFx, onFx, loadFx, fxNote } from './fx.mjs';
-import { pricePackage, sanitizePackage, packageLeadFields, isStale, selectedFlight, travellers } from './trip-package.mjs';
+import { toIls, formatIls, formatOriginal, getFx, onFx, loadFx, fxNote, ilsEstimateHtml } from './fx.mjs';
+import { pricePackage, sanitizePackage, packageLeadFields, isStale, selectedFlight, travellers, mapsUrl } from './trip-package.mjs';
 import { validateLead, CHANNELS, LIMITS, consentText, optionLabel } from './leads-validate.mjs';
 import { searchLink } from './saved-flights.mjs';
 import { multiLink } from './multi-city-core.mjs';
@@ -31,9 +31,14 @@ let pkg = null, view = null, version = 0, lastInput = null, showAllHotels = new 
 let openDays = new Set(), dayExpand = {}, stayExpand = {}, showAllAttractions = false;
 // Attraction / day-trip photos ('<destId>|<English name>' → { src }), generated separately; optional (spec 28 §ב).
 let tripImages = {};
-import('./catalog/attraction-images.mjs').then((m) => { tripImages = Object.fromEntries(Object.entries(m.default || {}).filter(([, v]) => typeof v?.src === 'string').map(([k, v]) => [k, '/' + v.src.replace(/^\/+/, '')])); if (pkg?.destination && view?.isConnected) paint('upsell'); }).catch(() => {});
+import('./catalog/attraction-images.mjs').then((m) => { tripImages = Object.fromEntries(Object.entries(m.default || {}).filter(([, v]) => typeof v?.src === 'string').map(([k, v]) => [k, '/' + v.src.replace(/^\/+/, '')])); if (pkg?.destination && view?.isConnected) { paint('attractions'); paint('upsell'); } }).catch(() => {});
 
 // ---- prices
+const nearbyLink = (kind, place, city = '') => {
+  if (!place && !city) return '';
+  const url = mapsUrl(kind === 'hotels' ? 'hotels' : 'tourist attractions', [place, city].filter(Boolean).join(', '));
+  return `<a class="link-button bk-nearby" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${t(`build.nearby.${kind}`)}</a>`;
+};
 const fare = (price) => { if (!price) return ''; const v = toIls(price, getFx()); return v === null ? formatOriginal(price) : formatIls(v); };
 const checked = (iso) => (iso ? t('build.price.checkedAt', { time: fmtTime(iso), date: fmtDate(iso, { day: 'numeric', month: 'short' }) }) : '');
 // A shekel range that never breaks across lines or flips around the dash in RTL.
@@ -409,8 +414,8 @@ function render() {
   out.removeAttribute('aria-busy');
   const stops = pkg.stops?.length ? pkg.stops : [pkg.destination];
   const stale = pkg.sharedAt && isStale(pkg.flights?.searchedAt || pkg.sharedAt);
-  out.innerHTML = `${historyHtml()}${pkg.chatReply ? `<p class="bk-reply">${pkg.chatReply.length ? t('build.chat.reply', { list: esc(pkg.chatReply.join(' · ')) }) : t('build.chat.noChange')}${pkg.kept?.includes('flights') ? ` <small>${t('build.chat.kept')}</small>` : ''}</p>` : ''}${liveHtml(poll?.innerHTML)}<div class="bk-summary">
-    ${pkg.destination.image ? `<img class="bk-hero-img" src="${esc(pkg.destination.image)}" alt="" data-fallback>` : ''}
+  out.innerHTML = `${historyHtml()}${pkg.chatReply ? `<p class="bk-reply">${pkg.chatReply.length ? t('build.chat.reply', { list: esc(pkg.chatReply.join(' · ')) }) : t('build.chat.noChange')}${pkg.kept?.includes('flights') ? ` <small>${t('build.chat.kept')}</small>` : ''}</p>` : ''}${liveHtml(poll?.innerHTML)}<div class="bk-overview"><div class="bk-summary">
+    ${pkg.destination.image ? `<div class="bk-summary-media"><img class="bk-hero-img" src="${esc(pkg.destination.image)}" alt="" data-fallback></div>` : ''}
     <div class="bk-summary-body"><span class="eyebrow">${t('build.result.kicker')}</span><h2 tabindex="-1">${esc(stops.map((s) => L(s.name)).join(' ← '))}</h2>
     <p class="bk-summary-meta"><span>${icon('calendar')}${esc(longDay(r.start))} – ${esc(longDay(r.end))}</span><span>${icon('clock')}${t('build.nights', { count: r.nights })}</span><span>${icon('people')}${esc(travellersText(r))}</span></p>
     ${pkg.understood?.length ? `<p class="bk-understood"><span class="reply-label">${t('build.understood')}</span> ${pkg.understood.map((u) => `<span class="understood-chip">${esc(u.label)}</span>`).join('')}</p>` : ''}
@@ -419,7 +424,7 @@ function render() {
     ${pkg.sharedAt ? '' : `<p class="bk-talk"><button type="button" class="link-button" data-chat-jump>${icon('edit')}${t('build.chat.talk')}</button></p>`}
     ${stale ? `<p class="notice">${t('build.shared.stale', { time: esc(fmtDate(pkg.sharedAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) })} <button type="button" class="link-button" data-act="refresh">${t('build.shared.refresh')}</button></p>` : ''}
     </div></div>
-   ${jumpHtml()}
+   ${jumpHtml()}</div>
    <div id="bc-banner" class="bk-banner-host"></div>
    ${optionsHtml()}
    ${editHtml()}
@@ -578,7 +583,7 @@ const PAINT = {
       <span class="bk-option-main"><strong>${esc(p.carriers.join(' + '))}</strong>${p.badges.length ? `<span class="bk-badges">${p.badges.map((b) => `<span class="flight-badge badge-${esc(b)}">${t(`app.badge.${b}`)}</span>`).join('')}</span>` : ''}
       ${p.legs.map((l) => `<span class="bk-leg" dir="ltr">${esc(l.from)} ${esc(l.depart)} → ${esc(l.to)} ${esc(l.arrive)}${l.dayOffset ? ` +${l.dayOffset}` : ''}</span><small>${esc(longDay(l.date))} · ${l.stops ? t('build.flights.stops', { count: l.stops }) : t('build.flights.direct')}</small>`).join('')}
       ${p.reasons.length ? `<small class="why">${esc(p.reasons.join(' · '))}</small>` : ''}</span>
-      <span class="bk-option-price"><strong dir="ltr">${esc(fare(p.price))}</strong><small>${t('build.flights.forAll', { count: travellers(pkg.request) })}</small>${p.key === f.selected ? `<small class="bk-option-chosen">${icon('check')}${t('build.where.chosen')}</small>` : ''}</span></button></li>`).join('')}</ul>
+      <span class="bk-option-price"><strong dir="ltr">${esc(formatOriginal(p.price))}</strong>${ilsEstimateHtml(p.price)}<small>${t('build.flights.forAll', { count: travellers(pkg.request) })}</small>${p.key === f.selected ? `<small class="bk-option-chosen">${icon('check')}${t('build.where.chosen')}</small>` : ''}</span></button></li>`).join('')}</ul>
      ${bookable(f) ? `<p class="bo-book-flight"><button type="button" class="button yellow" data-book-flight>${t('booking.builder.book')}</button> <span class="micro-copy">${t('booking.builder.bookNote')}</span></p><p class="micro-copy" id="bo-book-status" role="status"></p>` : ''}
      <p class="micro-copy">${t('build.flights.note')} <a href="${esc(link)}">${t('build.flights.full')}</a></p>`;
   },
@@ -590,14 +595,15 @@ const PAINT = {
       const areaPick = areas.length > 1 ? `<label class="bk-area-pick">${t('build.hotels.otherArea')}<select data-area="${i}">${areas.map((a) => `<option value="${esc(L(a.name).length ? (a.name.en || L(a.name)) : '')}" ${g.area && L(g.area.name) === L(a.name) ? 'selected' : ''}>${esc(L(a.name))}</option>`).join('')}</select></label>` : '';
       const title = groups.length > 1 ? `<h4>${esc(L(stop.name))} · ${t('build.nights', { count: stop.nights })}</h4>` : '';
       if (g.status === 'pending') return title + areaLine + `<p class="bk-pending" aria-busy="true">${t('build.hotels.pending')}</p>`;
+      const nearby = nearbyLink('hotels', g.area?.name?.en || L(g.area?.name), stop?.name?.en || L(stop?.name));
       if (g.status === 'estimate' && g.estimate) {
         const e = g.estimate, conv = (v) => fare({ value: v, currency: e.currency });
         const what = [g.minStars ? t('build.hotels.estStars', { stars: g.minStars }) : '', g.board && !g.boardFallback ? t(`build.board.${g.board}`) : ''].filter(Boolean).join(' · ');
         return title + areaLine + areaPick + `<div class="bk-hotel-est travel-card"><p>${kindPill('estimate')} <strong>${t('build.hotels.estLine', { low: `<span class="bk-range" dir="ltr">${esc(conv(e.perNight.low))} – ${esc(conv(e.perNight.high))}</span>`, what: esc(what || t('build.hotels.estAny')), where: e.areaScope && g.area ? t('build.hotels.estInArea', { area: esc(L(g.area.name)) }) : t('build.hotels.estInDest') })}</strong></p>
           <p>${t('build.hotels.estStay', { nights: e.nights, range: `<span class="bk-range" dir="ltr">${esc(conv(e.stay.low))} – ${esc(conv(e.stay.high))}</span>` })}</p>
-          <p class="micro-copy">${t('build.hotels.estNote', { count: e.count, time: esc(checked(g.searchedAt)) })}${g.boardFallback ? ' · ' + t('build.hotels.boardFallback', { board: t(`build.board.${g.board}`) }) : ''}</p></div>`;
+          <p class="micro-copy">${t('build.hotels.estNote', { count: e.count, time: esc(checked(g.searchedAt)) })}${g.boardFallback ? ' · ' + t('build.hotels.boardFallback', { board: t(`build.board.${g.board}`) }) : ''}</p>${nearby}</div>`;
       }
-      if (g.status !== 'live') return title + areaLine + areaPick + `<p>${kindPill('quote')} ${t(g.reason === 'not_connected' ? 'build.hotels.notConnected' : g.reason === 'rate_limited' ? 'build.err.rateLimited' : 'build.hotels.quote')}</p>`;
+      if (g.status !== 'live') return title + areaLine + areaPick + `<p>${kindPill('quote')} ${t(g.reason === 'not_connected' ? 'build.hotels.notConnected' : g.reason === 'rate_limited' ? 'build.err.rateLimited' : 'build.hotels.quote')}</p>${nearby}`;
       const shown = showAllHotels.has(i) ? g.picks : g.picks.slice(0, 3);
       return title + areaLine + areaPick + `<p class="micro-copy">${kindPill('live')} ${t('build.hotels.found', { count: g.total })} · ${esc(checked(g.searchedAt))}${g.boardFallback ? ' · ' + t('build.hotels.boardFallback', { board: t(`build.board.${g.board}`) }) : ''}${g.relaxedStars ? ' · ' + t('build.hotels.relaxed') : ''}</p>
        <ul class="bk-options bk-hotels">${shown.map((h) => `<li><button type="button" class="bk-option bk-hotel travel-card photo-place-card" data-pick-hotel="${i}:${esc(h.id)}" aria-pressed="${h.id === g.selected}">
@@ -606,7 +612,7 @@ const PAINT = {
          ${h.role ? `<span class="bk-badges"><span class="flight-badge badge-${h.role === 'value' ? 'recommended' : h.role === 'budget' ? 'cheapest' : 'value'}">${t(`build.hotels.role.${h.role}`)}</span></span>` : ''}
          ${h.address ? `<small>${esc(h.address)}</small>` : ''}
          <span class="bk-tags">${h.board ? `<span class="pill">${t(`build.board.${h.board}`)}</span>` : ''}${h.areaMatch ? `<span class="pill">${t('build.hotels.inArea')}</span>` : ''}${h.family ? `<span class="pill">${t('build.hotels.family')}</span>` : ''}${h.refundable === false ? `<span class="pill pill-warn">${t('build.hotels.nonRefundable')}</span>` : ''}</span></span>
-        <span class="bk-option-price"><strong dir="ltr">${esc(fare(h.price))}</strong><small>${t('build.hotels.forStay', { nights: h.nights })}</small>${h.nights > 1 ? `<small><bdi dir="ltr">${esc(fare({ value: h.price.value / h.nights, currency: h.price.currency }))}</bdi> ${t('build.hotels.perNight')}</small>` : ''}${h.id === g.selected ? `<small class="bk-option-chosen">${icon('check')}${t('build.where.chosen')}</small>` : ''}</span></span></button></li>`).join('')}</ul>
+        <span class="bk-option-price"><strong dir="ltr">${esc(fare(h.price))}</strong><small>${t('build.hotels.forStay', { nights: h.nights })}</small>${h.nights > 1 ? `<small><bdi dir="ltr">${esc(fare({ value: h.price.value / h.nights, currency: h.price.currency }))}</bdi> ${t('build.hotels.perNight')}</small>` : ''}${h.id === g.selected ? `<small class="bk-option-chosen">${icon('check')}${t('build.where.chosen')}</small>` : ''}</span></span></button>${nearbyLink('hotels', h.address || h.name, stop?.name?.en || L(stop?.name))}</li>`).join('')}</ul>
        ${g.picks.length > 3 ? `<button type="button" class="link-button" data-more-hotels="${i}" aria-expanded="${showAllHotels.has(i)}">${showAllHotels.has(i) ? t('build.hotels.less') : t('build.hotels.more', { count: g.picks.length })}</button>` : ''}
        <p class="micro-copy">${t('build.hotels.note')}</p>`;
     }).join('<hr>');
@@ -723,14 +729,16 @@ function attractionsHtml() {
   const shown = showAllAttractions ? list : list.slice(0, 6), multi = new Set(list.map((a) => a.dest)).size > 1;
   return `<h3 id="bh-attractions">${icon('pin')}${t('build.att.title', { place: esc((pkg.stops?.length ? [...new Set(pkg.stops.map((s) => L(s.name)))] : [L(pkg.destination.name)]).join(', ')) })}</h3>
    <p class="micro-copy">${t('build.att.intro')}</p>
-   <ul class="bk-attractions">${shown.map((a) => { const k = list.indexOf(a), img = imageOf(a), info = infoOf(a); return `<li class="bk-att photo-place-card${a.must ? ' bk-att-must' : ''}">
-    <div class="photo-place-frame"><div class="bk-att-img">${img ? `<img src="${esc(img)}" alt="" loading="lazy" data-fallback>` : `<span class="bk-att-ph" aria-hidden="true">${icon('pin')}</span>`}${a.must ? `<span class="bk-att-badge">${t('build.att.must')}</span>` : ''}</div>
+   <ul class="bk-attractions">${shown.map((a) => { const k = list.indexOf(a), img = imageOf(a), info = infoOf(a), photo = brochureData?.images?.[`${a.dest}|${a.en}`]; return `<li class="bk-att photo-place-card${a.must ? ' bk-att-must' : ''}">
+    <div class="photo-place-frame"><div class="bk-att-img">${img ? `<img src="${esc(img)}" alt="" loading="lazy" data-fallback>` : ''}<span class="bk-att-ph" aria-hidden="true">${icon('pin')}</span>${a.must ? `<span class="bk-att-badge">${t('build.att.must')}</span>` : ''}</div>
     <h4 class="photo-place-caption"><a href="${esc(a.mapsUrl)}" target="_blank" rel="noopener noreferrer">${esc(a.name)}</a></h4></div>
     <div class="bk-att-body">
      <p class="bk-att-meta">${metaLine(a)}${multi ? ` · ${esc(a.where)}` : ''}</p>
      ${info?.about ? `<p class="bk-att-about">${esc(L(info.about))}</p>` : ''}
      <p class="bk-att-tags">${ticketText(a)}${a.tags.map((x) => `<span class="pill">${esc(t(`build.att.tag.${x}`))}</span>`).join('')}${a.offSeason ? `<span class="pill pill-warn">${t('build.att.offSeason')}</span>` : ''}</p>
-     ${a.day ? `<p class="bk-att-in">${icon('calendar')}${t('build.att.inPlan', { day: a.day })}</p>` : `<button type="button" class="button secondary" data-add-att="${k}">${t('build.att.add')}</button>`}</div></li>`; }).join('')}</ul>
+     ${a.day ? `<p class="bk-att-in">${icon('calendar')}${t('build.att.inPlan', { day: a.day })}</p>` : `<button type="button" class="button secondary" data-add-att="${k}">${t('build.att.add')}</button>`}
+     ${nearbyLink('attractions', a.area && !a.area.startsWith('#') ? a.area : a.name, a.where)}
+     ${photo?.credit ? `<small class="attr-credit">${t('catalog.dest.attrPhoto', { credit: `<bdi>${esc(photo.credit)}</bdi>`, license: photo.source ? `<a href="${esc(photo.source)}" target="_blank" rel="noopener noreferrer">${esc(photo.license)}</a>` : esc(photo.license) })}</small>` : ''}</div></li>`; }).join('')}</ul>
    ${list.length > 6 ? `<button type="button" class="link-button" data-more-att aria-expanded="${showAllAttractions}">${showAllAttractions ? t('build.att.less') : t('build.att.more', { count: list.length })}</button>` : ''}`;
 }
 

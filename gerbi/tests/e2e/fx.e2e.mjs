@@ -1,4 +1,5 @@
-// Spec 13 browser check: ₪ prices, original currency, sort, compare, converter, saved flights, and the no-rate fallback.
+// Supplier currency prices, shekel estimates, sort, compare, converter, saved flights, and the no-rate fallback.
+import assert from 'node:assert/strict';
 // Run from gerbi/: PLAYWRIGHT_MODULE=… BASE_URL=http://localhost:4181 W=375 [NOFX=1] [LIVE=1] node tests/e2e/fx.e2e.mjs
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const OUT = process.env.OUT || 'verification/13-pricing', base = process.env.BASE_URL || 'http://localhost:4173';
@@ -16,7 +17,13 @@ const fixture = { srk: 'fx', tokens: { searchResults: 'fx' }, offers: [mk(1, 812
     flightSegmentList: [1, 2, 3, 4].flatMap(i => [seg('s' + i + 'a', 'TLV', 'LHR', '2027-06-10', '0' + (5 + i) + ':00', '1' + i + ':00', carriers[i - 1]), seg('s' + i + 'b', 'LHR', 'TLV', '2027-06-15', '1' + i + ':00', '2' + i + ':00', carriers[i - 1])]) } };
 const deal = (destination, value, currency, carrier, stops) => ({ origin: 'TLV', destination, depart: '2026-11-29', back: '2026-12-03', price: { value, currency }, carrier, stops, airports: [] });
 if (!LIVE) await context.route('**/api/deals', r => r.fulfill({ json: { deals: [deal('ATH', 142.5, 'USD', 'Aegean', 0), deal('LON', 219, 'USD', 'Wizz Air', 0), deal('PAR', 199, 'EUR', 'Transavia', 0), deal('LCA', 89, 'USD', 'Tus Airways', 0)], updatedAt: new Date(Date.now() - 2 * 3600e3).toISOString(), stale: false, refreshing: false } }));
-if (!LIVE) { await context.route('**/api/volero/flights/search', r => r.fulfill({ json: { data: fixture } })); await context.route('**/api/volero/flights/availability', r => r.fulfill({ json: { data: { pricedOffer: fixture.offers[0] } } })); }
+let releaseSearch;
+if (!LIVE) {
+  const pending = new Promise((resolve) => { releaseSearch = resolve; });
+  await context.route('**/api/volero/flights/search', async (r) => { await pending; await r.fulfill({ json: { data: fixture } }); });
+  await context.route('**/api/volero/flights/availability', r => r.fulfill({ json: { data: { ...fixture, pricedOffer: fixture.offers[0] } } }));
+  if (process.env.NOFX !== '1') await context.route('**/api/fx', r => r.fulfill({ json: { ok: true, rates: { USD: 3.4, EUR: 3.7 }, method: 'bank-transfer-sale', asOf: '2026-11-25' } }));
+}
 if (process.env.NOFX === '1') await context.route('**/api/fx', r => r.fulfill({ status: 200, json: { ok: false, error: 'fx_unavailable', rates: null } }));
 const tag = `${process.env.NOFX === '1' ? 'nofx-' : ''}${LIVE ? 'live-' : ''}${W}`;
 await page.goto(base + '/#/');
@@ -26,7 +33,20 @@ const deals = await page.locator('#fare-deals').isVisible(); log('deals visible'
 if (deals) { log('deal 1:', (await page.locator('.fare-deal').first().innerText()).replace(/\n+/g, ' / ')); log('deals head:', await page.locator('.fare-deals-head p').innerText()); await page.locator('#fare-deals').scrollIntoViewIfNeeded(); await page.screenshot({ path: `${OUT}/deals-${tag}.png` }); }
 await page.locator('#destination').fill('לונדון'); await page.keyboard.press('Escape');
 await page.locator('#dates-button').click(); await page.locator('#start-date').fill('2027-06-10'); await page.locator('#end-date').fill('2027-06-15'); await page.locator('#date-form button').click();
-await page.locator('.search-submit').click(); await page.waitForSelector('#live-results .flight-card', { timeout: 90000 });
+await page.locator('.search-submit').click();
+if (!LIVE) {
+  try { assert.match(await page.locator('.flight-loader-title').innerText(), /במערכות שלנו/); }
+  finally { releaseSearch(); }
+}
+await page.waitForSelector('#live-results .flight-card', { timeout: 90000 });
+if (!LIVE) {
+  const dollar = page.locator('[data-offer-card="1"] .flight-price');
+  const euro = page.locator('[data-offer-card="2"] .flight-price');
+  assert.match(await dollar.locator('strong').first().innerText(), /\$/);
+  assert.match(await euro.locator('strong').first().innerText(), /€/);
+  if (process.env.NOFX === '1') assert.equal(await dollar.locator('.fare-original').count(), 0);
+  else assert.match(await dollar.locator('.fare-original').innerText(), /₪.*הסכום הסופי נקבע בתשלום/s);
+}
 await page.waitForTimeout(800);
 log('status:', await page.locator('#live-results [role=status]').first().innerText());
 log('fx line:', await page.locator('.fx-line').innerText().catch(() => '-'));
@@ -46,7 +66,9 @@ log('converter modal:', (await page.locator('#modal .fx-result').innerText()).re
 await page.screenshot({ path: `${OUT}/converter-modal-${tag}.png` }); await page.locator('#modal .modal-close').click();
 if (!LIVE || process.env.VERIFY === '1') {
   await page.locator('.flight-card').first().locator('[data-volero-offer]').click(); await page.waitForSelector('[data-save-flight]', { timeout: 60000 });
-  log('verify modal price:', (await page.locator('.verified-price').innerText()).replace(/\n+/g, ' / '));
+  const verified = page.locator('.bp-price');
+  if (!LIVE) assert.match(await verified.locator('strong').innerText(), /\$/);
+  log('verify modal price:', (await verified.innerText()).replace(/\n+/g, ' / '));
   await page.screenshot({ path: `${OUT}/verify-${tag}.png` });
   await page.locator('[data-save-flight]').click(); await page.locator('#save-flight-status a[href="#/account"]').click(); await page.waitForSelector('.saved-flight');
   log('saved:', (await page.locator('.saved-flight').first().innerText()).replace(/\n+/g, ' / ').slice(0, 400));

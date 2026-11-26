@@ -2,7 +2,7 @@
 // Renders only when there is something to show; on any failure the strip simply stays hidden.
 import { placeByCode } from './places.mjs';
 import { formatFare, carrierName } from './flight-view.mjs';
-import { fxSettled, onFx, getFx, fxNote, originalHtml } from './fx.mjs';
+import { fxSettled, onFx, getFx, fxNote, ilsEstimateHtml } from './fx.mjs';
 import { t, locale, lang } from './i18n.mjs';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -19,7 +19,7 @@ export function dealCard(deal, i) {
     + `<span class="fare-route"><strong>${esc(name)}</strong><b class="fare-codes"><span dir="ltr">TLV</span> ${lang === 'en' ? '⇄' : '⇆'} <span dir="ltr">${esc(deal.destination)}</span></b></span>`
     + `<span class="fare-dates">${esc(short(deal.depart))}–${esc(short(deal.back))} · ${t('search.nights', { count: nights(deal.depart, deal.back) })}</span>`
     + `<span class="fare-meta">${[stops, carrierName(deal.carrier)].filter(Boolean).map(esc).join(' · ')}</span>`
-    + `<span class="fare-price"><small>${t('search.deals.from')}</small><strong dir="ltr">${esc(formatFare(deal.price))}</strong>${originalHtml(deal.price)}<small>${t('search.deals.perTraveler')}</small></span></button></li>`;
+    + `<span class="fare-price"><small>${t('search.deals.from')}</small><strong dir="ltr">${esc(formatFare(deal.price))}</strong>${ilsEstimateHtml(deal.price)}<small>${t('search.deals.perTraveler')}</small></span></button></li>`;
 }
 
 export async function initDealsStrip({ after, onPick, today, fetcher = fetch, retryMs = 30000 }) {
@@ -27,7 +27,7 @@ export async function initDealsStrip({ after, onPick, today, fetcher = fetch, re
   section.id = 'fare-deals'; section.className = 'fare-deals page-width'; section.hidden = true; section.setAttribute('aria-labelledby', 'fare-deals-title');
   after.after(section);
   let deals = [], data = null;
-  // Shown in shekels when the rates arrive within a moment; re-rendered if they arrive later.
+  // The shekel estimate is added when rates arrive.
   onFx(() => { if (deals.length) render(); });
   function render() {
     section.innerHTML = `<div class="fare-deals-head"><h2 id="fare-deals-title">${t('search.deals.title')}</h2>`

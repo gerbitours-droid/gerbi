@@ -61,6 +61,55 @@ try {
   await page.locator('.bk-reply').filter({ hasText: updated.request.start }).waitFor();
   await page.waitForFunction(() => document.querySelector('#build-follow-text').value === '');
   console.log('PASS: January updates the result and both supplier searches, travellers fit at 320–1024px');
+
+  const overviewResponse = planResponse();
+  const route = 'חופשה זוגית בסיציליה, 7 לילות בתקציב של 4800 שקל';
+  await page.goto(base + '/#/build?dest=sicily&q=' + encodeURIComponent(route));
+  const overviewPlan = await (await overviewResponse).json();
+  assert.ok(overviewPlan.stops.length > 1, 'the overview covers a multi-stop title');
+  const overview = page.locator('.bk-overview');
+  await overview.locator('.bk-summary h2').waitFor();
+  await overview.locator('.bk-hero-img').evaluate((img) => img.decode());
+  for (const [width, stacked] of [[320, true], [632, true], [768, true], [900, false], [1280, false]]) {
+    await page.setViewportSize({ width, height: 880 });
+    const layout = await overview.evaluate((root) => {
+      const box = (selector) => root.querySelector(selector).getBoundingClientRect();
+      const card = box('.bk-summary'), photo = box('.bk-hero-img'), body = box('.bk-summary-body');
+      const buttonsFit = [...root.querySelectorAll('.bk-jumps button')].every((button) => button.scrollWidth <= button.clientWidth + 1);
+      return {
+        stacked: photo.bottom <= body.top + 1,
+        fullHeight: photo.width >= card.width / 4 && Math.abs(photo.height - body.height) <= 1,
+        inside: card.left >= 0 && card.right <= innerWidth && buttonsFit && document.documentElement.scrollWidth <= innerWidth + 1,
+      };
+    });
+    assert.equal(layout.stacked, stacked, `${width}px: overview layout`);
+    assert.ok(stacked || layout.fullHeight, `${width}px: side photo covers the full card height`);
+    assert.ok(layout.inside, `${width}px: overview and shortcuts fit`);
+  }
+  const coverRequest = new URL(overviewPlan.destination.image, base).href;
+  await page.route(coverRequest, (request) => request.abort());
+  await page.reload();
+  await overview.locator('.bk-summary-media').waitFor({ state: 'attached' });
+  await overview.locator('.bk-summary-media').waitFor({ state: 'hidden' });
+  const fallbackFillsCard = await overview.locator('.bk-summary').evaluate((card) =>
+    Math.abs(card.querySelector('.bk-summary-body').clientWidth - card.clientWidth) <= 1);
+  assert.ok(fallbackFillsCard, 'a failed photo leaves the content at full width');
+  console.log('PASS: multi-stop overview fits at 320, 632, 768, 900 and 1280px, including a missing photo');
+
+  const hotel = { id: 'ath-test', name: 'Hotel Test', address: '12 Ermou Street', price: { value: 310, currency: 'EUR' }, nights: 5 };
+  await page.route('**/api/build/hotels', (r) => r.fulfill({ json: { status: 'live', total: 1, picks: [hotel] } }));
+  await page.goto(base + '/#/build?dest=athens&q=' + encodeURIComponent('זוג, 5 לילות באתונה'));
+  const nearbyHotel = page.locator('#bc-hotels .bk-nearby').first();
+  const mapQuery = async (link) => new URL(await link.getAttribute('href')).searchParams.get('query');
+  assert.match(await mapQuery(nearbyHotel), /hotels.*12 Ermou Street.*Athens/i);
+  const market = page.locator('.bk-att').filter({ hasText: 'שוק הפשפשים במונסטירקי' });
+  await page.locator('.bk-attractions').waitFor();
+  if (!await market.count()) await page.locator('[data-more-att]').click();
+  assert.match(await mapQuery(market.locator('.bk-nearby')), /tourist attractions.*Monastiraki/i);
+  const marketPhoto = market.locator('img[src$="/monastiraki-flea-market.webp"]');
+  await marketPhoto.scrollIntoViewIfNeeded();
+  assert.ok(await marketPhoto.evaluate(async (img) => { await img.decode(); return img.naturalWidth > 0; }));
+  console.log('PASS: hotel and attraction area searches, and the Monastiraki photo');
 } finally {
   await browser.close();
 }

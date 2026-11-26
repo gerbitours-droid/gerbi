@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { parseLeumi, parseBoi, markupFrom, refreshMsFrom, providers, createFx, publicRates, validateOverride, handleFx, DEFAULT_MARKUP_PCT } from '../backend/fx-rates.mjs';
 import { createStore } from '../backend/kv-store.mjs';
-import { setFx, resetFx, toIls, formatIls, priceBasis, fxNote, originalHtml, fareText, getFx, loadFx } from '../dist/fx.mjs';
+import { setFx, resetFx, toIls, formatIls, priceBasis, fxNote, ilsEstimateHtml, fareText, getFx, loadFx } from '../dist/fx.mjs';
 import { formatFare, sortFacts } from '../dist/flight-view.mjs';
 import { parseAmount, convertAmount, formatAgorot } from '../dist/converter.mjs';
 
@@ -201,23 +201,24 @@ test('PUT /api/fx/override: 404 without a token configured, 401 on a wrong token
 
 const FX = { ok: true, rates: { USD: 3.2356, EUR: 3.5773 }, asOf: '2026-11-13', method: 'bank-transfer-sale', stale: false };
 
-test('client: shekels first, rounded to whole shekels, Hebrew grouping, supplier currency without rates', () => {
+test('client: supplier currency first, secondary shekel estimate and Hebrew grouping', () => {
   const usd = { value: 1234.56, currency: 'USD' };
   assert.equal(toIls(usd), null);
   assert.equal(formatFare(usd), new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(1234.56));
-  assert.equal(originalHtml(usd), '');
+  assert.equal(ilsEstimateHtml(usd), '');
   setFx(FX);
-  assert.equal(formatFare(usd), '₪3,995');
+  assert.equal(formatFare(usd), new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(1234.56));
+  assert.match(formatFare({ value: 120, currency: 'EUR' }), /€/);
   assert.equal(formatIls(999.5), '₪1,000');
   assert.equal(formatIls(-12), '-₪12');
   assert.equal(formatFare({ value: 2000, currency: 'ILS' }), '₪2,000');
   assert.equal(formatFare({ value: 10, currency: 'GBP' }).includes('₪'), false, 'no rate → original');
   assert.deepEqual(priceBasis(usd), { value: 3995, currency: 'ILS' });
-  assert.match(originalHtml(usd), /במקור/);
-  assert.match(originalHtml(usd), /1,234\.56/);
-  assert.equal(originalHtml({ value: 5, currency: 'ILS' }), '');
+  assert.match(ilsEstimateHtml(usd), /הסכום הסופי נקבע בתשלום/);
+  assert.match(ilsEstimateHtml(usd), /₪3,995/);
+  assert.equal(ilsEstimateHtml({ value: 5, currency: 'ILS' }), '');
   assert.equal(fxNote(), 'לפי שער העברות והמחאות – מכירה, נכון ל־13.11.2026');
-  assert.match(fareText(usd), /^₪3,995 \(במקור .*1,234\.56.*לפי שער העברות והמחאות – מכירה/);
+  assert.match(fareText(usd), /1,234\.56.*כ־₪3,995, לפי שער העברות והמחאות – מכירה/);
   setFx({ ...FX, method: 'representative-plus-markup', markupPct: 1.2, stale: true });
   assert.equal(fxNote(), 'לפי הערכת שער העברות והמחאות – מכירה (יציג + 1.2%), נכון ל־13.11.2026 · ייתכן שהשער התעדכן');
   setFx({ ok: false, rates: null });

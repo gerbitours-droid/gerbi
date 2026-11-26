@@ -8,7 +8,7 @@ const { travelersText } = await import('../dist/search-form.mjs');
 const { validateLegs, gapText, legName, routeText } = await import('../dist/multi-city-core.mjs');
 const { detectLegs } = await import('../dist/multi-city-brief.mjs');
 const { dealCard } = await import('../dist/deals-strip.mjs');
-const { setFx, resetFx, fxNote, fareText, originalHtml, formatIls } = await import('../dist/fx.mjs');
+const { setFx, resetFx, fxNote, fareText, ilsEstimateHtml, formatIls } = await import('../dist/fx.mjs');
 const { parseAmount, converterHtml, MAIN_CURRENCIES, formatAgorot } = await import('../dist/converter.mjs');
 const HEBREW = /[֐-׿]/;
 const today = '2026-11-15';
@@ -54,8 +54,8 @@ test('deals strip card is English', () => {
 test('FX notes and fare text are English with en-GB dates', () => {
   setFx({ ok: true, asOf: '2026-11-13', method: 'leumi', rates: { USD: 3.7 } });
   assert.equal(fxNote(), 'at the bank transfer selling rate, as of 13 Nov 2026');
-  assert.equal(fareText({ value: 100, currency: 'USD' }), '₪370 (originally US$100.00, at the bank transfer selling rate, as of 13 Nov 2026)');
-  assert.ok(!HEBREW.test(originalHtml({ value: 100, currency: 'USD' })));
+  assert.equal(fareText({ value: 100, currency: 'USD' }), 'US$100.00 (approx. ₪370, at the bank transfer selling rate, as of 13 Nov 2026)');
+  assert.ok(!HEBREW.test(ilsEstimateHtml({ value: 100, currency: 'USD' })));
   assert.equal(formatIls(1234), '₪1,234');
   resetFx();
 });

@@ -11,7 +11,7 @@ import { SAVED_FLIGHTS_KEY, flightSnapshot, restoreSavedFlights, addSavedFlight,
 import { initPages } from './pages.mjs';
 import { leadRoutes, installResultsCta } from './leads.mjs';
 import { initSiteContent, cmsRoutes } from './cms-public.mjs';
-import { loadFx, onFx, getFx, fxNote, originalHtml, priceBasis, fareText } from './fx.mjs';
+import { loadFx, onFx, getFx, fxNote, ilsEstimateHtml, priceBasis, fareText } from './fx.mjs';
 import { converterRoutes, converterHtml, wireConverter } from './converter.mjs';
 import { legalRoutes } from './legal.mjs';
 import { buildRoutes } from './build.mjs';
@@ -219,7 +219,7 @@ function legMarkup(offer,payload){return legMarkupOf(offerFacts(offer,payload),'
 function openPass({ctx,legs,status,price,old,booking,route,fare}){
  const busy=status==='checking',title=busy?tr('app.pass.checking'):status==='changed'?tr('app.offer.changed'):tr('app.offer.checked');
  const stub=busy?`<div class="bp-price bp-shimmer"><small>${tr('app.pass.searchPrice')}</small><strong dir="ltr">${escapeHTML(price?formatFare(price):'')}</strong></div>${routeLoader({...route,kind:'check'})}<p class="bp-wait">${tr('app.pass.wait')}</p>`
-  :`<div class="bp-price"><small>${tr('app.offer.priceFor', { count: ctx.travelers })}</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${originalHtml(price)}${old?`<span class="bp-was">${tr('app.offer.was', { price: escapeHTML(formatFare(old)) })}</span>`:''}</div>
+  :`<div class="bp-price"><small>${tr('app.offer.priceFor', { count: ctx.travelers })}</small><strong dir="ltr">${escapeHTML(formatFare(price))}</strong>${ilsEstimateHtml(price)}${old?`<span class="bp-was">${tr('app.offer.was', { price: escapeHTML(formatFare(old)) })}</span>`:''}</div>
    <p class="bp-time">${tr('app.offer.checkedNow', { time: escapeHTML(new Date().toLocaleString(locale(),{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'})) })}</p>
    <div class="bp-actions">${booking?.enabled?`<button class="button yellow" data-book-flight>${tr('booking.offer.book')}</button>`:''}<button class="button ${booking?.enabled?'secondary':'yellow'}" data-save-flight>${tr('app.offer.save')}</button><button class="button secondary" data-close-availability>${tr('app.offer.backToCompare')}</button></div>
    <p class="micro-copy" id="save-flight-status" role="status">${tr('app.offer.saveNote')}</p>`;
@@ -263,7 +263,7 @@ function fareSwitch(f,shown){
 }
 function flightCard(f,payload,scoredItem,badgeList=[],reasons=[]){
  const x=fareOf(f),key=payload?.srk+':'+x.index;
- return `<article class="flight-card travel-card" data-offer-card="${escapeHTML(f.index)}" data-itinerary="${escapeHTML(scoredItem?.key||'')}"><div class="flight-details"><div class="fc-head"><h3>${escapeHTML(f.carriers.join(' + ')||tr('app.carrier.none'))}</h3>${badgeList.length?`<p class="flight-badges">${badgeList.map(b=>`<span class="flight-badge badge-${b}">${BADGE_LABELS[b]}</span>`).join('')}</p>`:''}</div>${legRowsOf(f)}<ul class="bag-line" aria-label="${tr('app.card.facts')}">${fact(BAG[x.checked],'i-case')}${fact(TROLLEY[x.trolley],'i-case')}${fact(REFUND[x.refundable]||REFUND.unknown,'i-shield')}</ul>${reasons.length?`<details class="travel-card-why" data-detail="why:${escapeHTML(f.index)}" ${openDetails.has('why:'+f.index)?'open':''}><summary>${tr('app.card.whyToggle')}</summary><p class="why">${reasons.map(escapeHTML).join(' · ')}</p></details>`:''}${fareSwitch(f,x)}${legDetailsOf(x,f.index)}</div><div class="flight-price"><small>${searchContext.multi?tr('app.price.wholeRoute'):''}${tr('app.price.allTravelers',{count:searchContext.travelers})}</small><strong dir="ltr">${escapeHTML(formatFare(x.price))}</strong>${paxLine(x)}${originalHtml(x.price)}${(n=>n&&n<=FEW_SEATS?`<span class="seats-left">${n===1?tr('app.seats.one'):tr('app.seats.many',{count:n})}</span>`:'')(seatsLeft(x.offer))}<button class="yellow button" data-volero-offer="${escapeHTML(x.index)}"${tr('app.card.check')}${verifiedPrices.has(key)?verifiedStamp(verifiedPrices.get(key)):''}<label class="compare-check"><input type="checkbox" data-compare-offer="${escapeHTML(f.index)}" ${compareOffers.has(f.index)?'checked':''}>${tr('app.card.compare')}</div></article>`;
+ return `<article class="flight-card travel-card" data-offer-card="${escapeHTML(f.index)}" data-itinerary="${escapeHTML(scoredItem?.key||'')}"><div class="flight-details"><div class="fc-head"><h3>${escapeHTML(f.carriers.join(' + ')||tr('app.carrier.none'))}</h3>${badgeList.length?`<p class="flight-badges">${badgeList.map(b=>`<span class="flight-badge badge-${b}">${BADGE_LABELS[b]}</span>`).join('')}</p>`:''}</div>${legRowsOf(f)}<ul class="bag-line" aria-label="${tr('app.card.facts')}">${fact(BAG[x.checked],'i-case')}${fact(TROLLEY[x.trolley],'i-case')}${fact(REFUND[x.refundable]||REFUND.unknown,'i-shield')}</ul>${reasons.length?`<details class="travel-card-why" data-detail="why:${escapeHTML(f.index)}" ${openDetails.has('why:'+f.index)?'open':''}><summary>${tr('app.card.whyToggle')}</summary><p class="why">${reasons.map(escapeHTML).join(' · ')}</p></details>`:''}${fareSwitch(f,x)}${legDetailsOf(x,f.index)}</div><div class="flight-price"><small>${searchContext.multi?tr('app.price.wholeRoute'):''}${tr('app.price.allTravelers',{count:searchContext.travelers})}</small><strong dir="ltr">${escapeHTML(formatFare(x.price))}</strong>${paxLine(x)}${ilsEstimateHtml(x.price)}${(n=>n&&n<=FEW_SEATS?`<span class="seats-left">${n===1?tr('app.seats.one'):tr('app.seats.many',{count:n})}</span>`:'')(seatsLeft(x.offer))}<button class="yellow button" data-volero-offer="${escapeHTML(x.index)}"${tr('app.card.check')}${verifiedPrices.has(key)?verifiedStamp(verifiedPrices.get(key)):''}<label class="compare-check"><input type="checkbox" data-compare-offer="${escapeHTML(f.index)}" ${compareOffers.has(f.index)?'checked':''}>${tr('app.card.compare')}</div></article>`;
 }
 const filterLabels={stops:{'0':tr('app.stops.direct'),'1':tr('app.filter.upToOne')},bucket:Object.fromEntries(TIME_BUCKETS.map(([id,label,from,to])=>[id,`${label} (${String(from).padStart(2,'0')}–${String(to%24).padStart(2,'0')})`]))};
 function activeChips(){
@@ -307,7 +307,7 @@ function openFlightComparison(){
  const leg=(f,i)=>{const l=f.legs[i];if(!l?.segments.length)return tr('app.notGiven');const s=l.summary;return `${pair(escapeHTML(l.segments[0].departure?.time||''),escapeHTML(l.segments.at(-1).arrival?.time||''))}${s.dayOffset>0?` (+${s.dayOffset})`:''}<br><small>${escapeHTML(longDate(s.departDate))} · ${stopsText(s.stops)} · ${hoursText(l.minutes)}</small>`;};
  const row=(label,cell)=>`<tr><th scope="row">${label}</th>${list.map(f=>`<td>${cell(f)}</td>`).join('')}</tr>`;
  openModal(`<span class="dialog-kicker">${tr('app.compare.kicker', { count: searchContext.travelers })}</span>${tr('app.compare.title')}<div class="compare-table-wrap"><table class="flight-compare" style="--cols:${list.length}"><thead><tr><th scope="col">${tr('app.compare.topic')}</th>${list.map(f=>`<th scope="col">${escapeHTML(f.carriers.join(' + ')||tr('app.notGiven'))}</th>`).join('')}</tr></thead><tbody>
-  ${row(tr('app.compare.total'),f=>(b=>`<strong dir="ltr" class="${same&&b?.value===cheapest?'best':''}">${escapeHTML(formatFare(f.price))}</strong>${originalHtml(f.price)}${same&&b&&b.value>cheapest?`<small dir="ltr" class="fare-diff">+${escapeHTML(formatFare({value:b.value-cheapest,currency:b.currency}))}</small>`:''}`)(basis.get(f)))}
+  ${row(tr('app.compare.total'),f=>(b=>`<strong dir="ltr" class="${same&&b?.value===cheapest?'best':''}">${escapeHTML(formatFare(f.price))}</strong>${ilsEstimateHtml(f.price)}${same&&b&&b.value>cheapest?`<small dir="ltr" class="fare-diff">+${escapeHTML(formatFare({value:b.value-cheapest,currency:b.currency}))}</small>`:''}`)(basis.get(f)))}
   ${searchContext?.multi?Array.from({length:Math.max(...list.map(f=>f.legs.length))},(_,i)=>row(legName(i,true),f=>leg(f,i))).join(''):`${row(tr('app.leg.out'),f=>leg(f,0))}${list.some(f=>f.legs.length>1)?row(tr('app.leg.back'),f=>leg(f,1)):''}`}
   ${row(searchContext?.multi?tr('app.compare.timeAll'):list.some(f=>f.legs.length>1)?tr('app.compare.timeBoth'):tr('app.compare.time'),f=>`<span class="${f.totalMinutes===shortest?'best':''}">${hoursText(f.totalMinutes)}</span>`)}
   ${row(tr('app.compare.longest'),f=>f.longestLayover?hoursText(f.longestLayover)+(f.overnight?tr('app.layover.overnight'):''):tr('app.compare.none'))}
@@ -330,7 +330,7 @@ function renderVoleroOffers(payload){
  host.innerHTML=`<div class="live-heading"><div><span class="eyebrow">${tr('app.live.eyebrow')}</span><h2 tabindex="-1">${escapeHTML(searchContext?.destination||tr('app.live.title'))}</h2><p>${escapeHTML(searchContext?.dates||'')} · ${tr('app.live.travelers', { count: searchContext?.travelers||2 })} · ${searchContext?.multi?tr('app.live.multi', { count: searchContext.search.legs.length }):searchContext?.oneWay?tr('app.live.oneWay'):tr('app.live.round')}</p>${searchContext?.multi?groundGaps(searchContext.search.legs).map(g=>`<p class="micro-copy leg-gap">${escapeHTML(gapText(g))}</p>`).join(''):''}${(place=>place?.airports?`<p class="micro-copy">${tr('app.live.allAirports', { city: escapeHTML(lang==='en'?place.name:place.names[0]), airports: place.airports.join(', ') })}</p>`:'')(places.find(p=>p.code===searchContext?.destinationCode))}</div><div class="live-actions"><button type="button" class="button secondary" id="edit-flight-search">${tr('app.live.editShare')}</button>${searchContext?.fromPlanner?`<a class="button secondary" href="#/planner">${tr('app.search.backToPlanner')}</a>`:''}</div><label>${tr('app.sort.label')}<select id="flight-sort"><option value="recommended" ${flightSort==='recommended'?'selected':''}>${tr('app.sort.recommended')}</option><option value="supplier" ${flightSort==='supplier'?'selected':''}${tr('app.sort.supplier')}/option><option value="price" ${mixed?'disabled':''} ${flightSort==='price'?'selected':''}>${tr('app.sort.price')}</option><option value="duration" ${flightSort==='duration'?'selected':''}>${tr('app.sort.duration', { scope: searchContext?.multi?tr('app.sort.allFlights'):tr('app.sort.bothWays') })}</option></select></label></div>
  ${all.length?filterPanel(all):''}
  ${chips.length?`<div class="filter-chips">${chipMarkup(chips)}<button type="button" class="link-button" data-clear-filters>${tr('app.filter.reset')}</button></div>`:''}
- <p class="micro-copy" role="status">${chips.length?tr('app.live.countOf', { shown: visible.length, total: all.length }):tr('app.live.count', { count: all.length })}${tr('app.live.showing', { shown: Math.min(visible.length,visibleOfferCount), currency: getFx()?tr('app.live.inShekels'):tr('app.live.inSupplierCurrency') })}${mixed?tr('app.live.mixed'):''}</p><p class="fx-line micro-copy">${getFx()?escapeHTML(fxNote())+'. ':''}<button type="button" class="link-button" data-open-converter>${tr('app.fx.converter')}</button></p>
+ <p class="micro-copy" role="status">${chips.length?tr('app.live.countOf', { shown: visible.length, total: all.length }):tr('app.live.count', { count: all.length })}${tr('app.live.showing', { shown: Math.min(visible.length,visibleOfferCount), currency: tr('app.live.inSupplierCurrency') })}${mixed?tr('app.live.mixed'):''}</p><p class="fx-line micro-copy">${getFx()?escapeHTML(fxNote())+'. ':''}<button type="button" class="link-button" data-open-converter>${tr('app.fx.converter')}</button></p>
  ${flightSort==='recommended'&&leaders.length>1?flightTakeSlot():''}<div class="flight-list">${visible.length?visible.slice(0,visibleOfferCount).map(f=>flightCard(f,payload,byFacts.get(f),tags.get(byFacts.get(f)?.key)||[],why.get(f)||[])).join(''):all.length?`<div class="empty-panel">${tr('app.empty.filters')}<div class="filter-chips">${chipMarkup(chips)}</div></div>`:searchContext?.multi?tr('app.empty.multi'):tr('app.empty.flights')}</div>
  ${visible.length>visibleOfferCount?tr('app.live.more'):''}${compareTray()}`;
  if(focusKey)host.querySelector(focusKey)?.focus();
@@ -339,7 +339,7 @@ function renderVoleroOffers(payload){
  if(flightSort==='recommended'&&needsTieBreak(ranked))askTieBreak(payload,ranked);
 }
 const liveHost=$('#live-results');
-// Shekel rates load in the background (dist/fx.mjs); results already on screen switch to ₪ when they arrive.
+// Shekel rates load in the background (dist/fx.mjs); results add the secondary shekel estimate when rates arrive.
 loadFx();onFx(()=>{if(state.voleroResults&&!liveHost.hidden)renderVoleroOffers(state.voleroResults);});
 liveHost.addEventListener('toggle',e=>{const d=e.target;if(d.id==='flight-filters')filtersOpen=d.open;else if(d.dataset?.detail){if(d.open){openDetails.add(d.dataset.detail);if(d.classList.contains('flight-segments'))aiEvent('open',d.closest('[data-itinerary]')?.dataset.itinerary);}else openDetails.delete(d.dataset.detail);}},true);
 liveHost.addEventListener('change',e=>{
@@ -395,7 +395,7 @@ async function searchFlights({fromPlanner=false,filters:fromRequest=null}={}){
  button.disabled=true;button.setAttribute('aria-busy','true');button.textContent=tr('app.search.busy');
  const ods=request.originDestinations;
  feedback.innerHTML=`<div class="flight-search-loader">
-  <strong class="flight-loader-title">${tr('app.search.volero')}</strong>
+  <strong class="flight-loader-title">${tr('app.search.systems')}</strong>
   ${routeLoader({from:ods[0].origin.code,to:(isMulti()?ods.at(-1):ods[0]).destination.code,kind:'search'})}
   <div class="flight-loader-skeleton" aria-hidden="true"><div><i></i><i></i><i></i></div><div><i></i><i></i><i></i></div></div>
   <div class="flight-loader-footer">${tr('app.search.progress')}<button type="button" class="button secondary" id="cancel-flight-search">${tr('app.search.cancel')}</button></div>
@@ -444,10 +444,11 @@ document.addEventListener('click',async e=>{
   const fare=(factsOf(result).find(g=>g.fares?.some(x=>x.index===offerIndex))?.fares.length>1&&fareNames(selectedFacts).label)||'';
   openPass({ctx:offerContext,legs:searchLegs,status:'checking',price:offerPrice(selected),route:routeEnds(selectedFacts),fare});
   modal.addEventListener('close',()=>controller.abort(),{once:true});
+  const bookingReady=bookingConfig();
   try{
    const response=await fetch('/api/volero/flights/availability',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({srk:result.srk,offerIndex,searchToken:result.tokens.searchResults,input:{itineraryIndex:selected.flightsOverview?.[0]?.itineraryIndex??0}})});
    const data=await response.json();if(!response.ok)throw new Error(tr('app.offer.unverified'));
-   const booking=await bookingConfig();
+   const booking=await bookingReady;
    if(!currentOffer())return;
    const priced=data.data?.pricedOffer,price=offerPrice(priced),old=offerPrice(selected);
    if(!price)throw new Error(tr('app.offer.noPrice'));
@@ -504,7 +505,7 @@ const pages=initPages({routes:{...leadRoutes({contact}),...converterRoutes(),...
  getSavedFlights:()=>savedFlights,
  removeSavedFlight(id){return storeSavedFlights(savedFlights.filter(item=>item.id!==id));},
  flightFollowUp:flight=>({text:followUpText(flight,fareText),actions:contactActions(contact,followUpText(flight,fareText),tr('app.followUp.subject'))}),
- formatFare,fareOriginal:originalHtml,longDate,searchLinkOf:flight=>flight.route?multiLink({legs:flight.route,adults:flight.adults,children:flight.children}):searchLink({origin:flight.from,destination:flight.to,start:flight.start,end:flight.end,type:flight.end?'round':'oneway',adults:flight.adults,children:flight.children}),
+ formatFare,fareEstimate:ilsEstimateHtml,longDate,searchLinkOf:flight=>flight.route?multiLink({legs:flight.route,adults:flight.adults,children:flight.children}):searchLink({origin:flight.from,destination:flight.to,start:flight.start,end:flight.end,type:flight.end?'round':'oneway',adults:flight.adults,children:flight.children}),
  contactActions:message=>contactActions(contact,message),
  partnerAvailable:()=>partnerAvailable,
  today:()=>localDate(),

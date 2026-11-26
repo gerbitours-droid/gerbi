@@ -53,13 +53,11 @@ export function fxNote(fx = current) {
     : t('search.fx.rate', { when });
   return base + (fx.stale ? t('search.fx.stale') : '');
 }
-// Small secondary line under a converted price: the supplier's own amount. Empty when nothing was converted.
-export function originalHtml(price, fx = current) {
+export function ilsEstimateHtml(price, fx = current) {
   if (!converted(price, fx)) return '';
-  return `<small class="fare-original" title="${t('search.fx.originalTitle', { note: esc(fxNote(fx)) })}">${t('search.fx.original')} <span dir="ltr">${esc(formatOriginal(price))}</span></small>`;
+  return `<small class="fare-original" title="${esc(fxNote(fx))}">${t('search.fx.ilsEstimate', { amount: `<bdi dir="ltr">${esc(formatIls(toIls(price, fx)))}</bdi>` })}</small>`;
 }
 export const fxNoteHtml = (fx = current) => fx ? `<small class="fx-note">${esc(fxNote(fx))}</small>` : '';
-// Plain text for messages: "₪4,567 (במקור $1,234.56, לפי שער …)".
 export function fareText(price, fx = current) {
   if (!price) return t('search.fx.unavailable');
   if (!converted(price, fx)) return price.currency === 'ILS' ? formatIls(price.value) : formatOriginal(price);

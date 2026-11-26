@@ -1,17 +1,14 @@
-import { toIls, formatIls, priceBasis } from './fx.mjs';
-import { t, locale } from './i18n.mjs';
+import { formatIls, formatOriginal, priceBasis } from './fx.mjs';
+import { t } from './i18n.mjs';
 export function offerPrice(offer) {
   const price = offer?.fareDetails?.totalPrice?.selling;
   return price && typeof price.value === 'number' && Number.isFinite(price.value) && price.value >= 0 &&
     /^[A-Z]{3}$/.test(price.currency) ? {value:price.value,currency:price.currency} : null;
 }
-// Shekels first when a rate is loaded (dist/fx.mjs); the supplier's currency otherwise.
+// Display the supplier currency while keeping the comparable shekel basis separate.
 export function formatFare(price) {
   if (!price) return t('app.price.unavailable');
-  const ils = toIls(price);
-  if (ils !== null) return formatIls(ils);
-  try {return new Intl.NumberFormat(locale(),{style:'currency',currency:price.currency,maximumFractionDigits:2}).format(price.value);}
-  catch {return `${price.value.toFixed(2)} ${price.currency}`;}
+  return price.currency === 'ILS' ? formatIls(price.value) : formatOriginal(price);
 }
 // Volero segments: marketingCarrier/operatingCarrier = {airline:{code,name}, flightNumber}; times are local per airport.
 // Supplier airline names arrive in any case ("wizz", "EL AL"): known brands get their own spelling, other
